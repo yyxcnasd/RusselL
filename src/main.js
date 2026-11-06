@@ -408,7 +408,10 @@
       for (var i = 0; i < state.levels.length; i++) if (state.levels[i].id === state.lastId) { start = i; break; }
     }
     if (state.solved[state.levels[start].id]) {
-      for (var j = 0; j < state.levels.length; j++) if (!state.solved[state.levels[j].id]) { start = j; break; }
+      var next = -1;
+      for (var j = start + 1; j < state.levels.length; j++) if (!state.solved[state.levels[j].id]) { next = j; break; }
+      if (next < 0) for (var k = 0; k <= start; k++) if (!state.solved[state.levels[k].id]) { next = k; break; }
+      if (next >= 0) start = next;
     }
     loadLevel(start);
     window.RSL.APP = { state: state, loadLevel: loadLevel, refresh: refresh };

@@ -1,4 +1,4 @@
-﻿/* Build a bilibili Toy-compatible static folder: dist/. */
+/* Build a bilibili Toy-compatible static folder: dist/. */
 const fs = require('fs');
 const path = require('path');
 const root = path.resolve(__dirname, '..');
@@ -12,7 +12,7 @@ copy(path.join(root,'index.html'),'index.html');
 for(const f of RUNTIME_JS)copy(path.join(root,'src',f),'src/'+f);
 copy(path.join(root,'src','simple.css'),'src/simple.css');
 walk(path.join(root,'assets'),'assets');
-fs.writeFileSync(path.join(out,'.nojekyll'),'','utf8');
 fs.writeFileSync(path.join(out,'BUILD.md'),'# 公理板\n\nStatic build for bilibili Toy and GitHub Pages.\n\n- Open `index.html`; no server or network needed.\n- Upload the contents of this folder for Toy.\n- Game state saves to localStorage; no runtime network.\n','utf8');
-let count=0,bytes=0;(function audit(dir){for(const name of fs.readdirSync(dir)){const full=path.join(dir,name);if(fs.statSync(full).isDirectory())audit(full);else{const ext=path.extname(name).toLowerCase();if(!ALLOWED.has(ext)&&name!=='.nojekyll')throw new Error('Audit failed: '+full);count++;bytes+=fs.statSync(full).size}}})(out);
+let count=0,bytes=0;(function audit(dir){for(const name of fs.readdirSync(dir)){const full=path.join(dir,name);if(fs.statSync(full).isDirectory())audit(full);else{const ext=path.extname(name).toLowerCase();if(!ALLOWED.has(ext))throw new Error('Audit failed: '+full);count++;bytes+=fs.statSync(full).size}}})(out);
 console.log('dist ready:',count,'files,',(bytes/1024).toFixed(1),'KB');
+
