@@ -90,11 +90,9 @@ node tests/simple-ui.js
 
 ## GitHub Pages
 
-Pages 从 `main` 分支根目录发布：
-
 - `https://yyxcnasd.github.io/RusselL/`
-- `.nojekyll` 已加入，页面使用相对路径
-- 推送 `main` 后 GitHub Pages 会自动重建
+- `.github/workflows/pages.yml` 在每次推送 `main` 时运行 `node scripts/build-toy.js`，把 `dist/` 作为静态站点部署
+- 页面全部使用相对路径，运行时无后端。
 
 ## bilibili Toy
 
