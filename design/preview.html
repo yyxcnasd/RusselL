@@ -1,0 +1,1044 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0e0c">
+<title>公理板 / AXIOM BOARD — 视觉预览</title>
+<link rel="stylesheet" href="../src/styles.css">
+<style>
+  /* Preview-only presentation: on a phone the demo board becomes a vertical
+     read-only PCB so the whole proof fits. The real app keeps the canvas. */
+  .icon-sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+  @media (max-width: 640px) {
+    .board.is-stacked { overflow-x: hidden; overflow-y: auto; }
+    .board.is-stacked::after { display: none; }
+    .board.is-stacked .board-world {
+      position: relative;
+      inset: auto;
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      height: auto;
+      min-height: 100%;
+      padding: 10px 0;
+      transform: none !important;
+    }
+    .board.is-stacked .node-layer {
+      position: static;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+    }
+    .board.is-stacked .module {
+      position: relative !important;
+      top: auto !important;
+      left: auto !important;
+    }
+    .board.is-stacked .wire-layer {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+    .board.is-stacked .port-in {
+      top: -7px !important;
+      right: auto !important;
+      bottom: auto !important;
+      left: var(--port-x, 50%) !important;
+      transform: translateX(-50%) !important;
+    }
+    .board.is-stacked .port-out {
+      top: auto !important;
+      right: auto !important;
+      bottom: -7px !important;
+      left: 50% !important;
+      transform: translateX(-50%) !important;
+    }
+    .board.is-stacked .module-formula { min-height: 36px; }
+    .board.is-stacked .module-target { min-height: 132px; }
+    .board.is-stacked .target-pad { top: 38px; width: 48px; height: 48px; }
+    .board.is-stacked .target-pad svg { width: 38px; height: 38px; }
+    .board.is-stacked .board-tools [data-zoom],
+    .board-shell.is-stacked .board-tools [data-zoom],
+    .board.is-stacked .board-tools [data-fit],
+    .board-shell.is-stacked .board-tools [data-fit],
+    .board.is-stacked .zoom-readout,
+    .board-shell.is-stacked .zoom-readout { display: none !important; }
+  }
+</style>
+</head>
+<body>
+<svg class="icon-sprite" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-logo" viewBox="0 0 24 24">
+      <rect x="6" y="6" width="12" height="12" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/>
+      <rect x="9.5" y="9.5" width="5" height="5" fill="currentColor"/>
+      <path d="M9 6V3M15 6V3M9 21v-3M15 21v-3M6 9H3M6 15H3M21 9h-3M21 15h-3" fill="none" stroke="currentColor" stroke-width="1.2"/>
+    </symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3.5" y="3.5" width="7" height="7" rx="1"/><rect x="13.5" y="3.5" width="7" height="7" rx="1"/><rect x="3.5" y="13.5" width="7" height="7" rx="1"/><rect x="13.5" y="13.5" width="7" height="7" rx="1"/></symbol>
+    <symbol id="i-panel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3.5" y="3.5" width="17" height="17" rx="1.5"/><path d="M14.5 3.5v17"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .8-1 1.5v.3"/><path d="M12 16.6h.01"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 6.5"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M5 12h14"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-fit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5V5.5Z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="1.5"/><path d="M16 8V4.5A1.5 1.5 0 0 0 14.5 3h-10A1.5 1.5 0 0 0 3 4.5v10A1.5 1.5 0 0 0 4.5 16H8"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4.5h6V7M6.5 7l1 13h9l1-13M10 11v5M14 11v5"/></symbol>
+  </defs>
+</svg>
+
+<div class="app" id="app">
+  <h1 class="sr-only">公理板 · RU-02 代入 · 形式逻辑工作台</h1>
+
+  <!-- ================= topbar ================= -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"><svg width="20" height="20"><use href="#i-logo"/></svg></span>
+      <span class="brand-word">AXIOM BOARD</span>
+      <span class="brand-sub">RUSSELL · 形式逻辑工作台</span>
+    </div>
+
+    <div class="level-switch">
+      <button class="level-chip" type="button" aria-expanded="false" data-open-sheet="level" aria-label="打开关卡档案">
+        <span class="level-code">RU-02</span>
+        <span class="level-name">代入 · 公理替换</span>
+        <span class="level-caret" aria-hidden="true"><svg width="12" height="12"><use href="#i-chevron"/></svg></span>
+      </button>
+    </div>
+
+    <div class="target-strip" aria-label="本关目标式">
+      <span class="target-kicker">TARGET · 目标式</span>
+      <span class="formula" data-formula="(¬P∨¬P)→¬P" aria-label="左括号 非P 或 非P 右括号 蕴含 非P">(¬P∨¬P)→¬P</span>
+      <span class="target-state" data-state="open">待接通</span>
+    </div>
+
+    <div class="top-actions">
+      <button class="icon-btn parts-toggle" type="button" aria-label="打开元件库" data-drawer="parts" aria-expanded="false">
+        <svg width="16" height="16"><use href="#i-grid"/></svg>
+      </button>
+      <button class="icon-btn inspector-toggle" type="button" aria-label="打开检视器" data-drawer="side" aria-expanded="false">
+        <svg width="16" height="16"><use href="#i-panel"/></svg>
+      </button>
+      <button class="icon-btn" type="button" aria-label="公理手册" data-open-sheet="codex">
+        <svg width="16" height="16"><use href="#i-book"/></svg>
+      </button>
+      <button class="btn btn-primary" type="button" data-open-sheet="win">
+        <svg width="14" height="14"><use href="#i-check"/></svg>
+        校验
+      </button>
+    </div>
+  </header>
+
+  <!-- ================= workspace ================= -->
+  <div class="workspace">
+
+    <!-- ---- parts ---- -->
+    <aside class="parts-panel" id="partsPanel" aria-label="元件库">
+      <div class="panel-head">
+        <h2>元件库</h2>
+        <span class="panel-meta">PARTS · 10</span>
+        <button class="panel-close icon-btn" type="button" aria-label="关闭元件库" data-close-drawer>
+          <svg width="14" height="14"><use href="#i-close"/></svg>
+        </button>
+      </div>
+
+      <div class="parts-search">
+        <svg width="13" height="13" aria-hidden="true"><use href="#i-search"/></svg>
+        <input type="search" id="partsSearch" placeholder="搜索元件 · FIND PART" autocomplete="off" aria-label="搜索元件">
+      </div>
+
+      <div class="parts-tabs" role="tablist" aria-label="元件分组">
+        <button class="tab" type="button" role="tab" aria-selected="true" data-filter="all">全部</button>
+        <button class="tab" type="button" role="tab" aria-selected="false" data-filter="axiom">公理</button>
+        <button class="tab" type="button" role="tab" aria-selected="false" data-filter="transform">变换</button>
+        <button class="tab" type="button" role="tab" aria-selected="false" data-filter="archive">定理</button>
+      </div>
+
+      <div class="parts-list" id="partsList">
+        <button class="part-card" type="button" data-group="axiom" draggable="true">
+          <span class="part-icon part-icon--code" aria-hidden="true">A1</span>
+          <span class="part-text">
+            <span class="part-name">公理一 · 重言 <span class="part-tag">PRIM</span></span>
+            <span class="part-desc" data-formula="(P∨P)→P"></span>
+            <span class="part-ref">SCHEMA A1 · PM *1.2</span>
+          </span>
+        </button>
+        <button class="part-card" type="button" data-group="axiom" draggable="true">
+          <span class="part-icon part-icon--code" aria-hidden="true">A2</span>
+          <span class="part-text">
+            <span class="part-name">公理二 · 附加 <span class="part-tag">PRIM</span></span>
+            <span class="part-desc" data-formula="P→(P∨Q)"></span>
+            <span class="part-ref">SCHEMA A2 · PM *1.3</span>
+          </span>
+        </button>
+        <button class="part-card" type="button" data-group="axiom" draggable="true">
+          <span class="part-icon part-icon--code" aria-hidden="true">A3</span>
+          <span class="part-text">
+            <span class="part-name">公理三 · 交换 <span class="part-tag">PRIM</span></span>
+            <span class="part-desc" data-formula="(P∨Q)→(Q∨P)"></span>
+            <span class="part-ref">SCHEMA A3 · PM *1.4</span>
+          </span>
+        </button>
+        <button class="part-card" type="button" data-group="axiom" draggable="true">
+          <span class="part-icon part-icon--code" aria-hidden="true">A4</span>
+          <span class="part-text">
+            <span class="part-name">公理四 · 分配 <span class="part-tag">PRIM</span></span>
+            <span class="part-desc" data-formula="(Q→R)→((P∨Q)→(P∨R))"></span>
+            <span class="part-ref">SCHEMA A4 · PM *1.5</span>
+          </span>
+        </button>
+        <button class="part-card" type="button" data-group="transform" draggable="true">
+          <span class="part-icon part-icon--code" aria-hidden="true">SUB</span>
+          <span class="part-text">
+            <span class="part-name">代入 · 变元替换 <span class="part-tag">RULE</span></span>
+            <span class="part-desc" data-formula="P[¬P]"></span>
+            <span class="part-ref">RULE · SUBSTITUTION</span>
+          </span>
+        </button>
+        <button class="part-card" type="button" data-group="transform" draggable="true">
+          <span class="part-icon" aria-hidden="true">⊢</span>
+          <span class="part-text">
+            <span class="part-name">分离 · 蕴涵消去 <span class="part-tag">RULE</span></span>
+            <span class="part-desc" data-formula="A→B · A ⊢ B"></span>
+            <span class="part-ref">RULE · DETACHMENT</span>
+          </span>
+        </button>
+        <button class="part-card" type="button" data-group="transform" draggable="true">
+          <span class="part-icon" aria-hidden="true">≡</span>
+          <span class="part-text">
+            <span class="part-name">定义替换 · D1–D3 <span class="part-tag">RULE</span></span>
+            <span class="part-desc" data-formula="¬A∨B ≡ A→B"></span>
+            <span class="part-ref">RULE · DEFINITION</span>
+          </span>
+        </button>
+        <button class="part-card" type="button" data-group="transform" draggable="true">
+          <span class="part-icon" aria-hidden="true">¬</span>
+          <span class="part-text">
+            <span class="part-name">否定合成 · 公式 <span class="part-tag">SYNTH</span></span>
+            <span class="part-desc" data-formula="¬P"></span>
+            <span class="part-ref">SYNTH · FORMULA-NOT</span>
+          </span>
+        </button>
+        <button class="part-card" type="button" data-group="archive" draggable="true">
+          <span class="part-icon" aria-hidden="true">*</span>
+          <span class="part-text">
+            <span class="part-name">双重否定 <span class="part-tag">ARCHIVE</span></span>
+            <span class="part-desc" data-formula="¬¬P→P"></span>
+            <span class="part-ref">PM *2.14 · 引用定理</span>
+          </span>
+        </button>
+        <button class="part-card" type="button" data-group="archive" draggable="true">
+          <span class="part-icon" aria-hidden="true">*</span>
+          <span class="part-text">
+            <span class="part-name">合取消去 <span class="part-tag">ARCHIVE</span></span>
+            <span class="part-desc" data-formula="(P∧Q)→P"></span>
+            <span class="part-ref">PM *3.26 · 引用定理</span>
+          </span>
+        </button>
+      </div>
+
+      <div class="parts-foot">
+        <span>拖入画布 · DRAG</span>
+        <b>10 / 193</b>
+      </div>
+    </aside>
+
+    <!-- ---- board ---- -->
+    <main class="board-shell" aria-label="证明画布">
+      <div class="board-toolbar">
+        <span class="board-label">CANVAS · RU-02 <b>代入</b></span>
+        <div class="board-modes" role="group" aria-label="画布工具">
+          <button class="board-tool" type="button" aria-pressed="true">选择</button>
+          <button class="board-tool" type="button" aria-pressed="false">布线</button>
+          <button class="board-tool" type="button" aria-pressed="false">平移</button>
+        </div>
+        <div class="board-tools">
+          <span class="zoom-readout" id="zoomReadout">100%</span>
+          <button class="icon-btn" type="button" aria-label="缩小" data-zoom="out">
+            <svg width="14" height="14"><use href="#i-minus"/></svg>
+          </button>
+          <button class="icon-btn" type="button" aria-label="放大" data-zoom="in">
+            <svg width="14" height="14"><use href="#i-plus"/></svg>
+          </button>
+          <span class="sep" aria-hidden="true"></span>
+          <button class="icon-btn" type="button" aria-label="适应画布" data-fit>
+            <svg width="14" height="14"><use href="#i-fit"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="board" id="board">
+        <div class="board-world" id="boardWorld">
+          <svg class="wire-layer" id="wireLayer" width="700" height="700" viewBox="0 0 700 700" aria-hidden="true">
+            <path class="wire" d="M297 104 H353"/>
+            <path class="wire" d="M297 296 H353"/>
+            <path class="wire" d="M621 296 H632 L640 288 V177 L632 169 H495 L487 161 V157"/>
+            <path class="wire" d="M621 104 H664 L672 112 V480 L664 488 H483 L475 496 V501"/>
+            <circle class="wire-pad" cx="672" cy="300" r="3.2"/>
+            <circle class="wire-pad" cx="640" cy="230" r="3.2"/>
+            <text class="wire-label" x="686" y="304" transform="rotate(90 686 304)">NET 04 · PROOF</text>
+          </svg>
+
+          <div class="node-layer" id="nodeLayer">
+            <!-- U01 -->
+            <article class="module" data-ref="U01" data-state="valid" data-kind="AXIOM · A1" style="left:28px;top:28px">
+              <div class="module-head">
+                <span class="module-ref">U01</span>
+                <span class="module-kind">AXIOM · A1</span>
+                <span class="module-status">已验证</span>
+              </div>
+              <div class="module-title">公理接入 <span class="module-sub">PRIMITIVE</span></div>
+              <div class="module-formula"><span class="formula" data-formula="(P∨P)→P"></span></div>
+              <div class="module-meta"><span>SCHEMA · PM *1.2</span><span>OUT ×1</span></div>
+              <div class="port port-out" style="top:68px" aria-hidden="true"></div>
+            </article>
+
+            <!-- U02 -->
+            <article class="module" data-ref="U02" data-state="valid" data-kind="ATOM · P" style="left:28px;top:220px">
+              <div class="module-head">
+                <span class="module-ref">U02</span>
+                <span class="module-kind">ATOM · P</span>
+                <span class="module-status">已验证</span>
+              </div>
+              <div class="module-title">原子命题 <span class="module-sub">SOURCE</span></div>
+              <div class="module-formula"><span class="formula" data-formula="P"></span></div>
+              <div class="module-meta"><span>ATOM · P</span><span>OUT ×1</span></div>
+              <div class="port port-out" style="top:68px" aria-hidden="true"></div>
+            </article>
+
+            <!-- U03 selected -->
+            <article class="module" data-ref="U03" data-state="valid" data-kind="FORMULA-NOT" data-selected="true" style="left:352px;top:220px">
+              <div class="module-head">
+                <span class="module-ref">U03</span>
+                <span class="module-kind">FORMULA-NOT</span>
+                <span class="module-status">已验证</span>
+              </div>
+              <div class="module-title">否定合成 <span class="module-sub">SYNTH</span></div>
+              <div class="module-formula"><span class="formula" data-formula="¬P"></span></div>
+              <div class="module-meta"><span>IN 1 · OUT 1</span><span>NET · 03</span></div>
+              <div class="port port-in" style="top:68px" aria-hidden="true"></div>
+              <div class="port port-out" style="top:68px" aria-hidden="true"></div>
+            </article>
+
+            <!-- U04 -->
+            <article class="module" data-ref="U04" data-state="valid" data-kind="SUBSTITUTION" style="left:352px;top:28px">
+              <div class="module-head">
+                <span class="module-ref">U04</span>
+                <span class="module-kind">SUBSTITUTION</span>
+                <span class="module-status">已验证</span>
+              </div>
+              <div class="module-title">变元代入 <span class="module-sub">P → ¬P</span></div>
+              <div class="module-formula"><span class="formula" data-formula="(¬P∨¬P)→¬P"></span></div>
+              <div class="module-meta"><span>IN 2 · OUT 1</span><span>RULE · SUB</span></div>
+              <div class="port port-in" style="top:68px;--port-x:35%" aria-hidden="true"></div>
+              <div class="port port-in port-bottom" style="--port-x:65%" aria-hidden="true"></div>
+              <div class="port port-out" style="top:68px" aria-hidden="true"></div>
+            </article>
+
+            <!-- target -->
+            <article class="module module-target" data-ref="TGT" data-state="idle" data-kind="TARGET · SINK" style="left:340px;top:500px">
+              <div class="module-head">
+                <span class="module-ref">TGT</span>
+                <span class="module-kind">TARGET · 目标焊盘</span>
+                <span class="module-status">待接通</span>
+              </div>
+              <div class="module-title">关卡目标式 <span class="module-sub">SINK</span></div>
+              <div class="module-formula"><span class="formula" data-formula="(¬P∨¬P)→¬P"></span></div>
+              <div class="module-meta"><span>REWARD · *2.08</span><span>INPUT ×1</span></div>
+              <div class="target-pad" aria-hidden="true">
+                <svg viewBox="0 0 48 48" width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.2">
+                  <circle cx="24" cy="24" r="19"/>
+                  <circle cx="24" cy="24" r="12"/>
+                  <circle cx="24" cy="24" r="4" fill="currentColor" stroke="none"/>
+                  <path d="M24 1v6M24 41v6M1 24h6M41 24h6"/>
+                </svg>
+              </div>
+              <div class="port port-in port-top" aria-hidden="true"></div>
+            </article>
+          </div>
+        </div>
+
+        <div class="board-hud" aria-hidden="true">
+          <span class="hud-led"></span>
+          <span>4 条网络 · 3 已验证</span>
+          <span class="hud-sep"></span>
+          <span>缩放 <b id="hudZoom">100%</b></span>
+        </div>
+        <div class="board-corner" aria-hidden="true">X 0700 · Y 0700 · Z 01</div>
+      </div>
+    </main>
+
+    <!-- ---- inspector ---- -->
+    <aside class="side-panel" id="sidePanel" aria-label="检视器">
+      <div class="side-head">
+        <h2>检视器</h2>
+        <span class="side-ref">U03<span>FORMULA-NOT</span></span>
+        <button class="panel-close icon-btn" type="button" aria-label="关闭检视器" data-close-drawer>
+          <svg width="14" height="14"><use href="#i-close"/></svg>
+        </button>
+      </div>
+
+      <div class="side-tabs" role="tablist" aria-label="检视面板">
+        <button class="tab" type="button" role="tab" aria-selected="true">属性</button>
+        <button class="tab" type="button" role="tab" aria-selected="false">推导</button>
+        <button class="tab" type="button" role="tab" aria-selected="false">历史</button>
+      </div>
+
+      <div class="side-body">
+        <div class="side-section">
+          <p class="side-label">选中元件 <span>U03</span></p>
+          <p class="inspect-title">否定合成 · 公式电路</p>
+          <div class="inspect-formula"><span class="formula" data-formula="¬P"></span></div>
+          <div class="inspect-meta">输入来自 U02 · 输出至 U04 的替换端</div>
+          <span class="state-tag">已验证 · VERIFIED</span>
+        </div>
+
+        <div class="side-section">
+          <p class="side-label">端口 <span>INPUT ×1 / OUTPUT ×1</span></p>
+          <div class="io-row">
+            <span class="io-key">IN 1</span>
+            <span class="io-main">
+              <span class="io-formula" data-formula="P"></span>
+              <span class="io-src">U02 · ATOM P · NET 02</span>
+            </span>
+          </div>
+          <div class="io-row">
+            <span class="io-key">OUT</span>
+            <span class="io-main">
+              <span class="io-formula" data-formula="¬P"></span>
+              <span class="io-src">→ U04 · IN 2 · NET 03</span>
+            </span>
+          </div>
+        </div>
+
+        <div class="side-section">
+          <p class="side-label">属性 <span>PROPERTIES</span></p>
+          <div class="kv-row"><dt>编号</dt><dd>U03</dd></div>
+          <div class="kv-row"><dt>类型</dt><dd>formula-not</dd></div>
+          <div class="kv-row"><dt>规则</dt><dd>SYNTH · NEG</dd></div>
+          <div class="kv-row"><dt>延迟</dt><dd>02 周期</dd></div>
+        </div>
+
+        <div class="side-section">
+          <p class="side-label">推导链 <span>DERIVATION</span></p>
+          <div class="proof-step">
+            <span class="step-n">01</span>
+            <span class="step-f" data-formula="(P∨P)→P"></span>
+            <span class="step-s">公理</span>
+          </div>
+          <div class="proof-step">
+            <span class="step-n">02</span>
+            <span class="step-f" data-formula="P"></span>
+            <span class="step-s">原子</span>
+          </div>
+          <div class="proof-step" data-selected="true">
+            <span class="step-n">03</span>
+            <span class="step-f" data-formula="¬P"></span>
+            <span class="step-s">合成</span>
+          </div>
+          <div class="proof-step">
+            <span class="step-n">04</span>
+            <span class="step-f" data-formula="(¬P∨¬P)→¬P"></span>
+            <span class="step-s">代入</span>
+          </div>
+        </div>
+
+        <div class="side-actions">
+          <button class="btn" type="button">
+            <svg width="14" height="14"><use href="#i-copy"/></svg>
+            复制
+          </button>
+          <button class="btn btn-danger" type="button">
+            <svg width="14" height="14"><use href="#i-trash"/></svg>
+            移除
+          </button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- ================= statusbar ================= -->
+  <footer class="statusbar">
+    <div class="status-group">
+      <span class="status-cell"><em>RU-02</em> SUBSTITUTION</span>
+      <span class="status-cell">SOLDER MASK · 阻焊层</span>
+      <span class="status-cell">LOCAL · 离线运行</span>
+      <span class="status-cell">AUTOSAVE <b>00:12</b></span>
+    </div>
+    <div class="status-group">
+      <span class="status-cell">元件 <b>04</b></span>
+      <span class="status-cell">布线 <b>04</b></span>
+      <span class="status-cell">目标 <strong>READY</strong></span>
+      <span class="status-cell">v0.1 · <b>193</b> ARCHIVE</span>
+    </div>
+  </footer>
+
+  <!-- ================= mobile tab bar ================= -->
+  <nav class="mobile-bar" aria-label="移动工具栏">
+    <button type="button" data-drawer="parts" aria-selected="false">
+      <svg width="18" height="18"><use href="#i-grid"/></svg>
+      <span class="mb-label">元件</span>
+    </button>
+    <button type="button" data-drawer="side" aria-selected="false">
+      <svg width="18" height="18"><use href="#i-panel"/></svg>
+      <span class="mb-label">检视</span>
+    </button>
+    <button type="button" data-open-sheet="codex" aria-selected="false">
+      <svg width="18" height="18"><use href="#i-book"/></svg>
+      <span class="mb-label">手册</span>
+    </button>
+    <button type="button" data-open-sheet="win" aria-selected="false">
+      <svg width="18" height="18"><use href="#i-check"/></svg>
+      <span class="mb-label">校验</span>
+    </button>
+  </nav>
+</div>
+
+<div class="drawer-scrim" id="drawerScrim"></div>
+
+<!-- ================= level archive ================= -->
+<div class="overlay" id="sheet-level" aria-hidden="true">
+  <div class="sheet sheet--level" role="dialog" aria-modal="true" aria-labelledby="levelSheetTitle">
+    <div class="sheet-head">
+      <span class="sheet-kicker">ARCHIVE</span>
+      <h2 id="levelSheetTitle">关卡档案</h2>
+      <span class="sheet-meta">CHAPTER I · 命题逻辑 · 06 关</span>
+      <button class="sheet-close icon-btn" type="button" aria-label="关闭" data-close-sheet>
+        <svg width="14" height="14"><use href="#i-close"/></svg>
+      </button>
+    </div>
+    <div class="sheet-body">
+      <div class="level-grid">
+        <button class="level-card" type="button" data-state="complete">
+          <span class="level-code">RU-01</span>
+          <span class="level-copy">
+            <span class="level-title">公理接入 · Axiom</span>
+            <span class="level-formula" data-formula="(P∨P)→P"></span>
+          </span>
+          <span class="level-state">已完成</span>
+        </button>
+        <button class="level-card" type="button" data-state="current">
+          <span class="level-code">RU-02</span>
+          <span class="level-copy">
+            <span class="level-title">代入 · Substitution</span>
+            <span class="level-formula" data-formula="(¬P∨¬P)→¬P"></span>
+          </span>
+          <span class="level-state">进行中</span>
+        </button>
+        <button class="level-card" type="button" data-state="new">
+          <span class="level-code">RU-03</span>
+          <span class="level-copy">
+            <span class="level-title">定义展开 · Definition</span>
+            <span class="level-formula" data-formula="(P→Q)→(¬P∨Q)"></span>
+          </span>
+          <span class="level-state">可进入</span>
+        </button>
+        <button class="level-card" type="button" data-state="new">
+          <span class="level-code">RU-04</span>
+          <span class="level-copy">
+            <span class="level-title">交换律 · Commutation</span>
+            <span class="level-formula" data-formula="(P∨Q)→(Q∨P)"></span>
+          </span>
+          <span class="level-state">可进入</span>
+        </button>
+        <button class="level-card" type="button" data-state="locked">
+          <span class="level-code">RU-05</span>
+          <span class="level-copy">
+            <span class="level-title">双重否定 · Archive</span>
+            <span class="level-formula" data-formula="¬¬P→P"></span>
+          </span>
+          <span class="level-state">未解锁</span>
+        </button>
+        <button class="level-card" type="button" data-state="locked">
+          <span class="level-code">RU-06</span>
+          <span class="level-copy">
+            <span class="level-title">量词引入 · ∀</span>
+            <span class="level-formula" data-formula="∀x F(x)→F(x)"></span>
+          </span>
+          <span class="level-state">第 II 章</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= codex ================= -->
+<div class="overlay" id="sheet-codex" aria-hidden="true">
+  <div class="sheet sheet--codex" role="dialog" aria-modal="true" aria-labelledby="codexTitle">
+    <div class="sheet-head">
+      <span class="sheet-kicker">REFERENCE</span>
+      <h2 id="codexTitle">公理手册</h2>
+      <span class="sheet-meta">PM / METAMATH · 193 条定理索引</span>
+      <button class="sheet-close icon-btn" type="button" aria-label="关闭" data-close-sheet>
+        <svg width="14" height="14"><use href="#i-close"/></svg>
+      </button>
+    </div>
+    <div class="sheet-body">
+      <div class="codex-grid">
+        <div>
+          <section class="codex-block">
+            <h3>原始公理 <span>PRIMITIVES · 04</span></h3>
+            <div class="axiom-row">
+              <span class="axiom-code">A1</span>
+              <span><span class="axiom-formula" data-formula="(P∨P)→P"></span><span class="axiom-name">重言式</span></span>
+              <span class="axiom-note">PM *1.2</span>
+            </div>
+            <div class="axiom-row">
+              <span class="axiom-code">A2</span>
+              <span><span class="axiom-formula" data-formula="P→(P∨Q)"></span><span class="axiom-name">附加</span></span>
+              <span class="axiom-note">PM *1.3</span>
+            </div>
+            <div class="axiom-row">
+              <span class="axiom-code">A3</span>
+              <span><span class="axiom-formula" data-formula="(P∨Q)→(Q∨P)"></span><span class="axiom-name">交换</span></span>
+              <span class="axiom-note">PM *1.4</span>
+            </div>
+            <div class="axiom-row">
+              <span class="axiom-code">A4</span>
+              <span><span class="axiom-formula" data-formula="(Q→R)→((P∨Q)→(P∨R))"></span><span class="axiom-name">分配</span></span>
+              <span class="axiom-note">PM *1.5</span>
+            </div>
+          </section>
+
+          <section class="codex-block">
+            <h3>变换规则 <span>RULES · 03</span></h3>
+            <div class="axiom-row">
+              <span class="axiom-code">SUB</span>
+              <span><span class="axiom-formula" data-formula="P[¬P]"></span><span class="axiom-name">代入 · 命题变元替换</span></span>
+              <span class="axiom-note">SUBST</span>
+            </div>
+            <div class="axiom-row">
+              <span class="axiom-code">DET</span>
+              <span><span class="axiom-formula" data-formula="A→B · A ⊢ B"></span><span class="axiom-name">分离 · 蕴涵消去</span></span>
+              <span class="axiom-note">DETACH</span>
+            </div>
+            <div class="axiom-row">
+              <span class="axiom-code">DEF</span>
+              <span><span class="axiom-formula" data-formula="¬A∨B ≡ A→B"></span><span class="axiom-name">定义替换 · D1–D3</span></span>
+              <span class="axiom-note">REPLACE</span>
+            </div>
+          </section>
+        </div>
+
+        <div>
+          <section class="codex-block">
+            <h3>定义 <span>DEFINITIONS · 03</span></h3>
+            <div class="axiom-row">
+              <span class="axiom-code">D1</span>
+              <span><span class="axiom-formula" data-formula="A→B := ¬A∨B"></span><span class="axiom-name">蕴涵</span></span>
+              <span class="axiom-note">PM *1.01</span>
+            </div>
+            <div class="axiom-row">
+              <span class="axiom-code">D2</span>
+              <span><span class="axiom-formula" data-formula="A∧B := ¬(¬A∨¬B)"></span><span class="axiom-name">合取</span></span>
+              <span class="axiom-note">PM *3.01</span>
+            </div>
+            <div class="axiom-row">
+              <span class="axiom-code">D3</span>
+              <span><span class="axiom-formula" data-formula="A↔B := (A→B)∧(B→A)"></span><span class="axiom-name">等值</span></span>
+              <span class="axiom-note">PM *4.01</span>
+            </div>
+          </section>
+
+          <section class="codex-block">
+            <h3>归档定理 <span>ARCHIVED · 引用</span></h3>
+            <div class="axiom-row" data-archived="true">
+              <span class="axiom-code">T14</span>
+              <span><span class="axiom-formula" data-formula="¬¬P→P"></span><span class="axiom-name">双重否定消去</span></span>
+              <span class="axiom-note">PM *2.14</span>
+            </div>
+            <div class="axiom-row" data-archived="true">
+              <span class="axiom-code">T26</span>
+              <span><span class="axiom-formula" data-formula="(P∧Q)→P"></span><span class="axiom-name">合取消去</span></span>
+              <span class="axiom-note">PM *3.26</span>
+            </div>
+            <p class="codex-note">归档定理来自《数学原理》与 Metamath 的 PM 索引；本作不声称它们已从四条原始公理重新证明。可插入模块以「引用定理」标注。</p>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= win ================= -->
+<div class="overlay" id="sheet-win" aria-hidden="true">
+  <div class="sheet sheet--win" role="dialog" aria-modal="true" aria-labelledby="winTitle">
+    <div class="sheet-head">
+      <span class="sheet-kicker">LEVEL CLEARED</span>
+      <h2>结果</h2>
+      <span class="sheet-meta">RU-02 · SUBSTITUTION</span>
+      <button class="sheet-close icon-btn" type="button" aria-label="关闭" data-close-sheet>
+        <svg width="14" height="14"><use href="#i-close"/></svg>
+      </button>
+    </div>
+    <div class="sheet-body win-body">
+      <div class="win-mark" aria-hidden="true"><svg width="34" height="34"><use href="#i-check"/></svg></div>
+      <span class="win-kicker">Q.E.D. · 证明闭合</span>
+      <h3 class="win-title" id="winTitle">代入已完成</h3>
+      <p class="win-sub">TARGET 与证明式定义等价，目标焊盘已通电。</p>
+      <div class="win-target">
+        <span class="formula" data-formula="(¬P∨¬P)→¬P"></span>
+        <span class="tag">TARGET · 已接通</span>
+      </div>
+      <div class="win-stats">
+        <div class="win-stat"><span>模块</span><b>04</b></div>
+        <div class="win-stat"><span>布线</span><b>04</b></div>
+        <div class="win-stat"><span>用时</span><b>04:12</b></div>
+      </div>
+      <p class="win-reward">新元件入库 <b>*2.08</b> · 定理模块已可插入</p>
+      <div class="win-actions">
+        <button class="btn" type="button" data-open-sheet="codex">查看手册</button>
+        <button class="btn btn-primary" type="button" data-toast="RU-03 定义展开 · 即将开始">下一关 · RU-03</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var $ = function (sel, root) { return (root || document).querySelector(sel); };
+  var $$ = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
+  var board = $("#board");
+  var boardShell = board.closest(".board-shell");
+  var world = $("#boardWorld");
+  var wireLayer = $("#wireLayer");
+  var nodeLayer = $("#nodeLayer");
+  var zoomReadout = $("#zoomReadout");
+  var hudZoom = $("#hudZoom");
+  var partsPanel = $("#partsPanel");
+  var sidePanel = $("#sidePanel");
+  var scrim = $("#drawerScrim");
+  var toast = $("#toast");
+  var toastTimer = null;
+  var lastFocus = null;
+  var view = { x: 0, y: 0, s: 1 };
+  var desktopWires = wireLayer.innerHTML;
+  var phoneQuery = window.matchMedia("(max-width: 640px)");
+
+  /* ---------- formula renderer: turns plain text into the spans the app emits ---------- */
+  var OPS = "¬∨∧→↔⊢≡";
+  var PARENS = "()[]";
+  var QUANTS = "∀∃";
+
+  function renderFormulas() {
+    $$("[data-formula]").forEach(function (el) {
+      var text = el.getAttribute("data-formula");
+      if (!text) return;
+      var frag = document.createDocumentFragment();
+      Array.from(text).forEach(function (ch) {
+        var cls = null;
+        if (/[A-Za-z]/.test(ch)) cls = "f-var";
+        else if (OPS.indexOf(ch) !== -1) cls = "f-op";
+        else if (PARENS.indexOf(ch) !== -1) cls = "f-paren";
+        else if (QUANTS.indexOf(ch) !== -1) cls = "f-quant";
+        if (!cls) { frag.appendChild(document.createTextNode(ch)); return; }
+        var span = document.createElement("span");
+        span.className = cls;
+        span.textContent = ch;
+        frag.appendChild(span);
+      });
+      el.textContent = "";
+      el.appendChild(frag);
+    });
+  }
+
+  /* ---------- board fit / pan / zoom (desktop + tablet canvas) ---------- */
+  var CONTENT = 700;
+  var PAD = 28;
+
+  function applyView() {
+    world.style.transform = "translate(" + view.x + "px," + view.y + "px) scale(" + view.s + ")";
+    if (zoomReadout) zoomReadout.textContent = Math.round(view.s * 100) + "%";
+    if (hudZoom) hudZoom.textContent = Math.round(view.s * 100) + "%";
+  }
+
+  function fit() {
+    if (board.classList.contains("is-stacked")) return;
+    var r = board.getBoundingClientRect();
+    var pad = window.innerWidth <= 640 ? 12 : PAD;
+    var s = Math.min(1, (r.width - pad * 2) / CONTENT, (r.height - pad * 2) / CONTENT);
+    s = Math.max(s, 0.42);
+    view.s = s;
+    view.x = (r.width - CONTENT * s) / 2;
+    view.y = (r.height - CONTENT * s) / 2;
+    applyView();
+  }
+
+  function zoomTo(next) {
+    if (board.classList.contains("is-stacked")) return;
+    var r = board.getBoundingClientRect();
+    var cx = ((r.width / 2) - view.x) / view.s;
+    var cy = ((r.height / 2) - view.y) / view.s;
+    view.s = Math.min(1.6, Math.max(0.4, next));
+    view.x = (r.width / 2) - cx * view.s;
+    view.y = (r.height / 2) - cy * view.s;
+    applyView();
+  }
+
+  /* ---------- phone: vertical read-only PCB ---------- */
+  function centerOf(el, origin) {
+    var r = el.getBoundingClientRect();
+    return { x: r.left - origin.left + r.width / 2, y: r.top - origin.top + r.height / 2 };
+  }
+
+  function drawStackWires() {
+    if (!board.classList.contains("is-stacked")) return;
+    var moduleEls = {};
+    $$(".module", nodeLayer).forEach(function (m) { moduleEls[m.dataset.ref] = m; });
+    var o = world.getBoundingClientRect();
+    var W = world.offsetWidth || 1;
+    var H = world.offsetHeight || 1;
+    var svgNS = "http://www.w3.org/2000/svg";
+    wireLayer.textContent = "";
+    wireLayer.setAttribute("viewBox", "0 0 " + W + " " + H);
+    wireLayer.setAttribute("width", W);
+    wireLayer.setAttribute("height", H);
+
+    function port(ref, side, i) {
+      var m = moduleEls[ref];
+      if (!m) return { x: 0, y: 0 };
+      var list = m.querySelectorAll(side === "out" ? ".port-out" : ".port-in");
+      return centerOf(list[Math.min(i || 0, list.length - 1)], o);
+    }
+    function d(points) {
+      return "M " + points.map(function (p) {
+        return Math.round(p.x) + " " + Math.round(p.y);
+      }).join(" L ");
+    }
+    var u01 = port("U01", "out");
+    var u02 = port("U02", "out");
+    var u03i = port("U03", "in");
+    var u03o = port("U03", "out");
+    var u04i0 = port("U04", "in", 0);
+    var u04i1 = port("U04", "in", 1);
+    var u04o = port("U04", "out");
+    var tgt = port("TGT", "in");
+    var rail = Math.max(u03i.x + 26, W - 18);
+    var routes = [
+      d([u01, { x: u01.x, y: u01.y + 5 }, { x: rail, y: u01.y + 5 }, { x: rail, y: u04i0.y - 8 }, { x: u04i0.x, y: u04i0.y - 8 }, u04i0]),
+      d([u02, { x: u02.x, y: u02.y + 4 }, u03i]),
+      d([u03o, { x: u03o.x, y: u03o.y + 4 }, { x: u04i1.x, y: u03o.y + 4 }, u04i1]),
+      d([u04o, { x: u04o.x, y: u04o.y + 3 }, tgt])
+    ];
+    routes.forEach(function (pathD) {
+      var p = document.createElementNS(svgNS, "path");
+      p.setAttribute("d", pathD);
+      p.setAttribute("class", "wire");
+      wireLayer.appendChild(p);
+    });
+  }
+
+  function layout() {
+    var phone = phoneQuery.matches;
+    if (phone) {
+      board.classList.add("is-stacked");
+      boardShell.classList.add("is-stacked");
+      world.style.transform = "";
+      wireLayer.textContent = "";
+      requestAnimationFrame(function () { requestAnimationFrame(drawStackWires); });
+      if (zoomReadout) zoomReadout.textContent = "自适应";
+      if (hudZoom) hudZoom.textContent = "自适应";
+    } else {
+      board.classList.remove("is-stacked");
+      boardShell.classList.remove("is-stacked");
+      wireLayer.innerHTML = desktopWires;
+      fit();
+    }
+  }
+
+  /* ---------- selection, board tools, pan ---------- */
+  $$(".module", nodeLayer).forEach(function (m) {
+    m.addEventListener("pointerdown", function (e) { e.stopPropagation(); });
+    m.addEventListener("click", function () {
+      $$(".module[data-selected]", nodeLayer).forEach(function (x) { x.removeAttribute("data-selected"); });
+      m.setAttribute("data-selected", "true");
+    });
+  });
+
+  $$(".board-tool").forEach(function (tool) {
+    tool.addEventListener("click", function () {
+      $$(".board-tool").forEach(function (t) { t.setAttribute("aria-pressed", "false"); });
+      tool.setAttribute("aria-pressed", "true");
+    });
+  });
+
+  $$("[data-zoom]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      zoomTo(view.s * (btn.dataset.zoom === "in" ? 1.15 : 0.87));
+    });
+  });
+  var fitBtn = $("[data-fit]");
+  if (fitBtn) fitBtn.addEventListener("click", fit);
+
+  var drag = null;
+  board.addEventListener("pointerdown", function (e) {
+    if (e.target.closest(".module, button, input, .board-hud")) return;
+    if (board.classList.contains("is-stacked")) return;
+    drag = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y };
+    board.classList.add("is-panning");
+    try { board.setPointerCapture(e.pointerId); } catch (err) {}
+  });
+  board.addEventListener("pointermove", function (e) {
+    if (!drag) return;
+    view.x = drag.vx + (e.clientX - drag.x);
+    view.y = drag.vy + (e.clientY - drag.y);
+    applyView();
+  });
+  function endDrag() {
+    drag = null;
+    board.classList.remove("is-panning");
+  }
+  board.addEventListener("pointerup", endDrag);
+  board.addEventListener("pointercancel", endDrag);
+  board.addEventListener("pointerleave", function () { if (drag) endDrag(); });
+
+  /* ---------- parts filter ---------- */
+  var search = $("#partsSearch");
+  var activeFilter = "all";
+  function filterParts() {
+    var q = (search.value || "").trim().toLowerCase();
+    $$(".part-card", partsPanel).forEach(function (card) {
+      var groupOk = activeFilter === "all" || card.dataset.group === activeFilter;
+      var textOk = !q || card.textContent.toLowerCase().indexOf(q) !== -1;
+      card.hidden = !(groupOk && textOk);
+    });
+  }
+  $$(".parts-tabs .tab").forEach(function (tab) {
+    tab.addEventListener("click", function () {
+      $$(".parts-tabs .tab").forEach(function (t) { t.setAttribute("aria-selected", "false"); });
+      tab.setAttribute("aria-selected", "true");
+      activeFilter = tab.dataset.filter;
+      filterParts();
+    });
+  });
+  if (search) search.addEventListener("input", filterParts);
+
+  /* ---------- drawers ---------- */
+  function closeDrawers() {
+    partsPanel.classList.remove("is-open");
+    sidePanel.classList.remove("is-open");
+    scrim.classList.remove("is-on");
+    $$(".mobile-bar [data-drawer], .parts-toggle, .inspector-toggle").forEach(function (b) {
+      b.setAttribute("aria-expanded", "false");
+      if (b.hasAttribute("aria-selected")) b.setAttribute("aria-selected", "false");
+    });
+  }
+  function openDrawer(kind) {
+    var isOpen = (kind === "parts" ? partsPanel : sidePanel).classList.contains("is-open");
+    closeDrawers();
+    if (isOpen) return;
+    var panel = kind === "parts" ? partsPanel : sidePanel;
+    var trigger = kind === "parts" ? $(".parts-toggle") : $(".inspector-toggle");
+    panel.classList.add("is-open");
+    if (window.innerWidth <= 1100) scrim.classList.add("is-on");
+    if (trigger) trigger.setAttribute("aria-expanded", "true");
+    $$(".mobile-bar [data-drawer]").forEach(function (b) {
+      if (b.dataset.drawer === kind) b.setAttribute("aria-selected", "true");
+    });
+  }
+  $$("[data-drawer]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var kind = btn.dataset.drawer;
+      if (btn.classList.contains("mobile-bar") || btn.closest(".mobile-bar")) return openDrawer(kind);
+      openDrawer(kind);
+    });
+  });
+  $$("[data-close-drawer]").forEach(function (btn) { btn.addEventListener("click", closeDrawers); });
+  scrim.addEventListener("click", closeDrawers);
+
+  /* ---------- sheets ---------- */
+  function openSheet(name) {
+    var el = document.getElementById("sheet-" + name);
+    if (!el) return;
+    closeDrawers();
+    el.classList.add("is-open");
+    el.setAttribute("aria-hidden", "false");
+    lastFocus = document.activeElement;
+    var close = el.querySelector(".sheet-close");
+    if (close) close.focus();
+  }
+  function closeSheet(el) {
+    if (!el) return;
+    el.classList.remove("is-open");
+    el.setAttribute("aria-hidden", "true");
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+  $$("[data-open-sheet]").forEach(function (btn) {
+    btn.addEventListener("click", function () { openSheet(btn.dataset.openSheet); });
+  });
+  $$("[data-close-sheet]").forEach(function (btn) {
+    btn.addEventListener("click", function () { closeSheet(btn.closest(".overlay")); });
+  });
+  $$(".overlay").forEach(function (overlay) {
+    overlay.addEventListener("click", function (e) {
+      if (e.target === overlay) closeSheet(overlay);
+    });
+  });
+
+  /* ---------- toast ---------- */
+  function showToast(message) {
+    toast.textContent = message;
+    toast.classList.add("is-on");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toast.classList.remove("is-on"); }, 2400);
+  }
+  $$("[data-toast]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      showToast(btn.dataset.toast);
+      closeSheet(btn.closest(".overlay"));
+    });
+  });
+
+  /* ---------- keyboard ---------- */
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape") return;
+    var openOverlay = $$(".overlay.is-open").pop();
+    if (openOverlay) { closeSheet(openOverlay); return; }
+    closeDrawers();
+  });
+
+  /* ---------- boot ---------- */
+  renderFormulas();
+
+  if (location.hash === "#level") openSheet("level");
+  if (location.hash === "#codex") openSheet("codex");
+  if (location.hash === "#win") openSheet("win");
+  window.addEventListener("hashchange", function () {
+    var name = location.hash.replace("#", "");
+    if (name === "level" || name === "codex" || name === "win") openSheet(name);
+  });
+
+  var resizeTimer = null;
+  window.addEventListener("resize", function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(layout, 120);
+  });
+
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(function () {
+      fit();
+      if (board.classList.contains("is-stacked")) drawStackWires();
+    });
+  }
+  layout();
+})();
+</script>
+</body>
+</html>
+
+
+
+

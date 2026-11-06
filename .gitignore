@@ -1,0 +1,12 @@
+# local test output and browser profiles
+.research/
+.taste-skill/
+node_modules/
+*.log
+
+# OS noise
+.DS_Store
+Thumbs.db
+
+dist/
+
