@@ -307,22 +307,37 @@
         nodes: [node('t1', 'theorem', 260, 280, { theoremCode: '*4.51' })],
         edges: [edge('t1', 'out', 'target', 'proof')]
       }
-    },
-    {
-      id: 'SB-01', chapter: 'sandbox', code: 'SB-01', title: '档案沙盒', kicker: 'FREE PATCH / 自由板',
-      target: 'P→P',
-      brief: '全部规则、公理、谓词模块与 193 条档案定理都可以取用。自由接线，自己组合。',
-      hint: '最快的一条：取档案定理 *2.08（P→P），直接接到目标。也可以从零搭一条更长的路。',
-      teaches: ['全部档案', '自由实验'],
-      allowed: ['*'],
-      reward: '—',
-      note: '沙盒不限制模块来源，目标只是 P→P。它不改变正式关卡的规则。',
-      solution: {
-        nodes: [node('t1', 'theorem', 260, 280, { theoremCode: '*2.08' })],
-        edges: [edge('t1', 'out', 'target', 'proof')]
-      }
     }
   ];
+
+  /* More PM problem-set levels, indexed by the original Metamath theorem codes. */
+  var PM_LEVELS = [
+    '*2.1', '*2.11', '*2.15', '*2.16', '*2.17', '*2.18', '*2.21', '*2.24',
+    '*2.27', '*2.53', '*2.54', '*2.62', '*3.1', '*3.11', '*3.2', '*3.22',
+    '*4.31', '*4.4', '*4.41', '*4.56'
+  ];
+  PM_LEVELS.forEach(function (code) {
+    var t = window.RSL.theoremData ? window.RSL.theoremData(code) : null;
+    if (!t) return;
+    LEVELS.push({
+      id: 'PM-' + code.replace('*', ''),
+      chapter: 'metamath',
+      code: code,
+      title: code + (t.name ? ' · ' + t.name : ''),
+      kicker: 'METAMATH / PM ' + code,
+      target: t.formula,
+      brief: '',
+      hint: '',
+      teaches: ['档案定理 ' + code],
+      allowed: ['theorem:' + code, 'target'],
+      reward: '—',
+      note: '',
+      solution: {
+        nodes: [node('t1', 'theorem', 260, 280, { theoremCode: code })],
+        edges: [edge('t1', 'out', 'target', 'proof')]
+      }
+    });
+  });
 
   /* Normalize and add useful defaults. */
   LEVELS.forEach(function (lv, i) {

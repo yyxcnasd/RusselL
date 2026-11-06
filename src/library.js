@@ -82,12 +82,12 @@
       blurb: '从《数学原理》的定理库接入已经证成的结果。'
     },
     {
-      id: 'predicate', code: 'CH.04', title: '谓词层', en: 'PREDICATE LAYER',
-      blurb: '把“所有”和“存在”焊进电路。'
+      id: 'metamath', code: 'CH.04', title: 'Metamath 题库', en: 'PM PROBLEM SET',
+      blurb: '更多《数学原理》命题，按 Metamath 档案编号排列。'
     },
     {
-      id: 'sandbox', code: 'CH.05', title: '档案沙盒', en: 'ARCHIVE SANDBOX',
-      blurb: '全部规则、公理与 193 条档案定理，自由接线。'
+      id: 'predicate', code: 'CH.05', title: '谓词层', en: 'PREDICATE LAYER',
+      blurb: '把“所有”和“存在”焊进电路。'
     }
   ];
 

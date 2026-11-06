@@ -2,9 +2,10 @@
   "name": "axiom-board",
   "version": "1.0.0",
   "private": true,
-  "description": "公理板 / AXIOM BOARD — a modular proof-building game on a PCB",
+  "description": "公理板 — a one-screen modular proof game",
   "scripts": {
     "test": "node --test tests/logic.test.mjs && node tests/levels.test.js",
+    "test:ui": "node tests/simple-smoke.js",
     "build:toy": "node scripts/build-toy.js"
   }
 }
