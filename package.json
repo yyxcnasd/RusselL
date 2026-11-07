@@ -4,7 +4,7 @@
   "private": true,
   "description": "公理板 — a one-screen modular proof game built on Metamath set.mm",
   "scripts": {
-    "test": "node --test tests/logic.test.mjs && node tests/levels.test.js",
+    "test": "node --test tests/logic.test.mjs && node tests/levels.test.js && node --test tests/achievements.test.js tests/save.test.js",
     "test:ui": "node tests/simple-smoke.js",
     "build:toy": "node scripts/build-toy.js"
   }

@@ -64,6 +64,14 @@ async function main() {
   await js('document.dispatchEvent(new MouseEvent("contextmenu",{bubbles:true,cancelable:true}))');
   await sleep(120);
   console.log('palette-right-cancel', await js('({before:' + ghost2 + ',after:!!document.querySelector(".module-ghost")})'));
+  await js('window.RSL.APP.state.forceUnlock=true');
+  await js('window.RSL.APP.loadLevel(window.RSL.APP.state.levels.findIndex(function(l){return l.id==="CH1-04"}))'); await sleep(250);
+  await js('document.querySelector(".tile[data-key=\\"subst\\"]").click()'); await sleep(250);
+  const ports3 = await js('document.querySelectorAll(".node[data-kind=\\"subst\\"] .port-in").length');
+  await js('document.querySelector(".opt[data-config=\\"dual\\"]").click()'); await sleep(200);
+  const ports5 = await js('document.querySelectorAll(".node[data-kind=\\"subst\\"] .port-in").length');
+  console.log('subst-dual', { ports3: ports3, ports5: ports5 });
+  await js('window.RSL.APP.state.forceUnlock=false');
   await js('document.getElementById("levelBtn").click()'); await sleep(300);
   console.log('level cells', await js('document.querySelectorAll(".level-cell").length'));
   console.log('locks', await js('Array.from(document.querySelectorAll(".chapter")).filter(function(c){return c.classList.contains("is-locked")||c.classList.contains("is-current");}).map(function(c){var b=c.querySelector(".level-cell");return {roman:c.querySelector(".chapter-roman").textContent,cls:c.className,first:b&&b.className,firstDisabled:b&&b.disabled};})'));

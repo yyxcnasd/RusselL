@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const root = path.resolve(__dirname, '..');
 const out = path.join(root, 'dist');
-const RUNTIME_JS = ['logic.js','archive.js','library.js','levels.js','levels-generated.js','engine.js','board.js','main.js'];
+const RUNTIME_JS = ['logic.js','archive.js','library.js','levels.js','levels-generated.js','engine.js','achievements.js','save.js','board.js','main.js'];
 const ALLOWED = new Set(['.html','.htm','.css','.js','.json','.wasm','.data','.md','.csv','.tsv','.png','.jpg','.jpeg','.gif','.svg','.webp','.ico','.woff2','.woff','.ttf','.eot','.mp3','.wav','.ogg','.m4a','.mp4','.webm']);
 function copy(from,to){const dest=path.join(out,to);fs.mkdirSync(path.dirname(dest),{recursive:true});fs.copyFileSync(from,dest)}
 function walk(dir,base){for(const name of fs.readdirSync(dir)){const full=path.join(dir,name);const rel=path.posix.join(base,name);if(fs.statSync(full).isDirectory())walk(full,rel);else{const ext=path.extname(name).toLowerCase();if(!ALLOWED.has(ext))throw new Error('Not allowed: '+rel);copy(full,rel)}}}

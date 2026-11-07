@@ -37,12 +37,7 @@ async function main() {
   await shot('simple-pm-wired.png');
   await js('window.RSL.APP.loadLevel(7)'); await sleep(300);
   console.log('L08 tiles', await js('document.querySelectorAll(".tile").length'));
-  const part = await js('(function(){var e=document.querySelector("[data-key=\\"atom\\"]"); if(!e)return null;var r=e.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};})()');
-  if (part) {
-    await send('Input.dispatchMouseEvent', { type: 'mousePressed', x: part.x, y: part.y, button: 'left', clickCount: 1 });
-    await send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: part.x, y: part.y, button: 'left', clickCount: 1 });
-    await sleep(400);
-  }
+  await js('document.querySelector("[data-key=\\"atom\\"]").click()'); await sleep(300);
   console.log('popover opts', await js('document.querySelectorAll("#popover .opt").length'), 'visible', await js('!document.getElementById("popover").hidden'));
   await shot('simple-popover.png');
   ws.close();

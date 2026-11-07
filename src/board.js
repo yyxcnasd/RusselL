@@ -3,6 +3,16 @@
   'use strict';
   window.RSL = window.RSL || {};
   var W = 241;
+  var ROUTE = {
+    cell: 12,
+    clearance: 20,
+    bound: 28,
+    stub: 26,
+    bend: 8,
+    reverse: 4,
+    networkPenalty: 64,
+    segmentPad: 18
+  };
 
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
   function esc(s) {
@@ -467,14 +477,10 @@
     }
     var fromId = this.draft && this.draft.from ? this.draft.from.node : null;
     var group = this.draft && this.draft.from ? (this.draft.from.node + '|' + this.draft.from.port) : '';
-    var start = { x: a.x + 26, y: a.y };
+    var start = { x: a.x + ROUTE.stub, y: a.y };
     var pts = this._route(start, b, this._rects(), this._lastUsed || {}, fromId, null, group);
     pts.unshift({ x: a.x, y: a.y });
     d.setAttribute('d', this._pathPoints(pts));
-  };
-
-  Board.prototype._path = function (x1, y1, x2, y2) {
-    return this._pathPoints(this._simplePoints(x1, y1, x2, y2));
   };
 
   Board.prototype._simplePoints = function (x1, y1, x2, y2) {
@@ -540,9 +546,9 @@
 
   /* A* on a 16px grid: bend penalty + reuse penalty, but only between different output networks. */
   Board.prototype._route = function (a, b, rects, used, fromId, toId, group) {
-    var CELL = 12;
+    var CELL = ROUTE.cell;
     var xs = [a.x, b.x], ys = [a.y, b.y];
-    rects.forEach(function (r) { xs.push(r.x - 28, r.x + r.w + 28); ys.push(r.y - 28, r.y + r.h + 28); });
+    rects.forEach(function (r) { xs.push(r.x - ROUTE.bound, r.x + r.w + ROUTE.bound); ys.push(r.y - ROUTE.bound, r.y + r.h + ROUTE.bound); });
     var minX = Math.floor((Math.min.apply(null, xs) - 180) / CELL) * CELL;
     var maxX = Math.ceil((Math.max.apply(null, xs) + 180) / CELL) * CELL;
     var minY = Math.floor((Math.min.apply(null, ys) - 180) / CELL) * CELL;
@@ -553,8 +559,8 @@
     var i, j, k;
     for (i = 0; i < rects.length; i++) {
       var r = rects[i];
-      var x0 = Math.floor((r.x - 20 - minX) / CELL), x1 = Math.ceil((r.x + r.w + 20 - minX) / CELL);
-      var y0 = Math.floor((r.y - 20 - minY) / CELL), y1 = Math.ceil((r.y + r.h + 20 - minY) / CELL);
+      var x0 = Math.floor((r.x - ROUTE.clearance - minX) / CELL), x1 = Math.ceil((r.x + r.w + ROUTE.clearance - minX) / CELL);
+      var y0 = Math.floor((r.y - ROUTE.clearance - minY) / CELL), y1 = Math.ceil((r.y + r.h + ROUTE.clearance - minY) / CELL);
       for (var yy = Math.max(0, y0); yy <= Math.min(rows - 1, y1); yy++)
         for (var xx = Math.max(0, x0); xx <= Math.min(cols - 1, x1); xx++) blocked[yy * cols + xx] = 1;
     }
@@ -632,7 +638,7 @@
             if (groups.hasOwnProperty(gk) && gk !== String(group || '')) { reuse = 1; break; }
           }
         }
-        var cost = 1 + (nd === (dir + 2) % 4 ? 4 : (nd !== dir ? 8 : 0)) + reuse * 64;
+        var cost = 1 + (nd === (dir + 2) % 4 ? ROUTE.reverse : (nd !== dir ? ROUTE.bend : 0)) + reuse * ROUTE.networkPenalty;
         var ndist = dist[state] + cost;
         if (ndist < dist[nstate]) {
           dist[nstate] = ndist;
@@ -698,7 +704,7 @@
   };
 
   Board.prototype._segmentClear = function (p, q, rects) {
-    var pad = 18;
+    var pad = ROUTE.segmentPad;
     var steps = Math.max(1, Math.ceil((Math.abs(q.x - p.x) + Math.abs(q.y - p.y)) / 8));
     for (var i = 1; i < steps; i++) {
       var t = i / steps;
@@ -750,8 +756,8 @@
       var a = self._portPoint(e.from.node, e.from.port);
       var b = self._portPoint(e.to.node, e.to.port);
       if (!a || !b) return;
-      var aStub = { x: a.x + 26, y: a.y };
-      var bStub = { x: b.x - 26, y: b.y };
+      var aStub = { x: a.x + ROUTE.stub, y: a.y };
+      var bStub = { x: b.x - ROUTE.stub, y: b.y };
       var group = e.from.node + '|' + e.from.port;
       var pts = self._route(aStub, bStub, rects, used, e.from.node, e.to.node, group);
       pts.unshift({ x: a.x, y: a.y });
@@ -847,6 +853,10 @@
     this.items.forEach(function (n) {
       var info = window.RSL.Engine.info(n.kind);
       var r = self.result && self.result.results[n.id];
+      var inputPorts = (info.ports.inputs || []);
+      if (n.kind === 'subst' && !(n.config && n.config.dual)) {
+        inputPorts = inputPorts.filter(function (p) { return p.id !== 'atom2' && p.id !== 'formula2'; });
+      }
       var el = document.createElement('article');
       el.className = 'node' + (n.kind === 'target' ? ' is-target' : '') + (n._new ? ' is-new' : '');
       el.dataset.id = n.id;
@@ -864,7 +874,7 @@
       if (ast) formula = window.RSL.formatFormula ? window.RSL.formatFormula(ast) : L.toHTML(ast);
       var isAssertion = (info.ports.outputs || []).some(function (p) { return p.type === 'assertion'; });
       if (isAssertion) formula = '<span class="node-turnstile">⊢</span>' + formula;
-      var ins = (info.ports.inputs || []).map(function (p, i, arr) {
+      var ins = inputPorts.map(function (p, i, arr) {
         var top = 47 + i * 32;
         var role = (n.kind === 'subst' && p.id === 'atom') ? 'atom' : p.type;
         return '<button class="port port-in" data-port="' + esc(p.id) + '" data-role="' + esc(role) + '" style="top:' + top + 'px" title="' + esc(p.label) + '" aria-label="' + esc(p.label) + '"></button>';
@@ -873,7 +883,7 @@
         var role = n.kind === 'atom' ? 'atom' : p.type;
         return '<button class="port port-out" data-port="' + esc(p.id) + '" data-role="' + esc(role) + '" style="top:47px" title="' + esc(p.label) + '" aria-label="' + esc(p.label) + '"></button>';
       }).join('');
-      var inCount = (info.ports.inputs || []).length;
+      var inCount = inputPorts.length;
       el.style.minHeight = (n.kind === 'target' ? 104 : Math.max(96, 47 + Math.max(0, inCount - 1) * 32 + 29)) + 'px';
       if (n.kind === 'target') {
         el.innerHTML = '<div class="target-mark">⊢</div>' + ins.replace('style="top:47px"', 'style="top:46px"');

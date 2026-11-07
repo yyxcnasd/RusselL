@@ -97,7 +97,7 @@ python -m http.server 8000
 ## 开发
 
 ```bash
-npm test        # 17 个逻辑测试 + 240 个参考电路校验
+npm test        # 17 个逻辑测试 + 成就/存档测试 + 240 个参考电路校验
 node scripts/build-toy.js
 ```
 
@@ -120,7 +120,9 @@ node scripts/gen-levels.js
 | --- | --- |
 | `src/logic.js` | 公式 AST、解析、展开、代入、置换、分离 |
 | `src/engine.js` | 模块求值器 |
-| `src/main.js` | 关卡流程、选关、成就、规则提示、存档 |
+| `src/main.js` | 关卡流程、选关、规则提示、界面交互 |
+| `src/achievements.js` | 成就定义与条件判定 |
+| `src/save.js` | 存档结构、校验与本地读写 |
 | `src/library.js` | `set.mm` 公理、定义、调色板 |
 | `src/archive.js` | `set.mm` 档案模块（生成） |
 | `src/levels.js` | 四章手工关与教程关 |

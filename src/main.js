@@ -3,6 +3,8 @@
   'use strict';
   window.RSL = window.RSL || {};
   var L = window.RSL.Logic;
+  var SAVE = window.RSL.Save;
+  var ACH = window.RSL.Achievements;
   var state = {
     levels: [],
     level: null,
@@ -31,7 +33,6 @@
   var els = {};
   var toastTimer = null;
   var paletteHold = null;
-  var SAVE_KEY = 'axiom-simple:v2';
 
   function $(id) { return document.getElementById(id); }
   function esc(s) {
@@ -40,13 +41,11 @@
     });
   }
   function parse(s) { try { return L.parse(s); } catch (e) { return null; } }
-  function step(n) { return Math.round(n / 8) * 8; }
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
-  function unique(a) { return a.filter(function (v, i) { return a.indexOf(v) === i; }); }
 
   function loadProgress() {
     try {
-      var p = JSON.parse(localStorage.getItem(SAVE_KEY) || '{}');
+      var p = SAVE.clean(SAVE.load());
       state.solved = {};
       (p.solved || []).forEach(function (id) { state.solved[id] = true; });
       state.bestLen = p.bestLen || {};
@@ -58,7 +57,7 @@
       (p.usedTheorem || []).forEach(function (k) { state.usedTheorem[k] = true; });
       state.cleanWins = {};
       (p.cleanWins || []).forEach(function (k) { state.cleanWins[k] = true; });
-      state.circuits = p.circuits && typeof p.circuits === 'object' ? p.circuits : {};
+      state.circuits = p.circuits || {};
       state.achievements = {};
       (p.achievements || []).forEach(function (k) { state.achievements[k] = true; });
       state.coachSeen = {};
@@ -66,55 +65,10 @@
       state.lastId = p.lastId || null;
     } catch (e) { state.solved = {}; state.bestLen = {}; state.usedKinds = {}; state.usedArchive = {}; state.usedTheorem = {}; state.cleanWins = {}; state.circuits = {}; state.achievements = {}; }
   }
-  function progressPayload() {
-    return {
-      version: 2,
-      solved: Object.keys(state.solved),
-      bestLen: state.bestLen,
-      usedKinds: Object.keys(state.usedKinds),
-      usedArchive: Object.keys(state.usedArchive),
-      usedTheorem: Object.keys(state.usedTheorem),
-      cleanWins: Object.keys(state.cleanWins),
-      circuits: state.circuits,
-      achievements: Object.keys(state.achievements),
-      coachSeen: Object.keys(state.coachSeen),
-      lastId: state.level ? state.level.id : state.lastId
-    };
-  }
-  function saveProgress() {
-    try { localStorage.setItem(SAVE_KEY, JSON.stringify(progressPayload())); } catch (e) {}
-  }
-
-  function cleanSave(raw) {
-    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('bad save');
-    function strings(v) { return Array.isArray(v) ? v.filter(function (x) { return typeof x === 'string'; }) : []; }
-    function object(v) { return v && typeof v === 'object' && !Array.isArray(v) ? v : {}; }
-    function circuits(v) {
-      var src = object(v), out = {};
-      Object.keys(src).forEach(function (id) {
-        var c = src[id];
-        if (!c || !Array.isArray(c.nodes) || !Array.isArray(c.edges)) return;
-        out[id] = { nodes: c.nodes.slice(0, 200), edges: c.edges.slice(0, 400) };
-      });
-      return out;
-    }
-    return {
-      version: 2,
-      solved: strings(raw.solved),
-      bestLen: object(raw.bestLen),
-      usedKinds: strings(raw.usedKinds),
-      usedArchive: strings(raw.usedArchive),
-      usedTheorem: strings(raw.usedTheorem),
-      cleanWins: strings(raw.cleanWins),
-      circuits: circuits(raw.circuits),
-      achievements: strings(raw.achievements),
-      coachSeen: strings(raw.coachSeen),
-      lastId: typeof raw.lastId === 'string' ? raw.lastId : null
-    };
-  }
+  function saveProgress() { SAVE.store(SAVE.payload(state)); }
 
   function exportSave() {
-    var data = progressPayload();
+    var data = SAVE.payload(state);
     data.exportedAt = new Date().toISOString();
     var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     var url = URL.createObjectURL(blob);
@@ -132,8 +86,8 @@
     var reader = new FileReader();
     reader.onload = function () {
       try {
-        var data = cleanSave(JSON.parse(String(reader.result || '')));
-        localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+        var data = SAVE.clean(JSON.parse(String(reader.result || '')));
+        SAVE.store(data);
         toast('已导入');
         setTimeout(function () { window.location.reload(); }, 650);
       } catch (e) {
@@ -218,38 +172,8 @@
     return true;
   }
 
-  function chapterLevels(key) {
-    return state.levels.filter(function (lv) { return lv.chapter === key; });
-  }
-
   function checkAchievements() {
-    var solved = Object.keys(state.solved).length;
-    if (solved >= 1) unlockAchv('first');
-    CHAPTERS.forEach(function (c) {
-      var group = chapterLevels(c.key);
-      var base = group.filter(function (lv) { return lv.band !== 'challenge'; });
-      var chal = group.filter(function (lv) { return lv.band === 'challenge'; });
-      if (base.length && base.every(function (lv) { return state.solved[lv.id]; })) unlockAchv('base-' + c.key);
-      if (chal.length && chal.every(function (lv) { return state.solved[lv.id]; })) unlockAchv('chal-' + c.key);
-    });
-    if (state.usedKinds.subst) unlockAchv('rule-subst');
-    if (state.usedKinds.replace) unlockAchv('rule-replace');
-    if (state.usedKinds.detach) unlockAchv('rule-detach');
-    if (state.usedKinds['all-intro'] || state.usedKinds['all-elim'] || state.usedKinds.syllogism) unlockAchv('rule-quant');
-    var efficient = state.levels.some(function (lv) {
-      if (lv.band !== 'challenge') return false;
-      var ref = lv.solution && lv.solution.nodes ? lv.solution.nodes.length : 0;
-      return ref && state.bestLen[lv.id] && state.bestLen[lv.id] <= ref;
-    });
-    if (efficient) unlockAchv('efficient');
-    if (solved >= 3) unlockAchv('three');
-    if (Object.keys(state.cleanWins).length >= 3) unlockAchv('clean-three');
-    ACHIEVEMENTS.forEach(function (a) {
-      if (!a.metric) return;
-      var best = state.bestLen[a.metric.level];
-      if (best && best <= a.metric.max) unlockAchv(a.id);
-    });
-    if (state.levels.length && state.levels.every(function (lv) { return state.solved[lv.id]; })) unlockAchv('all');
+    ACH.evaluate(state).forEach(function (id) { unlockAchv(id); });
   }
 
   function openAchievements() {
@@ -351,30 +275,8 @@
   ];
 
   /* 30 个成就：短名称 + 一句条件说明。 */
-  var ACHIEVEMENTS = [
-    { id: 'first', symbol: 'i-play', name: '通电', desc: '完成第一关。' },
-    { id: 'base-prop', symbol: 'i-book-open', name: '命题基础', desc: '打通命题章基础段。' },
-    { id: 'base-pred', symbol: 'i-book-open', name: '谓词基础', desc: '打通谓词章基础段。' },
-    { id: 'base-eq', symbol: 'i-book-open', name: '等词基础', desc: '打通等词章基础段。' },
-    { id: 'base-set', symbol: 'i-book-open', name: '集合基础', desc: '打通集合章基础段。' },
-    { id: 'chal-prop', symbol: 'i-star', name: '命题挑战', desc: '打通命题章挑战段。' },
-    { id: 'chal-pred', symbol: 'i-star', name: '谓词挑战', desc: '打通谓词章挑战段。' },
-    { id: 'chal-eq', symbol: 'i-star', name: '等词挑战', desc: '打通等词章挑战段。' },
-    { id: 'chal-set', symbol: 'i-star', name: '集合挑战', desc: '打通集合章挑战段。' },
-    { id: 'rule-subst', symbol: 'i-arrow-path', name: '代入', desc: '第一次使用 S 代入模块。' },
-    { id: 'rule-replace', symbol: 'i-arrows-right-left', name: '置换', desc: '第一次使用 D 定义置换模块。' },
-    { id: 'rule-detach', symbol: 'i-link', name: '分离', desc: '第一次使用 M 分离模块。' },
-    { id: 'rule-quant', symbol: 'i-globe-alt', name: '量词', desc: '第一次使用全称、存在或三段论规则。' },
-    { id: 'efficient', symbol: 'i-bolt', name: '短证明', desc: '在任一挑战关用不超过参考电路的模块数通关。' },
-    { id: 'all', symbol: 'i-check-badge', name: '全通关', desc: '打通全部 240 关。' },
-    { id: 'clean-three', symbol: 'i-check-badge', name: '干净三关', desc: '不删除模块完成 3 关。' },
-    { id: 'three', symbol: 'i-book-open', name: '三关', desc: '累计通过 3 关。' },
-    { id: 'prefix-clean', symbol: 'i-arrow-path', name: '前置同一', desc: '前置同一关用不超过 10 个模块通关。', metric: { level: 'CH1-08', max: 10 } },
-    { id: 'hs-clean', symbol: 'i-link', name: '前件叠加', desc: '前件叠加关用不超过 13 个模块通关。', metric: { level: 'CH1-10', max: 13 } },
-    { id: 'compose-clean', symbol: 'i-squares-2x2', name: '复合同一', desc: '复合同一关用不超过 5 个模块通关。', metric: { level: 'CH1-12', max: 5 } }
-  ];
-  var ACHV_BY_ID = {};
-  ACHIEVEMENTS.forEach(function (a) { ACHV_BY_ID[a.id] = a; });
+  var ACHIEVEMENTS = ACH.list;
+  var ACHV_BY_ID = ACH.byId;
   function chapterOf(lv) {
     if (lv.chapter === 'pred') return 'Ⅱ';
     if (lv.chapter === 'eq') return 'Ⅲ';
@@ -537,7 +439,7 @@
   }
 
   function helpCard(label, kind, formula) {
-    return '<div class="help-card" data-coach="' + kind + '"><b>' + esc(label) + '</b>' + helpFormula(formula) + '</div>';
+    return '<div class="help-card" role="button" tabindex="0" data-coach="' + kind + '"><b>' + esc(label) + '</b>' + helpFormula(formula) + '</div>';
   }
 
   function toast(msg) {
@@ -749,6 +651,9 @@
   function makeModuleGhost(part) {
     var info = window.RSL.Engine.info(part.kind) || { ports: { inputs: [], outputs: [] } };
     var ins = (info.ports.inputs || []);
+    if (part.kind === 'subst' && !(part.config && part.config.dual)) {
+      ins = ins.filter(function (p) { return p.id !== 'atom2' && p.id !== 'formula2'; });
+    }
     var outs = (info.ports.outputs || []);
     var temp = { kind: part.kind, config: part.config || {} };
     var code = state.board._code(temp) || part.symbol || '·';
@@ -828,6 +733,8 @@
       }).join('') + '<span class="opt-gap"></span>' + ['x', 'y', 'z'].map(function (v) {
         return '<button class="opt' + (cfg.arg === v ? ' is-on' : '') + '" data-config="arg" data-value="' + v + '">' + v + '</button>';
       }).join('');
+    } else if (n.kind === 'subst' && !cfg.dual) {
+      html = '<button class="opt" data-config="dual" data-value="1">加一组代入</button>';
     } else if (n.kind === 'all-elim') {
       html = ['a', 'b', 'c', 'x', 'y', 'z'].map(function (v) {
         return '<button class="opt' + (cfg.term === v ? ' is-on' : '') + '" data-config="term" data-value="' + v + '">' + v + '</button>';
@@ -1060,6 +967,13 @@
     });
     document.addEventListener('pointerup', function () { sheetDrag = null; });
     window.addEventListener('resize', updateSheetBar);
+    els.sheet.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      var card = e.target.closest && e.target.closest('[data-coach]');
+      if (!card) return;
+      e.preventDefault();
+      card.click();
+    });
     els.sheet.addEventListener('click', function (e) {
       var card = e.target.closest && e.target.closest('[data-coach]');
       if (card) { closeOverlay(); showCoachKind(card.dataset.coach); return; }

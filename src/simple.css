@@ -5,6 +5,7 @@
 @font-face{font-family:"STIX Two Text";src:url("../assets/fonts/STIXTwoText-Italic.woff2") format("woff2");font-weight:400;font-style:italic;font-display:swap}
 
 :root{
+  color-scheme:light;
   --bg:#f7f2e7;
   --board:#ece5d6;
   --card:#fffdf7;
@@ -30,6 +31,8 @@
 html,body{height:100%;margin:0}
 body{overflow:hidden;background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
 button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+::selection{background:var(--accent-soft);color:var(--ink)}
 [hidden]{display:none!important}
 .formula{font-family:var(--math);font-weight:400;line-height:1.35;font-variant-ligatures:none}
 .formula .f-var,.formula .f-name{font-family:var(--math);font-style:italic}
@@ -261,11 +264,7 @@ body.is-holding,body.is-holding *{cursor:grabbing!important}
 
 .help{display:flex;align-items:flex-start;justify-content:center;gap:28px;padding:26px 8px 12px}
 .help>div{display:flex;flex-direction:column;align-items:center;gap:10px}
-.help-icon{
-  display:grid;place-items:center;width:62px;height:62px;border-radius:18px;
-  background:var(--soft);font-size:28px;color:var(--ink);
-}
-.help b{font-size:15px;font-weight:500;color:var(--muted)}
+
 
 .fatal{display:grid;place-items:center;height:100%;font-size:18px;color:var(--muted)}
 
@@ -297,7 +296,6 @@ body.is-holding,body.is-holding *{cursor:grabbing!important}
   .level-cell{width:46px;height:46px;border-radius:13px}
   .win-formula{font-size:21px}
   .help{gap:18px}
-  .help-icon{width:54px;height:54px;font-size:24px}
 }
 @media (max-width:380px){
   .goal{font-size:17px}
@@ -348,6 +346,7 @@ body.is-holding,body.is-holding *{cursor:grabbing!important}
 
 :root{--port-formula:#4f7fb5;--port-atom:#e66f3f;--port-assert:#2b2721}
 html[data-theme="dark"]{
+  color-scheme:dark;
   --bg:#151311;--board:#201c17;--card:#29241e;--ink:#f1ece2;--muted:#a79f91;
   --soft:#332d25;--line:#413a30;--line-strong:#5b5144;--accent:#f08a5d;
   --accent-soft:#5a3828;--green:#67c08d;--red:#e57b72;--port-formula:#79a9db;
@@ -411,7 +410,6 @@ html[data-theme="dark"] .sheet{box-shadow:0 30px 80px rgba(0,0,0,.55)}
 
 .node.is-target .port-in{border-color:var(--port-assert)}
 
-.win-count{margin:-10px 0 20px;color:var(--muted);font-size:13px;font-weight:500}
 
 .wire.is-new{animation:wire-in .3s var(--ease)}
 @keyframes wire-in{from{opacity:0}to{opacity:1}}
@@ -542,10 +540,6 @@ html[data-theme="dark"] .level-cell.is-locked{box-shadow:inset 0 0 0 1px var(--l
 .level-cell.is-challenge-band.is-solved{background:var(--soft)}
 
 .help{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:18px 8px 10px;width:100%}
-.help .help-row{display:flex;flex-direction:row;align-items:center;gap:12px;margin:3px 0}
-.help .help-arrow{color:var(--muted);font-size:18px}
-.help .help-dots{display:flex;gap:8px}
-.help .help-dots i{width:10px;height:10px;border-radius:50%;background:var(--accent-soft);box-shadow:inset 0 0 0 1.5px var(--accent)}
 .help .help-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 0 2px;width:100%;max-width:520px;min-width:0}
 .help .help-card{display:flex;flex-direction:row;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:var(--soft);min-width:0;cursor:pointer;font-family:var(--font)}
 .help .help-card b{font-family:var(--font);font-size:15px;font-weight:600;color:var(--ink);min-width:22px;text-align:center;flex:none}
@@ -598,7 +592,6 @@ html[data-theme="dark"] .level-cell.is-locked{box-shadow:inset 0 0 0 1px var(--l
   box-shadow:none;cursor:default;backdrop-filter:blur(6px);max-width:calc(100vw - 32px);
   animation:coach 2.2s ease-in-out infinite;
 }
-@keyframes coach-pop{from{opacity:0;transform:translate(-50%,-50%) scale(.94)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
 .coach-flow{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:14px;font-family:var(--font);font-size:20px;color:var(--ink)}
 .coach-flow .chip{display:grid;place-items:center;min-width:62px;height:62px;padding:0 12px;border-radius:16px;background:var(--card);border:1.5px solid var(--line);box-shadow:0 3px 0 var(--line);font-family:var(--math);font-size:17px;white-space:nowrap}
 .coach-flow .chip .formula{font-size:17px;color:inherit}
