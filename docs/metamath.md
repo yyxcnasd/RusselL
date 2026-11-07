@@ -1,111 +1,89 @@
 # Metamath 数据源与内容映射
 
-本作的内容来源是 [Metamath Proof Explorer](https://us.metamath.org/mpeuni/mmset.html) 的
-`set.mm` 数据库，不再使用 `pmproofs-orig.txt` 的《数学原理》命题档案。
+游戏内容取自 [Metamath Proof Explorer](https://us.metamath.org/mpeuni/mmset.html) 的 `set.mm` 数据库。早先版本用过 `pmproofs-orig.txt` 里的《数学原理》命题档案；现在不再使用它。
 
 ## 来源与授权
 
-- 仓库：<https://github.com/metamath/set.mm>，`develop` 分支
-- 下载日期：2026-11-07
-- 本地文件：`assets/data/set.mm`，51,812,832 字节；只作为开发/核对数据，**不参与构建**
-- 授权：set.mm 以 **CC0 1.0** 放弃版权；Metamath 站点文本为公有领域
-- 本作不是 Metamath 官方产品
+- 仓库：<https://github.com/metamath/set.mm>，`develop` 分支，2026-11-07 下载。
+- 本地文件：`assets/data/set.mm`（51,812,832 字节）。它只用来核对数据和生成关卡，不参与构建。
+- 授权：set.mm 以 **CC0 1.0** 放弃版权；Metamath 站点文本属于公有领域。
+- 本作不是 Metamath 官方产品。
 
-`set.mm` 是一个模块化数据库：本次用到的内容位于
+本次用到的内容集中在四个区段：
 
-| 区段 | 内容 | 行号（本地文件） |
+| 区段 | 内容 | 本地文件行号 |
 | --- | --- | --- |
 | `set-pred.mm` | 命题演算、谓词演算、等词 | 约 317–24879 |
 | `set-class.mm` | 类、外延（`ax-ext` 在 24970）、集合基本运算 | 约 24882–49814 |
 | `set-zf.mm` | ZF 公理与后续集合论 | 约 49817 起 |
 | `set-zfc.mm` | 选择公理（`ax-ac` 在 118630） | 约 117694 起 |
 
-游戏只取 set.mm 的**原始语言**：¬、→、∀、=、∈。类抽象 `{x | φ}`、⊆、∪、∅ 等派生记法
-不在关卡里出现；集合论章只用 setvar + ∈ + = 的原始语言。
+游戏只取 set.mm 的原始语言：`¬`、`→`、`∀`、`=`、`∈`。类抽象 `{x | φ}`、`⊆`、`∪`、`∅` 这些派生记法没有进入关卡；集合论章也只用 setvar + `∈` + `=`。
 
-## 提取了什么
+## 游戏里实际用到的公理
 
-`research/parse-setmm.cjs` 是一个只读解析器（供核对用）：它解析 `$a / $p / $e / $f / $d`
-语句、注释区段标题，并把压缩证明解码成引用的 label 列表。运行：
+`src/library.js` 手工校对了 20 条公理：
 
-```bash
-node research/parse-setmm.cjs --json   # 生成 research/setmm-data.json
-```
+- 命题：`ax-1`、`ax-2`、`ax-3`。
+- 谓词：`ax-4`、`ax-5`、`ax-10`、`ax-11`；规则形态 `ax-gen` 由 `all-intro` 模块承担。
+- 等词：`ax-6`、`ax-7`、`ax-8`、`ax-9`、`ax-12`、`ax-13`。
+- 集合论：`ax-ext`、`ax-rep`、`ax-pow`、`ax-un`、`ax-reg`、`ax-inf`、`ax-ac`。
 
-产物字段：`label / kind / section / subsection / formulaAscii / formulaUnicode / hypotheses /
-proofRefs / proofLength / dv / comment / assertionForm`。当前产物 3027 条（公理 29 / 定义 156 /
-语法构造 160 / 定理 2682），set-pred 的 10,448 个压缩证明全部解码成功。
+另外四个定义放在 `RSL.DEFINITIONS`，分别是 `df-or`、`df-an`、`df-ex`、`dfbi2`。它们是缩写，不是对象语言的断言，所以不会出现在 `RSL.AXIOMS` 里，也不会进入档案或关卡模块；只由 `Logic.expand` 和 `replace` 使用。
 
-游戏内实际采用的是 `src/library.js` 里人工校对的 20 条公理 + 4 个定义：
+## 档案模块
 
-- 命题：`ax-1`、`ax-2`、`ax-3`
-- 谓词：`ax-4`、`ax-5`、`ax-10`、`ax-11`；规则形态 `ax-gen` 由 `all-intro` 承担
-- 等词：`ax-6`、`ax-7`、`ax-8`、`ax-9`、`ax-12`、`ax-13`
-- 集合论：`ax-ext`、`ax-rep`、`ax-pow`、`ax-un`、`ax-reg`、`ax-inf`、`ax-ac`
-- 定义：`df-or`、`df-an`、`df-ex`、`dfbi2`；**只参与定义等价与 `replace`，不作为断言模块**
+`scripts/gen-levels.js` 从 `research/setmm-data.json` 生成 `src/archive.js`，目前收录 829 条 assertion-form 条目：
 
-命题章的 `id`、`pm2.27`、`con1`、`pm2.04`、`imim1`、`con2` 等定理目标同样取自 set.mm
-（label 与公式见 `research/setmm-data.json`）。
+- 命题 570 条，谓词与等词 244 条，集合 15 条。
+- `df-*` 定义被排除。
+- 每条包含 `label`、`formula`、`kind`、`section`、`module`、`proofLength`、`source`。
+- 关卡用 `archive:<label>` 引用。模块输出该条目的公式；这些是 set.mm 的已证定理或公理，不是游戏内重新证明的结果。
 
-## 档案模块（src/archive.js）
-
-`src/archive.js` 由 `scripts/gen-levels.js` 从 `research/setmm-data.json` 生成，收录 **829 条**
-可被游戏 AST 解析的 assertion-form 条目（已排除 `df-*` 定义；命题 570 / 谓词与等词 244 / 集合 15）：
-
-- 每条含 `label / formula / kind / section / module / proofLength / source`；
-- 关卡用 `archive:<label>` 引用，模块输出该条目的公式；
-- 它们是 set.mm 的已证定理/公理，**不是本游戏重证的结果**；UI 用 ARCHIVE/银色标注。
-
-`scripts/gen-levels.js` 还会生成 `src/levels-generated.js`：每章追加 48–51 关，共 **195 关**。
-模板包括：
+同一个生成器还会写 `src/levels-generated.js`，每章补 48–51 关，共 195 关。模板有六种：
 
 | 模板 | 做法 |
 | --- | --- |
 | 档案 | archive 模块直接接目标 |
-| 代入 / 双代入 | archive + 1–2 个 subst 链 + 复合公式构造 |
-| 全称闭包 | archive + ∀I 链 |
-| 例化 | archive + ∀I 闭包 + ∀E 到常元 |
+| 代入 / 双代入 | archive + 一到两个 `subst` 链 + 复合公式构造 |
+| 全称闭包 | archive + `∀I` 链 |
+| 例化 | `∀I` 闭包后用 `∀E` 换常元 |
 | 闭包 + 部分例化 | 先闭包，再消去部分量词 |
 | 分离 | 把一条 set.mm 定理作为前件代入另一条，再用 ax-mp |
 
-生成器逐关调用 `src/engine.js` 求值；任何一关失败就拒绝写出。手写的 45 关（命题 9，其余章 12）
-保持在 `src/levels.js`。全部 240 关由 `tests/levels.test.js` 逐关校验。
+生成器会逐关调用 `src/engine.js` 求值，任何一关不完整就停下，不会写出有问题的关卡。手写的 45 关留在 `src/levels.js`：命题 9 关，其余三章各 12 关。全部 240 关由 `tests/levels.test.js` 逐关校验。
 
-## 公式与定义的处理
+## 公式比较与替换
 
-游戏 AST 直接支持 `¬ ∨ → ∧ ↔ ∀ ∃`。为了让“目标相等”有唯一判据，`src/logic.js` 的
-`expand()` 按 set.mm 的定义把公式展开到 `¬ / → / ∀` 核心：
+`src/logic.js` 的 `expand()` 按 set.mm 的定义把公式展开到 `¬ / → / ∀` 核心：
 
 ```
 df-or    A∨B  := ¬A→B
 df-an    A∧B  := ¬(A→¬B)
-dfbi2    A↔B  := (A→B)∧(B→A)        （set.mm 由 df-bi 导出的展开式）
+dfbi2    A↔B  := (A→B)∧(B→A)
 df-ex    ∃x A := ¬∀x ¬A
 ```
 
-`Logic.eq(a,b)` 仍等价于 `key(expand(a)) === key(expand(b))`，并带 α-等价。由于 ∧ 在
-set.mm 里是 `¬(A→¬B)`，`∧/∨/↔/∃` 只是显示记法；`replace` 模块可在这四个定义上双向置换。
+`Logic.eq(a,b)` 比较的是 `key(expand(a))` 和 `key(expand(b))`，并处理 α-等价。因为 `∧` 在 set.mm 中是 `¬(A→¬B)`，`∨/∧/↔/∃` 在游戏里只是显示记法；`replace` 模块可以在这四个定义上双向置换。
 
-## 变量替换
+`subst` 模块按 Metamath 的方式做直接替换：wff 变元可以换成含被约束变元的公式，替换式里的自由变元会被外层量词捕获。这是 Metamath 的替换语义，不是 bug；个体变元的替换由单独的 `substituteVar` 处理，并做捕获规避。
 
-`subst` 模块（游戏里的代入）按 Metamath 的方式做**直接替换**：wff 变元可以换成含被约束
-变元的公式，替换式里的自由变元会被外层量词捕获。这是 Metamath 替换语义，不是 bug；它与
-`substituteVar`（个体变元替换、capture-avoiding）分开。
+## 边界
 
-## 关卡与证明
-
-- 关卡目标均为 set.mm 的公式（或安全的实例/闭包）。
-- `theorem:<关卡 id>` 模块表示**本游戏前面已经通关的关卡结论**；测试保证只能引用更早的关卡。
-- 本作没有实现 set.mm 的完整证明器；参考电路由人/搜索器搭建，并用 `src/engine.js` 逐关求值。
-- 命题章 7–12 关的参考电路可由 `scripts/prove.js` 复算（若该脚本可用）。
-
-## 诚实边界
-
-1. **不重证 set.mm**：游戏内没有完整的 40,000+ 定理证明链，也不声称能推出所有 set.mm 定理。
-2. **DV 条件**：`ax-5` 带 `$d ph x`（x 不在 P 中自由）。现行 set.mm 的 `ax-12`、`ax-13`
-   本身没有 `$d`；带 DV 的弱化版分别是 `ax12v`、`ax13v`。游戏在注记中声明，但引擎没有
-   完整的 DV 检查；关卡只做安全实例。
-3. **wff 变元**：`ax-rep` 原式的 φ 是任意 wff，游戏里用原子 `P` 占位，属于简化。
+1. **没有完整证明器**：游戏不重证 set.mm 的 40,000+ 条定理，也不声称能推出所有 set.mm 定理。参考电路是人工或搜索器搭出来的，逐关用引擎验证。
+2. **DV 条件**：`ax-5` 带 `$d ph x`（x 不在 P 中自由）。现行 set.mm 的 `ax-12`、`ax-13` 本身没有 `$d`，带 DV 的弱化版是 `ax12v`、`ax13v`。游戏在注记里声明这些限制，但引擎没有完整的 distinct-variable 检查，相关关卡只做安全实例。
+3. **wff 变元**：`ax-rep` 原式的 φ 是任意 wff，游戏里用原子 `P` 占位，这是简化。
 4. **集合论章**：以“公理即元件 + 闭包/例化”为主，不假装在游戏内重证 ZF 定理。
-5. **定义的身份**：`df-or / df-an / dfbi2 / df-ex` 是缩写，不是对象语言的断言；不进入
-   `RSL.AXIOMS`、不进入档案、不作为关卡模块。它们只参与 `Logic.expand` 与 `replace`。
+5. **定义的身份**：`df-or / df-an / dfbi2 / df-ex` 是缩写，不是对象语言的断言；它们不进入 `RSL.AXIOMS`、不进入档案，也不作为关卡模块。
+
+## 复现
+
+```bash
+# 重新解析 set.mm，生成 research/setmm-data.json
+node research/parse-setmm.cjs --json
+
+# 重新生成档案和关卡；会逐关跑引擎校验
+node scripts/gen-levels.js
+```
+
+提取器会解析 `$a / $p / $e / $f / $d` 语句和注释区段，并把压缩证明解码成引用的 label 列表。产物字段包括 `label / kind / section / subsection / formulaAscii / formulaUnicode / hypotheses / proofRefs / proofLength / dv / comment / assertionForm`。当前有 3027 条（公理 29 / 定义 156 / 语法构造 160 / 定理 2682），set-pred 的 10,448 个压缩证明全部解码成功。

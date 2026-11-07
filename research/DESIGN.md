@@ -1,172 +1,57 @@
-# 公理板 · Metamath 重设计（工作稿）
+# 设计记录
 
-> **状态（最终实现）**：当前仓库已扩展为 4 章 × 60 关 = 240 关，每章分基础 30 / 挑战 30；
-> `df-*` 定义不再作为断言模块进入关卡或档案，只由 `Logic.expand` / `replace` 使用。
-> 本文件保留为早期设计记录，数值与文件结构以 README / docs / 实际源码为准。
+这是一份工作笔记，记录公理板从 PM 档案迁到 Metamath set.mm 时的取舍。玩家文档看 [README](../README.md)，数据细节看 [docs/metamath.md](../docs/metamath.md)。
 
-> 状态：Lead 决策稿。所有成员以本文件为准；数值/公式以 `assets/data/set.mm` 为准。
-> 本文件不是最终文档，最终说明写回 `docs/` 与 `README.md`。
+## 目标
 
-## 0. 一句话
+- 用 set.mm 的公理、定义和定理做一款接线证明游戏。
+- 四章体量一致：命题、谓词、等词、集合论，每章 60 关。
+- 定义只作缩写，不能当断言模块；代入、分离、量词规则用电路模块表达。
+- 少用说明文字，尽量用演示、图标、进度条和长度指标来引导。
 
-把游戏从「PM Solitaire / pmproofs 档案」改成「Metamath set.mm 的逻辑与集合论」：以 set.mm 的
-公理、定义、定理为唯一内容来源，重做 4 章 × 12 关 = 48 关，四章体量相等。
+## 结构
 
-## 1. 数据来源
+每章 60 关，分两段：
 
-- 本地文件：`assets/data/set.mm`（GitHub `metamath/set.mm` develop，2026-11-07 下载，51,812,832 字节）。
-- 逻辑/谓词/等词：文件内 `set-pred.mm` 区段（约 317–24879 行）。
-- 集合论：`set-class.mm` / `set-zf.mm` 区段（约 24882 行起）。
-- 站点：<https://us.metamath.org/mpeuni/mmset.html>（公理表）。
-- set.mm 为 CC0 / public domain；不保留 pmproofs 依赖。`src/theorems.js`、`src/metamath.js`、
-  `assets/data/pm-proofs.md` 退出运行时，最终删除。
+- 基础 30 关：顺序解锁。打通后解锁下一章基础段。
+- 挑战 30 关：基础段完成后解锁，不挡下一章。
 
-## 2. 公理基（set.mm）
+每章前 9–12 关是手工关，其余由 `scripts/gen-levels.js` 从 set.mm 档案生成。手工关在 `src/levels.js`，生成关在 `src/levels-generated.js`。
 
-命题演算（Łukasiewicz / Church P2）：
+## 公理与定义
 
-- `ax-1` `P→(Q→P)`（Simp）
-- `ax-2` `(P→(Q→R))→((P→Q)→(P→R))`（Frege）
-- `ax-3` `(¬P→¬Q)→(Q→P)`（Transp）
-- 规则：`ax-mp`（游戏中仍是 `detach` 模块）
+公理 20 条，全部进入 `RSL.AXIOMS`：
 
-谓词演算（Tarski S2，选取游戏可表达且不需要额外 DV 机制的部分）：
+- 命题：ax-1、ax-2、ax-3
+- 谓词：ax-4、ax-5、ax-10、ax-11
+- 等词：ax-6、ax-7、ax-8、ax-9、ax-12、ax-13
+- 集合：ax-ext、ax-rep、ax-pow、ax-un、ax-reg、ax-inf、ax-ac
 
-- `ax-gen`（游戏中仍由 `all-intro` 规则承担）
-- `ax-4` `∀x(P→Q)→(∀xP→∀xQ)`
-- `ax-5` `P→∀xP`（x 不在 P 中自由；游戏中用注记声明）
-- `ax-10` `¬∀xP→∀x¬∀xP`
-- `ax-11` `∀x∀yP→∀y∀xP`
+定义 4 条，只放在 `RSL.DEFINITIONS`，由 `Logic.expand` 和 `replace` 使用：
 
-等词：
+- df-or：`(P∨Q) ↔ (¬P→Q)`
+- df-an：`(P∧Q) ↔ ¬(P→¬Q)`
+- dfbi2：`(P↔Q) ↔ ((P→Q)∧(Q→P))`
+- df-ex：`(∃x P) ↔ (¬∀x ¬P)`
 
-- `ax-6` `¬∀x¬x=y`（存在）
-- `ax-7` `x=y→(x=z→y=z)`（相等）
-- `ax-8` `x=y→(x∈z→y∈z)`（∈ 左替换）
-- `ax-9` `x=y→(z∈x→z∈y)`（∈ 右替换）
-- `ax-12` `x=y→(∀yP→∀x(x=y→P))`（替换；DV x,y）
-- `ax-13` `¬x=y→(y=z→∀x y=z)`（量化相等；DV x,z）
+它们不会出现在关卡模块、档案或关卡目标里。
 
-集合论（ZFC）：
+## 档案与生成
 
-- `ax-ext` `∀z(z∈x↔z∈y)→x=y`
-- `ax-rep` `∀w∃y∀z(∀yP→z=y)→∃y∀z(z∈y↔∃w(w∈x∧∀yP))`（P 为 wff 变元，游戏中用原子 P 占位，注记声明）
-- `ax-pow` `∃y∀z(∀w(w∈z→w∈x)→z∈y)`
-- `ax-un` `∃y∀z(∃w(z∈w∧w∈x)→z∈y)`
-- `ax-reg` `∃y y∈x→∃y(y∈x∧∀z(z∈y→¬z∈x))`
-- `ax-inf` `∃y(x∈y∧∀z(z∈y→∃w(z∈w∧w∈y)))`
-- `ax-ac` `∃y∀z∀w((z∈w∧w∈x)→∃v∀u(∃t((u∈w∧w∈t)∧(u∈t∧t∈y))↔u=v))`
+`src/archive.js` 收录 829 条可解析的 set.mm 公理/定理条目，排除 `df-*` 定义。关卡可以用 `archive:<label>` 直接引用。
 
-### 定义（display/expand 用）
+生成器使用六类模板：档案、代入/双代入、全称闭包、例化、闭包 + 部分例化、分离。每一关都会先交给 `src/engine.js` 求值，通过后才写入文件。
 
-- `df-or` `(P∨Q)↔(¬P→Q)`（∨ 由 → 定义）
-- `df-an` `(P∧Q)↔¬(P→¬Q)`
-- `dfbi2` `(P↔Q)↔((P→Q)∧(Q→P))`（set.mm 由 df-bi 导出的展开式；游戏用它作为 ↔ 的桥）
-- `df-ex` `(∃xP)↔(¬∀x¬P)`
+## 数据流
 
-`Logic.expand` 的规范核：`¬`、`→`、`∀`、原子/谓词/变元。`∨/∧/↔/∃` 全部展开成它们；
-`eq()` 仍是「定义展开 + α 等价」。`replace` 模块支持 `df-or / df-an / dfbi2 / df-ex` 双向。
+1. `research/parse-setmm.cjs` 解析 `assets/data/set.mm`，产出 `research/setmm-data.json`。
+2. `scripts/gen-levels.js` 生成 `src/archive.js` 和 `src/levels-generated.js`。
+3. 浏览器按 `logic → archive → library → levels → levels-generated → engine → board → main` 的顺序加载。
+4. `target` 的目标相等由 `Logic.eq`（定义展开 + α-等价）判定；目标上游必须含有公理、规则、档案或已证结论，不能只用构造门拼公式。
 
-### 语法扩展
+## 已知边界
 
-- 新增中缀关系 `∈`：`x∈y` → `{k:'pred', name:'∈', args:[x,y]}`；显示 `x ∈ y`。
-- 不引入类抽象 `{x|φ}`、⊆、∪ 等；集合论关卡只用 setvar + ∈ + = 的原始语言。
-
-## 3. 章节与关卡（4 × 12 = 48）
-
-编号：`CH1-01`…`CH1-12`，`CH2-…`，`CH3-…`，`CH4-…`。全局顺序即解锁顺序。
-`theorem:<levelId>` 表示「引用前面已经通关的关卡结论」，只能引用 index 更小的关卡；
-引擎从 `RSL.LEVELS` 里按 id 取 target 作为模块输出，`main.js` 调色板同样按 id 生成。
-
-### Ⅰ 命题（12）
-
-1. ax-1 直接
-2. ax-2 直接
-3. ax-3 直接
-4. df-or 定义桥
-5. df-an 定义桥
-6. dfbi2 定义桥
-7. id：`P→P`（ax-1, ax-2, detach）
-8. pm2.27：`P→((P→Q)→Q)`
-9. con1：`(¬P→Q)→(¬Q→P)`
-10. pm2.04：`(P→(Q→R))→(Q→(P→R))`
-11. imim1：`(P→Q)→((Q→R)→(P→R))`
-12. 挑战：con2 `(P→Q)→(¬Q→¬P)`
-
-7–12 的参考电路由 `scripts/prove.js` 生成/校验；可用前面关卡当定理模块。
-
-### Ⅱ 谓词（12）
-
-1. ax-4 直接
-2. ax-4 实例（P:=F(x), Q:=G(x)）
-3. ax-5 直接
-4. ax-5 实例（P:=F(y)）
-5. ax-10 直接
-6. ax-10 实例（P:=F(x)）
-7. ax-11 直接
-8. ax-11 实例（P:=F(x)）
-9. df-ex 定义桥
-10. df-ex 实例（P:=F(x)）
-11. ∀I 闭包：`∀x(F(x)→(G(x)→F(x)))`（ax-1 + subst + all-intro）
-12. ∀E 取回：`F(a)→(G(a)→F(a))`（上题 + all-elim(a)）
-
-### Ⅲ 等词（12）
-
-1. ax-6 直接
-2. ax-6 闭包：`∀y¬∀x¬x=y`
-3. ax-6 实例：`¬∀x¬x=a`
-4. ax-7 直接
-5. ax-7 闭包：`∀x∀y∀z(x=y→(x=z→y=z))`
-6. ax-7 实例：`a=b→(a=c→b=c)`
-7. ax-8 直接
-8. ax-8 实例：`a=b→(a∈c→b∈c)`
-9. ax-9 直接
-10. ax-9 实例：`a=b→(c∈a→c∈b)`
-11. ax-12 直接
-12. ax-13 直接
-
-### Ⅳ 集合论（12）
-
-1. ax-ext 直接
-2. ax-ext 闭包：`∀x∀y(∀z(z∈x↔z∈y)→x=y)`
-3. ax-ext 实例：`∀z(z∈a↔z∈b)→a=b`
-4. ax-pow 直接
-5. ax-pow 实例：`∃y∀z(∀w(w∈z→w∈a)→z∈y)`
-6. ax-un 直接
-7. ax-un 实例：`∃y∀z(∃w(z∈w∧w∈a)→z∈y)`
-8. ax-reg 直接
-9. ax-reg 实例：`∃y y∈a→∃y(y∈a∧∀z(z∈y→¬z∈a))`
-10. ax-inf 直接
-11. ax-ac 直接
-12. ax-rep 直接
-
-> 集合论章以「公理即元件 + 变元闭包/例化」为主，不假装在游戏内重证 ZF 定理。
-
-## 4. 游戏机制（不改大框架）
-
-- 关卡仍 = 目标断言 + 可用元件 + 参考电路；胜利条件仍是目标焊盘输入与目标定义等价。
-- `allowed` 键：`axiom:<id>`、`theorem:<levelId>`、构造函数 / 规则模块名、`target`。
-- 删除所有来自 pmproofs 的 `theorem` 模块；`theorem:` 只指本游戏前面关卡。
-- 关卡数据必须自带 reference solution；`tests/levels.test.js` 逐关跑引擎，且校验：
-  - 48 关、四章各 12 关；
-  - 每关 target 可解析；
-  - 每关 solution 完整；
-  - 所有 `theorem:<id>` 指向更早关卡；
-  - 所有 `axiom:<id>` 在 `RSL.AXIOMS` 中存在。
-- `main.js` 章节：Ⅰ 命题 / Ⅱ 谓词 / Ⅲ 等词 / Ⅳ 集合；同章顺序解锁，跨章依赖上一章末关。
-- 保留 UI 的极简风格、音效、深色模式、选关面板。
-
-## 5. 文件职责
-
-- Lead：`src/logic.js`（定义/∈/expand/replace）、`src/library.js`（公理/定义/调色板）、
-  `src/engine.js`（theorem 解析、∈）、`src/main.js`（章节/元件表）、`src/levels.js`（48 关）。
-- scout：只写 `research/`，产出 `research/setmm-data.json` + `research/SETMM-NOTES.md`。
-- proof-smith：只写 `scripts/prove.js` 与 `research/PROVER.md`；不改 `src/`。
-- 任何成员不得改别人写域；Lead 合并后统一跑 `npm test`。
-
-## 6. 验收
-
-- `npm test` 全绿（logic + levels）。
-- `node tests/simple-smoke.js`（如本机 Edge 可用）。
-- `node scripts/build-toy.js` 成功。
-- README/docs 数据与新关卡一致；不再出现 pmproofs 作为内容来源。
+- 游戏没有实现完整的 set.mm 证明器，也不声称重证 set.mm 的定理。
+- 引擎没有完整的 distinct-variable 检查；ax-5 的 DV 条件写在注记里，相关关卡只做安全实例。
+- ax-rep 原式的 φ 用原子 P 占位，属于简化。
+- 集合论章以公理展示和闭包/例化为主，没有类抽象，也没有在游戏内重证 ZF 定理。
