@@ -32,7 +32,7 @@
 - **9 个代入推理关**：把档案定理实例化成复合公式，需要自己搭公式再代入。
 - **2 个多步推理关**：用 `*2.05` 三段论、`*2.12`、`*2.14` 和两次分离，实际推演 `P→P` 与 `P→¬¬P`。
 - **120 个 Metamath 题库关**：从 193 条中精挑 120 条，按早期/中期/后期均分为 40 / 40 / 40；每关的替换式与构造器逐一指定。
-- **20 个谓词演算关**：全称例化、存在引入、量词分配、定义桥和 `PA1–PA4`。
+- **20 个谓词演算关**：由 `PA1`/`PA3` 出发，配合 ∀I/∀E 和假言三段论 HS，每关都要自己搭多步证明。
 - **20 个等词演算关**：等词自反、对称、传递、替换，以及全称/存在规则与等词的组合。实现见 [docs/equality.md](docs/equality.md)。
 
 ## 章节
@@ -45,7 +45,7 @@
 | Ⅳ 命题 I | 早期 Metamath 命题 | 40 |
 | Ⅴ 命题 II | 中期 Metamath 命题 | 40 |
 | Ⅵ 命题 III | 后期 Metamath 命题 | 40 |
-| Ⅶ 谓词 | 全称/存在、例化/推广、量词分配 | 20 |
+| Ⅶ 谓词 | PA1/PA3、∀I/∀E、HS | 20 |
 | Ⅷ 等词 | 等词公理、量词规则与等词替换 | 20 |
 
 选关面板按 Ⅰ–Ⅷ 分组，每组显示自己的进度条。
@@ -135,7 +135,7 @@ node scripts/build-toy.js
 
 ## 声音、动效与布线
 
-- **音乐**：YannZ 的 *lvl 0 – the tutorial*（CC BY 4.0），循环播放；首次点击后开始，右上角 `♪` 可静音。
+- **音乐**：MintoDog 的 *Magic Puzzle In-Game 1*（CC0），循环播放；首次点击后开始，右上角扬声器图标可静音。
 - **音效**：放模块、接线、失败、交板都有合成音；交板时触发彩色纸屑、目标焊盘脉冲、关卡数字弹跳与进度条增长。
 - **布线**：16px 网格上的 A* 正交布线，带转弯惩罚、已有线段复用惩罚和节点障碍；优先绕开模块，尽量不叠线。
 - **对齐/防重叠**：模块拖动与落点吸附 16px 网格，并让引脚中心落在网格上；重叠时自动寻找最近空位。
@@ -156,7 +156,7 @@ src/predicate.js         谓词层
 src/theorems.js          193 条 PM 定理数据
 src/metamath.js          Metamath 数据与证明带
 assets/fonts/            本地字体（OFL）
-assets/audio/            CC BY 4.0 背景音乐
+assets/audio/            CC0 背景音乐
 dist/                    Toy / Pages 静态构建
 docs/                    数学与数据说明（含 `equality.md`）
 screenshots/             README 截图
@@ -165,7 +165,7 @@ tests/                   逻辑与浏览器测试
 
 ## 来源
 
-- 背景音乐：**lvl 0 – the tutorial** by **YannZ**，来自 [OpenGameArt](https://opengameart.org/content/indie-meditations-free-music-pack)，**CC BY 4.0**；许可与署名见 [CREDITS.md](CREDITS.md)。
+- 背景音乐：**Magic Puzzle In-Game 1** by **MintoDog**，来自 [OpenGameArt](https://opengameart.org/content/magic-puzzle-in-game-1)，**CC0**；署名见 [CREDITS.md](CREDITS.md)。
 - 《数学原理》（Whitehead & Russell, 1910–1913）为公有领域。
 - Metamath 的 PM 定理记录来自 [us.metamath.org](https://us.metamath.org/)；站点文本为公有领域。
 - IBM Plex Sans / STIX Two Text 为 SIL Open Font License。

@@ -1,4 +1,4 @@
-/* 公理板 — minimal graph board. */
+﻿/* 公理板 — minimal graph board. */
 (function () {
   'use strict';
   window.RSL = window.RSL || {};
@@ -588,7 +588,7 @@
   Board.prototype._code = function (n) {
     if (n.kind === 'target') return '⊢';
     if (n.kind === 'axiom') return n.config.axiomId || 'A1';
-    if (n.kind === 'theorem') return String(n.config.theoremCode || 'T').replace('*', '');
+    if (n.kind === 'theorem') { var tc = String(n.config.theoremCode || 'T'); var td = window.RSL.theoremData ? window.RSL.theoremData(tc) : null; return td && td.name ? td.name.slice(0, 5) : tc.replace('*', ''); }
     if (n.kind === 'atom') return '';
     if (n.kind === 'term') return n.config.name || 'x';
     if (n.kind === 'pred') return n.config.name || 'F';
@@ -796,6 +796,7 @@
 
   window.RSL.Board = Board;
 })();
+
 
 
 

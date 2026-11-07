@@ -37,6 +37,7 @@ async function main() {
   if (pm) { await js('window.RSL.APP.loadLevel(' + pm.i + ')'); await sleep(400); await shot('simple-pm.png'); }
   await js('document.getElementById("levelBtn").click()'); await sleep(300);
   console.log('level cells', await js('document.querySelectorAll(".level-cell").length'));
+  console.log('close', await js('(function(){var x=document.querySelector(".sheet-x");if(!x)return null;var r=x.getBoundingClientRect();return {html:x.innerHTML,display:getComputedStyle(x).display,rect:[r.x,r.y,r.width,r.height],opacity:getComputedStyle(x).opacity,color:getComputedStyle(x).color};})()'));
   console.log('chapters', await js('Array.from(document.querySelectorAll(".chapter")).map(function(c){return {roman:c.querySelector(".chapter-roman").textContent,title:c.querySelector(".chapter-title").textContent,levels:c.querySelectorAll(".level-cell").length};})'));
   console.log('reqs', await js('["Ⅰ","Ⅱ","Ⅲ","Ⅳ","Ⅴ","Ⅵ","Ⅶ","Ⅷ"].map(function(g){return window.RSL.APP.state.levels.filter(function(l){return l.chapterGroup===g;})[0];}).map(function(l){return {id:l.id,group:l.chapterGroup,req:l.requires,challenge:l.challenge};})'));
   await shot('simple-levels.png');

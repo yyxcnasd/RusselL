@@ -1,4 +1,4 @@
-﻿/* 公理板 — minimal one-screen game. */
+/* 公理板 — minimal one-screen game. */
 (function () {
   'use strict';
   window.RSL = window.RSL || {};
@@ -64,13 +64,14 @@
     var meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute('content', state.theme === 'dark' ? '#151311' : '#f6f2e8');
     if (els.themeBtn) {
-      els.themeBtn.textContent = state.theme === 'dark' ? '☀' : '◐';
+      els.themeBtn.innerHTML = '<svg class="icon"><use href="#i-' + (state.theme === 'dark' ? 'sun' : 'moon') + '"></use></svg>';
       els.themeBtn.setAttribute('aria-label', state.theme === 'dark' ? '切换浅色模式' : '切换深色模式');
     }
   }
   function updateSoundBtn() {
     if (!els.soundBtn) return;
     els.soundBtn.classList.toggle('is-muted', !state.sound);
+    els.soundBtn.innerHTML = '<svg class="icon"><use href="#i-' + (state.sound ? 'speaker-wave' : 'speaker-x-mark') + '"></use></svg>';
     els.soundBtn.setAttribute('aria-label', state.sound ? '关闭音乐' : '开启音乐');
   }
 
@@ -207,7 +208,7 @@
       if (!p && key.indexOf('theorem:') === 0) {
         var code = key.slice(8);
         var t = window.RSL.theoremData ? window.RSL.theoremData(code) : null;
-        if (t) p = { key: key, kind: 'theorem', symbol: code.replace('*', ''), name: 'PM ' + code, code: code, config: { theoremCode: code } };
+        if (t) p = { key: key, kind: 'theorem', symbol: t.name ? t.name.slice(0, 5) : code.replace('*', ''), name: 'PM ' + code, code: code, config: { theoremCode: code } };
       }
       if (!p && key.indexOf('axiom:') === 0) {
         var id = key.slice(6);
@@ -434,7 +435,7 @@
     var isLast = state.index >= state.levels.length - 1;
     els.overlay.hidden = false;
     els.sheet.innerHTML =
-      '<button class="sheet-x" data-close aria-label="关闭">×</button>' +
+      '<button class="sheet-x" data-close aria-label="关闭"><svg class="icon"><use href="#i-x-mark"></use></svg></button>' +
       '<div class="win">' +
         '<div class="win-check">✓</div>' +
         '<div class="win-formula formula">' + goalHTML(lv.target) + '</div>' +
@@ -475,22 +476,21 @@
         '<div class="levels">' + cells + '</div>' +
       '</section>';
     }).join('');
-    els.sheet.innerHTML = '<button class="sheet-x" data-close aria-label="关闭">×</button><div class="chapters">' + html + '</div>';
-    var cur = els.sheet.querySelector('.chapter.is-current');
-    if (cur) setTimeout(function () { els.sheet.scrollTop = Math.max(0, cur.offsetTop - 18); }, 0);
+    els.sheet.innerHTML = '<button class="sheet-x" data-close aria-label="关闭"><svg class="icon"><use href="#i-x-mark"></use></svg></button><div class="chapters">' + html + '</div>';
+    els.sheet.scrollTop = 0;
   }
 
   function openHelp() {
     sfx('click');
     els.overlay.hidden = false;
     els.sheet.innerHTML =
-      '<button class="sheet-x" data-close aria-label="关闭">×</button>' +
+      '<button class="sheet-x" data-close aria-label="关闭"><svg class="icon"><use href="#i-x-mark"></use></svg></button>' +
       '<div class="help">' +
         '<div><span class="help-icon">+</span><b>放模块</b></div>' +
         '<div><span class="help-icon">→</span><b>拖线</b></div>' +
         '<div><span class="help-icon">✓</span><b>校验</b></div>' +
       '</div>' +
-      '<p class="credit">音乐：YannZ · CC BY 4.0</p>';
+      '<p class="credit">音乐：MintoDog · CC0</p>';
   }
 
   function closeOverlay() {
@@ -614,6 +614,8 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();
+
+
 
 
 

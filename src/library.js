@@ -180,7 +180,7 @@
     var t = theoremData(code);
     if (!t) return;
     PARTS.push({
-      key: 'theorem:' + code, kind: 'theorem', group: 'theorem', symbol: code.replace('*', ''),
+      key: 'theorem:' + code, kind: 'theorem', group: 'theorem', symbol: t.name ? t.name.slice(0, 5) : code.replace('*', ''),
       name: '定理 ' + code, code: code,
       desc: t.formula, accent: 'silver', config: { theoremCode: code }
     });
@@ -203,14 +203,14 @@
     );
     (P.axioms || []).forEach(function (a) {
       parts.push({
-        key: 'pred-axiom:' + a.id, kind: 'pred-axiom', group: 'predicate', symbol: a.code || a.id,
+        key: 'pred-axiom:' + a.id, kind: 'pred-axiom', group: 'predicate', symbol: a.id,
         name: a.name, code: a.code || a.id, desc: a.schema, accent: 'gold',
         config: { axiomId: a.id }
       });
     });
     (P.theorems || []).forEach(function (t) {
       parts.push({
-        key: 'theorem:' + t.code, kind: 'theorem', group: 'predicate', symbol: t.code,
+        key: 'theorem:' + t.code, kind: 'theorem', group: 'predicate', symbol: t.code.replace('*', ''),
         name: '定理 ' + t.code, code: t.code, desc: t.formula, accent: 'silver',
         config: { theoremCode: t.code }
       });
@@ -228,4 +228,5 @@
   window.RSL.ARCHIVE_ORDER = ARCHIVE_ORDER;
   window.RSL.ARCHIVE_FALLBACK = ARCHIVE_FALLBACK;
 })();
+
 

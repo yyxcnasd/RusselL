@@ -556,6 +556,57 @@
     }
   );
 
+
+  /* Replace the remaining direct-result predicate cards with real multi-step proofs. */
+  var PRED_REPLACE = {
+    'PC-06': { title: '闭包 · 例化 a', target: '∀y((∀x F(x))→F(a))',
+      allowed: ['pred-axiom:PA1', 'all-intro', 'all-elim', 'target'],
+      nodes: [node('ax','pred-axiom',80,340,{axiomId:'PA1'}), node('iy','all-intro',480,300,{v:'y'}), node('ea','all-elim',760,300,{term:'a'}), node('jy','all-intro',1040,300,{v:'y'})],
+      edges: [edge('ax','out','iy','assertion'), edge('iy','out','ea','assertion'), edge('ea','out','jy','assertion'), edge('jy','out','target','proof')], tx: 1400 },
+    'PC-07': { title: '闭包 · 例化 b', target: '∀y((∀x F(x))→F(b))',
+      allowed: ['pred-axiom:PA1', 'all-intro', 'all-elim', 'target'],
+      nodes: [node('ax','pred-axiom',80,340,{axiomId:'PA1'}), node('iy','all-intro',480,300,{v:'y'}), node('eb','all-elim',760,300,{term:'b'}), node('jy','all-intro',1040,300,{v:'y'})],
+      edges: [edge('ax','out','iy','assertion'), edge('iy','out','eb','assertion'), edge('eb','out','jy','assertion'), edge('jy','out','target','proof')], tx: 1400 },
+    'PC-08': { title: '闭包 · 例化 c', target: '∀y((∀x F(x))→F(c))',
+      allowed: ['pred-axiom:PA1', 'all-intro', 'all-elim', 'target'],
+      nodes: [node('ax','pred-axiom',80,340,{axiomId:'PA1'}), node('iy','all-intro',480,300,{v:'y'}), node('ec','all-elim',760,300,{term:'c'}), node('jy','all-intro',1040,300,{v:'y'})],
+      edges: [edge('ax','out','iy','assertion'), edge('iy','out','ec','assertion'), edge('ec','out','jy','assertion'), edge('jy','out','target','proof')], tx: 1400 },
+    'PC-09': { title: '闭包 · 存在引入 a', target: '∀y(F(a)→∃x F(x))',
+      allowed: ['pred-axiom:PA3', 'all-intro', 'all-elim', 'target'],
+      nodes: [node('ax','pred-axiom',80,340,{axiomId:'PA3'}), node('iy','all-intro',480,300,{v:'y'}), node('ea','all-elim',760,300,{term:'a'}), node('jy','all-intro',1040,300,{v:'y'})],
+      edges: [edge('ax','out','iy','assertion'), edge('iy','out','ea','assertion'), edge('ea','out','jy','assertion'), edge('jy','out','target','proof')], tx: 1400 },
+    'PC-10': { title: '闭包 · 存在引入 b', target: '∀y(F(b)→∃x F(x))',
+      allowed: ['pred-axiom:PA3', 'all-intro', 'all-elim', 'target'],
+      nodes: [node('ax','pred-axiom',80,340,{axiomId:'PA3'}), node('iy','all-intro',480,300,{v:'y'}), node('eb','all-elim',760,300,{term:'b'}), node('jy','all-intro',1040,300,{v:'y'})],
+      edges: [edge('ax','out','iy','assertion'), edge('iy','out','eb','assertion'), edge('eb','out','jy','assertion'), edge('jy','out','target','proof')], tx: 1400 },
+    'PC-17': { title: '闭包 · 全称到存在', target: '∀y((∀x F(x))→∃x F(x))',
+      allowed: ['pred-axiom:PA1', 'pred-axiom:PA3', 'all-intro', 'all-elim', 'syllogism', 'target'],
+      nodes: [node('a1','pred-axiom',60,160,{axiomId:'PA1'}), node('i1','all-intro',360,140,{v:'y'}), node('e1','all-elim',620,140,{term:'a'}), node('a3','pred-axiom',60,460,{axiomId:'PA3'}), node('i3','all-intro',360,440,{v:'y'}), node('e3','all-elim',620,440,{term:'a'}), node('hs','syllogism',940,300), node('jy','all-intro',1220,300,{v:'y'})],
+      edges: [edge('a1','out','i1','assertion'), edge('i1','out','e1','assertion'), edge('a3','out','i3','assertion'), edge('i3','out','e3','assertion'), edge('e1','out','hs','a'), edge('e3','out','hs','b'), edge('hs','out','jy','assertion'), edge('jy','out','target','proof')], tx: 1580 },
+    'PC-18': { title: '双重闭包 · 例化 a', target: '∀y∀z((∀x F(x))→F(a))',
+      allowed: ['pred-axiom:PA1', 'all-intro', 'all-elim', 'target'],
+      nodes: [node('ax','pred-axiom',60,340,{axiomId:'PA1'}), node('iy','all-intro',360,300,{v:'y'}), node('ea','all-elim',620,300,{term:'a'}), node('jy','all-intro',880,300,{v:'y'}), node('kz','all-intro',1140,300,{v:'z'})],
+      edges: [edge('ax','out','iy','assertion'), edge('iy','out','ea','assertion'), edge('ea','out','jy','assertion'), edge('jy','out','kz','assertion'), edge('kz','out','target','proof')], tx: 1500 },
+    'PC-19': { title: '双重闭包 · 存在引入 a', target: '∀y∀z(F(a)→∃x F(x))',
+      allowed: ['pred-axiom:PA3', 'all-intro', 'all-elim', 'target'],
+      nodes: [node('ax','pred-axiom',60,340,{axiomId:'PA3'}), node('iy','all-intro',360,300,{v:'y'}), node('ea','all-elim',620,300,{term:'a'}), node('jy','all-intro',880,300,{v:'y'}), node('kz','all-intro',1140,300,{v:'z'})],
+      edges: [edge('ax','out','iy','assertion'), edge('iy','out','ea','assertion'), edge('ea','out','jy','assertion'), edge('jy','out','kz','assertion'), edge('kz','out','target','proof')], tx: 1500 },
+    'PC-20': { title: '双重闭包 · 全称到存在', target: '∀y∀z((∀x F(x))→∃x F(x))',
+      allowed: ['pred-axiom:PA1', 'pred-axiom:PA3', 'all-intro', 'all-elim', 'syllogism', 'target'],
+      nodes: [node('a1','pred-axiom',60,160,{axiomId:'PA1'}), node('i1','all-intro',360,140,{v:'y'}), node('e1','all-elim',620,140,{term:'a'}), node('a3','pred-axiom',60,460,{axiomId:'PA3'}), node('i3','all-intro',360,440,{v:'y'}), node('e3','all-elim',620,440,{term:'a'}), node('hs','syllogism',940,300), node('jy','all-intro',1220,300,{v:'y'}), node('kz','all-intro',1480,300,{v:'z'})],
+      edges: [edge('a1','out','i1','assertion'), edge('i1','out','e1','assertion'), edge('a3','out','i3','assertion'), edge('i3','out','e3','assertion'), edge('e1','out','hs','a'), edge('e3','out','hs','b'), edge('hs','out','jy','assertion'), edge('jy','out','kz','assertion'), edge('kz','out','target','proof')], tx: 1820 }
+  };
+  PREDICATE.levels = PREDICATE.levels.map(function (lv) {
+    var rep = PRED_REPLACE[lv.id];
+    if (!rep) return lv;
+    return {
+      id: lv.id, code: lv.code, title: rep.title, kicker: lv.kicker, target: rep.target,
+      brief: '', hint: '', teaches: [], reward: '—', note: '',
+      allowed: rep.allowed, targetPos: { x: rep.tx, y: 300 },
+      solution: { nodes: rep.nodes, edges: rep.edges }
+    };
+  });
+
   /* 关卡默认值。index / order 由 app.levels() 统一编号，这里不硬编码。 */
   PREDICATE.levels.forEach(function (lv) {
     lv.chapter = 'predicate';
