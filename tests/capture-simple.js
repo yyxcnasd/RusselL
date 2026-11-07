@@ -1,4 +1,4 @@
-﻿/* Capture final simplified screenshots. */
+/* Capture final simplified screenshots. */
 const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -24,6 +24,9 @@ async function main() {
   const shot = async name => { const r = await send('Page.captureScreenshot', { format: 'png' }); fs.writeFileSync(path.join(root, 'screenshots', name), Buffer.from(r.data, 'base64')); };
   await send('Runtime.enable'); await sleep(1400);
   await shot('01-game.png');
+  await js('document.getElementById("themeBtn").click()'); await sleep(350);
+  await shot('07-dark.png');
+  await js('document.getElementById("themeBtn").click()'); await sleep(250);
   await js('document.querySelector(".tile").click()'); await sleep(350);
   const ports = await js(`(function(){var out=document.querySelector('.node[data-kind="axiom"] .port-out'),inp=document.querySelector('.node.is-target .port-in');var a=out.getBoundingClientRect(),b=inp.getBoundingClientRect();return {ox:a.left+a.width/2,oy:a.top+a.height/2,ix:b.left+b.width/2,iy:b.top+b.height/2};})()`);
   await send('Input.dispatchMouseEvent', { type: 'mousePressed', x: ports.ox, y: ports.oy, button: 'left', clickCount: 1 });

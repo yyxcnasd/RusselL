@@ -13,7 +13,9 @@
     selectedNode: null,
     selectedEdge: null,
     overlay: false,
-    lastId: null
+    lastId: null,
+    sound: true,
+    theme: 'light'
   };
   var els = {};
   var toastTimer = null;
@@ -44,6 +46,89 @@
         lastId: state.level ? state.level.id : state.lastId
       }));
     } catch (e) {}
+  }
+
+  function loadSettings() {
+    try {
+      var s = JSON.parse(localStorage.getItem('axiom-simple:settings') || '{}');
+      state.sound = s.sound !== false;
+      state.theme = s.theme === 'dark' ? 'dark' : 'light';
+    } catch (e) { state.sound = true; state.theme = 'light'; }
+  }
+  function saveSettings() {
+    try { localStorage.setItem('axiom-simple:settings', JSON.stringify({ sound: state.sound, theme: state.theme })); } catch (e) {}
+  }
+  function applyTheme() {
+    document.documentElement.dataset.theme = state.theme;
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', state.theme === 'dark' ? '#151311' : '#f6f2e8');
+    if (els.themeBtn) {
+      els.themeBtn.textContent = state.theme === 'dark' ? '☀' : '◐';
+      els.themeBtn.setAttribute('aria-label', state.theme === 'dark' ? '切换浅色模式' : '切换深色模式');
+    }
+  }
+  function updateSoundBtn() {
+    if (!els.soundBtn) return;
+    els.soundBtn.classList.toggle('is-muted', !state.sound);
+    els.soundBtn.setAttribute('aria-label', state.sound ? '关闭音乐' : '开启音乐');
+  }
+
+  var bgm = null, audioCtx = null;
+  function ensureAudio() {
+    if (!audioCtx) {
+      try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { audioCtx = null; }
+    }
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    if (!bgm) {
+      bgm = document.getElementById('bgm');
+      if (bgm) bgm.volume = 0.23;
+    }
+    if (state.sound && bgm && bgm.paused) bgm.play().catch(function () {});
+  }
+  function tone(freq, dur, type, gain, delay) {
+    if (!state.sound) return;
+    ensureAudio();
+    if (!audioCtx) return;
+    var t0 = audioCtx.currentTime + (delay || 0);
+    var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = type || 'sine';
+    o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(gain || 0.03, t0 + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(t0); o.stop(t0 + dur + 0.02);
+  }
+  function sfx(kind) {
+    if (kind === 'place') { tone(330, 0.06, 'triangle', 0.025); tone(495, 0.08, 'sine', 0.02, 0.04); }
+    else if (kind === 'connect') { tone(660, 0.04, 'sine', 0.035); tone(990, 0.06, 'sine', 0.025, 0.04); }
+    else if (kind === 'win') { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, 0.18, 'sine', 0.04, i * 0.085); }); }
+    else if (kind === 'fail') { tone(180, 0.13, 'triangle', 0.035); }
+    else { tone(520, 0.035, 'sine', 0.018); }
+  }
+  function updateProgress() {
+    var n = state.levels.length || 1;
+    var solved = state.levels.filter(function (lv) { return state.solved[lv.id]; }).length;
+    if (els.progressFill) els.progressFill.style.width = (solved / n * 100) + '%';
+  }
+  function confetti() {
+    var host = els.sheet.querySelector('.win');
+    if (!host) return;
+    host.style.position = 'relative';
+    var box = document.createElement('div');
+    box.className = 'confetti';
+    var colors = ['#e66f3f', '#3f8e65', '#4f7fb5', '#2b2721', '#e8b04b'];
+    for (var i = 0; i < 28; i++) {
+      var s = document.createElement('i');
+      s.style.setProperty('--c', colors[i % colors.length]);
+      s.style.left = (i % 2 ? 4 + Math.random() * 20 : 76 + Math.random() * 20) + '%';
+      s.style.setProperty('--dx', (Math.random() * 120 - 60) + 'px');
+      s.style.setProperty('--d', (Math.random() * 0.45) + 's');
+      s.style.setProperty('--t', (1.1 + Math.random() * 0.8) + 's');
+      box.appendChild(s);
+    }
+    host.appendChild(box);
+    setTimeout(function () { if (box.parentNode) box.parentNode.removeChild(box); }, 2200);
   }
 
   function buildLevels() {
@@ -211,6 +296,7 @@
     state.board.paint(r);
     els.deleteBtn.hidden = !(state.selectedNode || state.selectedEdge);
     els.coach.hidden = !(state.index === 0 && data.nodes.length <= 1);
+    els.checkBtn.classList.toggle('is-ready', r.complete);
     renderPopover();
     saveProgress();
   }
@@ -219,6 +305,7 @@
     var p = partsForLevel().filter(function (x) { return x.key === key; })[0];
     if (!p) return;
     var pos = freeSpot();
+    sfx('place');
     var n = state.board.addNode(p.kind, Object.assign({}, p.config || {}), pos);
     state.board.select(n.id);
     state.selectedNode = n.id;
@@ -287,6 +374,7 @@
     var r = state.results;
     if (!r) return;
     if (r.complete) { win(); return; }
+    sfx('fail');
     if (r.errors.length) { toast('还有模块没接好'); return; }
     if (r.target && r.target.state === 'error') { toast('公式不对'); return; }
     toast('把线接到 ⊢');
@@ -296,6 +384,12 @@
     var lv = state.level;
     state.solved[lv.id] = true;
     saveProgress();
+    sfx('win');
+    updateProgress();
+    els.levelBtn.classList.remove('just-solved');
+    void els.levelBtn.offsetWidth;
+    els.levelBtn.classList.add('just-solved');
+    setTimeout(function () { els.levelBtn.classList.remove('just-solved'); }, 520);
     var isLast = state.index >= state.levels.length - 1;
     els.overlay.hidden = false;
     els.sheet.innerHTML =
@@ -303,11 +397,14 @@
       '<div class="win">' +
         '<div class="win-check">✓</div>' +
         '<div class="win-formula formula">' + goalHTML(lv.target) + '</div>' +
+        '<div class="win-count">' + Object.keys(state.solved).length + ' / ' + state.levels.length + '</div>' +
         '<button class="primary next-btn" data-next="1">' + (isLast ? '选关' : '下一关') + '</button>' +
       '</div>';
+    confetti();
   }
 
   function openLevels() {
+    sfx('click');
     els.overlay.hidden = false;
     var grid = state.levels.map(function (lv, i) {
       var cls = 'level-cell' + (i === state.index ? ' is-current' : '') + (state.solved[lv.id] ? ' is-solved' : '');
@@ -317,6 +414,7 @@
   }
 
   function openHelp() {
+    sfx('click');
     els.overlay.hidden = false;
     els.sheet.innerHTML =
       '<button class="sheet-x" data-close aria-label="关闭">×</button>' +
@@ -324,7 +422,8 @@
         '<div><span class="help-icon">+</span><b>放模块</b></div>' +
         '<div><span class="help-icon">→</span><b>拖线</b></div>' +
         '<div><span class="help-icon">✓</span><b>校验</b></div>' +
-      '</div>';
+      '</div>' +
+      '<p class="credit">音乐：YannZ · CC BY 4.0</p>';
   }
 
   function closeOverlay() {
@@ -343,6 +442,21 @@
     els.checkBtn.addEventListener('click', check);
     els.helpBtn.addEventListener('click', openHelp);
     els.deleteBtn.addEventListener('click', deleteSelection);
+    els.themeBtn.addEventListener('click', function () {
+      state.theme = state.theme === 'dark' ? 'light' : 'dark';
+      applyTheme();
+      saveSettings();
+      sfx('click');
+    });
+    els.soundBtn.addEventListener('click', function () {
+      state.sound = !state.sound;
+      updateSoundBtn();
+      saveSettings();
+      if (state.sound) ensureAudio();
+      else if (bgm) bgm.pause();
+      sfx('click');
+    });
+    document.addEventListener('pointerdown', function () { ensureAudio(); });
     els.tray.addEventListener('click', function (e) {
       var tile = e.target.closest('.tile');
       if (tile) addPart(tile.dataset.key);
@@ -386,10 +500,13 @@
   }
 
   function init() {
-    ['levelBtn', 'goal', 'goalFormula', 'deleteBtn', 'helpBtn', 'checkBtn', 'board', 'boardWorld', 'wireLayer', 'nodeLayer', 'tray', 'popover', 'toast', 'overlay', 'sheet', 'coach'].forEach(function (id) { els[id] = $(id); });
+    ['levelBtn', 'goal', 'goalFormula', 'deleteBtn', 'themeBtn', 'soundBtn', 'helpBtn', 'checkBtn', 'progressFill', 'board', 'boardWorld', 'wireLayer', 'nodeLayer', 'tray', 'popover', 'toast', 'overlay', 'sheet', 'coach'].forEach(function (id) { els[id] = $(id); });
     if (!L) { document.body.innerHTML = '<div class="fatal">逻辑引擎未加载</div>'; return; }
     window.RSL.formatFormula = function (ast) { return formulaHTML(ast); };
     loadProgress();
+    loadSettings();
+    applyTheme();
+    updateSoundBtn();
     buildLevels();
     state.board = new window.RSL.Board({
       board: els.board,
@@ -402,7 +519,9 @@
         state.selectedEdge = edge;
         refresh();
       },
-      onToast: function (msg) { toast(msg); }
+      onToast: function (msg) { toast(msg); },
+      onConnect: function () { sfx('connect'); },
+      onRemove: function () { sfx('click'); }
     });
     bind();
     var start = 0;
@@ -416,12 +535,15 @@
       if (next >= 0) start = next;
     }
     loadLevel(start);
+    updateProgress();
     window.RSL.APP = { state: state, loadLevel: loadLevel, refresh: refresh };
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();
+
+
 
 
 

@@ -339,6 +339,162 @@
     });
   });
 
+  /* Transformation levels: archive theorem + compound substitution, not just a direct card. */
+  var SUB_LEVELS = [
+    { code: '*2.12', title: '代入 · 双重否定引入', map: { P: 'P∨Q' } },
+    { code: '*2.18', title: '代入 · 否定前件', map: { P: 'P∨Q' } },
+    { code: '*2.1', title: '代入 · 排中律', map: { P: 'P∨Q' } },
+    { code: '*2.11', title: '代入 · 排中律 II', map: { P: 'P∨Q' } },
+    { code: '*2.21', title: '代入 · 双命题', map: { P: 'P∨Q', Q: 'R' } },
+    { code: '*2.24', title: '代入 · 反向前件', map: { P: 'P∨Q', Q: 'R' } },
+    { code: '*2.27', title: '代入 · 双重分离', map: { P: 'P∨Q', Q: 'R' } },
+    { code: '*3.22', title: '代入 · 合取交换', map: { P: 'P∨Q', Q: 'R' } },
+    { code: '*4.31', title: '代入 · 析取交换', map: { P: 'P∨Q', Q: 'R' } }
+  ];
+  SUB_LEVELS.forEach(function (spec, si) {
+    var th = window.RSL.theoremData ? window.RSL.theoremData(spec.code) : null;
+    if (!th || !window.RSL.Logic) return;
+    var Lg = window.RSL.Logic;
+    var map = {};
+    Object.keys(spec.map).forEach(function (k) { map[k] = Lg.parse(spec.map[k]); });
+    var target = Lg.fmt(Lg.instantiate(Lg.parse(th.formula), map));
+    var nodes = [
+      node('p' + si, 'atom', 60, 80, { name: 'P' }),
+      node('q' + si, 'atom', 60, 240, { name: 'Q' }),
+      node('or' + si, 'or', 340, 150),
+      node('th' + si, 'theorem', 60, 430, { theoremCode: spec.code }),
+      node('s1' + si, 'subst', 700, 300)
+    ];
+    var edges = [
+      edge('p' + si, 'out', 'or' + si, 'a'),
+      edge('q' + si, 'out', 'or' + si, 'b')
+    ];
+    if (spec.map.Q) {
+      nodes.push(node('r' + si, 'atom', 60, 620, { name: 'R' }));
+      nodes.push(node('s2' + si, 'subst', 1000, 300));
+      // Replace Q first, then P, so the Q introduced by P := P∨Q survives.
+      edges.push(edge('th' + si, 'out', 's1' + si, 'assertion'));
+      edges.push(edge('q' + si, 'out', 's1' + si, 'atom'));
+      edges.push(edge('r' + si, 'out', 's1' + si, 'formula'));
+      edges.push(edge('s1' + si, 'out', 's2' + si, 'assertion'));
+      edges.push(edge('p' + si, 'out', 's2' + si, 'atom'));
+      edges.push(edge('or' + si, 'out', 's2' + si, 'formula'));
+      edges.push(edge('s2' + si, 'out', 'target', 'proof'));
+    } else {
+      edges.push(edge('th' + si, 'out', 's1' + si, 'assertion'));
+      edges.push(edge('p' + si, 'out', 's1' + si, 'atom'));
+      edges.push(edge('or' + si, 'out', 's1' + si, 'formula'));
+      edges.push(edge('s1' + si, 'out', 'target', 'proof'));
+    }
+    LEVELS.push({
+      id: 'SB-' + spec.code.replace(/[*.]/g, '-'),
+      chapter: 'transform',
+      code: 'SUB ' + spec.code,
+      title: spec.title,
+      kicker: 'SUBSTITUTION / ' + spec.code,
+      target: target,
+      brief: '',
+      hint: '',
+      teaches: ['代入规则', spec.code],
+      allowed: ['atom', 'or', 'subst', 'theorem:' + spec.code, 'target'],
+      reward: '—',
+      note: '',
+      solution: { nodes: nodes, edges: edges }
+    });
+  });
+
+  /* Multi-step inference: archive theorems + substitution + detachment. */
+  LEVELS.push({
+    id: 'MIX-01',
+    chapter: 'transform',
+    code: 'MIX-01',
+    title: '组合 · 三段论到同一律',
+    kicker: 'SUBST + DETACH',
+    target: 'P→P',
+    brief: '',
+    hint: '',
+    teaches: ['*2.05', '*2.12', '*2.14', '分离'],
+    allowed: ['atom', 'not', 'subst', 'detach', 'theorem:*2.05', 'theorem:*2.12', 'theorem:*2.14', 'target'],
+    reward: '—',
+    note: '',
+    solution: {
+      nodes: [
+        node('c1p', 'atom', 40, 80, { name: 'P' }),
+        node('c1n1', 'not', 300, 80),
+        node('c1n2', 'not', 550, 80),
+        node('c1t205', 'theorem', 40, 340, { theoremCode: '*2.05' }),
+        node('c1q', 'atom', 40, 560, { name: 'Q' }),
+        node('c1s1', 'subst', 820, 340),
+        node('c1r', 'atom', 40, 760, { name: 'R' }),
+        node('c1s2', 'subst', 1080, 340),
+        node('c1t12', 'theorem', 820, 620, { theoremCode: '*2.12' }),
+        node('c1t14', 'theorem', 820, 820, { theoremCode: '*2.14' }),
+        node('c1d1', 'detach', 1360, 560),
+        node('c1d2', 'detach', 1620, 560)
+      ],
+      edges: [
+        edge('c1p', 'out', 'c1n1', 'a'),
+        edge('c1n1', 'out', 'c1n2', 'a'),
+        edge('c1t205', 'out', 'c1s1', 'assertion'),
+        edge('c1q', 'out', 'c1s1', 'atom'),
+        edge('c1n2', 'out', 'c1s1', 'formula'),
+        edge('c1s1', 'out', 'c1s2', 'assertion'),
+        edge('c1r', 'out', 'c1s2', 'atom'),
+        edge('c1p', 'out', 'c1s2', 'formula'),
+        edge('c1t14', 'out', 'c1d1', 'a'),
+        edge('c1s2', 'out', 'c1d1', 'b'),
+        edge('c1t12', 'out', 'c1d2', 'a'),
+        edge('c1d1', 'out', 'c1d2', 'b'),
+        edge('c1d2', 'out', 'target', 'proof')
+      ]
+    }
+  });
+  LEVELS.push({
+    id: 'MIX-02',
+    chapter: 'transform',
+    code: 'MIX-02',
+    title: '组合 · 否定引入',
+    kicker: 'SUBST + DETACH',
+    target: 'P→¬¬P',
+    brief: '',
+    hint: '',
+    teaches: ['*2.05', '*2.08', '*2.12', '分离'],
+    allowed: ['atom', 'not', 'subst', 'detach', 'theorem:*2.05', 'theorem:*2.08', 'theorem:*2.12', 'target'],
+    reward: '—',
+    note: '',
+    solution: {
+      nodes: [
+        node('c2p', 'atom', 40, 80, { name: 'P' }),
+        node('c2n1', 'not', 300, 80),
+        node('c2n2', 'not', 550, 80),
+        node('c2t205', 'theorem', 40, 340, { theoremCode: '*2.05' }),
+        node('c2q', 'atom', 40, 560, { name: 'Q' }),
+        node('c2s1', 'subst', 820, 340),
+        node('c2r', 'atom', 40, 760, { name: 'R' }),
+        node('c2s2', 'subst', 1080, 340),
+        node('c2t12', 'theorem', 820, 620, { theoremCode: '*2.12' }),
+        node('c2t08', 'theorem', 820, 820, { theoremCode: '*2.08' }),
+        node('c2d1', 'detach', 1360, 560),
+        node('c2d2', 'detach', 1620, 560)
+      ],
+      edges: [
+        edge('c2p', 'out', 'c2n1', 'a'),
+        edge('c2n1', 'out', 'c2n2', 'a'),
+        edge('c2t205', 'out', 'c2s1', 'assertion'),
+        edge('c2q', 'out', 'c2s1', 'atom'),
+        edge('c2p', 'out', 'c2s1', 'formula'),
+        edge('c2s1', 'out', 'c2s2', 'assertion'),
+        edge('c2r', 'out', 'c2s2', 'atom'),
+        edge('c2n2', 'out', 'c2s2', 'formula'),
+        edge('c2t12', 'out', 'c2d1', 'a'),
+        edge('c2s2', 'out', 'c2d1', 'b'),
+        edge('c2t08', 'out', 'c2d2', 'a'),
+        edge('c2d1', 'out', 'c2d2', 'b'),
+        edge('c2d2', 'out', 'target', 'proof')
+      ]
+    }
+  });
+
   /* Normalize and add useful defaults. */
   LEVELS.forEach(function (lv, i) {
     lv.index = i;

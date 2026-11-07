@@ -6,6 +6,7 @@
 <meta name="theme-color" content="#f6f2e8">
 <title>公理板</title>
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<script>try{var t=JSON.parse(localStorage.getItem("axiom-simple:settings")||"{}").theme;if(t==="dark")document.documentElement.dataset.theme="dark";}catch(e){}</script>
 <link rel="stylesheet" href="src/simple.css">
 </head>
 <body>
@@ -18,10 +19,13 @@
     </div>
     <div class="actions">
       <button class="round-btn delete-btn" id="deleteBtn" aria-label="删除所选" hidden>×</button>
+      <button class="round-btn theme-btn" id="themeBtn" aria-label="切换深色模式">◐</button>
+      <button class="round-btn sound-btn" id="soundBtn" aria-label="音乐开关"><span class="sound-glyph">♪</span></button>
       <button class="round-btn" id="helpBtn" aria-label="操作说明">?</button>
       <button class="check-btn" id="checkBtn">校验</button>
     </div>
   </header>
+  <div class="progress" aria-hidden="true"><i id="progressFill"></i></div>
 
   <main class="stage">
     <div class="board" id="board">
@@ -47,6 +51,8 @@
   </div>
 </div>
 
+<audio id="bgm" src="assets/audio/tutorial.mp3" loop preload="metadata"></audio>
+
 <script src="src/logic.js"></script>
 <script src="src/theorems.js"></script>
 <script src="src/metamath.js"></script>
@@ -58,3 +64,4 @@
 <script src="src/main.js"></script>
 </body>
 </html>
+
