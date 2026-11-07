@@ -82,6 +82,8 @@ test('parse: Unicode 与 ASCII 等价', () => {
     ['∀x F(x)', 'forall x F(x)'],
     ['∃x F(x)', 'exists x F(x)'],
     ['¬¬P', '~~P'],
+    ['x∈y', 'x ∈ y'],
+    ['x∈y∧y∈z', 'x ∈ y ^ y ∈ z'],
     ['P→(Q∧R)', 'P -> (Q ^ R)'],
     ['F(x, y)', 'F(x,y)']
   ];
@@ -172,6 +174,8 @@ test('fmt: 最小括号与 parse/fmt 往返', () => {
   assert.equal(fmt(parse('∀x F(x)')), '∀x F(x)');
   assert.equal(fmt(parse('∀x (F(x)→G(x))')), '∀x (F(x)→G(x))');
   assert.equal(fmt(parse('∃x∀y R(x, y)')), '∃x ∀y R(x, y)');
+  assert.equal(fmt(parse('x∈y')), 'x ∈ y');
+  assert.equal(fmt(parse('x=y')), 'x = y');
   assert.equal(fmt(parse('(P↔Q)↔R')), '(P↔Q)↔R');
   assert.equal(fmt(parse('P↔(Q↔R)')), 'P↔Q↔R');
   assert.equal(pretty(parse('P→Q')), fmt(parse('P→Q')));
@@ -217,31 +221,36 @@ test('toHTML: 转义、span 类与最小括号', () => {
  * 展开 / key / eq
  * ========================================================================= */
 
-test('expand: D1/D2/D3 展开到核心语言', () => {
-  assert.deepStrictEqual(expand(parse('P→Q')), parse('¬P∨Q'));
-  assert.deepStrictEqual(expand(parse('P∧Q')), parse('¬(¬P∨¬Q)'));
-  assert.deepStrictEqual(expand(parse('P↔Q')), parse('¬(¬(¬P∨Q)∨¬(¬Q∨P))'));
+test('expand: set.mm 定义展开到 ¬/→/∀ 核心', () => {
+  assert.deepStrictEqual(expand(parse('P→Q')), parse('P→Q'));
+  assert.deepStrictEqual(expand(parse('P∨Q')), parse('¬P→Q'));
+  assert.deepStrictEqual(expand(parse('P∧Q')), parse('¬(P→¬Q)'));
+  assert.deepStrictEqual(expand(parse('P↔Q')), parse('¬((P→Q)→¬(Q→P))'));
+  assert.deepStrictEqual(expand(parse('∃x F(x)')), parse('¬∀x ¬F(x)'));
 
   const kinds = collectKinds(expand(parse('(P→Q)↔(P∧(Q∨R))')), new Set());
-  for (const forbidden of ['imp', 'and', 'iff']) {
+  for (const forbidden of ['and', 'iff', 'or', 'exists']) {
     assert.equal(kinds.has(forbidden), false, `展开后不应含 ${forbidden}`);
   }
   for (const k of kinds) {
-    assert.ok(['atom', 'pred', 'var', 'not', 'or', 'all', 'exists'].includes(k), `意外节点 ${k}`);
+    assert.ok(['atom', 'pred', 'var', 'not', 'imp', 'all'].includes(k), `意外节点 ${k}`);
   }
 });
 
-test('key/eq: 定义等价与 alpha 等价', () => {
+test('key/eq: set.mm 定义等价与 alpha 等价', () => {
   assert.equal(typeof key(parse('P→Q')), 'string');
-  assert.equal(key(parse('P→Q')), key(parse('¬P∨Q')));
+  assert.equal(key(parse('P∨Q')), key(parse('¬P→Q')));
   assert.equal(key(parse('∀x F(x)')), key(parse('∀y F(y)')));
 
-  assert.equal(eq(parse('P→Q'), parse('¬P∨Q')), true);
-  assert.equal(eq(parse('P∧Q'), parse('¬(¬P∨¬Q)')), true);
+  assert.equal(eq(parse('P∨Q'), parse('¬P→Q')), true);
+  assert.equal(eq(parse('P∧Q'), parse('¬(P→¬Q)')), true);
   assert.equal(eq(parse('P↔Q'), parse('(P→Q)∧(Q→P)')), true);
+  assert.equal(eq(parse('∃x F(x)'), parse('¬∀x ¬F(x)')), true);
   assert.equal(eq(parse('∀x F(x)'), parse('∀y F(y)')), true);
   assert.equal(eq(parse('∀x∃y R(x, y)'), parse('∀a∃b R(a, b)')), true);
 
+  /* → 是原始的，∨ 是由 → 定义的，所以 PM 式的 (P→Q) ≡ (¬P∨Q) 在这里不成立。 */
+  assert.equal(eq(parse('P→Q'), parse('¬P∨Q')), false);
   assert.equal(eq(parse('P∨Q'), parse('Q∨P')), false);
   assert.equal(eq(parse('∀x F(x)'), parse('∃x F(x)')), false);
   assert.equal(eq(parse('∀x∀y R(x, y)'), parse('∀y∀x R(x, y)')), false);
@@ -269,26 +278,28 @@ test('freeVars / atomsOf / predicatesOf / isAtom', () => {
  * 替换
  * ========================================================================= */
 
-test('substitute: 原子替换与捕获规避', () => {
+test('substitute: Metamath 式直接原子替换', () => {
   assert.deepStrictEqual(substitute(parse('P∧Q'), 'P', parse('R')), parse('R∧Q'));
   assert.deepStrictEqual(substitute(parse('P'), 'P', parse('(Q∨R)')), parse('Q∨R'));
   assert.deepStrictEqual(substitute(parse('∀x F(x)'), 'P', parse('R')), parse('∀x F(x)'));
 
-  /* 替换式自由变元 y 进入 ∀y 作用域时必须给量词改名。 */
-  const sub = substitute(parse('∀y (P→F(y))'), 'P', parse('G(y)'));
-  assert.equal(sub.k, 'all');
-  assert.notEqual(sub.v, 'y');
-  assert.deepStrictEqual(freeVars(sub), ['y']);
-  assert.equal(eq(sub, parse('∀y1 (G(y)→F(y1))')), true);
+  /* wff 变元可以换成含约束变元的公式：自由变元被外层量词捕获，这是允许的。 */
+  assert.deepStrictEqual(
+    substitute(parse('∀y (P→F(y))'), 'P', parse('G(y)')),
+    parse('∀y (G(y)→F(y))')
+  );
 
   /* 同时实例化多个原子，且只替换一次（不递归替换替换式内部）。 */
   const inst = instantiate(parse('P→(P∨Q)'), { P: parse('¬R'), Q: parse('S') });
   assert.deepStrictEqual(inst, parse('¬R→(¬R∨S)'));
   assert.deepStrictEqual(instantiate(parse('P'), { P: parse('P') }), parse('P'));
 
-  const cap = instantiate(parse('∀y (P→F(y))'), { P: parse('G(y)') });
-  assert.deepStrictEqual(freeVars(cap), ['y']);
-  assert.equal(eq(cap, parse('∀y1 (G(y)→F(y1))')), true);
+  /* 公理图式的实例：ax-4 的 P、Q 换成带 x 的谓词原子。 */
+  const ax4 = instantiate(parse('(∀x (P→Q))→((∀x P)→(∀x Q))'), {
+    P: parse('F(x)'),
+    Q: parse('G(x)')
+  });
+  assert.deepStrictEqual(ax4, parse('(∀x (F(x)→G(x)))→((∀x F(x))→(∀x G(x)))'));
 });
 
 test('substituteVar: 个体变元替换与捕获规避', () => {
@@ -321,46 +332,48 @@ test('quantify / freshVar', () => {
  * 定义替换
  * ========================================================================= */
 
-test('replaceOptions: 展开与折叠双向、id 稳定、最多 24 个', () => {
+test('replaceOptions: set.mm 定义双向、id 稳定、最多 24 个', () => {
   const ast = parse('(P→Q)∧P');
   const options = replaceOptions(ast);
-  assert.ok(options.length >= 2 && options.length <= 24);
+  assert.ok(options.length >= 1 && options.length <= 24);
   assert.equal(new Set(options.map((o) => o.id)).size, options.length);
 
-  const d1 = options.find((o) => o.def === 'D1' && o.dir === 'expand');
-  assert.ok(d1);
-  assert.deepStrictEqual(d1.path, ['a']);
-  assert.equal(typeof d1.label, 'string');
-  assert.deepStrictEqual(d1.before, parse('P→Q'));
-  assert.deepStrictEqual(d1.after, parse('¬P∨Q'));
-  assert.deepStrictEqual(d1.result, parse('(¬P∨Q)∧P'));
+  const dAn = options.find((o) => o.def === 'df-an' && o.dir === 'expand' && o.path.length === 0);
+  assert.ok(dAn);
+  assert.deepStrictEqual(dAn.before, parse('(P→Q)∧P'));
+  assert.deepStrictEqual(dAn.after, parse('¬((P→Q)→¬P)'));
+  assert.deepStrictEqual(dAn.result, parse('¬((P→Q)→¬P)'));
 
-  const d2 = options.find((o) => o.def === 'D2' && o.dir === 'expand');
-  assert.ok(d2);
-  assert.deepStrictEqual(d2.result, parse('¬(¬(P→Q)∨¬P)'));
+  const orExpand = replaceOptions(parse('P∨Q')).find((o) => o.def === 'df-or' && o.dir === 'expand');
+  assert.ok(orExpand);
+  assert.deepStrictEqual(orExpand.result, parse('¬P→Q'));
 
-  const d1fold = replaceOptions(parse('¬P∨Q')).find((o) => o.def === 'D1' && o.dir === 'fold');
-  assert.ok(d1fold);
-  assert.deepStrictEqual(d1fold.result, parse('P→Q'));
+  const orFold = replaceOptions(parse('¬P→Q')).find((o) => o.def === 'df-or' && o.dir === 'fold');
+  assert.ok(orFold);
+  assert.deepStrictEqual(orFold.result, parse('P∨Q'));
 
-  const d2fold = replaceOptions(parse('¬(¬P∨¬Q)')).find((o) => o.def === 'D2' && o.dir === 'fold');
-  assert.ok(d2fold);
-  assert.deepStrictEqual(d2fold.result, parse('P∧Q'));
+  const anFold = replaceOptions(parse('¬(P→¬Q)')).find((o) => o.def === 'df-an' && o.dir === 'fold');
+  assert.ok(anFold);
+  assert.deepStrictEqual(anFold.result, parse('P∧Q'));
 
-  const d3fold = replaceOptions(parse('(P→Q)∧(Q→P)')).find((o) => o.def === 'D3' && o.dir === 'fold');
-  assert.ok(d3fold);
-  assert.deepStrictEqual(d3fold.result, parse('P↔Q'));
+  const biFold = replaceOptions(parse('(P→Q)∧(Q→P)')).find((o) => o.def === 'dfbi2' && o.dir === 'fold');
+  assert.ok(biFold);
+  assert.deepStrictEqual(biFold.result, parse('P↔Q'));
 
-  const d3core = replaceOptions(parse('(¬P∨Q)∧(¬Q∨P)')).find((o) => o.def === 'D3' && o.dir === 'fold');
-  assert.ok(d3core);
-  assert.deepStrictEqual(d3core.result, parse('P↔Q'));
+  const biExpand = replaceOptions(parse('P↔Q')).find((o) => o.def === 'dfbi2' && o.dir === 'expand');
+  assert.ok(biExpand);
+  assert.deepStrictEqual(biExpand.result, parse('(P→Q)∧(Q→P)'));
 
-  const d3expand = replaceOptions(parse('P↔Q')).find((o) => o.def === 'D3' && o.dir === 'expand');
-  assert.ok(d3expand);
-  assert.deepStrictEqual(d3expand.result, parse('(P→Q)∧(Q→P)'));
+  const exExpand = replaceOptions(parse('∃x F(x)')).find((o) => o.def === 'df-ex' && o.dir === 'expand');
+  assert.ok(exExpand);
+  assert.deepStrictEqual(exExpand.result, parse('¬∀x ¬F(x)'));
+
+  const exFold = replaceOptions(parse('¬∀x ¬F(x)')).find((o) => o.def === 'df-ex' && o.dir === 'fold');
+  assert.ok(exFold);
+  assert.deepStrictEqual(exFold.result, parse('∃x F(x)'));
 
   /* applyReplacement 与列表一致、幂等，未知 id 抛错。 */
-  assert.deepStrictEqual(applyReplacement(ast, d1.id), d1.result);
+  assert.deepStrictEqual(applyReplacement(ast, dAn.id), dAn.result);
   const again = replaceOptions(ast);
   assert.deepStrictEqual(again.map((o) => o.id), options.map((o) => o.id));
   assert.deepStrictEqual(again.map((o) => o.result), options.map((o) => o.result));
@@ -417,27 +430,27 @@ test('match: 单向匹配、alpha 对应与定义等价的一致性', () => {
   assert.equal(match(parse('F(x)'), parse('F(y)')), null, '自由变元刚性');
   assert.equal(match(parse('P∧P'), parse('Q→Q')), null, '结构必须匹配');
 
-  const m4 = match(parse('P→P'), parse('(A→B)→(¬A∨B)'));
+  const m4 = match(parse('P→P'), parse('¬(A∨B)→¬(A∨B)'));
   assert.ok(m4);
-  assert.equal(eq(m4.P, parse('A→B')), true);
+  assert.equal(eq(m4.P, parse('¬(A∨B)')), true);
 });
 
 /* =========================================================================
  * 10 条命题恒等式（定义展开后结构相同）
  * ========================================================================= */
 
-test('10 条已知命题恒等式', () => {
+test('10 条 set.mm 定义恒等式', () => {
   const identities = [
-    ['P→Q', '¬P∨Q'],
-    ['P∧Q', '¬(¬P∨¬Q)'],
+    ['P∨Q', '¬P→Q'],
+    ['P∧Q', '¬(P→¬Q)'],
     ['P↔Q', '(P→Q)∧(Q→P)'],
-    ['P↔Q', '¬(¬(¬P∨Q)∨¬(¬Q∨P))'],
-    ['P→(Q→R)', '¬P∨(¬Q∨R)'],
-    ['(P∧Q)→R', '¬¬(¬P∨¬Q)∨R'],
-    ['P∧(Q∨R)', '¬(¬P∨¬(Q∨R))'],
-    ['P∨(Q∧R)', 'P∨¬(¬Q∨¬R)'],
-    ['P→(Q∧R)', '¬P∨¬(¬Q∨¬R)'],
-    ['(P↔Q)∨R', '((P→Q)∧(Q→P))∨R']
+    ['P↔Q', '¬((P→Q)→¬(Q→P))'],
+    ['∃x P', '¬∀x ¬P'],
+    ['¬(P∧Q)', '¬¬(P→¬Q)'],
+    ['P∧(Q∨R)', '¬(P→¬(¬Q→R))'],
+    ['(P↔Q)∨R', '¬¬((P→Q)→¬(Q→P))→R'],
+    ['∀x (P∨Q)', '∀x (¬P→Q)'],
+    ['∀x (P∧Q)', '∀x ¬(P→¬Q)']
   ];
   assert.equal(identities.length, 10);
   for (const [left, right] of identities) {

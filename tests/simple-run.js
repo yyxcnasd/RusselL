@@ -1,4 +1,4 @@
-/* Simplified UI: PM theorem level and config popover. */
+/* Simplified UI: 引用已证结论的关卡 + config popover。 */
 const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -24,9 +24,9 @@ async function main() {
   const shot = async name => { const r = await send('Page.captureScreenshot', { format: 'png' }); fs.writeFileSync(path.join(root, 'screenshots', name), Buffer.from(r.data, 'base64')); };
   await send('Runtime.enable'); await sleep(1300);
   await js('window.RSL.APP.state.forceUnlock=true');
-  const idx = await js('window.RSL.APP.state.levels.findIndex(function(l){return l.chapter==="metamath" && l.code.indexOf("*2.")===0})');
+  const idx = await js('window.RSL.APP.state.levels.findIndex(function(l){return l.id==="CH1-08"})');
   console.log('load', await js('(function(){try{window.RSL.APP.loadLevel(' + idx + ');return "ok"}catch(e){return (e&&e.stack)||String(e)}})()')); await sleep(300);
-  console.log('pm', await js('document.getElementById("goalFormula").textContent'), await js('document.querySelectorAll(".tile").length'));
+  console.log('goal', await js('document.getElementById("goalFormula").textContent'), await js('document.querySelectorAll(".tile").length'));
   await js('document.querySelector(".tile[data-key^=\\"theorem:\\"]").click()'); await sleep(300);
   const ports = await js(`(function(){var out=document.querySelector('.node[data-kind="theorem"] .port-out'),inp=document.querySelector('.node.is-target .port-in');var a=out.getBoundingClientRect(),b=inp.getBoundingClientRect();return {ox:a.left+a.width/2,oy:a.top+a.height/2,ix:b.left+b.width/2,iy:b.top+b.height/2};})()`);
   await send('Input.dispatchMouseEvent', { type: 'mousePressed', x: ports.ox, y: ports.oy, button: 'left', clickCount: 1 });
@@ -35,8 +35,8 @@ async function main() {
   await sleep(400);
   console.log('target after theorem only', await js('document.querySelector(".node.is-target").dataset.state'));
   await shot('simple-pm-wired.png');
-  await js('window.RSL.APP.loadLevel(4)'); await sleep(300);
-  console.log('L05 tiles', await js('document.querySelectorAll(".tile").length'));
+  await js('window.RSL.APP.loadLevel(7)'); await sleep(300);
+  console.log('L08 tiles', await js('document.querySelectorAll(".tile").length'));
   const part = await js('(function(){var e=document.querySelector("[data-key=\\"atom\\"]"); if(!e)return null;var r=e.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};})()');
   if (part) {
     await send('Input.dispatchMouseEvent', { type: 'mousePressed', x: part.x, y: part.y, button: 'left', clickCount: 1 });

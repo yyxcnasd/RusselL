@@ -1,4 +1,4 @@
-﻿/* 公理板 — minimal one-screen game. */
+/* 公理板 — minimal one-screen game. */
 (function () {
   'use strict';
   window.RSL = window.RSL || {};
@@ -34,7 +34,7 @@
 
   function loadProgress() {
     try {
-      var p = JSON.parse(localStorage.getItem('axiom-simple:v1') || '{}');
+      var p = JSON.parse(localStorage.getItem('axiom-simple:v2') || '{}');
       state.solved = {};
       (p.solved || []).forEach(function (id) { state.solved[id] = true; });
       state.lastId = p.lastId || null;
@@ -42,7 +42,7 @@
   }
   function saveProgress() {
     try {
-      localStorage.setItem('axiom-simple:v1', JSON.stringify({
+      localStorage.setItem('axiom-simple:v2', JSON.stringify({
         solved: Object.keys(state.solved),
         lastId: state.level ? state.level.id : state.lastId
       }));
@@ -134,27 +134,23 @@
   }
 
   var CHAPTERS = [
-    { id: 'Ⅰ', title: '公理' },
-    { id: 'Ⅱ', title: '变形' },
-    { id: 'Ⅲ', title: '谓词' },
-    { id: 'Ⅳ', title: '等词' }
+    { id: 'Ⅰ', title: '命题' },
+    { id: 'Ⅱ', title: '谓词' },
+    { id: 'Ⅲ', title: '等词' },
+    { id: 'Ⅳ', title: '集合' }
   ];
   function chapterOf(lv) {
-    if (lv.chapter === 'primitives') return 'Ⅰ';
-    if (lv.chapter === 'archive') return 'Ⅱ';
-    if (lv.chapter === 'transform') return /^(SUB|SB|MIX)/.test(lv.id) ? 'Ⅲ' : 'Ⅱ';
-    if (lv.chapter === 'equality') return 'Ⅳ';
-    return 'Ⅲ';
+    if (lv.chapter === 'pred') return 'Ⅱ';
+    if (lv.chapter === 'eq') return 'Ⅲ';
+    if (lv.chapter === 'set') return 'Ⅳ';
+    return 'Ⅰ';
   }
   var CHAPTER_RANK = {}; CHAPTERS.forEach(function (c, i) { CHAPTER_RANK[c.id] = i; });
 
   function buildLevels() {
     var list = (window.RSL.LEVELS || []).slice();
-    var pred = window.RSL.PREDICATE && window.RSL.PREDICATE.levels;
-    if (pred) list = list.concat(pred);
-    list = list.filter(function (lv) { return !(lv.allowed || []).some(function (k) { return k.indexOf('theorem:') === 0; }); });
     list.forEach(function (lv, i) {
-      lv.chapter = lv.chapter || 'primitives';
+      lv.chapter = lv.chapter || 'prop';
       lv.targetPos = lv.targetPos || { x: 650, y: 300 };
       lv.allowed = lv.allowed || [];
       lv._ord = i;
@@ -183,9 +179,13 @@
   }
 
   function partPool() {
-    var parts = (window.RSL.PARTS || []).slice();
-    if (window.RSL.PREDICATE_PARTS) parts = parts.concat(window.RSL.PREDICATE_PARTS());
-    return parts;
+    return (window.RSL.PARTS || []).slice();
+  }
+
+  function levelById(id) {
+    var levels = window.RSL.LEVELS || [];
+    for (var i = 0; i < levels.length; i += 1) if (levels[i].id === id) return levels[i];
+    return null;
   }
 
   function partsForLevel() {
@@ -196,19 +196,34 @@
       if (key === 'target') return;
       var p = pool.filter(function (x) { return x.key === key; })[0];
       if (!p && key.indexOf('theorem:') === 0) {
-        var code = key.slice(8);
-        var t = window.RSL.theoremData ? window.RSL.theoremData(code) : null;
-        if (t) p = { key: key, kind: 'theorem', symbol: t.name ? t.name.slice(0, 5) : code.replace('*', ''), name: 'PM ' + code, code: code, config: { theoremCode: code } };
+        var lv = levelById(key.slice(8));
+        if (lv) {
+          p = {
+            key: key, kind: 'theorem', symbol: (lv.code || lv.id).split('-').pop(),
+            name: '已证 ' + (lv.code || lv.id) + ' · ' + (lv.title || ''),
+            code: lv.id, config: { theoremCode: lv.id }
+          };
+        }
+      }
+      if (!p && key.indexOf('archive:') === 0) {
+        var label = key.slice(8);
+        var ar = window.RSL.ARCHIVE && window.RSL.ARCHIVE[label];
+        if (ar) {
+          p = {
+            key: key, kind: 'archive', symbol: label.slice(0, 6),
+            name: 'set.mm ' + label + ' · ' + (ar.name || ''),
+            code: label, config: { label: label }
+          };
+        }
       }
       if (!p && key.indexOf('axiom:') === 0) {
         var id = key.slice(6);
-        var a = (window.RSL.AXIOMS || []).filter(function (x) { return x.id === id; })[0];
-        if (a) p = { key: key, kind: 'axiom', symbol: id, name: a.name, code: a.code, config: { axiomId: id } };
-      }
-      if (!p && key.indexOf('pred-axiom:') === 0) {
-        var pid = key.slice(11);
-        var pa = ((window.RSL.PREDICATE && window.RSL.PREDICATE.axioms) || []).filter(function (x) { return x.id === pid; })[0];
-        if (pa) p = { key: key, kind: 'pred-axiom', symbol: pa.id, name: pa.name, config: { axiomId: pid } };
+        var a = window.RSL.axiomById ? window.RSL.axiomById(id) : null;
+        if (a) p = {
+          key: key, kind: 'axiom', symbol: a.symbol || id,
+          name: (a.type === 'definition' ? '定义 ' : a.type === 'theorem' ? '定理 ' : '公理 ') + a.code + ' · ' + a.name,
+          code: a.code, config: { axiomId: id }
+        };
       }
       if (p) out.push(p);
     });
@@ -229,7 +244,7 @@
         case 'atom': return sp('f-var', n.name);
         case 'var': return sp('f-var', n.name);
         case 'pred':
-          if (n.name === '=' && (n.args || []).length === 2) return term(n.args[0]) + sp('f-op', ' = ') + term(n.args[1]);
+          if ((n.name === '=' || n.name === '∈') && (n.args || []).length === 2) return term(n.args[0]) + sp('f-op', ' ' + n.name + ' ') + term(n.args[1]);
           return sp('f-name', n.name) + sp('f-paren', '(') + (n.args || []).map(term).join(sp('f-op', ', ')) + sp('f-paren', ')');
         case 'not': {
           var c = n.a;
@@ -441,7 +456,7 @@
     var buckets = {};
     CHAPTERS.forEach(function (c) { buckets[c.id] = []; });
     state.levels.forEach(function (lv, i) {
-      (buckets[chapterOf(lv)] || buckets['Ⅶ']).push({ lv: lv, i: i });
+      (buckets[chapterOf(lv)] || buckets['Ⅰ']).push({ lv: lv, i: i });
     });
     var html = CHAPTERS.map(function (c) {
       var items = buckets[c.id] || [];

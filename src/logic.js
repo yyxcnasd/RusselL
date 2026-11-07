@@ -92,7 +92,7 @@
   var SINGLE_OPS = {
     '¬': 'NOT', '~': 'NOT', '!': 'NOT', '∨': 'OR', '|': 'OR', '→': 'IMP', '⇒': 'IMP',
     '∧': 'AND', '&': 'AND', '^': 'AND', '↔': 'IFF', '⇔': 'IFF', '∀': 'FORALL', '∃': 'EXISTS',
-    '(': 'LPAREN', ')': 'RPAREN', ',': 'COMMA', '=': 'EQ'
+    '(': 'LPAREN', ')': 'RPAREN', ',': 'COMMA', '=': 'EQ', '∈': 'IN'
   };
   var KEYWORDS = { forall: 'FORALL', exists: 'EXISTS', not: 'NOT' };
 
@@ -173,10 +173,10 @@
       }
       if (t.t === 'IDENT') {
         advance();
-        if (peek().t === 'EQ') {
-          advance();
-          var rhs = expect('IDENT', '等词右项').v;
-          return { k: 'pred', name: '=', args: [{ k: 'var', name: t.v }, { k: 'var', name: rhs }] };
+        if (peek().t === 'EQ' || peek().t === 'IN') {
+          var rel = advance().t === 'EQ' ? '=' : '∈';
+          var rhs = expect('IDENT', rel === '=' ? '等词右项' : '∈ 右项').v;
+          return { k: 'pred', name: rel, args: [{ k: 'var', name: t.v }, { k: 'var', name: rhs }] };
         }
         if (peek().t !== 'LPAREN') return { k: 'atom', name: t.v };
         advance();
@@ -270,7 +270,9 @@
       case 'var': return requireName(n, '变元');
       case 'pred':
         if (!Array.isArray(n.args)) throw new LogicError('pred.args 必须是数组');
-        if (n.name === '=' && n.args.length === 2) return fmtTerm(n.args[0]) + ' = ' + fmtTerm(n.args[1]);
+        if ((n.name === '=' || n.name === '∈') && n.args.length === 2) {
+          return fmtTerm(n.args[0]) + ' ' + n.name + ' ' + fmtTerm(n.args[1]);
+        }
         return requireName(n, '谓词') + '(' + n.args.map(fmtTerm).join(', ') + ')';
       case 'not': return '¬' + fmtPrefix(n.a);
       case 'or': return fmtBinary('or', '∨', n.a, n.b);
@@ -314,7 +316,9 @@
       case 'var': return '<span class="f-var">' + escapeHTML(requireName(n, '变元')) + '</span>';
       case 'pred':
         if (!Array.isArray(n.args)) throw new LogicError('pred.args 必须是数组');
-        if (n.name === '=' && n.args.length === 2) return htmlTerm(n.args[0]) + '<span class="f-op"> = </span>' + htmlTerm(n.args[1]);
+        if ((n.name === '=' || n.name === '∈') && n.args.length === 2) {
+          return htmlTerm(n.args[0]) + '<span class="f-op"> ' + n.name + ' </span>' + htmlTerm(n.args[1]);
+        }
         return '<span class="f-name">' + escapeHTML(requireName(n, '谓词')) + '</span>' +
           '<span class="f-paren">(</span>' + n.args.map(htmlTerm).join(', ') + '<span class="f-paren">)</span>';
       case 'not': return '<span class="f-op">¬</span>' + htmlPrefix(n.a);
@@ -428,10 +432,17 @@
   }
 
   /* =========================================================================
-   * 4. D1–D3 展开、稳定 key、定义等价
+   * 4. set.mm 定义展开、稳定 key、定义等价
    * ========================================================================= */
 
-  /** 展开 D1 A→B:=¬A∨B，D2 A∧B:=¬(¬A∨¬B)，D3 A↔B:=(A→B)∧(B→A)。 */
+  /**
+   * 按 set.mm 的定义展开：
+   *   df-or : A∨B  := ¬A→B
+   *   df-an : A∧B  := ¬(A→¬B)
+   *   dfbi2 : A↔B  := (A→B)∧(B→A)   （set.mm 由 df-bi 导出的展开式）
+   *   df-ex : ∃x A := ¬∀x ¬A
+   * 规范核只有 ¬ / → / ∀；eq() 仍等价于「展开后结构相同」。
+   */
   function expand(n) { need(n, '公式'); return expandNode(n); }
 
   function expandNode(n) {
@@ -442,20 +453,28 @@
         if (!Array.isArray(n.args)) throw new LogicError('pred.args 必须是数组');
         return { k: 'pred', name: n.name, args: n.args.map(clone) };
       case 'not': return { k: 'not', a: expandNode(n.a) };
-      case 'or': return { k: 'or', a: expandNode(n.a), b: expandNode(n.b) };
-      case 'imp': return { k: 'or', a: { k: 'not', a: expandNode(n.a) }, b: expandNode(n.b) };
+      case 'imp': return { k: 'imp', a: expandNode(n.a), b: expandNode(n.b) };
+      case 'or': return { k: 'imp', a: { k: 'not', a: expandNode(n.a) }, b: expandNode(n.b) };
       case 'and': {
-        var a = expandNode(n.a), b = expandNode(n.b);
-        return { k: 'not', a: { k: 'or', a: { k: 'not', a: a }, b: { k: 'not', a: b } } };
+        var x = expandNode(n.a), y = expandNode(n.b);
+        return { k: 'not', a: { k: 'imp', a: x, b: { k: 'not', a: y } } };
       }
-      case 'iff':
-        return expandNode({
-          k: 'and',
-          a: { k: 'imp', a: n.a, b: n.b },
-          b: { k: 'imp', a: n.b, b: n.a }
-        });
+      case 'iff': {
+        var p = expandNode(n.a), q = expandNode(n.b);
+        return {
+          k: 'not',
+          a: {
+            k: 'imp',
+            a: { k: 'imp', a: p, b: q },
+            b: { k: 'not', a: { k: 'imp', a: q, b: p } }
+          }
+        };
+      }
       case 'all': return { k: 'all', v: requireBinder(n), a: expandNode(n.a) };
-      case 'exists': return { k: 'exists', v: requireBinder(n), a: expandNode(n.a) };
+      case 'exists': {
+        var body = expandNode(n.a);
+        return { k: 'not', a: { k: 'all', v: requireBinder(n), a: { k: 'not', a: body } } };
+      }
       default: throw new LogicError('未知节点类型：' + n.k);
     }
   }
@@ -478,6 +497,9 @@
         }).join(',') + ')';
       case 'not': return 'N(' + coreKey(n.a, env, counter) + ')';
       case 'or': return 'O(' + coreKey(n.a, env, counter) + ',' + coreKey(n.b, env, counter) + ')';
+      case 'imp': return 'I(' + coreKey(n.a, env, counter) + ',' + coreKey(n.b, env, counter) + ')';
+      case 'and': return 'A(' + coreKey(n.a, env, counter) + ',' + coreKey(n.b, env, counter) + ')';
+      case 'iff': return 'B(' + coreKey(n.a, env, counter) + ',' + coreKey(n.b, env, counter) + ')';
       case 'all': case 'exists': {
         var canon = '#' + counter.n;
         counter.n += 1;
@@ -568,8 +590,11 @@
     return out;
   }
 
-  /* instantiate 的核心：同时替换若干命题原子，并按需 alpha 改名以避免捕获。 */
-  function substituteAtoms(schema, lookup, freeSets, avoid) {
+  /* instantiate 的核心：把 schema 中的命题原子直接换成 map 里的公式。
+   * Metamath 的替换是“逐 token 直接代入”：wff 变元可以被含有约束变元的公式
+   * 替换，代换式里的自由变元会被外层量词捕获（这是允许的，不是 bug）。
+   * 因此这里不做 alpha 改名；个体变元的替换见 substituteVar。 */
+  function substituteAtoms(schema, lookup) {
     return (function go(n) {
       switch (n.k) {
         case 'atom': return hasOwn(lookup, n.name) ? clone(lookup[n.name]) : { k: 'atom', name: n.name };
@@ -582,35 +607,25 @@
         case 'imp': return { k: 'imp', a: go(n.a), b: go(n.b) };
         case 'and': return { k: 'and', a: go(n.a), b: go(n.b) };
         case 'iff': return { k: 'iff', a: go(n.a), b: go(n.b) };
-        case 'all': case 'exists': {
-          var binder = requireBinder(n);
-          if (replacementsFreeIn(n.a, freeSets)[binder] && atomInBody(n.a, lookup)) {
-            var fresh = pickFresh(avoid, binder);
-            return { k: n.k, v: fresh, a: go(renameFreeVar(n.a, binder, fresh)) };
-          }
-          return { k: n.k, v: binder, a: go(n.a) };
-        }
+        case 'all': case 'exists': return { k: n.k, v: requireBinder(n), a: go(n.a) };
         default: throw new LogicError('未知节点类型：' + n.k);
       }
     })(schema);
   }
 
-  /** 把 schema 里的原子名按 map 同时实例化；捕获规避。 */
+  /** 把 schema 里的原子名按 map 同时实例化（Metamath 式直接替换）。 */
   function instantiate(schema, map) {
     need(schema, 'schema');
     if (!map || typeof map !== 'object' || Array.isArray(map)) {
       throw new LogicError('instantiate 需要 “原子名 -> AST” 映射对象');
     }
-    var lookup = Object.create(null), freeSets = Object.create(null), avoid = Object.create(null);
-    collectVarNames(schema, avoid);
+    var lookup = Object.create(null);
     Object.keys(map).forEach(function (name) {
       var value = map[name];
       need(value, 'map["' + name + '"]');
       lookup[name] = value;
-      freeSets[name] = freeVars(value);
-      collectVarNames(value, avoid);
     });
-    return substituteAtoms(schema, lookup, freeSets, avoid);
+    return substituteAtoms(schema, lookup);
   }
 
   /** 把所有自由出现的 0 元原子 atomName 替换成 replacement；捕获规避。 */
@@ -680,52 +695,58 @@
    * ========================================================================= */
 
   var REPLACE_LABELS = {
-    'D1:expand': 'D1 展开 · A→B ⇒ ¬A∨B',
-    'D1:fold': 'D1 折叠 · ¬A∨B ⇒ A→B',
-    'D2:expand': 'D2 展开 · A∧B ⇒ ¬(¬A∨¬B)',
-    'D2:fold': 'D2 折叠 · ¬(¬A∨¬B) ⇒ A∧B',
-    'D3:expand': 'D3 展开 · A↔B ⇒ (A→B)∧(B→A)',
-    'D3:fold': 'D3 折叠 · (A→B)∧(B→A) ⇒ A↔B'
+    'df-or:expand': 'df-or 展开 · A∨B ⇒ ¬A→B',
+    'df-or:fold': 'df-or 折叠 · ¬A→B ⇒ A∨B',
+    'df-an:expand': 'df-an 展开 · A∧B ⇒ ¬(A→¬B)',
+    'df-an:fold': 'df-an 折叠 · ¬(A→¬B) ⇒ A∧B',
+    'dfbi2:expand': 'dfbi2 展开 · A↔B ⇒ (A→B)∧(B→A)',
+    'dfbi2:fold': 'dfbi2 折叠 · (A→B)∧(B→A) ⇒ A↔B',
+    'df-ex:expand': 'df-ex 展开 · ∃x A ⇒ ¬∀x ¬A',
+    'df-ex:fold': 'df-ex 折叠 · ¬∀x ¬A ⇒ ∃x A'
   };
   var MAX_OPTIONS = 24;
 
-  /* D3 折叠：既认 (A→B)∧(B→A)，也认已展开的 (¬A∨B)∧(¬B∨A)。 */
-  function d3Fold(n) {
+  /* dfbi2 折叠：(A→B)∧(B→A) ⇒ A↔B。 */
+  function biFold(n) {
     if (n.k !== 'and') return null;
     var l = n.a, r = n.b;
     if (l.k === 'imp' && r.k === 'imp' && eq(l.a, r.b) && eq(l.b, r.a)) {
       return { k: 'iff', a: l.a, b: l.b };
-    }
-    if (l.k === 'or' && r.k === 'or' && l.a.k === 'not' && r.a.k === 'not' &&
-        eq(l.b, r.a.a) && eq(l.a.a, r.b)) {
-      return { k: 'iff', a: l.a.a, b: l.b };
     }
     return null;
   }
 
   function candidatesAt(n) {
     var list = [];
-    if (n.k === 'imp') {
-      list.push({ def: 'D1', dir: 'expand', after: { k: 'or', a: { k: 'not', a: n.a }, b: n.b } });
+    if (n.k === 'or') {
+      list.push({ def: 'df-or', dir: 'expand', after: { k: 'imp', a: { k: 'not', a: n.a }, b: n.b } });
+    }
+    if (n.k === 'imp' && n.a.k === 'not') {
+      list.push({ def: 'df-or', dir: 'fold', after: { k: 'or', a: n.a.a, b: n.b } });
     }
     if (n.k === 'and') {
-      list.push({ def: 'D2', dir: 'expand', after: {
-        k: 'not', a: { k: 'or', a: { k: 'not', a: n.a }, b: { k: 'not', a: n.b } }
+      list.push({ def: 'df-an', dir: 'expand', after: {
+        k: 'not', a: { k: 'imp', a: n.a, b: { k: 'not', a: n.b } }
       } });
     }
+    if (n.k === 'not' && n.a.k === 'imp' && n.a.b.k === 'not') {
+      list.push({ def: 'df-an', dir: 'fold', after: { k: 'and', a: n.a.a, b: n.a.b.a } });
+    }
     if (n.k === 'iff') {
-      list.push({ def: 'D3', dir: 'expand', after: {
+      list.push({ def: 'dfbi2', dir: 'expand', after: {
         k: 'and', a: { k: 'imp', a: n.a, b: n.b }, b: { k: 'imp', a: n.b, b: n.a }
       } });
     }
-    if (n.k === 'or' && n.a.k === 'not') {
-      list.push({ def: 'D1', dir: 'fold', after: { k: 'imp', a: n.a.a, b: n.b } });
+    var folded = biFold(n);
+    if (folded) list.push({ def: 'dfbi2', dir: 'fold', after: folded });
+    if (n.k === 'exists') {
+      list.push({ def: 'df-ex', dir: 'expand', after: {
+        k: 'not', a: { k: 'all', v: n.v, a: { k: 'not', a: n.a } }
+      } });
     }
-    if (n.k === 'not' && n.a.k === 'or' && n.a.a.k === 'not' && n.a.b.k === 'not') {
-      list.push({ def: 'D2', dir: 'fold', after: { k: 'and', a: n.a.a.a, b: n.a.b.a } });
+    if (n.k === 'not' && n.a.k === 'all' && n.a.a.k === 'not') {
+      list.push({ def: 'df-ex', dir: 'fold', after: { k: 'exists', v: n.a.v, a: n.a.a.a } });
     }
-    var folded = d3Fold(n);
-    if (folded) list.push({ def: 'D3', dir: 'fold', after: folded });
     return list;
   }
 

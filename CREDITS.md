@@ -15,10 +15,12 @@ Used as the looped background music in `assets/audio/grassland.mp3`. Credit is g
 - IBM Plex Sans — SIL Open Font License 1.1
 - STIX Two Text — SIL Open Font License 1.1
 
-## Metamath / Principia Mathematica
+## Metamath / set.mm
 
-- Metamath Solitaire PM theorem records: https://us.metamath.org/mmsolitaire/pmproofs-orig.txt
-- Whitehead & Russell, *Principia Mathematica* (1910–1913), public domain.
+- Metamath Proof Explorer database `set.mm`: https://github.com/metamath/set.mm
+- Downloaded 2026-11-07 (develop branch); **CC0 1.0 public domain dedication**.
+- Metamath website text is public domain. This game is not an official Metamath product.
+- The previous `pmproofs-orig.txt` PM archive is no longer used as a content source.
 
 ## Icons
 

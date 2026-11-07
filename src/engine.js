@@ -1,4 +1,4 @@
-﻿/* 公理板 — module metadata and graph evaluator. */
+/* 公理板 — module metadata and graph evaluator. */
 (function () {
   'use strict';
   window.RSL = window.RSL || {};
@@ -23,29 +23,35 @@
     imp: {
       label: '蕴涵符号', kindLabel: 'IMP', group: 'build', symbol: '→',
       ports: { inputs: [{ id: 'a', label: '前件 A', type: 'formula' }, { id: 'b', label: '后件 B', type: 'formula' }], outputs: [{ id: 'out', label: 'A→B', type: 'formula' }] },
-      help: '按定义 D1 合成 A→B 的记法；校验时自动展开。'
+      help: '合成 A→B；校验时按 set.mm 定义展开比较。'
     },
     and: {
       label: '合取符号', kindLabel: 'AND', group: 'build', symbol: '∧',
       ports: { inputs: [{ id: 'a', label: '公式 A', type: 'formula' }, { id: 'b', label: '公式 B', type: 'formula' }], outputs: [{ id: 'out', label: 'A∧B', type: 'formula' }] },
-      help: '按定义 D2 合成 A∧B 的记法。'
+      help: '按 df-an 合成 A∧B 的记法。'
     },
     iff: {
       label: '等值符号', kindLabel: 'IFF', group: 'build', symbol: '↔',
       ports: { inputs: [{ id: 'a', label: '公式 A', type: 'formula' }, { id: 'b', label: '公式 B', type: 'formula' }], outputs: [{ id: 'out', label: 'A↔B', type: 'formula' }] },
-      help: '按定义 D3 合成 A↔B 的记法。'
+      help: '按 dfbi2 合成 A↔B 的记法。'
     },
     axiom: {
-      label: '原始命题', kindLabel: 'AXIOM', group: 'axiom', symbol: 'A',
+      label: '公理/定义', kindLabel: 'AXIOM', group: 'axiom', symbol: 'A',
       ports: { inputs: [], outputs: [{ id: 'out', label: '断言', type: 'assertion' }] },
-      config: { axiomId: 'A1' },
-      help: '罗素《数学原理》的原始命题图式。'
+      config: { axiomId: 'ax-1' },
+      help: 'Metamath set.mm 的原始公理或定义图式。'
     },
     theorem: {
-      label: '档案定理', kindLabel: 'ARCHIVE', group: 'theorem', symbol: 'T',
+      label: '已证结论', kindLabel: 'PROVEN', group: 'theorem', symbol: 'T',
       ports: { inputs: [], outputs: [{ id: 'out', label: '断言', type: 'assertion' }] },
-      config: { theoremCode: '*2.14' },
-      help: '已经证成的历史定理。作为封装好的电路接入。'
+      config: { theoremCode: 'CH1-07' },
+      help: '本游戏前面关卡已经证成的结论，作为封装好的电路接入。'
+    },
+    archive: {
+      label: 'set.mm 定理', kindLabel: 'ARCHIVE', group: 'archive', symbol: 'M',
+      ports: { inputs: [], outputs: [{ id: 'out', label: '断言', type: 'assertion' }] },
+      config: { label: 'id' },
+      help: 'Metamath set.mm 里已经证成的定理/公理（档案条目，本作不重证）。'
     },
     subst: {
       label: '代入规则', kindLabel: 'SUBST', group: 'rule', symbol: 'S',
@@ -62,7 +68,7 @@
     replace: {
       label: '定义置换', kindLabel: 'DEFINE', group: 'rule', symbol: 'D',
       ports: { inputs: [{ id: 'assertion', label: '断言 A', type: 'assertion' }], outputs: [{ id: 'out', label: '断言 B', type: 'assertion' }] },
-      help: '按 D1–D3 对断言中的一个定义式做双向置换。'
+      help: '按 df-or / df-an / dfbi2 / df-ex 对断言中的一个定义式做双向置换。'
     },
     detach: {
       label: '分离规则', kindLabel: 'DETACH', group: 'rule', symbol: 'M',
@@ -129,12 +135,6 @@
       },
       config: { y: 'y' },
       help: '从 ∃x A 与 A[y/x]→B 得到 B，y 须为新变元。'
-    },
-    'pred-axiom': {
-      label: '谓词公理', kindLabel: 'PRED-AX', group: 'predicate', symbol: 'PA',
-      ports: { inputs: [], outputs: [{ id: 'out', label: '断言', type: 'assertion' }] },
-      config: { axiomId: 'PA1' },
-      help: '谓词层的原始图式。'
     }
   };
 
@@ -143,15 +143,27 @@
   function getAxiom(id) {
     var all = list(window.RSL.AXIOMS);
     for (var i = 0; i < all.length; i++) if (all[i].id === id) return all[i];
-    var pred = window.RSL.PREDICATE && list(window.RSL.PREDICATE.axioms);
-    for (var j = 0; j < pred.length; j++) if (pred[j].id === id) return pred[j];
     return null;
   }
 
-  function getPredicateTheorem(code) {
-    var pred = window.RSL.PREDICATE && list(window.RSL.PREDICATE.theorems);
-    for (var i = 0; i < pred.length; i++) if (pred[i].code === code) return pred[i];
+  /* 本游戏前面关卡已经证成的结论，可作为 theorem:<levelId> 模块引用。 */
+  function getLevelTheorem(id) {
+    var levels = list(window.RSL.LEVELS);
+    for (var i = 0; i < levels.length; i++) {
+      if (levels[i].id !== id) continue;
+      var lv = levels[i];
+      var name = (lv.code || lv.id) + (lv.title ? ' · ' + lv.title : '');
+      return { id: lv.id, code: lv.id, name: name, formula: lv.target };
+    }
     return null;
+  }
+
+  /* set.mm 档案条目（已证定理/公理），来自 src/archive.js。 */
+  function getArchive(label) {
+    var map = window.RSL.ARCHIVE || {};
+    var t = map[label];
+    if (!t) return null;
+    return { label: label, name: t.name || label, formula: t.formula, code: t.code || label, source: t.source || 'set.mm' };
   }
 
   function incomingMap(edges) {
@@ -262,17 +274,17 @@
           if (!ax) return makeResult(node, null, 'error', '找不到公理 ' + cfg.axiomId);
           return makeResult(node, L.parse(ax.schema), 'valid', null, ax.name + ' · ' + ax.code, { axiom: ax });
         }
-        case 'pred-axiom': {
-          var pax = getAxiom(cfg.axiomId || 'PA1');
-          if (!pax) return makeResult(node, null, 'error', '找不到谓词公理 ' + cfg.axiomId);
-          return makeResult(node, L.parse(pax.schema), 'valid', null, pax.name, { axiom: pax });
-        }
         case 'theorem': {
-          var code = cfg.theoremCode || '*2.14';
-          var th = window.RSL.theoremData ? window.RSL.theoremData(code) : null;
-          if (!th) th = getPredicateTheorem(code);
-          if (!th) return makeResult(node, null, 'error', '找不到定理 ' + code);
-          return makeResult(node, L.parse(th.formula), 'valid', null, (th.name || '') + ' · ' + code, { theorem: th });
+          var code = cfg.theoremCode || '';
+          var th = getLevelTheorem(code);
+          if (!th) return makeResult(node, null, 'error', '找不到本作已证结论 ' + code);
+          return makeResult(node, L.parse(th.formula), 'valid', null, th.name, { theorem: th });
+        }
+        case 'archive': {
+          var label = cfg.label || cfg.code || '';
+          var ar = getArchive(label);
+          if (!ar) return makeResult(node, null, 'error', '找不到 set.mm 档案条目 ' + label);
+          return makeResult(node, L.parse(ar.formula), 'valid', null, 'set.mm · ' + label, { archive: ar });
         }
         case 'subst': {
           if (!need('assertion') || !need('atom') || !need('formula')) return waiting();
@@ -320,11 +332,15 @@
         }
         case 'all-intro': {
           if (!need('assertion')) return waiting();
-          return makeResult(node, { k: 'all', v: cfg.v || 'x', a: vals.assertion }, 'valid', null, '∀I · ' + (cfg.v || 'x'));
+          var av = cfg.v || 'x';
+          if (!/^[xyz]$/.test(av)) return makeResult(node, null, 'error', '全称推广的变元必须是 x/y/z，不能是常元');
+          return makeResult(node, { k: 'all', v: av, a: vals.assertion }, 'valid', null, '∀I · ' + av);
         }
         case 'exists-intro': {
           if (!need('assertion')) return waiting();
-          return makeResult(node, { k: 'exists', v: cfg.v || 'x', a: vals.assertion }, 'valid', null, '∃I · ' + (cfg.v || 'x'));
+          var ev = cfg.v || 'x';
+          if (!/^[xyz]$/.test(ev)) return makeResult(node, null, 'error', '存在引入的变元必须是 x/y/z，不能是常元');
+          return makeResult(node, { k: 'exists', v: ev, a: vals.assertion }, 'valid', null, '∃I · ' + ev);
         }
         case 'syllogism': {
           if (!need('a') || !need('b')) return waiting();
@@ -378,6 +394,34 @@
     nodes.forEach(function (n) { if (results[n.id] && results[n.id].state === 'valid') validCount++; });
     var targetNode = nodes.filter(function (n) { return n.kind === 'target'; })[0] || null;
     var target = targetNode ? results[targetNode.id] : null;
+
+    /* 反作弊：目标的上游必须真的包含公理/规则/已证结论，不能只用构造门拼出目标公式。
+       构造门（atom/not/imp/or/and/iff/pred/term/quant）本身不产生断言。 */
+    if (target && target.state === 'complete') {
+      var CONSTRUCT = { atom: 1, not: 1, imp: 1, or: 1, and: 1, iff: 1, pred: 1, term: 1, quant: 1, target: 1 };
+      var byId = {};
+      nodes.forEach(function (n) { byId[n.id] = n; });
+      var seen = {};
+      var queue = [targetNode.id];
+      var hasSource = false;
+      while (queue.length) {
+        var id = queue.shift();
+        if (seen[id]) continue;
+        seen[id] = true;
+        var nd = byId[id];
+        if (nd && !CONSTRUCT[nd.kind]) hasSource = true;
+        edges.forEach(function (e) {
+          if (e.to && e.to.node === id && !seen[e.from.node]) queue.push(e.from.node);
+        });
+      }
+      if (!hasSource) {
+        target.state = 'error';
+        target.error = '目标公式必须由公理/规则/已证结论推出，不能只用构造门拼出来';
+        target.note = target.error;
+        errors.push({ nodeId: targetNode.id, message: target.error });
+      }
+    }
+
     return {
       results: results,
       order: t.order,
@@ -394,6 +438,6 @@
   function info(kind) { return MODULES[kind] || { label: kind, kindLabel: kind, ports: { inputs: [], outputs: [] }, help: '' }; }
 
   window.RSL.MODULES = MODULES;
-  window.RSL.Engine = { modules: MODULES, info: info, evaluate: evaluate, topo: topo, getAxiom: getAxiom, getPredicateTheorem: getPredicateTheorem };
+  window.RSL.Engine = { modules: MODULES, info: info, evaluate: evaluate, topo: topo, getAxiom: getAxiom, getLevelTheorem: getLevelTheorem, getArchive: getArchive };
 })();
 

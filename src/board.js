@@ -601,7 +601,14 @@
   Board.prototype._code = function (n) {
     if (n.kind === 'target') return '⊢';
     if (n.kind === 'axiom') return n.config.axiomId || 'A1';
-    if (n.kind === 'theorem') { var tc = String(n.config.theoremCode || 'T'); var td = window.RSL.theoremData ? window.RSL.theoremData(tc) : null; return td && td.name ? td.name.slice(0, 5) : tc.replace('*', ''); }
+    if (n.kind === 'theorem') {
+      var tc = String(n.config.theoremCode || 'T');
+      var levels = window.RSL.LEVELS || [];
+      for (var i = 0; i < levels.length; i += 1) {
+        if (levels[i].id === tc) return (levels[i].code || tc).slice(0, 6);
+      }
+      return tc.replace('*', '');
+    }
     if (n.kind === 'atom') return '';
     if (n.kind === 'term') return n.config.name || 'x';
     if (n.kind === 'pred') return n.config.name || 'F';
@@ -618,7 +625,7 @@
     if (n.kind === 'all-intro') return '∀I';
     if (n.kind === 'exists-intro') return '∃I';
     if (n.kind === 'exists-elim') return '∃E';
-    if (n.kind === 'pred-axiom') return n.config.axiomId || 'PA';
+    if (n.kind === 'archive') return String(n.config.label || 'M').slice(0, 6);
     return '·';
   };
 

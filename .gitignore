@@ -4,6 +4,9 @@
 node_modules/
 *.log
 
+# Metamath raw database (development reference; not shipped)
+assets/data/
+
 # OS noise
 .DS_Store
 Thumbs.db

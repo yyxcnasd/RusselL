@@ -1,213 +1,110 @@
-﻿# Metamath / PM theorem archive (`src/theorems.js`)
+# Metamath 数据源与内容映射
 
-The archive index behind the 公理板 theorem library and the insertable **引用定理** modules.
+本作的内容来源是 [Metamath Proof Explorer](https://us.metamath.org/mpeuni/mmset.html) 的
+`set.mm` 数据库，不再使用 `pmproofs-orig.txt` 的《数学原理》命题档案。
 
-## Source
+## 来源与授权
 
-- URL: <https://us.metamath.org/mmsolitaire/pmproofs-orig.txt>
-- Retrieved: **2026-11-06** (`Invoke-WebRequest`), stored verbatim at
-  [`assets/data/pm-proofs.md`](../assets/data/pm-proofs.md).
-- File facts: 40,296 bytes, 951 lines, SHA-256
-  `7B165F68427FF19ABAA6D34115D99F1222640835DA6AF12E3D493EF675BBD5E4`.
-- Deliberately the `-orig` file: the Metamath site also maintains a newer `pmproofs.txt`, and its
-  Solitaire page notes that shorter proofs were later found for many of the 193 theorems (67+).
-  The build contract specifies `pmproofs-orig.txt`, so every `proof` / `steps` value here follows
-  that frozen file; switching sources would change those fields for many entries.
-- Author: **Norman Megill**, Metamath Solitaire proof collection (`pmproofs-orig.txt`). The file
-  header describes these as "the shortest direct proofs I could find" for all 193
-  propositional-calculus theorems of Whitehead & Russell's *Principia Mathematica*.
-- Licensing / attribution: *Principia Mathematica* (1910–1913) is public domain; the Metamath
-  Solitaire collection is freely redistributable Metamath source material. The original attribution
-  is kept in the data file and in the header of `src/theorems.js`. Do not strip it.
+- 仓库：<https://github.com/metamath/set.mm>，`develop` 分支
+- 下载日期：2026-11-07
+- 本地文件：`assets/data/set.mm`，51,812,832 字节；只作为开发/核对数据，**不参与构建**
+- 授权：set.mm 以 **CC0 1.0** 放弃版权；Metamath 站点文本为公有领域
+- 本作不是 Metamath 官方产品
 
-## File format
+`set.mm` 是一个模块化数据库：本次用到的内容位于
 
-Lines 1–45 are the source file's own prose preamble (proof-notation explanation, history of
-condensed detachment). The first theorem starts on line 47. Entries are separated by blank lines:
+| 区段 | 内容 | 行号（本地文件） |
+| --- | --- | --- |
+| `set-pred.mm` | 命题演算、谓词演算、等词 | 约 317–24879 |
+| `set-class.mm` | 类、外延（`ax-ext` 在 24970）、集合基本运算 | 约 24882–49814 |
+| `set-zf.mm` | ZF 公理与后续集合论 | 约 49817 起 |
+| `set-zfc.mm` | 选择公理（`ax-ac` 在 118630） | 约 117694 起 |
 
-```
-((P v (Q v R)) -> (Q v (P v R))); ! *1.5 Assoc
-DD2D1DD22D11DD2D112; ! 19 steps
-```
+游戏只取 set.mm 的**原始语言**：¬、→、∀、=、∈。类抽象 `{x | φ}`、⊆、∪、∅ 等派生记法
+不在关卡里出现；集合论章只用 setvar + ∈ + = 的原始语言。
 
-- A **formula line** ends with the marker `; ! *<section>.<number> <Name>`; the name is optional.
-- The next line is a **proof-code line**, ending with `; ! <N> steps` (`1 step` for a one-step proof).
-- Both formulas and proof codes may wrap over several physical lines (formula wrap happens only in
-  `*4.87`, over two lines; long proof codes wrap routinely).
-- Proof codes use **condensed detachment** (Meredith notation): `1` = ax-1, `2` = ax-2,
-  `3` = ax-3, `D` = ax-mp. The applet enters a code in reverse order; the file stores the canonical
-  forward order.
-- `steps` is the length of the proof code, i.e. the number of axiom/detachment steps.
+## 提取了什么
 
-## Parser notes
+`research/parse-setmm.cjs` 是一个只读解析器（供核对用）：它解析 `$a / $p / $e / $f / $d`
+语句、注释区段标题，并把压缩证明解码成引用的 label 列表。运行：
 
-- Preamble is ignored; entries are located by the `; ! *<code>` marker, then the formula block is
-  collected backwards to the previous blank/step-marker line and the proof block forwards to the
-  `; ! <N> steps` marker.
-- Continuation lines are concatenated with no separator; whitespace runs are then collapsed to a
-  single space. This is safe for every entry (checked: all 193 proofs satisfy `steps === proof.length`
-  and `/^[123D]+$/`).
-- Conversion to Unicode, longest tokens first: `~` → `¬`, `v` → `∨`, `->` → `→`, `^` → `∧`,
-  `<->` → `↔`. `v` is converted only as a standalone token (`(?<![A-Za-z])v(?![A-Za-z])`); variables
-  are only `P/Q/R/S`, so this is unambiguous.
-- Round-trip check (Unicode → ASCII == original `formulaAscii`) passes for all 193 entries.
-- Spacing follows the source, so double negation is rendered `¬ ¬ P` rather than `¬¬P`.
-- Output: `src/theorems.js` is a classic script (`window.RSL`), no build step, no runtime fetch.
-
-### Entry shape
-
-```js
-{
-  code: '*2.14',                      // PM theorem number, unique
-  name: '',                           // PM short name when the source gives one (21 of 193)
-  formula: '(¬ ¬ P → P)',             // Unicode statement
-  formulaText: '(¬ ¬ P → P)',         // alias of formula (display text)
-  formulaAscii: '(~ ~ P -> P)',       // original source notation
-  proof: 'DD2DD2D13DD2D1311',         // condensed-detachment proof code
-  steps: 17,                          // proof-code length
-  source: 'Metamath Solitaire · pmproofs-orig.txt'
-}
+```bash
+node research/parse-setmm.cjs --json   # 生成 research/setmm-data.json
 ```
 
-Helpers: `window.RSL.getTheorem(code)` accepts `*2.14`, `2.14`, or `*2.1` and returns the entry or
-`null`. `window.RSL.THEOREM_META` carries counts, section distribution, total steps, longest/shortest
-proofs, notable entries, attribution and the caveat string.
+产物字段：`label / kind / section / subsection / formulaAscii / formulaUnicode / hypotheses /
+proofRefs / proofLength / dv / comment / assertionForm`。当前产物 3027 条（公理 29 / 定义 156 /
+语法构造 160 / 定理 2682），set-pred 的 10,448 个压缩证明全部解码成功。
 
-## Count and coverage
+游戏内实际采用的是 `src/library.js` 里人工校对的 24 条公理/定义/定理桥：
 
-- **193 entries**, matching both the source header ("all 193 theorems of propositional calculus")
-  and the build contract. No duplicates; first `*1.2`, last `*5.75`.
-- Section distribution: `*1` = 5, `*2` = 67, `*3` = 25, `*4` = 58, `*5` = 38.
-- 21 entries carry a PM short name (`Taut`, `Add`, `Assoc`, `Sum`, `Simp`, `Comm`, `Syll`,
-  `Transp`, `Id`, `Exp`, `Imp`, `Ass`, `Comp`, `Fact`); 172 are unnamed in the source.
-- 26,895 proof-code steps in total. Longest: `*4.39` (913 steps). Shortest: six one-step axiom
-  instances — `*1.3`, `*2.02`, `*2.07`, `*2.17`, `*2.76`, `*2.77`.
-- Gaps in PM numbering (e.g. no `*2.66`) are gaps in the source/PM, not parser losses.
+- 命题：`ax-1`、`ax-2`、`ax-3`；定义 `df-or`、`df-an`、`df-ex`；`dfbi2`（由 df-bi 导出的定理桥）
+- 谓词：`ax-4`、`ax-5`、`ax-10`、`ax-11`；规则形态 `ax-gen` 由 `all-intro` 承担
+- 等词：`ax-6`、`ax-7`、`ax-8`、`ax-9`、`ax-12`、`ax-13`
+- 集合论：`ax-ext`、`ax-rep`、`ax-pow`、`ax-un`、`ax-reg`、`ax-inf`、`ax-ac`
 
-### Notable entries
+命题章的 `id`、`pm2.27`、`con1`、`pm2.04`、`imim1`、`con2` 等定理目标同样取自 set.mm
+（label 与公式见 `research/setmm-data.json`）。
 
-| Code | Name | Unicode statement | Steps |
-| --- | --- | --- | --- |
-| `*2.08` | Id | `(P → P)` | 5 |
-| `*2.12` | — | `(P → ¬ ¬ P)` | 19 |
-| `*2.14` | — | `(¬ ¬ P → P)` | 17 |
-| `*3.26` | Simp | `((P ∧ Q) → P)` | 33 |
-| `*4.51` | — | `(¬ (P ∧ Q) ↔ (¬ P ∨ ¬ Q))` | 127 |
+## 档案模块（src/archive.js）
 
-Also worth knowing: `*4.87` is the only wrapped formula and is itself a composite conjunction of
-three equivalences (531 steps); `*4.39` is the longest proof (913 steps).
+`src/archive.js` 由 `scripts/gen-levels.js` 从 `research/setmm-data.json` 生成，收录 **845 条**
+可被游戏 AST 解析的 assertion-form 条目（命题 581 / 谓词 101 / 等词 144 / 集合 19）：
 
-## Formula conversion caveat
+- 每条含 `label / formula / kind / section / module / proofLength / source`；
+- 关卡用 `archive:<label>` 引用，模块输出该条目的公式；
+- 它们是 set.mm 的已证定理/公理/定义，**不是本游戏重证的结果**；UI 用 ARCHIVE/银色标注。
 
-The source preamble says the recorded statements have "all abbreviations expanded", but many
-recorded statements still use the surface connectives `→`, `∧` and `↔` (for example `*3.26`,
-`*4.6`, `*4.51`). Treat `formula` as **the statement as recorded in the archive**, not as a
-definition-expanded proof term. For structural equality in the game, feed the string through
-`RSL.Logic.parse(...)` and compare with `RSL.Logic.key(...)` / `RSL.Logic.eq(...)` rather than
-comparing display strings. `formulaAscii` preserves the source's exact token sequence (the two
-physically wrapped `*4.87` lines are joined and their indentation collapsed to one space).
+`scripts/gen-levels.js` 还会生成 `src/levels-generated.js`：每章追加 48 关（第 13–60 关），
+共 192 关。模板包括：
 
-## Caveat: what these theorems are (and are not)
+| 模板 | 做法 |
+| --- | --- |
+| 档案 | archive 模块直接接目标 |
+| 代入 / 双代入 | archive + 1–2 个 subst 链 + 复合公式构造 |
+| 全称闭包 | archive + ∀I 链 |
+| 例化 | archive + ∀I 闭包 + ∀E 到常元 |
+| 闭包 + 部分例化 | 先闭包，再消去部分量词 |
+| 分离 | 把一条 set.mm 定理作为前件代入另一条，再用 ax-mp |
 
-**These are PM theorem statements and proofs as recorded in Metamath's Solitaire applet, derived
-there from a different axiom basis** — Metamath's `ax-1`, `ax-2`, `ax-3` and `ax-mp`, with
-definitional abbreviations available — **not re-proved from 公理板's four primitive propositions
-A1–A4.** In 公理板 they are **archive / 引用定理 (quoted-theorem) modules**: they can be inserted on
-the board as already-established results, always labelled with their PM number, proof length and
-source. They must never be presented as derivations produced inside this game, and the game must not
-claim to reprove *Principia Mathematica* *1–*5.
+生成器逐关调用 `src/engine.js` 求值；任何一关失败就拒绝写出。手写的 48 关（每章前 12 关）
+保持在 `src/levels.js`。全部 240 关由 `tests/levels.test.js` 逐关校验。
 
-## Recommended archive subset (`window.RSL.ARCHIVE_SET`)
+## 公式与定义的处理
 
-16 codes chosen for playability, each with a one-line Chinese gloss in the data file:
+游戏 AST 直接支持 `¬ ∨ → ∧ ↔ ∀ ∃`。为了让“目标相等”有唯一判据，`src/logic.js` 的
+`expand()` 按 set.mm 的定义把公式展开到 `¬ / → / ∀` 核心：
 
-- Identity: `*2.08` (`P → P`).
-- Double negation: `*2.12` (`P → ¬¬P`), `*2.14` (`¬¬P → P`).
-- Conjunction: `*3.26`, `*3.27` (elimination, both directions), `*3.2` (introduction),
-  `*4.3` (commutation, biconditional).
-- Distribution: `*4.4` (∧ over ∨), `*4.41` (∨ over ∧) — both biconditionals.
-- De Morgan: `*4.51`, `*4.56`.
-- Implication bridge and laws: `*4.6` (definitional bridge), `*4.1` (contraposition),
-  `*2.06` (syllogism), `*2.04` (premise commutation).
-- Disjunction: `*4.31` (commutation, biconditional).
-
-Direction matters when wiring modules: `*3.26`, `*3.27`, `*3.2`, `*2.06`, `*2.04` are implications
-(one-way), the rest are biconditionals (rewrite in either direction).
-
-## Metamath Atlas (`src/metamath.js`)
-
-Codex data for the wider Metamath ecosystem, exposed as
-`window.RSL.METAMATH = {families, highlightTheorems, links, proofTape, tapeFor, getFamily, getHighlight, tokenLegend, caveat}`
-(with a `window.RSL.proofTape` convenience alias). Static classic script: **no runtime network, no
-proof execution** — URLs are display data, and the tape helper only labels characters.
-
-### Families (URLs re-verified 2026-11-06 against `us.metamath.org`)
-
-| id | title | badge / count | URL | verification |
-| --- | --- | --- | --- | --- |
-| `mpe` | Metamath Proof Explorer | 40,000+ 定理 | <https://us.metamath.org/mpeuni/mmset.html> | homepage says "Over 40,000 proofs"; theorem list <https://us.metamath.org/mpeuni/mmtheorems.html> |
-| `ile` | Intuitionistic Logic Explorer | 构造主义 | <https://us.metamath.org/ileuni/mmil.html> | homepage description; no numeric count claimed |
-| `nfe` | New Foundations Explorer | NF 集合论 | <https://us.metamath.org/nfeuni/mmnf.html> | homepage description (Quine's NF); no numeric count claimed |
-| `hol` | Higher-Order Logic Explorer | HOL | <https://us.metamath.org/holuni/mmhol.html> | homepage description (HOL/simple type theory); no numeric count claimed |
-| `solitaire` | Metamath Solitaire | 193 条定理 | <https://us.metamath.org/mmsolitaire/mms.html> | page names the 193 PM theorems; archive count 193 verified locally |
-| `other` | Other Topics / Milpgame | 工具与游戏 | <https://us.metamath.org/other.html> | page links Milpgame and XPuzzle |
-
-Naming note: the task brief said "XProof", but the Metamath "Other Topics" page and the app link
-name the product **XPuzzle** (Android app by Filip Cernatescu). No "XProof" entry exists on the
-page, so the Atlas uses XPuzzle. Its own site `www.xpuzzle.co` did **not resolve** on 2026-11-06
-while control domains did, so the Atlas has no direct XPuzzle link; instead it points at the live
-`other.html#mmrelated` anchor and records the outage.
-
-### Highlight theorems (6–10 records, same data as the archive)
-
-| Code | Name | Formula | Steps | Note |
-| --- | --- | --- | --- | --- |
-| `*1.3` | Add | `(Q → (P ∨ Q))` | 1 | one-step axiom instance |
-| `*2.1` | — | `(¬ P ∨ P)` | 17 | PM form of excluded middle |
-| `*2.08` | Id | `(P → P)` | 5 | identity |
-| `*2.12` | — | `(P → ¬ ¬ P)` | 19 | double-negation introduction |
-| `*2.14` | — | `(¬ ¬ P → P)` | 17 | double-negation elimination |
-| `*3.26` | Simp | `((P ∧ Q) → P)` | 33 | conjunction simplification |
-| `*4.6` | — | `((P → Q) ↔ (¬ P ∨ Q))` | 81 | definition-of-implication bridge |
-| `*4.51` | — | `(¬ (P ∧ Q) ↔ (¬ P ∨ ¬ Q))` | 127 | De Morgan |
-| `*4.39` | — | `(((P ↔ R) ∧ (Q ↔ S)) → ((P ∨ Q) ↔ (R ∨ S)))` | 913 | longest proof in the archive |
-| `*4.87` | — | composite of three equivalences | 531 | only physically wrapped formula |
-
-The Atlas records are cross-checked against `window.RSL.THEOREMS` (code, name, formula and steps
-must match exactly) — see the verification command below.
-
-### Proof tape
-
-`window.RSL.METAMATH.proofTape(proof)` maps a condensed-detachment string to display tokens:
-`1` → `ax-1`, `2` → `ax-2`, `3` → `ax-3`, `D` → `ax-mp`. Each token is
-`{token, index, kind, label}` with a 0-based `index` and `kind` either `'axiom'` or `'detach'`.
-It throws on an unknown character (so bad archive data surfaces immediately) and returns `[]` for
-an empty string. `tapeFor(code)` returns `{code, formula, steps, tape}` for an archived theorem, or
-`null` for an unknown code. This is a **tokenizer only** — it does not replay, verify or search
-proofs; any future replay engine belongs to the game's own evaluator, not to this data file.
-
-### Links
-
-`window.RSL.METAMATH.links` holds 8 entries: the Metamath home page, Other Topics, Metamath
-Solitaire, the `pmproofs-orig.txt` source, the newer `pmproofs.txt`, the MPE theorem list, Metamath
-100, and Milpgame. All `us.metamath.org` URLs returned HTTP 200 on 2026-11-06 (HEAD check); the
-XPuzzle entry points at `other.html#mmrelated` because `www.xpuzzle.co` no longer resolved. None are
-fetched at runtime.
-
-## Verification
-
-```powershell
-node --check src/theorems.js
-node --check src/metamath.js
-node -e "globalThis.window={};eval(require('fs').readFileSync('src/theorems.js','utf8'));const T=window.RSL.THEOREMS;console.log(T.length, T.every(t=>t.steps===t.proof.length), window.RSL.ARCHIVE_SET.length)"
-# => 193 true 16
-node -e "globalThis.window={};eval(require('fs').readFileSync('src/theorems.js','utf8'));eval(require('fs').readFileSync('src/metamath.js','utf8'));const T=window.RSL.THEOREMS,M=window.RSL.METAMATH;console.log(M.families.length, M.links.length, M.highlightTheorems.length, M.highlightTheorems.every(h=>{const t=T.find(x=>x.code===h.code);return t&&t.formula===h.formula&&t.steps===h.steps&&t.name===h.name;}), M.proofTape('DD211').length)"
-# => 6 8 10 true 5
+```
+df-or    A∨B  := ¬A→B
+df-an    A∧B  := ¬(A→¬B)
+dfbi2    A↔B  := (A→B)∧(B→A)        （set.mm 由 df-bi 导出的展开式）
+df-ex    ∃x A := ¬∀x ¬A
 ```
 
-Re-download (only if the archive must be refreshed):
+`Logic.eq(a,b)` 仍等价于 `key(expand(a)) === key(expand(b))`，并带 α-等价。由于 ∧ 在
+set.mm 里是 `¬(A→¬B)`，`∧/∨/↔/∃` 只是显示记法；`replace` 模块可在这四个定义上双向置换。
 
-```powershell
-Invoke-WebRequest -Uri 'https://us.metamath.org/mmsolitaire/pmproofs-orig.txt' -OutFile 'assets/data/pm-proofs.md' -UseBasicParsing
-```
+## 变量替换
 
+`subst` 模块（游戏里的代入）按 Metamath 的方式做**直接替换**：wff 变元可以换成含被约束
+变元的公式，替换式里的自由变元会被外层量词捕获。这是 Metamath 替换语义，不是 bug；它与
+`substituteVar`（个体变元替换、capture-avoiding）分开。
+
+## 关卡与证明
+
+- 关卡目标均为 set.mm 的公式（或安全的实例/闭包）。
+- `theorem:<关卡 id>` 模块表示**本游戏前面已经通关的关卡结论**；测试保证只能引用更早的关卡。
+- 本作没有实现 set.mm 的完整证明器；参考电路由人/搜索器搭建，并用 `src/engine.js` 逐关求值。
+- 命题章 7–12 关的参考电路可由 `scripts/prove.js` 复算（若该脚本可用）。
+
+## 诚实边界
+
+1. **不重证 set.mm**：游戏内没有完整的 40,000+ 定理证明链，也不声称能推出所有 set.mm 定理。
+2. **DV 条件**：`ax-5` 带 `$d ph x`（x 不在 P 中自由）。现行 set.mm 的 `ax-12`、`ax-13`
+   本身没有 `$d`；带 DV 的弱化版分别是 `ax12v`、`ax13v`。游戏在注记中声明，但引擎没有
+   完整的 DV 检查；关卡只做安全实例。
+3. **wff 变元**：`ax-rep` 原式的 φ 是任意 wff，游戏里用原子 `P` 占位，属于简化。
+4. **集合论章**：以“公理即元件 + 闭包/例化”为主，不假装在游戏内重证 ZF 定理。
+5. **定义的身份**：`df-or / df-an / dfbi2 / df-ex` 是定义（`dfbi2` 为 set.mm 的导出展开式），
+   不是原始公理；调色板与注记都用“定义”标注。

@@ -1,4 +1,4 @@
-﻿/* Routing/overlap/dark-mode smoke. */
+/* Routing/overlap/dark-mode smoke. */
 const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -25,7 +25,7 @@ async function main() {
   await send('Runtime.enable'); await sleep(1300);
   await js('window.RSL.APP.state.forceUnlock=true');
   const info = await js(`(function(){
-    var app=window.RSL.APP; var lv=app.state.levels.find(function(l){return l.id==='RU-07'});
+    var app=window.RSL.APP; var lv=app.state.levels.find(function(l){return l.id==='CH1-10'});
     var target={id:'target',kind:'target',x:lv.targetPos.x,y:lv.targetPos.y,target:lv.target,config:{}};
     var nodes=[target].concat(JSON.parse(JSON.stringify(lv.solution.nodes)));
     var edges=lv.solution.edges.map(function(e,i){return {id:'e'+i,from:e.from,to:e.to}});

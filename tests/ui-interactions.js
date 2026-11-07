@@ -1,4 +1,4 @@
-﻿/* Interaction checks: pin grid, right-click delete, assertion turnstiles, predicate completion. */
+/* Interaction checks: pin grid, right-click delete, assertion turnstiles, predicate completion. */
 const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -45,7 +45,7 @@ async function main() {
 
   // Predicate level completion through the real UI
   const pred = await js(`(function(){
-    var app=window.RSL.APP, i=app.state.levels.findIndex(function(l){return l.id==='PC-01'});
+    var app=window.RSL.APP, i=app.state.levels.findIndex(function(l){return l.id==='CH2-01'});
     app.loadLevel(i);
     var lv=app.state.level, b=app.state.board;
     var target={id:'target',kind:'target',x:lv.targetPos.x,y:lv.targetPos.y,target:lv.target,config:{}};
@@ -59,7 +59,7 @@ async function main() {
   console.log('predicate', pred);
 
   const eq = await js(`(function(){
-    var app=window.RSL.APP, i=app.state.levels.findIndex(function(l){return l.id==='EQ-04'});
+    var app=window.RSL.APP, i=app.state.levels.findIndex(function(l){return l.id==='CH3-04'});
     app.loadLevel(i);
     var lv=app.state.level, b=app.state.board;
     var target={id:'target',kind:'target',x:lv.targetPos.x,y:lv.targetPos.y,target:lv.target,config:{}};
