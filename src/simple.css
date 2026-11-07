@@ -565,7 +565,10 @@ html[data-theme="dark"] .sheet::-webkit-scrollbar-thumb{border-color:var(--card)
 .achv-icon{display:grid;place-items:center;width:24px;height:24px;color:var(--ink)}
 .achv-icon .icon{width:24px;height:24px;stroke-width:1.7}
 .achv.is-on .achv-icon{color:var(--accent)}
-.achv-q{font-family:var(--math);font-size:24px;font-weight:600;line-height:1;color:var(--muted)}
+.achv-q{display:grid;place-items:center;width:24px;height:24px;color:var(--muted)}
+.achv-q .icon{width:24px;height:24px;stroke-width:1.7}
+.achv-detail-icon .achv-q{width:34px;height:34px}
+.achv-detail-icon .achv-q .icon{width:34px;height:34px;stroke-width:1.7}
 .achv-detail{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:30px 12px 12px}
 .achv-back{position:absolute;top:14px;left:14px;width:36px;height:36px;border-radius:50%;background:var(--soft);color:var(--muted);display:grid;place-items:center}
 .achv-back:hover{color:var(--ink)}

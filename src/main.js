@@ -249,7 +249,7 @@
     var cards = ACHIEVEMENTS.map(function (a) {
       var on = !!state.achievements[a.id];
       return '<button class="achv' + (on ? ' is-on' : '') + '" data-achv="' + a.id + '" title="' + esc(on ? a.name : '未解锁') + '" aria-label="' + esc(on ? a.name : '未解锁成就') + '">' +
-        (on ? '<span class="achv-icon"><svg class="icon"><use href="#' + a.symbol + '"></use></svg></span>' : '<span class="achv-q">?</span>') +
+        (on ? '<span class="achv-icon"><svg class="icon"><use href="#' + a.symbol + '"></use></svg></span>' : '<span class="achv-q"><svg class="icon"><use href="#i-question-mark-circle"></use></svg></span>') +
       '</button>';
     }).join('');
     els.sheet.innerHTML =
@@ -269,7 +269,7 @@
       '<div class="achv-detail">' +
         '<button class="achv-back" data-back aria-label="返回成就列表"><svg class="icon"><use href="#i-arrow-left"></use></svg></button>' +
         '<div class="achv-detail-icon' + (on ? ' is-on' : '') + '">' +
-          (on ? '<svg class="icon"><use href="#' + a.symbol + '"></use></svg>' : '<span class="achv-q">?</span>') +
+          (on ? '<svg class="icon"><use href="#' + a.symbol + '"></use></svg>' : '<span class="achv-q"><svg class="icon"><use href="#i-question-mark-circle"></use></svg></span>') +
         '</div>' +
         '<h2>' + esc(a.name) + '</h2>' +
         '<p>' + esc(a.desc) + '</p>' +
