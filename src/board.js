@@ -208,7 +208,7 @@
       if (e.pointerType === 'touch' && node.kind !== 'target') this._startLong('node', node.id);
       if (node.kind === 'target') return;
       var p = this._client(e.clientX, e.clientY);
-      this._drag = { id: node.id, dx: p.x - node.x, dy: p.y - node.y, moved: false, sx: e.clientX, sy: e.clientY };
+      this._drag = { id: node.id, dx: p.x - node.x, dy: p.y - node.y, ox: node.x, oy: node.y, moved: false, sx: e.clientX, sy: e.clientY };
       this.board.setPointerCapture && this.board.setPointerCapture(e.pointerId);
       return;
     }
@@ -331,10 +331,20 @@
       this._groupDrag = null;
       if (moved) {
         var self = this;
+        var conflict = false;
         g.ids.forEach(function (id) {
           var n = self.node(id);
-          if (n && n.kind !== 'target') self._resolvePosition(n);
+          if (!n || n.kind === 'target') return;
+          n.x = snap(n.x); n.y = snap(n.y);
+          if (self._overlaps(n, n.x, n.y, g.ids)) conflict = true;
         });
+        if (conflict) {
+          g.ids.forEach(function (id) {
+            var n = self.node(id);
+            if (!n) return;
+            n.x = g.origin[id].x; n.y = g.origin[id].y;
+          });
+        }
         this.render();
         this.onChange();
       }
@@ -346,10 +356,16 @@
     if (this._drag) {
       var moved = this._drag.moved;
       var dragId = this._drag.id;
+      var drag = this._drag;
       this._drag = null;
       if (moved) {
         var dragged = this.node(dragId);
-        if (dragged) this._resolvePosition(dragged);
+        if (dragged) {
+          dragged.x = snap(dragged.x); dragged.y = snap(dragged.y);
+          if (this._overlaps(dragged, dragged.x, dragged.y)) {
+            dragged.x = drag.ox; dragged.y = drag.oy;
+          }
+        }
         this.render();
         this.onChange();
       }
@@ -449,7 +465,9 @@
       d.setAttribute('class', 'wire-draft');
       this.wires.appendChild(d);
     }
-    d.setAttribute('d', this._path(a.x, a.y, b.x, b.y));
+    var fromId = this.draft && this.draft.from ? this.draft.from.node : null;
+    var pts = this._route(a, b, this._rects(), {}, fromId, null);
+    d.setAttribute('d', this._pathPoints(pts));
   };
 
   Board.prototype._path = function (x1, y1, x2, y2) {
@@ -679,7 +697,6 @@
     var rects = this._rects();
     var used = Object.create(null);
     var routes = {};
-    var dragging = !!(this._drag || this._groupDrag);
     var ordered = this.edges.slice().sort(function (e1, e2) {
       var a1 = self._portPoint(e1.from.node, e1.from.port), b1 = self._portPoint(e1.to.node, e1.to.port);
       var a2 = self._portPoint(e2.from.node, e2.from.port), b2 = self._portPoint(e2.to.node, e2.to.port);
@@ -691,7 +708,7 @@
       var a = self._portPoint(e.from.node, e.from.port);
       var b = self._portPoint(e.to.node, e.to.port);
       if (!a || !b) return;
-      routes[e.id] = dragging ? self._simplePoints(a.x, a.y, b.x, b.y) : self._route(a, b, rects, used, e.from.node, e.to.node);
+      routes[e.id] = self._route(a, b, rects, used, e.from.node, e.to.node);
     });
     this.edges.forEach(function (e) {
       var a = self._portPoint(e.from.node, e.from.port);
@@ -887,13 +904,14 @@
     return true;
   };
 
-  Board.prototype._overlaps = function (n, x, y) {
+  Board.prototype._overlaps = function (n, x, y, skipIds) {
     var el = this.nodes.querySelector('[data-id="' + n.id + '"]');
     var own = this._nodeRect(n, el);
     var w = own.w, h = own.h;
     for (var i = 0; i < this.items.length; i++) {
       var m = this.items[i];
       if (m.id === n.id) continue;
+      if (skipIds && skipIds.indexOf(m.id) >= 0) continue;
       var mel = this.nodes.querySelector('[data-id="' + m.id + '"]');
       var r = this._nodeRect(m, mel);
       if (x < r.x + r.w + 18 && x + w + 18 > r.x && y < r.y + r.h + 18 && y + h + 18 > r.y) return true;

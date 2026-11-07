@@ -86,7 +86,7 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
 .board.is-panning{cursor:grabbing}
 .board.is-wiring{cursor:crosshair}
 .marquee{position:absolute;z-index:6;border:1.5px dashed var(--accent);background:var(--accent-soft);opacity:.3;border-radius:8px;pointer-events:none}
-.board-world{position:absolute;inset:0;transform-origin:0 0;will-change:transform}
+.board-world{position:absolute;inset:0;transform-origin:0 0}
 .wires{position:absolute;top:0;left:0;width:3200px;height:2000px;overflow:visible;pointer-events:none}
 .nodes{position:absolute;inset:0}
 .node{
@@ -140,7 +140,7 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
 .wire{fill:none;stroke:var(--ink);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
 .wire[data-state="error"]{stroke:var(--red)}
 .wire.is-selected{stroke:var(--accent);stroke-width:3}
-.wire-hit{fill:none;stroke:transparent;stroke-width:20;pointer-events:stroke;cursor:pointer}
+.wire-hit{fill:none;stroke:transparent;stroke-width:32;pointer-events:stroke;cursor:pointer}
 .wire-draft{fill:none;stroke:var(--accent);stroke-width:2;stroke-dasharray:6 5;pointer-events:none}
 
 /* empty coach */
@@ -170,11 +170,19 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
   flex:none;display:grid;place-items:center;width:70px;height:70px;border-radius:18px;
   background:var(--card);border:1.5px solid var(--line);color:var(--ink);
   font-size:22px;font-weight:600;box-shadow:0 3px 0 var(--line);
+  cursor:grab;touch-action:none;
   transition:transform .12s var(--ease),box-shadow .12s var(--ease),background .12s var(--ease);
 }
 .tile.is-long{font-size:16px;letter-spacing:.01em}
 .tile:hover{transform:translateY(-2px);box-shadow:0 5px 0 var(--line);background:var(--hover)}
 .tile:active{transform:translateY(2px);box-shadow:0 1px 0 var(--line)}
+.tile-ghost{
+  position:fixed;z-index:120;display:grid;place-items:center;width:70px;height:70px;
+  transform:translate(-50%,-50%);border-radius:18px;background:var(--card);border:1.5px solid var(--accent);
+  box-shadow:0 8px 24px rgba(45,36,25,.24);font-family:var(--math);font-size:23px;
+  color:var(--ink);pointer-events:none;opacity:.92;
+}
+body.is-holding,body.is-holding *{cursor:grabbing!important}
 
 /* config strip */
 .popover{
@@ -511,7 +519,7 @@ html[data-theme="dark"] .level-cell.is-locked{box-shadow:inset 0 0 0 1px var(--l
 
 .wire{stroke-width:3.2}
 .wire.is-selected{stroke-width:4}
-.wire-hit{stroke-width:26}
+.wire-hit{stroke-width:34}
 .wire-draft{stroke-width:2.4}
 
 .sheet{scrollbar-color:var(--line-strong) var(--soft)}
@@ -591,16 +599,17 @@ html[data-theme="dark"] .sheet::-webkit-scrollbar-thumb{border-color:var(--card)
 
 .coach-pop{
   position:absolute;left:50%;top:50%;z-index:9;transform:translate(-50%,-50%);
-  padding:22px 26px;border-radius:22px;background:var(--card);border:1.5px solid var(--line);
-  box-shadow:0 20px 50px rgba(45,36,25,.22);cursor:pointer;
+  padding:16px 20px;border-radius:22px;background:var(--glass);border:1px solid var(--line);
+  box-shadow:0 10px 30px rgba(45,36,25,.12);cursor:default;
+  backdrop-filter:blur(6px);
   animation:coach-pop .24s var(--ease);
 }
 @keyframes coach-pop{from{opacity:0;transform:translate(-50%,-50%) scale(.94)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
 .coach-flow{display:flex;align-items:center;gap:10px;font-family:var(--math);font-size:20px;color:var(--ink)}
-.coach-flow .chip{padding:7px 11px;border-radius:10px;background:var(--soft);border:1px solid var(--line);font-size:16px;white-space:nowrap}
+.coach-flow .chip{padding:10px 12px;border-radius:14px;background:var(--card);border:1.5px solid var(--line);box-shadow:0 3px 0 var(--line);font-size:16px;white-space:nowrap}
 .coach-flow .plus{color:var(--muted);font-size:18px}
 .coach-flow .arrow{color:var(--accent);font-size:20px}
-.coach-flow .coach-mod{display:grid;place-items:center;min-width:46px;height:46px;padding:0 10px;border-radius:12px;background:var(--accent-soft);color:var(--ink);font-weight:600}
+.coach-flow .coach-mod{display:grid;place-items:center;min-width:52px;height:52px;padding:0 10px;border-radius:14px;background:var(--accent-soft);color:var(--ink);font-weight:600;border:1.5px solid var(--line);box-shadow:0 3px 0 var(--line)}
 .help .help-steps{display:flex;flex-direction:row;align-items:center;gap:12px;padding:12px 0 20px}
 .help .help-box{display:grid;place-items:center;width:58px;height:58px;border-radius:16px;background:var(--soft);font-size:26px;color:var(--ink)}
 .help .help-box .icon{width:24px;height:24px;stroke-width:2}

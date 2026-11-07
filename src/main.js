@@ -23,11 +23,13 @@
     overlay: false,
     lastId: null,
     forceUnlock: false,
+    hintDismissed: false,
     sound: true,
     theme: 'light'
   };
   var els = {};
   var toastTimer = null;
+  var paletteHold = null;
   var SAVE_KEY = 'axiom-simple:v2';
 
   function $(id) { return document.getElementById(id); }
@@ -347,8 +349,8 @@
     { id: 'all', symbol: 'i-check-badge', name: '全通关', desc: '打通全部 240 关。' },
     { id: 'clean-one', symbol: 'i-check-badge', name: '一次成功', desc: '不删除模块完成一关。' },
     { id: 'one-step', symbol: 'i-bolt', name: '一步到位', desc: '第一关只用 1 个模块通关。', metric: { level: 'CH1-01', max: 1 } },
-    { id: 'subst-clean', symbol: 'i-arrow-path', name: '代入一次', desc: '代入教程用不超过 4 个模块通关。', metric: { level: 'CH1-04', max: 4 } },
-    { id: 'detach-clean', symbol: 'i-link', name: '分离一次', desc: '分离教程用不超过 8 个模块通关。', metric: { level: 'CH1-05', max: 8 } },
+    { id: 'prefix-clean', symbol: 'i-arrow-path', name: '前置同一', desc: '前置同一关用不超过 10 个模块通关。', metric: { level: 'CH1-08', max: 10 } },
+    { id: 'hs-clean', symbol: 'i-link', name: '前件叠加', desc: '前件叠加关用不超过 13 个模块通关。', metric: { level: 'CH1-10', max: 13 } },
     { id: 'compose-clean', symbol: 'i-squares-2x2', name: '复合同一', desc: '复合同一关用不超过 5 个模块通关。', metric: { level: 'CH1-12', max: 5 } }
   ];
   var ACHV_BY_ID = {};
@@ -520,8 +522,10 @@
   function loadLevel(index) {
     if (!isUnlocked(index)) { toast('先完成前一关'); return; }
     closeOverlay();
+    clearPaletteHold();
     hideCoach();
     state.deletedThisLevel = false;
+    state.hintDismissed = false;
     state.index = index;
     state.level = state.levels[index];
     state.selectedNode = null;
@@ -552,7 +556,7 @@
       var scale = clamp((W - 120) / (tx + 280), 0.42, 1.0);
       state.board.setView(W - 60 - (tx + 232) * scale, Math.max(40, (H - 220) / 2 - ty * scale * 0.15), scale);
     }
-    els.coach.hidden = !(index === 0 && state.board.items.length <= 1);
+    els.coach.hidden = !(index === 0 && state.board.items.length <= 1 && !state.hintDismissed);
     saveProgress();
     showCoach(state.level);
   }
@@ -572,7 +576,7 @@
     var r = window.RSL.Engine.evaluate(state.level, data.nodes, data.edges);
     state.results = r;
     state.board.paint(r);
-    els.coach.hidden = !(state.index === 0 && data.nodes.length <= 1);
+    els.coach.hidden = !(state.index === 0 && data.nodes.length <= 1 && !state.hintDismissed);
     els.checkBtn.classList.toggle('is-ready', r.complete);
     renderPopover();
     saveProgress();
@@ -588,6 +592,87 @@
     state.selectedNode = n.id;
     state.selectedEdge = null;
     refresh();
+  }
+
+  function palettePart(key) {
+    return partsForLevel().filter(function (x) { return x.key === key; })[0] || null;
+  }
+
+  function ghostAt(part, x, y) {
+    if (!paletteHold) return;
+    paletteHold.ghost.style.left = x + 'px';
+    paletteHold.ghost.style.top = y + 'px';
+  }
+
+  function clearPaletteHold() {
+    if (!paletteHold) return;
+    if (paletteHold.ghost && paletteHold.ghost.parentNode) paletteHold.ghost.parentNode.removeChild(paletteHold.ghost);
+    document.removeEventListener('pointermove', paletteMove);
+    document.removeEventListener('pointerup', paletteUp, true);
+    paletteHold = null;
+    document.body.classList.remove('is-holding');
+  }
+
+  function paletteMove(e) {
+    if (!paletteHold) return;
+    if (Math.abs(e.clientX - paletteHold.sx) + Math.abs(e.clientY - paletteHold.sy) > 5) paletteHold.dragging = true;
+    ghostAt(paletteHold.part, e.clientX, e.clientY);
+  }
+
+  function paletteUp(e) {
+    if (!paletteHold) return;
+    if (paletteHold.dragging) {
+      if (!placePaletteAt(e.clientX, e.clientY)) {
+        toast('放不下');
+        clearPaletteHold();
+      }
+      return;
+    }
+    paletteHold.sticky = true;
+    document.removeEventListener('pointerup', paletteUp, true);
+  }
+
+  function palettePlacePos(cx, cy, part) {
+    var r = els.board.getBoundingClientRect();
+    if (cx < r.left || cx > r.right || cy < r.top || cy > r.bottom) return null;
+    var p = state.board._client(cx, cy);
+    var x = Math.max(0, Math.round((p.x - 116) / 16) * 16);
+    var y = Math.max(0, Math.round((p.y - 50) / 16) * 16);
+    var probe = { id: '__palette__', kind: part.kind };
+    if (state.board._overlaps(probe, x, y)) return null;
+    return { x: x, y: y };
+  }
+
+  function placePaletteAt(cx, cy) {
+    if (!paletteHold) return false;
+    var part = paletteHold.part;
+    var pos = palettePlacePos(cx, cy, part);
+    if (!pos) return false;
+    sfx('place');
+    var n = state.board.addNode(part.kind, Object.assign({}, part.config || {}), pos);
+    state.board.select(n.id);
+    state.selectedNode = n.id;
+    state.selectedEdge = null;
+    clearPaletteHold();
+    refresh();
+    return true;
+  }
+
+  function startPaletteHold(e, tile) {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    clearPaletteHold();
+    var part = palettePart(tile.dataset.key);
+    if (!part) return;
+    var ghost = document.createElement('div');
+    ghost.className = 'tile-ghost';
+    ghost.textContent = part.symbol || '·';
+    document.body.appendChild(ghost);
+    paletteHold = { part: part, ghost: ghost, sx: e.clientX, sy: e.clientY, dragging: false, sticky: false };
+    document.body.classList.add('is-holding');
+    ghostAt(part, e.clientX, e.clientY);
+    document.addEventListener('pointermove', paletteMove);
+    document.addEventListener('pointerup', paletteUp, true);
   }
 
   function optionButton(label, kind, patch, extra) {
@@ -826,13 +911,28 @@
       else if (bgm) bgm.pause();
       sfx('click');
     });
-    document.addEventListener('pointerdown', function () {
+    document.addEventListener('pointerdown', function (e) {
       ensureAudio();
+      hideCoach();
+      state.hintDismissed = true;
+      if (els.coach) els.coach.hidden = true;
+      if (paletteHold && !(e.target.closest && (e.target.closest('.tile') || e.target.closest('#board')))) clearPaletteHold();
+    }, true);
+    els.tray.addEventListener('pointerdown', function (e) {
+      var tile = e.target.closest('.tile');
+      if (tile) startPaletteHold(e, tile);
     });
     els.tray.addEventListener('click', function (e) {
+      if (paletteHold) return;
       var tile = e.target.closest('.tile');
       if (tile) addPart(tile.dataset.key);
     });
+    els.board.addEventListener('pointerdown', function (e) {
+      if (!paletteHold || !paletteHold.sticky || e.button !== 0) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      if (!placePaletteAt(e.clientX, e.clientY)) toast('放不下');
+    }, true);
     els.popover.addEventListener('click', function (e) {
       var opt = e.target.closest('[data-config]');
       if (opt && state.selectedNode) {
@@ -864,6 +964,7 @@
     });
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') {
+        if (paletteHold) { clearPaletteHold(); return; }
         if (!els.overlay.hidden) closeOverlay();
         else { state.board.selectedNode = null; state.board.selectedNodes = []; state.board.selectedEdge = null; state.board.render(); state.selectedNode = null; state.selectedEdge = null; refresh(); }
         return;
