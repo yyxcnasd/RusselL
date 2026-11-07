@@ -466,8 +466,9 @@
       this.wires.appendChild(d);
     }
     var fromId = this.draft && this.draft.from ? this.draft.from.node : null;
+    var group = this.draft && this.draft.from ? (this.draft.from.node + '|' + this.draft.from.port) : '';
     var start = { x: a.x + 26, y: a.y };
-    var pts = this._route(start, b, this._rects(), {}, fromId, null);
+    var pts = this._route(start, b, this._rects(), {}, fromId, null, group);
     pts.unshift({ x: a.x, y: a.y });
     d.setAttribute('d', this._pathPoints(pts));
   };
@@ -537,8 +538,8 @@
     });
   };
 
-  /* A* on a 16px grid: bend penalty + reuse penalty for existing wire segments. */
-  Board.prototype._route = function (a, b, rects, used, fromId, toId) {
+  /* A* on a 16px grid: bend penalty + reuse penalty, but only between different output networks. */
+  Board.prototype._route = function (a, b, rects, used, fromId, toId, group) {
     var CELL = 16;
     var xs = [a.x, b.x], ys = [a.y, b.y];
     rects.forEach(function (r) { xs.push(r.x - 28, r.x + r.w + 28); ys.push(r.y - 28, r.y + r.h + 28); });
@@ -624,8 +625,14 @@
         var ncell = ny * cols + nx;
         var nstate = ncell * 4 + nd;
         var sk = (cx < nx || (cx === nx && cy < ny)) ? (cx + ',' + cy + '|' + nx + ',' + ny) : (nx + ',' + ny + '|' + cx + ',' + cy);
-        var reuse = used[sk] || 0;
-        var cost = 1 + (nd === (dir + 2) % 4 ? 0 : (nd !== dir ? 3 : 0)) + reuse * 16;
+        var reuse = 0;
+        var groups = used[sk];
+        if (groups) {
+          for (var gk in groups) {
+            if (groups.hasOwnProperty(gk) && gk !== String(group || '')) { reuse = 1; break; }
+          }
+        }
+        var cost = 1 + (nd === (dir + 2) % 4 ? 0 : (nd !== dir ? 3 : 0)) + reuse * 64;
         var ndist = dist[state] + cost;
         if (ndist < dist[nstate]) {
           dist[nstate] = ndist;
@@ -649,7 +656,8 @@
       var gx0 = Math.round((p0.x - minX) / CELL), gy0 = Math.round((p0.y - minY) / CELL);
       var gx1 = Math.round((p1.x - minX) / CELL), gy1 = Math.round((p1.y - minY) / CELL);
       var key = (gx0 < gx1 || (gx0 === gx1 && gy0 < gy1)) ? (gx0 + ',' + gy0 + '|' + gx1 + ',' + gy1) : (gx1 + ',' + gy1 + '|' + gx0 + ',' + gy0);
-      used[key] = (used[key] || 0) + 1;
+      if (!used[key]) used[key] = {};
+      used[key][String(group || '')] = true;
     }
     var pts = [{ x: a.x, y: a.y }];
     cells.forEach(function (p) { if (p.x !== a.x || p.y !== a.y) pts.push(p); });
@@ -712,7 +720,8 @@
       if (!a || !b) return;
       var aStub = { x: a.x + 26, y: a.y };
       var bStub = { x: b.x - 26, y: b.y };
-      var pts = self._route(aStub, bStub, rects, used, e.from.node, e.to.node);
+      var group = e.from.node + '|' + e.from.port;
+      var pts = self._route(aStub, bStub, rects, used, e.from.node, e.to.node, group);
       pts.unshift({ x: a.x, y: a.y });
       pts.push({ x: b.x, y: b.y });
       routes[e.id] = pts;

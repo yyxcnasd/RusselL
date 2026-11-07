@@ -37,6 +37,9 @@ async function main() {
   await shot('simple-wired.png');
   await js('document.getElementById("checkBtn").click()'); await sleep(500);
   console.log('win', await js('!!document.querySelector(".win")'), 'overlay', await js('!document.getElementById("overlay").hidden'));
+  await js('document.getElementById("themeBtn").click()'); await sleep(150);
+  console.log('dark-target', await js('(function(){var t=document.querySelector(".node.is-target"),m=document.querySelector(".target-mark");return {bg:getComputedStyle(t).backgroundColor,border:getComputedStyle(t).borderColor,mark:getComputedStyle(m).color};})()'));
+  await js('document.getElementById("themeBtn").click()'); await sleep(120);
   console.log('unlock', await js('(function(){var a=window.RSL.APP;var iv=a.state.levels.findIndex(function(l){return l.chapterGroup==="Ⅳ"});return {next:a.isUnlocked(1),later:a.isUnlocked(iv+2),iv:a.isUnlocked(iv),solved:Object.keys(a.state.solved)};})()'));
   await shot('simple-win.png');
   await js('document.querySelector("[data-next]").click()'); await sleep(400);

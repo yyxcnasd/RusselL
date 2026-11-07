@@ -269,6 +269,7 @@
       '<div class="achv-head"><span class="achv-count">' + got + ' / ' + ACHIEVEMENTS.length + '</span><span class="achv-bar"><i style="width:' + (got / ACHIEVEMENTS.length * 100) + '%"></i></span></div>' +
       '<div class="achv-grid">' + cards + '</div>';
     els.sheet.scrollTop = 0;
+    showSheetBar();
   }
 
   function openAchievement(id) {
@@ -287,6 +288,7 @@
         '<p>' + esc(a.desc) + '</p>' +
       '</div>';
     els.sheet.scrollTop = 0;
+    showSheetBar();
   }
 
   /* 规则提示窗：只画“输入 → 模块 → 输出”，不显示本关答案。 */
@@ -384,6 +386,22 @@
       lv.band = lv.band || 'base';
       lv.targetPos = lv.targetPos || { x: 650, y: 300 };
       lv.allowed = lv.allowed || [];
+      /* 有代入的关卡必须能构造目标里出现的连接词，否则玩家无法把公式当作代入项。 */
+      if (lv.allowed.indexOf('subst') >= 0) {
+        if (lv.allowed.indexOf('atom') < 0) lv.allowed.push('atom');
+        var ast = parse(lv.target);
+        (function walk(n) {
+          if (!n) return;
+          var kind = n.k;
+          if (kind === 'all' || kind === 'exists') kind = 'quant';
+          if (['not', 'imp', 'or', 'and', 'iff', 'pred', 'term', 'quant'].indexOf(kind) >= 0 &&
+              lv.allowed.indexOf(kind) < 0) lv.allowed.push(kind);
+          if (n.a) walk(n.a);
+          if (n.b) walk(n.b);
+          if (n.v) walk(n.v);
+          if (n.args) n.args.forEach(walk);
+        })(ast);
+      }
       lv._ord = i;
       lv.chapterGroup = chapterOf(lv);
     });
@@ -441,7 +459,7 @@
         var lv = levelById(key.slice(8));
         if (lv) {
           p = {
-            key: key, kind: 'theorem', symbol: (lv.code || lv.id).split('-').pop(),
+            key: key, kind: 'theorem', symbol: '*' + (lv.code || lv.id).split('-').pop(),
             name: '已证 ' + (lv.code || lv.id) + ' · ' + (lv.title || ''),
             code: lv.id, config: { theoremCode: lv.id }
           };
@@ -514,6 +532,34 @@
     els.toast.textContent = msg;
     els.toast.classList.add('is-on');
     toastTimer = setTimeout(function () { els.toast.classList.remove('is-on'); }, 1800);
+  }
+
+  var sheetDrag = null;
+  function updateSheetBar() {
+    if (!els.sheetBar || els.overlay.hidden) return;
+    var sh = els.sheet;
+    var max = sh.scrollHeight - sh.clientHeight;
+    if (max <= 2) { els.sheetBar.hidden = true; return; }
+    var r = sh.getBoundingClientRect();
+    var top = r.top + 68;
+    var trackH = Math.max(36, r.height - 100);
+    els.sheetBar.hidden = false;
+    els.sheetBar.style.left = (r.right - 24) + 'px';
+    els.sheetBar.style.top = top + 'px';
+    els.sheetBar.style.height = trackH + 'px';
+    var thumb = els.sheetBar.querySelector('i');
+    var thumbH = Math.max(26, Math.min(trackH, trackH * sh.clientHeight / sh.scrollHeight));
+    var thumbY = (sh.scrollTop / max) * (trackH - thumbH);
+    thumb.style.height = thumbH + 'px';
+    thumb.style.top = Math.max(0, Math.min(trackH - thumbH, thumbY)) + 'px';
+  }
+  function showSheetBar() {
+    if (!els.sheetBar) return;
+    els.sheetBar.hidden = false;
+    requestAnimationFrame(updateSheetBar);
+  }
+  function hideSheetBar() {
+    if (els.sheetBar) els.sheetBar.hidden = true;
   }
 
   function freeSpot() {
@@ -624,6 +670,7 @@
     if (!paletteHold) return;
     paletteHold.ghost.style.left = x + 'px';
     paletteHold.ghost.style.top = y + 'px';
+    paletteHold.ghost.style.setProperty('--ghost-scale', state.board.view.scale);
   }
 
   function clearPaletteHold() {
@@ -702,6 +749,7 @@
     el.className = 'node module-ghost';
     el.style.width = '232px';
     el.style.minHeight = minH + 'px';
+    el.style.setProperty('--ghost-scale', state.board.view.scale);
     el.innerHTML =
       '<div class="node-top"><span class="node-code">' + esc(code) + '</span></div>' +
       '<div class="node-formula formula">' + formula + '</div>' +
@@ -848,6 +896,7 @@
         '<button class="primary next-btn" data-next="1">' + (isLast ? '选关' : '下一关') + '</button>' +
       '</div>';
     confetti();
+    showSheetBar();
   }
 
   function openLevels() {
@@ -909,6 +958,7 @@
     }).join('');
     els.sheet.innerHTML = '<button class="sheet-x" data-close aria-label="关闭"><svg class="icon"><use href="#i-x-mark"></use></svg></button><div class="chapters">' + html + '</div>';
     els.sheet.scrollTop = 0;
+    showSheetBar();
   }
 
   function openHelp() {
@@ -934,11 +984,13 @@
         '</div>' +
       '</div>' +
       '<p class="credit">Design by yyxcnasd</p>';
+    showSheetBar();
   }
 
   function closeOverlay() {
     els.overlay.hidden = true;
     els.sheet.innerHTML = '';
+    hideSheetBar();
     state.overlay = false;
   }
 
@@ -955,6 +1007,36 @@
     els.achvBtn.addEventListener('click', openAchievements);
     els.coachPop.addEventListener('click', hideCoach);
     els.coachPop.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
+    els.sheet.addEventListener('scroll', updateSheetBar);
+    els.sheetBar.addEventListener('pointerdown', function (e) {
+      if (els.sheetBar.hidden) return;
+      var sh = els.sheet;
+      var max = sh.scrollHeight - sh.clientHeight;
+      if (max <= 0) return;
+      var barRect = els.sheetBar.getBoundingClientRect();
+      var thumb = els.sheetBar.querySelector('i');
+      if (e.target !== thumb) {
+        sh.scrollTop = Math.max(0, Math.min(max, ((e.clientY - barRect.top) / barRect.height) * max));
+        updateSheetBar();
+        return;
+      }
+      e.preventDefault();
+      sheetDrag = {
+        y: e.clientY,
+        scroll: sh.scrollTop,
+        max: max,
+        track: Math.max(1, els.sheetBar.clientHeight - thumb.offsetHeight)
+      };
+      els.sheetBar.setPointerCapture && els.sheetBar.setPointerCapture(e.pointerId);
+    });
+    document.addEventListener('pointermove', function (e) {
+      if (!sheetDrag) return;
+      var sh = els.sheet;
+      sh.scrollTop = sheetDrag.scroll + (e.clientY - sheetDrag.y) * sheetDrag.max / sheetDrag.track;
+      updateSheetBar();
+    });
+    document.addEventListener('pointerup', function () { sheetDrag = null; });
+    window.addEventListener('resize', updateSheetBar);
     els.sheet.addEventListener('click', function (e) {
       var card = e.target.closest && e.target.closest('[data-coach]');
       if (card) { closeOverlay(); showCoachKind(card.dataset.coach); return; }
@@ -1048,7 +1130,7 @@
   }
 
   function init() {
-    ['levelBtn', 'goal', 'goalFormula', 'themeBtn', 'soundBtn', 'helpBtn', 'achvBtn', 'checkBtn', 'progressFill', 'board', 'boardWorld', 'wireLayer', 'nodeLayer', 'tray', 'popover', 'toast', 'overlay', 'sheet', 'coach', 'coachPop', 'saveFile'].forEach(function (id) { els[id] = $(id); });
+    ['levelBtn', 'goal', 'goalFormula', 'themeBtn', 'soundBtn', 'helpBtn', 'achvBtn', 'checkBtn', 'progressFill', 'board', 'boardWorld', 'wireLayer', 'nodeLayer', 'tray', 'popover', 'toast', 'overlay', 'sheet', 'coach', 'coachPop', 'saveFile', 'sheetBar'].forEach(function (id) { els[id] = $(id); });
     if (!L) { document.body.innerHTML = '<div class="fatal">逻辑引擎未加载</div>'; return; }
     window.RSL.formatFormula = function (ast) { return formulaHTML(ast); };
     loadProgress();

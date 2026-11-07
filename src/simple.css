@@ -22,8 +22,8 @@
   --danger-soft:#f5e3df;
   --soft-hover:#ece4d5;
   --radius:18px;
-  --font:"IBM Plex Sans","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
-  --math:"STIX Two Text","Times New Roman",serif;
+  --font:"IBM Plex Sans",sans-serif;
+  --math:"STIX Two Text",serif;
   --ease:cubic-bezier(.2,.7,.3,1);
 }
 *{box-sizing:border-box}
@@ -155,7 +155,7 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
   background:var(--card);border:1.5px solid var(--line);font-size:22px;font-weight:600;
   box-shadow:0 3px 0 var(--line);
 }
-.coach-arrow{font-size:30px;color:var(--accent)}
+.coach-arrow{font-family:var(--math);font-size:30px;color:var(--accent)}
 .coach-goal{font-family:var(--math);font-size:40px;color:var(--accent)}
 @keyframes coach{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.035)}}
 
@@ -169,22 +169,16 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
 .tile{
   flex:none;display:grid;place-items:center;width:70px;height:70px;border-radius:18px;
   background:var(--card);border:1.5px solid var(--line);color:var(--ink);
-  font-size:22px;font-weight:600;box-shadow:0 3px 0 var(--line);
+  font-family:var(--font);font-size:22px;font-weight:600;box-shadow:0 3px 0 var(--line);
   cursor:grab;touch-action:none;
   transition:transform .12s var(--ease),box-shadow .12s var(--ease),background .12s var(--ease);
 }
 .tile.is-long{font-size:16px;letter-spacing:.01em}
 .tile:hover{transform:translateY(-2px);box-shadow:0 5px 0 var(--line);background:var(--hover)}
 .tile:active{transform:translateY(2px);box-shadow:0 1px 0 var(--line)}
-.tile-ghost{
-  position:fixed;z-index:120;display:grid;place-items:center;width:70px;height:70px;
-  transform:translate(-50%,-50%);border-radius:18px;background:var(--card);border:1.5px solid var(--accent);
-  box-shadow:0 8px 24px rgba(45,36,25,.24);font-family:var(--math);font-size:23px;
-  color:var(--ink);pointer-events:none;opacity:.92;
-}
 .module-ghost{
   position:fixed;z-index:120;pointer-events:none;opacity:.94;
-  transform:translate(-50%,-50%);border-color:var(--accent);
+  transform:translate(-50%,-50%) scale(var(--ghost-scale,1));border-color:var(--accent);
   box-shadow:0 18px 44px rgba(45,36,25,.22);
 }
 .module-ghost .port{pointer-events:none}
@@ -386,7 +380,7 @@ html[data-theme="dark"] .overlay{background:rgba(0,0,0,.62)}
   background:currentColor;transform:rotate(-38deg);border-radius:2px;
 }
 .node.is-new{animation:node-in .2s var(--ease)}
-@keyframes node-in{from{opacity:0;transform:translateY(6px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes node-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .level-num.just-solved{animation:level-pop .45s var(--ease)}
 @keyframes level-pop{0%{transform:scale(1)}45%{transform:scale(1.12)}100%{transform:scale(1)}}
 .win-check{animation:check-in .45s cubic-bezier(.2,1.4,.4,1)}
@@ -427,6 +421,9 @@ html[data-theme="dark"] .sheet{box-shadow:0 30px 80px rgba(0,0,0,.55)}
 
 html[data-theme="dark"] .node.is-target{background:rgba(241,236,226,.045);border-color:var(--line-strong)}
 html[data-theme="dark"] .node.is-target .target-mark{color:var(--accent)}
+html[data-theme="dark"] .node.is-target[data-state="complete"]{background:rgba(103,192,141,.14);border-color:var(--green)}
+html[data-theme="dark"] .node.is-target[data-state="complete"] .target-mark{color:var(--green)}
+html[data-theme="dark"] .node.is-target[data-state="complete"] .port-in{border-color:var(--green)}
 html[data-theme="dark"] .check-btn{background:var(--accent);color:#1a1611;box-shadow:0 3px 0 #7a3e24}
 html[data-theme="dark"] .check-btn.is-ready{background:var(--green);color:#111;box-shadow:0 3px 0 #2b6c4b}
 html[data-theme="dark"] .primary{background:var(--accent);color:#1a1611;box-shadow:0 3px 0 #7a3e24}
@@ -509,7 +506,13 @@ html[data-theme="dark"] .level-cell.is-locked{box-shadow:inset 0 0 0 1px var(--l
 .icon{width:20px;height:20px;display:block;margin:auto;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .check-btn .icon{width:22px;height:22px;stroke-width:2}
 .sheet-x .icon{width:17px;height:17px}
-.sheet{padding:52px 24px 24px;scrollbar-width:thin;scrollbar-color:var(--line-strong) transparent;scrollbar-gutter:stable;overscroll-behavior:contain}
+.sheet{padding:52px 24px 24px;scrollbar-width:none;overscroll-behavior:contain}
+.sheet{scrollbar-width:none!important}
+.sheet::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}
+.sheet-bar{position:fixed;z-index:75;width:5px;pointer-events:auto}
+.sheet-bar i{position:absolute;left:1px;width:3px;border-radius:999px;background:var(--line-strong);pointer-events:auto;cursor:grab;box-shadow:0 0 0 1px var(--card)}
+.sheet-bar i:active{cursor:grabbing}
+.sheet-bar i:hover{background:var(--muted)}
 .sheet-x{top:14px;right:14px}
 .help{padding-top:8px}
 .win{padding-top:0}
@@ -520,10 +523,7 @@ html[data-theme="dark"] .level-cell.is-locked{box-shadow:inset 0 0 0 1px var(--l
 .wire-hit{stroke-width:34}
 .wire-draft{stroke-width:2.4}
 
-.sheet::-webkit-scrollbar{width:12px;background:transparent}
-.sheet::-webkit-scrollbar-track{background:transparent;margin:20px 0}
-.sheet::-webkit-scrollbar-thumb{background:var(--line-strong);border:3px solid transparent;background-clip:content-box;border-radius:999px}
-.sheet::-webkit-scrollbar-thumb:hover{background:var(--muted);background-clip:content-box}
+
 
 /* ---------- 子章节 / 推理长度 / 成就 / 演示 ---------- */
 .band{margin-top:16px}
