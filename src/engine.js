@@ -404,12 +404,16 @@
       var seen = {};
       var queue = [targetNode.id];
       var hasSource = false;
+      var usedKinds = {};
       while (queue.length) {
         var id = queue.shift();
         if (seen[id]) continue;
         seen[id] = true;
         var nd = byId[id];
-        if (nd && !CONSTRUCT[nd.kind]) hasSource = true;
+        if (nd) {
+          usedKinds[nd.kind] = true;
+          if (!CONSTRUCT[nd.kind]) hasSource = true;
+        }
         edges.forEach(function (e) {
           if (e.to && e.to.node === id && !seen[e.from.node]) queue.push(e.from.node);
         });
@@ -419,6 +423,14 @@
         target.error = '目标公式必须由公理/规则/已证结论推出，不能只用构造门拼出来';
         target.note = target.error;
         errors.push({ nodeId: targetNode.id, message: target.error });
+      } else if (level && Array.isArray(level.mustUse)) {
+        var missing = level.mustUse.filter(function (kind) { return !usedKinds[kind]; })[0];
+        if (missing) {
+          target.state = 'error';
+          target.error = '这一关需要用到 ' + missing + ' 模块';
+          target.note = target.error;
+          errors.push({ nodeId: targetNode.id, message: target.error });
+        }
       }
     }
 

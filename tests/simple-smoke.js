@@ -23,7 +23,6 @@ async function main() {
   const js = async exp => { const r = await send('Runtime.evaluate', { expression: exp, returnByValue: true, awaitPromise: true }); if (r.exceptionDetails) throw new Error(r.exceptionDetails.text); return r.result.value; };
   const shot = async name => { const r = await send('Page.captureScreenshot', { format: 'png' }); fs.writeFileSync(path.join(root, 'screenshots', name), Buffer.from(r.data, 'base64')); };
   await send('Runtime.enable'); await sleep(1300);
-  await js('window.RSL.APP.stopDemo && window.RSL.APP.stopDemo()'); await sleep(250);
   console.log('level', await js('document.getElementById("levelBtn").textContent'), 'goal', await js('document.getElementById("goalFormula").textContent'));
   console.log('tiles', await js('document.querySelectorAll(".tile").length'), 'nodes', await js('document.querySelectorAll(".node").length'));
   await js('document.querySelector(".tile").click()'); await sleep(400);
@@ -56,6 +55,27 @@ async function main() {
     var base=L.filter(function(l){return l.chapterGroup==='Ⅰ'&&l.band!=='challenge'});
     base.forEach(function(l){app.state.solved[l.id]=true;});
     return {base:base.length,chal:app.isUnlocked(idx('CH1-31')),next:app.isUnlocked(idx('CH2-01')),nextChal:app.isUnlocked(idx('CH2-31')),baseLast:base[base.length-1].id};
+  })()`));
+  console.log('selection', await js(`(function(){
+    var app=window.RSL.APP, b=app.state.board;
+    b.board.setPointerCapture=function(){}; b.board.releasePointerCapture=function(){};
+    b.setData([{id:'s1',kind:'atom',x:80,y:160,config:{name:'P'}},{id:'s2',kind:'atom',x:320,y:160,config:{name:'Q'}},{id:'s3',kind:'atom',x:80,y:360,config:{name:'R'}},{id:'target',kind:'target',x:900,y:300,target:'P→(Q→P)',config:{}}],[]);
+    var r=b.board.getBoundingClientRect();
+    function cx(x){return r.left+b.view.x+x*b.view.scale}
+    function cy(y){return r.top+b.view.y+y*b.view.scale}
+    b._startMarquee({clientX:cx(40),clientY:cy(80),pointerId:1});
+    b._updateMarquee(cx(600),cy(500));
+    b._endMarquee();
+    var n=b.selectedNodes.length;
+    var el=b.nodes.querySelector('[data-id="s1"]');
+    var before={x:b.node('s1').x,y:b.node('s1').y};
+    if(el){
+      b._down({target:el,shiftKey:true,clientX:cx(80),clientY:cy(160),pointerId:1,pointerType:'mouse',preventDefault:function(){},stopPropagation:function(){}});
+      b._move({clientX:cx(80)+48,clientY:cy(160)+32});
+      b._up({});
+    }
+    var after={x:b.node('s1').x,y:b.node('s1').y};
+    return {selected:n,dragged:before.x!==after.x||before.y!==after.y,snapped:after.x%16===0&&after.y%16===0};
   })()`));
   ws.close();
 }

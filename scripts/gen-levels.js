@@ -633,7 +633,7 @@ const PLANS = {
       pairs.push({ s: sApp[(i * 13 + 3) % sApp.length], t: list[(i * 29 + 7) % list.length] });
     }
     return [
-      ['direct', 11, spread(list, 11, 0)],
+      ['direct', 8, spread(list, 8, 0)],
       ['subst1', 10, spread(atoms, 10, 7)],
       ['subst2', 10, spread(atoms2, 10, 13)],
       ['detachApply', 12, spread(pairs, 12, 19)],
@@ -713,8 +713,8 @@ function difficultyOf(spec, type) {
 
 function buildChapter(chapter, list, all) {
   const plan = PLANS[chapter](list, all);
-  const starts = { prop: 10, pred: 13, eq: 13, set: 13 };
-  const handCount = { prop: 9, pred: 12, eq: 12, set: 12 }[chapter];
+  const starts = { prop: 13, pred: 13, eq: 13, set: 13 };
+  const handCount = { prop: 12, pred: 12, eq: 12, set: 12 }[chapter];
   const out = [];
   let num = starts[chapter];
   const usedTargets = new Set();

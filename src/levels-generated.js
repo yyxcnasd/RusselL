@@ -6,182 +6,23 @@
   window.RSL = window.RSL || {};
   var GENERATED = [
  {
-  "id": "CH1-10",
-  "chapter": "prop",
-  "code": "CH1-10",
-  "title": "notnotr · 档案",
-  "kicker": "set.mm / notnotr",
-  "brief": "",
-  "hint": "",
-  "teaches": [
-   "档案"
-  ],
-  "allowed": [
-   "archive:notnotr",
-   "target"
-  ],
-  "reward": "—",
-  "note": "set.mm notnotr（Propositional calculus）；本作不重证档案定理。",
-  "target": "( ¬ ¬ P → P )",
-  "targetPos": {
-   "x": 900,
-   "y": 640
-  },
-  "world": {
-   "w": 2200,
-   "h": 1340
-  },
-  "solution": {
-   "nodes": [
-    {
-     "id": "src",
-     "kind": "archive",
-     "x": 60,
-     "y": 700,
-     "config": {
-      "label": "notnotr"
-     }
-    }
-   ],
-   "edges": [
-    {
-     "from": {
-      "node": "src",
-      "port": "out"
-     },
-     "to": {
-      "node": "target",
-      "port": "proof"
-     }
-    }
-   ]
-  },
-  "band": "base"
- },
- {
-  "id": "CH1-11",
-  "chapter": "prop",
-  "code": "CH1-11",
-  "title": "ibar · 档案",
-  "kicker": "set.mm / ibar",
-  "brief": "",
-  "hint": "",
-  "teaches": [
-   "档案"
-  ],
-  "allowed": [
-   "archive:ibar",
-   "target"
-  ],
-  "reward": "—",
-  "note": "set.mm ibar（Propositional calculus）；本作不重证档案定理。",
-  "target": "( P → ( Q ↔ ( P ∧ Q ) ) )",
-  "targetPos": {
-   "x": 900,
-   "y": 640
-  },
-  "world": {
-   "w": 2200,
-   "h": 1340
-  },
-  "solution": {
-   "nodes": [
-    {
-     "id": "src",
-     "kind": "archive",
-     "x": 60,
-     "y": 700,
-     "config": {
-      "label": "ibar"
-     }
-    }
-   ],
-   "edges": [
-    {
-     "from": {
-      "node": "src",
-      "port": "out"
-     },
-     "to": {
-      "node": "target",
-      "port": "proof"
-     }
-    }
-   ]
-  },
-  "band": "base"
- },
- {
-  "id": "CH1-12",
-  "chapter": "prop",
-  "code": "CH1-12",
-  "title": "mtt · 档案",
-  "kicker": "set.mm / mtt",
-  "brief": "",
-  "hint": "",
-  "teaches": [
-   "档案"
-  ],
-  "allowed": [
-   "archive:mtt",
-   "target"
-  ],
-  "reward": "—",
-  "note": "set.mm mtt（Propositional calculus）；本作不重证档案定理。",
-  "target": "( ¬ P → ( ¬ Q ↔ ( Q → P ) ) )",
-  "targetPos": {
-   "x": 900,
-   "y": 640
-  },
-  "world": {
-   "w": 2200,
-   "h": 1340
-  },
-  "solution": {
-   "nodes": [
-    {
-     "id": "src",
-     "kind": "archive",
-     "x": 60,
-     "y": 700,
-     "config": {
-      "label": "mtt"
-     }
-    }
-   ],
-   "edges": [
-    {
-     "from": {
-      "node": "src",
-      "port": "out"
-     },
-     "to": {
-      "node": "target",
-      "port": "proof"
-     }
-    }
-   ]
-  },
-  "band": "base"
- },
- {
   "id": "CH1-13",
   "chapter": "prop",
   "code": "CH1-13",
-  "title": "pm2.49 · 档案",
-  "kicker": "set.mm / pm2.49",
+  "title": "pm3.24 · 档案",
+  "kicker": "set.mm / pm3.24",
   "brief": "",
   "hint": "",
   "teaches": [
    "档案"
   ],
   "allowed": [
-   "archive:pm2.49",
+   "archive:pm3.24",
    "target"
   ],
   "reward": "—",
-  "note": "set.mm pm2.49（Propositional calculus）；本作不重证档案定理。",
-  "target": "( ¬ ( P ∨ Q ) → ( ¬ P ∨ ¬ Q ) )",
+  "note": "set.mm pm3.24（Propositional calculus）；本作不重证档案定理。",
+  "target": "¬ ( P ∧ ¬ P )",
   "targetPos": {
    "x": 900,
    "y": 640
@@ -198,7 +39,7 @@
      "x": 60,
      "y": 700,
      "config": {
-      "label": "pm2.49"
+      "label": "pm3.24"
      }
     }
    ],
@@ -221,20 +62,20 @@
   "id": "CH1-14",
   "chapter": "prop",
   "code": "CH1-14",
-  "title": "pm4.72 · 档案",
-  "kicker": "set.mm / pm4.72",
+  "title": "pm2.07 · 档案",
+  "kicker": "set.mm / pm2.07",
   "brief": "",
   "hint": "",
   "teaches": [
    "档案"
   ],
   "allowed": [
-   "archive:pm4.72",
+   "archive:pm2.07",
    "target"
   ],
   "reward": "—",
-  "note": "set.mm pm4.72（Propositional calculus）；本作不重证档案定理。",
-  "target": "( ( P → Q ) ↔ ( Q ↔ ( P ∨ Q ) ) )",
+  "note": "set.mm pm2.07（Propositional calculus）；本作不重证档案定理。",
+  "target": "( P → ( P ∨ P ) )",
   "targetPos": {
    "x": 900,
    "y": 640
@@ -251,7 +92,7 @@
      "x": 60,
      "y": 700,
      "config": {
-      "label": "pm4.72"
+      "label": "pm2.07"
      }
     }
    ],
@@ -274,20 +115,20 @@
   "id": "CH1-15",
   "chapter": "prop",
   "code": "CH1-15",
-  "title": "simpr3r · 档案",
-  "kicker": "set.mm / simpr3r",
+  "title": "simp2 · 档案",
+  "kicker": "set.mm / simp2",
   "brief": "",
   "hint": "",
   "teaches": [
    "档案"
   ],
   "allowed": [
-   "archive:simpr3r",
+   "archive:simp2",
    "target"
   ],
   "reward": "—",
-  "note": "set.mm simpr3r（Propositional calculus）；本作不重证档案定理。",
-  "target": "( ( T ∧ ( R ∧ S ∧ ( P ∧ Q ) ) ) → Q )",
+  "note": "set.mm simp2（Propositional calculus）；本作不重证档案定理。",
+  "target": "( ( P ∧ Q ∧ R ) → Q )",
   "targetPos": {
    "x": 900,
    "y": 640
@@ -304,7 +145,7 @@
      "x": 60,
      "y": 700,
      "config": {
-      "label": "simpr3r"
+      "label": "simp2"
      }
     }
    ],
@@ -327,20 +168,20 @@
   "id": "CH1-16",
   "chapter": "prop",
   "code": "CH1-16",
-  "title": "3anor · 档案",
-  "kicker": "set.mm / 3anor",
+  "title": "3mix1 · 档案",
+  "kicker": "set.mm / 3mix1",
   "brief": "",
   "hint": "",
   "teaches": [
    "档案"
   ],
   "allowed": [
-   "archive:3anor",
+   "archive:3mix1",
    "target"
   ],
   "reward": "—",
-  "note": "set.mm 3anor（Propositional calculus）；本作不重证档案定理。",
-  "target": "( ( P ∧ Q ∧ R ) ↔ ¬ ( ¬ P ∨ ¬ Q ∨ ¬ R ) )",
+  "note": "set.mm 3mix1（Propositional calculus）；本作不重证档案定理。",
+  "target": "( P → ( P ∨ Q ∨ R ) )",
   "targetPos": {
    "x": 900,
    "y": 640
@@ -357,7 +198,7 @@
      "x": 60,
      "y": 700,
      "config": {
-      "label": "3anor"
+      "label": "3mix1"
      }
     }
    ],
@@ -380,20 +221,20 @@
   "id": "CH1-17",
   "chapter": "prop",
   "code": "CH1-17",
-  "title": "simp12r · 档案",
-  "kicker": "set.mm / simp12r",
+  "title": "pm2.5 · 档案",
+  "kicker": "set.mm / pm2.5",
   "brief": "",
   "hint": "",
   "teaches": [
    "档案"
   ],
   "allowed": [
-   "archive:simp12r",
+   "archive:pm2.5",
    "target"
   ],
   "reward": "—",
-  "note": "set.mm simp12r（Propositional calculus）；本作不重证档案定理。",
-  "target": "( ( ( R ∧ ( P ∧ Q ) ∧ S ) ∧ T ∧ U ) → Q )",
+  "note": "set.mm pm2.5（Propositional calculus）；本作不重证档案定理。",
+  "target": "( ¬ ( P → Q ) → ( ¬ P → Q ) )",
   "targetPos": {
    "x": 900,
    "y": 640
@@ -410,7 +251,7 @@
      "x": 60,
      "y": 700,
      "config": {
-      "label": "simp12r"
+      "label": "pm2.5"
      }
     }
    ],
@@ -433,20 +274,20 @@
   "id": "CH1-18",
   "chapter": "prop",
   "code": "CH1-18",
-  "title": "simp-5l · 档案",
-  "kicker": "set.mm / simp-5l",
+  "title": "pm3.11 · 档案",
+  "kicker": "set.mm / pm3.11",
   "brief": "",
   "hint": "",
   "teaches": [
    "档案"
   ],
   "allowed": [
-   "archive:simp-5l",
+   "archive:pm3.11",
    "target"
   ],
   "reward": "—",
-  "note": "set.mm simp-5l（Propositional calculus）；本作不重证档案定理。",
-  "target": "( ( ( ( ( ( P ∧ Q ) ∧ R ) ∧ S ) ∧ T ) ∧ U ) → P )",
+  "note": "set.mm pm3.11（Propositional calculus）；本作不重证档案定理。",
+  "target": "( ¬ ( ¬ P ∨ ¬ Q ) → ( P ∧ Q ) )",
   "targetPos": {
    "x": 900,
    "y": 640
@@ -463,7 +304,7 @@
      "x": 60,
      "y": 700,
      "config": {
-      "label": "simp-5l"
+      "label": "pm3.11"
      }
     }
    ],
@@ -486,20 +327,20 @@
   "id": "CH1-19",
   "chapter": "prop",
   "code": "CH1-19",
-  "title": "3jaob · 档案",
-  "kicker": "set.mm / 3jaob",
+  "title": "simprrr · 档案",
+  "kicker": "set.mm / simprrr",
   "brief": "",
   "hint": "",
   "teaches": [
    "档案"
   ],
   "allowed": [
-   "archive:3jaob",
+   "archive:simprrr",
    "target"
   ],
   "reward": "—",
-  "note": "set.mm 3jaob（Propositional calculus）；本作不重证档案定理。",
-  "target": "( ( ( P ∨ R ∨ S ) → Q ) ↔ ( ( P → Q ) ∧ ( R → Q ) ∧ ( S → Q ) ) )",
+  "note": "set.mm simprrr（Propositional calculus）；本作不重证档案定理。",
+  "target": "( ( P ∧ ( Q ∧ ( R ∧ S ) ) ) → S )",
   "targetPos": {
    "x": 900,
    "y": 640
@@ -516,7 +357,7 @@
      "x": 60,
      "y": 700,
      "config": {
-      "label": "3jaob"
+      "label": "simprrr"
      }
     }
    ],
@@ -539,20 +380,20 @@
   "id": "CH1-20",
   "chapter": "prop",
   "code": "CH1-20",
-  "title": "orddi · 档案",
-  "kicker": "set.mm / orddi",
+  "title": "simpr12 · 档案",
+  "kicker": "set.mm / simpr12",
   "brief": "",
   "hint": "",
   "teaches": [
    "档案"
   ],
   "allowed": [
-   "archive:orddi",
+   "archive:simpr12",
    "target"
   ],
   "reward": "—",
-  "note": "set.mm orddi（Propositional calculus）；本作不重证档案定理。",
-  "target": "( ( ( P ∧ Q ) ∨ ( R ∧ S ) ) ↔ ( ( ( P ∨ R ) ∧ ( P ∨ S ) ) ∧ ( ( Q ∨ R ) ∧ ( Q ∨ S ) ) ) )",
+  "note": "set.mm simpr12（Propositional calculus）；本作不重证档案定理。",
+  "target": "( ( U ∧ ( ( P ∧ Q ∧ R ) ∧ S ∧ T ) ) → Q )",
   "targetPos": {
    "x": 900,
    "y": 640
@@ -569,7 +410,7 @@
      "x": 60,
      "y": 700,
      "config": {
-      "label": "orddi"
+      "label": "simpr12"
      }
     }
    ],

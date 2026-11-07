@@ -79,6 +79,9 @@ for (const lv of levels) {
   /* 4. 参考电路 */
   const sol = lv.solution;
   if (!sol || !sol.nodes || !sol.nodes.length) { fail(lv.id, '缺少参考电路'); continue; }
+  for (const kind of lv.mustUse || []) {
+    if ((lv.allowed || []).indexOf(kind) < 0) fail(lv.id, 'mustUse 模块不在 allowed 里：' + kind);
+  }
   const target = { id: 'target', kind: 'target', x: 900, y: 300, target: lv.target, config: {} };
   const nodes = [target].concat(sol.nodes.map((n) => ({ ...n, config: { ...n.config } })));
   const edges = sol.edges.map((e, i) => ({ id: 'e' + i, from: { ...e.from }, to: { ...e.to } }));

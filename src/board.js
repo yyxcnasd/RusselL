@@ -28,10 +28,13 @@
     this.edges = [];
     this.view = { x: 30, y: 30, scale: 0.85 };
     this.selectedNode = null;
+    this.selectedNodes = [];
     this.selectedEdge = null;
     this.draft = null;
     this.result = null;
     this._drag = null;
+    this._groupDrag = null;
+    this._marquee = null;
     this._pan = null;
     this._long = null;
     this._bind();
@@ -75,6 +78,7 @@
     });
     this.edges = clone(edges || []);
     this.selectedNode = null;
+    this.selectedNodes = [];
     this.selectedEdge = null;
     this.draft = null;
     this.render();
@@ -84,6 +88,7 @@
   Board.prototype.node = function (id) { return this.items.filter(function (n) { return n.id === id; })[0] || null; };
 
   Board.prototype.setView = function (x, y, scale) {
+    this._viewAnim = null;
     this.view = { x: x, y: y, scale: clamp(scale, 0.35, 1.35) };
     this._applyView();
     this._updateWires();
@@ -101,10 +106,25 @@
     var next = clamp(old * Math.pow(1.12, dir), 0.35, 1.35);
     var wx = (px - this.view.x) / old;
     var wy = (py - this.view.y) / old;
-    this.view.scale = next;
-    this.view.x = px - wx * next;
-    this.view.y = py - wy * next;
+    this._viewAnim = {
+      from: { x: this.view.x, y: this.view.y, scale: old },
+      to: { x: px - wx * next, y: py - wy * next, scale: next },
+      t: 0
+    };
+    this._stepView();
+  };
+
+  Board.prototype._stepView = function () {
+    if (!this._viewAnim) return;
+    var a = this._viewAnim;
+    a.t = Math.min(1, a.t + 0.18);
+    var e = 1 - Math.pow(1 - a.t, 3);
+    this.view.x = a.from.x + (a.to.x - a.from.x) * e;
+    this.view.y = a.from.y + (a.to.y - a.from.y) * e;
+    this.view.scale = a.from.scale + (a.to.scale - a.from.scale) * e;
     this._applyView();
+    if (a.t < 1) requestAnimationFrame(this._stepView.bind(this));
+    else { this._viewAnim = null; this._updateWires(); }
   };
 
   Board.prototype.fit = function () {
@@ -135,6 +155,7 @@
   };
 
   Board.prototype._down = function (e) {
+    var self = this;
     var port = e.target.closest && e.target.closest('.port');
     if (port) {
       e.preventDefault();
@@ -163,6 +184,26 @@
       e.preventDefault();
       var node = this.node(nodeEl.dataset.id);
       if (!node) return;
+      if (e.shiftKey && node.kind !== 'target') {
+        if (this.selectedNodes.indexOf(node.id) < 0) this.selectedNodes.push(node.id);
+        this.selectedNode = this.selectedNodes.length === 1 ? node.id : null;
+        var origin = {};
+        this.selectedNodes.forEach(function (id) {
+          var n = self.node(id);
+          if (n) origin[id] = { x: n.x, y: n.y };
+        });
+        var gp = this._client(e.clientX, e.clientY);
+        this._groupDrag = {
+          ids: this.selectedNodes.slice(), origin: origin,
+          start: gp, sx: e.clientX, sy: e.clientY, moved: false
+        };
+        this.selectedEdge = null;
+        this.render();
+        this.onSelect(this.selectedNode, null);
+        this.board.setPointerCapture && this.board.setPointerCapture(e.pointerId);
+        return;
+      }
+      this.selectedNodes = [node.id];
       this.select(node.id);
       if (e.pointerType === 'touch' && node.kind !== 'target') this._startLong('node', node.id);
       if (node.kind === 'target') return;
@@ -172,19 +213,95 @@
       return;
     }
     if (this.draft) { this._cancelDraft(); return; }
+    if (e.shiftKey) { this._startMarquee(e); return; }
+    this.selectedNodes = [];
     this._pan = { x: this.view.x, y: this.view.y, sx: e.clientX, sy: e.clientY };
     this.board.classList.add('is-panning');
     this.board.setPointerCapture && this.board.setPointerCapture(e.pointerId);
   };
 
+  Board.prototype._startMarquee = function (e) {
+    var r = this.board.getBoundingClientRect();
+    var el = document.createElement('div');
+    el.className = 'marquee';
+    this.board.appendChild(el);
+    this._marquee = {
+      sx: e.clientX, sy: e.clientY,
+      el: el, left: r.left, top: r.top
+    };
+    this._updateMarquee(e.clientX, e.clientY);
+    this.board.setPointerCapture && this.board.setPointerCapture(e.pointerId);
+  };
+
+  Board.prototype._updateMarquee = function (cx, cy) {
+    var m = this._marquee;
+    if (!m) return;
+    var x = Math.min(m.sx, cx) - m.left, y = Math.min(m.sy, cy) - m.top;
+    var w = Math.abs(cx - m.sx), h = Math.abs(cy - m.sy);
+    m.el.style.left = x + 'px';
+    m.el.style.top = y + 'px';
+    m.el.style.width = w + 'px';
+    m.el.style.height = h + 'px';
+    m.rect = { x: Math.min(m.sx, cx), y: Math.min(m.sy, cy), w: w, h: h };
+  };
+
+  Board.prototype._endMarquee = function () {
+    var m = this._marquee;
+    if (!m) return;
+    if (m.rect) {
+      var rr = m.rect;
+      this.selectedNodes = this.items.filter(function (n) {
+        if (n.kind === 'target') return false;
+        var el = this.nodes.querySelector('[data-id="' + n.id + '"]');
+        var w = n.kind === 'target' ? 160 : W;
+        var h = el ? el.offsetHeight : 112;
+        var r = this.board.getBoundingClientRect();
+        var nx = r.left + this.view.x + n.x * this.view.scale;
+        var ny = r.top + this.view.y + n.y * this.view.scale;
+        var nw = w * this.view.scale, nh = h * this.view.scale;
+        return !(nx > rr.x + rr.w || nx + nw < rr.x || ny > rr.y + rr.h || ny + nh < rr.y);
+      }, this).map(function (n) { return n.id; });
+    }
+    if (m.el && m.el.parentNode) m.el.parentNode.removeChild(m.el);
+    this._marquee = null;
+    this.selectedNode = this.selectedNodes.length === 1 ? this.selectedNodes[0] : null;
+    this.selectedEdge = null;
+    this._suppressClick = true;
+    this.render();
+    this.onSelect(this.selectedNode, null);
+    var self = this;
+    setTimeout(function () { self._suppressClick = false; }, 80);
+  };
+
   Board.prototype._move = function (e) {
+    var self = this;
+    if (this._groupDrag) {
+      var g = this._groupDrag;
+      var gp = this._client(e.clientX, e.clientY);
+      var dx = gp.x - g.start.x, dy = gp.y - g.start.y;
+      if (Math.abs(e.clientX - g.sx) + Math.abs(e.clientY - g.sy) > 3) g.moved = true;
+      g.ids.forEach(function (id) {
+        var n = self.node(id);
+        if (!n || n.kind === 'target') return;
+        n.x = g.origin[id].x + dx;
+        n.y = g.origin[id].y + dy;
+        var el = self.nodes.querySelector('[data-id="' + id + '"]');
+        if (el) { el.style.left = n.x + 'px'; el.style.top = n.y + 'px'; }
+      });
+      this._updateWires();
+      return;
+    }
+    if (this._marquee) {
+      this._updateMarquee(e.clientX, e.clientY);
+      return;
+    }
     if (this._drag) {
       if (this._long) this._cancelLong();
       var node = this.node(this._drag.id);
       if (!node) return;
       var p = this._client(e.clientX, e.clientY);
-      node.x = snap(p.x - this._drag.dx);
-      node.y = snap(p.y - this._drag.dy);
+      node.x = p.x - this._drag.dx;
+      node.y = p.y - this._drag.dy;
       if (Math.abs(e.clientX - this._drag.sx) + Math.abs(e.clientY - this._drag.sy) > 3) this._drag.moved = true;
       var el = this.nodes.querySelector('[data-id="' + node.id + '"]');
       if (el) { el.style.left = node.x + 'px'; el.style.top = node.y + 'px'; }
@@ -207,6 +324,25 @@
 
   Board.prototype._up = function (e) {
     this._cancelLong();
+    if (this._marquee) { this._endMarquee(); return; }
+    if (this._groupDrag) {
+      var g = this._groupDrag;
+      var moved = g.moved;
+      this._groupDrag = null;
+      if (moved) {
+        var self = this;
+        g.ids.forEach(function (id) {
+          var n = self.node(id);
+          if (n && n.kind !== 'target') self._resolvePosition(n);
+        });
+        this.render();
+        this.onChange();
+      }
+      this._suppressClick = true;
+      var me = this;
+      setTimeout(function () { me._suppressClick = false; }, 80);
+      return;
+    }
     if (this._drag) {
       var moved = this._drag.moved;
       var dragId = this._drag.id;
@@ -233,6 +369,7 @@
   };
 
   Board.prototype._click = function (e) {
+    if (this._suppressClick) return;
     var port = e.target.closest && e.target.closest('.port');
     if (port) {
       var mod = port.closest('.node');
@@ -245,9 +382,10 @@
       return;
     }
     var nodeEl = e.target.closest && e.target.closest('.node');
-    if (nodeEl) { this.select(nodeEl.dataset.id); return; }
+    if (nodeEl) { if (!e.shiftKey) { this.selectedNodes = [nodeEl.dataset.id]; this.select(nodeEl.dataset.id); } return; }
     if (this.draft) { this._cancelDraft(); return; }
     this.selectedNode = null;
+    this.selectedNodes = [];
     this.selectedEdge = null;
     this.render();
     this.onSelect(null, null);
@@ -280,6 +418,9 @@
   Board.prototype._cancel = function () {
     this._cancelLong();
     this._drag = null;
+    this._groupDrag = null;
+    if (this._marquee && this._marquee.el && this._marquee.el.parentNode) this._marquee.el.parentNode.removeChild(this._marquee.el);
+    this._marquee = null;
     this._pan = null;
     this._cancelDraft();
     this.board.classList.remove('is-panning');
@@ -377,7 +518,7 @@
   };
 
   /* A* on a 16px grid: bend penalty + reuse penalty for existing wire segments. */
-  Board.prototype._route = function (a, b, rects, used) {
+  Board.prototype._route = function (a, b, rects, used, fromId, toId) {
     var CELL = 16;
     var xs = [a.x, b.x], ys = [a.y, b.y];
     rects.forEach(function (r) { xs.push(r.x - 20, r.x + r.w + 20); ys.push(r.y - 20, r.y + r.h + 20); });
@@ -391,8 +532,8 @@
     var i, j, k;
     for (i = 0; i < rects.length; i++) {
       var r = rects[i];
-      var x0 = Math.floor((r.x - 10 - minX) / CELL), x1 = Math.ceil((r.x + r.w + 10 - minX) / CELL);
-      var y0 = Math.floor((r.y - 10 - minY) / CELL), y1 = Math.ceil((r.y + r.h + 10 - minY) / CELL);
+      var x0 = Math.floor((r.x - 14 - minX) / CELL), x1 = Math.ceil((r.x + r.w + 14 - minX) / CELL);
+      var y0 = Math.floor((r.y - 14 - minY) / CELL), y1 = Math.ceil((r.y + r.h + 14 - minY) / CELL);
       for (var yy = Math.max(0, y0); yy <= Math.min(rows - 1, y1); yy++)
         for (var xx = Math.max(0, x0); xx <= Math.min(cols - 1, x1); xx++) blocked[yy * cols + xx] = 1;
     }
@@ -473,7 +614,7 @@
         }
       }
     }
-    if (found < 0) return this._simplePoints(a.x, a.y, b.x, b.y);
+    if (found < 0) return this._fallbackRoute(a, b, rects, fromId, toId);
     var cells = [];
     var cur = found;
     while (cur >= 0) {
@@ -496,6 +637,41 @@
     return this._simplify(pts);
   };
 
+  Board.prototype._segmentClear = function (p, q, rects) {
+    var pad = 10;
+    var steps = Math.max(1, Math.ceil((Math.abs(q.x - p.x) + Math.abs(q.y - p.y)) / 8));
+    for (var i = 1; i < steps; i++) {
+      var t = i / steps;
+      var x = p.x + (q.x - p.x) * t, y = p.y + (q.y - p.y) * t;
+      for (var r = 0; r < rects.length; r++) {
+        var rr = rects[r];
+        if (x > rr.x - pad && x < rr.x + rr.w + pad && y > rr.y - pad && y < rr.y + rr.h + pad) return false;
+      }
+    }
+    return true;
+  };
+
+  Board.prototype._pathClear = function (pts, rects) {
+    for (var i = 1; i < pts.length; i++) if (!this._segmentClear(pts[i - 1], pts[i], rects)) return false;
+    return true;
+  };
+
+  Board.prototype._fallbackRoute = function (a, b, rects, fromId, toId) {
+    var obstacles = rects.filter(function (r) { return r.id !== fromId && r.id !== toId; });
+    var minY = Math.min(a.y, b.y), maxY = Math.max(a.y, b.y);
+    obstacles.forEach(function (r) { minY = Math.min(minY, r.y); maxY = Math.max(maxY, r.y + r.h); });
+    var top = minY - 40, bottom = maxY + 40;
+    var candidates = [
+      this._simplePoints(a.x, a.y, b.x, b.y),
+      [{ x: a.x, y: a.y }, { x: a.x, y: top }, { x: b.x, y: top }, { x: b.x, y: b.y }],
+      [{ x: a.x, y: a.y }, { x: a.x, y: bottom }, { x: b.x, y: bottom }, { x: b.x, y: b.y }]
+    ];
+    for (var i = 0; i < candidates.length; i++) {
+      if (this._pathClear(candidates[i], obstacles)) return this._simplify(candidates[i]);
+    }
+    return this._simplePoints(a.x, a.y, b.x, b.y);
+  };
+
   Board.prototype._updateWires = function () {
     var self = this;
     var ns = 'http://www.w3.org/2000/svg';
@@ -503,6 +679,7 @@
     var rects = this._rects();
     var used = Object.create(null);
     var routes = {};
+    var dragging = !!(this._drag || this._groupDrag);
     var ordered = this.edges.slice().sort(function (e1, e2) {
       var a1 = self._portPoint(e1.from.node, e1.from.port), b1 = self._portPoint(e1.to.node, e1.to.port);
       var a2 = self._portPoint(e2.from.node, e2.from.port), b2 = self._portPoint(e2.to.node, e2.to.port);
@@ -514,7 +691,7 @@
       var a = self._portPoint(e.from.node, e.from.port);
       var b = self._portPoint(e.to.node, e.to.port);
       if (!a || !b) return;
-      routes[e.id] = dragging ? self._simplePoints(a.x, a.y, b.x, b.y) : self._route(a, b, rects, used);
+      routes[e.id] = dragging ? self._simplePoints(a.x, a.y, b.x, b.y) : self._route(a, b, rects, used, e.from.node, e.to.node);
     });
     this.edges.forEach(function (e) {
       var a = self._portPoint(e.from.node, e.from.port);
@@ -566,38 +743,6 @@
     return { x: (pr.left + pr.width / 2 - wr.left) / this.view.scale, y: (pr.top + pr.height / 2 - wr.top) / this.view.scale };
   };
 
-  Board.prototype._updateWires = function () {
-    var self = this;
-    var ns = 'http://www.w3.org/2000/svg';
-    while (this.wires.firstChild) this.wires.removeChild(this.wires.firstChild);
-    this.edges.forEach(function (e) {
-      var a = self._portPoint(e.from.node, e.from.port);
-      var b = self._portPoint(e.to.node, e.to.port);
-      if (!a || !b) return;
-      var d = self._path(a.x, a.y, b.x, b.y);
-      var state = 'idle';
-      if (self.result) {
-        var from = self.result.results[e.from.node];
-        if (from && from.state === 'error') state = 'error';
-        else if (from && from.ast) state = 'live';
-      }
-      var path = document.createElementNS(ns, 'path');
-      path.setAttribute('d', d);
-      path.setAttribute('class', 'wire' + (self.selectedEdge === e.id ? ' is-selected' : '') + (e._new ? ' is-new' : ''));
-      path.setAttribute('data-state', state);
-      self.wires.appendChild(path);
-      var hit = document.createElementNS(ns, 'path');
-      hit.setAttribute('d', d);
-      hit.setAttribute('class', 'wire-hit');
-      hit.dataset.edge = e.id;
-      self.wires.appendChild(hit);
-    });
-    if (this.draft) {
-      var from = this._portPoint(this.draft.from.node, this.draft.from.port);
-      if (from) this._draftPath(from, { x: this.draft.x, y: this.draft.y });
-    }
-  };
-
   Board.prototype._code = function (n) {
     if (n.kind === 'target') return '⊢';
     if (n.kind === 'axiom') return n.config.axiomId || 'A1';
@@ -641,7 +786,7 @@
       el.dataset.id = n.id;
       el.dataset.kind = n.kind;
       el.dataset.state = r ? r.state : 'idle';
-      el.dataset.selected = self.selectedNode === n.id ? 'true' : 'false';
+      el.dataset.selected = self.selectedNodes.indexOf(n.id) >= 0 ? 'true' : 'false';
       el.style.left = n.x + 'px';
       el.style.top = n.y + 'px';
       el.style.width = (n.kind === 'target' ? 160 : W) + 'px';
@@ -686,7 +831,7 @@
       if (!n) return;
       var r = result && result.results[n.id];
       el.dataset.state = r ? r.state : 'idle';
-      el.dataset.selected = self.selectedNode === n.id ? 'true' : 'false';
+      el.dataset.selected = self.selectedNodes.indexOf(n.id) >= 0 ? 'true' : 'false';
       var code = el.querySelector('.node-code');
       if (code) code.textContent = self._code(n);
       var f = el.querySelector('.node-formula');
@@ -703,6 +848,7 @@
 
   Board.prototype.select = function (id) {
     this.selectedNode = id;
+    this.selectedNodes = id ? [id] : [];
     this.selectedEdge = null;
     this.render();
     this.onSelect(id, null);
@@ -756,6 +902,7 @@
   };
 
   Board.prototype._resolvePosition = function (n) {
+    n.x = snap(n.x); n.y = snap(n.y);
     if (!this._overlaps(n, n.x, n.y)) return;
     for (var ring = 1; ring <= 30; ring++) {
       for (var oy = -ring; oy <= ring; oy++) {
@@ -802,8 +949,13 @@
   };
 
   Board.prototype.removeSelected = function () {
-    if (this.selectedEdge) this.removeEdge(this.selectedEdge);
-    else if (this.selectedNode) this.removeNode(this.selectedNode);
+    if (this.selectedEdge) { this.removeEdge(this.selectedEdge); return; }
+    if (this.selectedNodes && this.selectedNodes.length) {
+      var self = this;
+      this.selectedNodes.slice().forEach(function (id) { self.removeNode(id); });
+      this.selectedNodes = [];
+      this.selectedNode = null;
+    }
   };
 
   Board.prototype.updateConfig = function (id, patch) {

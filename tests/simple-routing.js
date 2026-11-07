@@ -37,6 +37,21 @@ async function main() {
     var used={}; var bad=0; var rects=app.state.board._rects();\n    edges.forEach(function(e){var a=app.state.board._portPoint(e.from.node,e.from.port),b=app.state.board._portPoint(e.to.node,e.to.port);if(!a||!b)return;var pts=app.state.board._route(a,b,rects.filter(function(r){return r.id!==e.from.node&&r.id!==e.to.node;}),used);pts.forEach(function(p){rects.forEach(function(r){if(r.id===e.from.node||r.id===e.to.node)return;if(p.x>r.x+2&&p.x<r.x+r.w-2&&p.y>r.y+2&&p.y<r.y+r.h-2)bad++;});});});\n    return {nodes:before.length,after:after,errors:app.state.results.errors.length,complete:app.state.results.complete,wires:document.querySelectorAll('.wire').length,badPins:bad};
   })()`);
   console.log(info);
+  console.log('avoid', await js(`(function(){
+    var b=window.RSL.APP.state.board;
+    var a={x:100,y:220}, t={x:760,y:300};
+    var obstacle={x:320,y:140,w:232,h:120,id:'block'};
+    var pts=b._route(a,t,[obstacle],{},'s','t');
+    var bad=0;
+    for(var i=1;i<pts.length;i++){
+      var p=pts[i-1],q=pts[i];
+      for(var k=1;k<=20;k++){
+        var x=p.x+(q.x-p.x)*k/20,y=p.y+(q.y-p.y)*k/20;
+        if(x>obstacle.x&&x<obstacle.x+obstacle.w&&y>obstacle.y&&y<obstacle.y+obstacle.h)bad++;
+      }
+    }
+    return {points:pts.length,bad:bad};
+  })()`));
   await sleep(500);
   await shot('routing.png');
   await js('document.getElementById("themeBtn").click()'); await sleep(400);

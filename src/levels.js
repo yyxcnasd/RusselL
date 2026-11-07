@@ -231,6 +231,7 @@
     hint: 'ax-1 给出 (P→Q)→(S→(P→Q))；ax-2 给出 (S→(P→Q))→((S→P)→(S→Q))；用 HS 串起来。',
     teaches: ['假言三段论', '两个公理接力'],
     allowed: ['atom', 'imp', 'axiom:ax-1', 'axiom:ax-2', 'subst', 'syllogism', 'target'],
+    coach: 'syllogism',
     note: 'set.mm 的 imim2。',
   solution: {
       nodes: [
@@ -320,6 +321,88 @@
         e('p', 'out', 's1', 'atom'),
         e('pq', 'out', 's1', 'formula'),
         e('s1', 'out', 'target', 'proof')
+      ]
+    }
+  }));
+
+  /* 三个单独的规则教程关：代入、分离、定义置换。 */
+
+  LEVELS.push(level({
+    id: 'CH1-10', chapter: 'prop', code: 'CH1-10', title: '代入', kicker: 'S · subst',
+    target: 'P→(R→P)',
+    brief: '把公理里的一个字母换成另一个原子。',
+    hint: '取 ax-1；用 S 把 Q 换成 R。',
+    teaches: ['代入模块', '图式实例'],
+    allowed: ['atom', 'axiom:ax-1', 'subst', 'target'],
+    mustUse: ['subst'],
+    coach: 'subst',
+    note: '单独练习 subst：断言 A、原子 π、公式 B 三路输入。',
+  solution: {
+      nodes: [
+        ax('a1', 60, 120, 'ax-1'),
+        atom('q', 60, 380, 'Q'),
+        atom('r', 60, 540, 'R'),
+        subst('s1', 380, 300)
+      ],
+      edges: [
+        e('a1', 'out', 's1', 'assertion'),
+        e('q', 'out', 's1', 'atom'),
+        e('r', 'out', 's1', 'formula'),
+        e('s1', 'out', 'target', 'proof')
+      ]
+    }
+  }));
+
+  LEVELS.push(level({
+    id: 'CH1-11', chapter: 'prop', code: 'CH1-11', title: '分离', kicker: 'M · detach',
+    target: 'Q→(P→P)',
+    brief: '两条断言：一条是 A，一条是 A→B。接上 M，得到 B。',
+    hint: '用同一律做 A，用 ax-1 的实例做 A→B，再用 M 分离。',
+    teaches: ['分离模块', 'A 与 A→B'],
+    allowed: ['atom', 'imp', 'axiom:ax-1', 'theorem:CH1-04', 'subst', 'detach', 'target'],
+    mustUse: ['detach'],
+    coach: 'detach',
+    note: '单独练习 detach：A 与 A→B 两路断言输入，输出 B。',
+  solution: {
+      nodes: [
+        atom('p', 60, 100, 'P'),
+        n('pp', 'imp', 340, 160),
+        ax('a1', 60, 380, 'ax-1'),
+        subst('s1', 620, 300),
+        th('idt', 60, 620, 'CH1-04'),
+        detach('m1', 960, 300)
+      ],
+      edges: [
+        e('p', 'out', 'pp', 'a'),
+        e('p', 'out', 'pp', 'b'),
+        e('a1', 'out', 's1', 'assertion'),
+        e('p', 'out', 's1', 'atom'),
+        e('pp', 'out', 's1', 'formula'),
+        e('idt', 'out', 'm1', 'a'),
+        e('s1', 'out', 'm1', 'b'),
+        e('m1', 'out', 'target', 'proof')
+      ]
+    }
+  }));
+
+  LEVELS.push(level({
+    id: 'CH1-12', chapter: 'prop', code: 'CH1-12', title: '定义置换', kicker: 'D · replace',
+    target: 'P→(¬Q→P)',
+    brief: '把公式里的定义式按展开方向换掉。',
+    hint: '取 archive:olc，让 D 把 Q∨P 展开成 ¬Q→P。',
+    teaches: ['定义置换模块', '∨ 的展开'],
+    allowed: ['archive:olc', 'replace', 'target'],
+    mustUse: ['replace'],
+    coach: 'replace',
+    note: '单独练习 replace：df-or 的 A∨B ⇒ ¬A→B 方向。',
+  solution: {
+      nodes: [
+        n('src', 'archive', 60, 300, { label: 'olc' }),
+        n('r0', 'replace', 420, 300, { preferDef: 'df-or', preferDir: 'expand', preferPath: ['b'] })
+      ],
+      edges: [
+        e('src', 'out', 'r0', 'assertion'),
+        e('r0', 'out', 'target', 'proof')
       ]
     }
   }));
@@ -532,6 +615,8 @@
     hint: '先做两次代入，再用 ∀I(x)。',
     teaches: ['全称推广', '自由变元收回量词'],
     allowed: ['atom', 'pred', 'axiom:ax-1', 'subst', 'all-intro', 'target'],
+    coach: 'all-intro',
+    mustUse: ['all-intro'],
     note: 'ax-gen 的规则形态（全称推广）；这是 set.mm 的 ax-gen。',
   solution: {
       nodes: [
@@ -564,6 +649,8 @@
     hint: '引用 CH2-11，接一个 ∀E(term=a)。',
     teaches: ['全称例化', '引用已证结论'],
     allowed: ['theorem:CH2-11', 'all-elim', 'target'],
+    coach: 'all-elim',
+    mustUse: ['all-elim'],
     note: '从 ∀x A 得到 A[a/x]。',
   solution: {
       nodes: [

@@ -11,8 +11,7 @@
     bestLen: {},
     usedKinds: {},
     achievements: {},
-    demo: false,
-    demoTimer: null,
+    coachSeen: {},
     board: null,
     results: null,
     selectedNode: null,
@@ -47,6 +46,8 @@
       (p.usedKinds || []).forEach(function (k) { state.usedKinds[k] = true; });
       state.achievements = {};
       (p.achievements || []).forEach(function (k) { state.achievements[k] = true; });
+      state.coachSeen = {};
+      (p.coachSeen || []).forEach(function (k) { state.coachSeen[k] = true; });
       state.lastId = p.lastId || null;
     } catch (e) { state.solved = {}; state.bestLen = {}; state.usedKinds = {}; state.achievements = {}; }
   }
@@ -57,6 +58,7 @@
         bestLen: state.bestLen,
         usedKinds: Object.keys(state.usedKinds),
         achievements: Object.keys(state.achievements),
+        coachSeen: Object.keys(state.coachSeen),
         lastId: state.level ? state.level.id : state.lastId
       }));
     } catch (e) {}
@@ -166,7 +168,6 @@
       var on = !!state.achievements[a.id];
       return '<div class="achv' + (on ? ' is-on' : '') + '" title="' + esc(a.name) + '">' +
         '<span class="achv-icon">' + a.icon + '</span>' +
-        '<span class="achv-name">' + esc(a.name) + '</span>' +
       '</div>';
     }).join('');
     els.sheet.innerHTML =
@@ -176,28 +177,32 @@
     els.sheet.scrollTop = 0;
   }
 
-  /* 首次出现某个规则时，用无文字演示回放参考电路；点一下提前结束。 */
-  function stopDemo() {
-    if (!state.demo) return;
-    state.demo = false;
-    clearTimeout(state.demoTimer);
-    document.querySelector('.app').classList.remove('is-demo');
-    if (!state.level) return;
-    var target = { id: 'target', kind: 'target', x: state.level.targetPos.x, y: state.level.targetPos.y, target: state.level.target, config: {} };
-    state.board.setData([target], []);
-    refresh();
+  /* 规则提示窗：只画“输入 → 模块 → 输出”，不显示本关答案。 */
+  var COACH = {
+    subst: '<span class="chip">P</span><span class="plus">+</span><span class="chip">B</span><span class="arrow">→</span><span class="coach-mod">S</span><span class="arrow">→</span><span class="chip">A</span>',
+    detach: '<span class="chip">A</span><span class="chip">A→B</span><span class="arrow">→</span><span class="coach-mod">M</span><span class="arrow">→</span><span class="chip">B</span>',
+    replace: '<span class="chip">A</span><span class="arrow">→</span><span class="coach-mod">D</span><span class="arrow">→</span><span class="chip">A′</span>',
+    'all-intro': '<span class="chip">A</span><span class="arrow">→</span><span class="coach-mod">∀I</span><span class="arrow">→</span><span class="chip">∀x A</span>',
+    'all-elim': '<span class="chip">∀x A</span><span class="arrow">→</span><span class="coach-mod">∀E</span><span class="arrow">→</span><span class="chip">A[t/x]</span>',
+    'exists-intro': '<span class="chip">A[t/x]</span><span class="arrow">→</span><span class="coach-mod">∃I</span><span class="arrow">→</span><span class="chip">∃x A</span>',
+    'exists-elim': '<span class="chip">∃x A</span><span class="chip">A[y/x]→B</span><span class="arrow">→</span><span class="coach-mod">∃E</span><span class="arrow">→</span><span class="chip">B</span>',
+    syllogism: '<span class="chip">A→B</span><span class="chip">B→C</span><span class="arrow">→</span><span class="coach-mod">HS</span><span class="arrow">→</span><span class="chip">A→C</span>'
+  };
+
+  function hideCoach() { els.coachPop.hidden = true; els.coachPop.innerHTML = ''; }
+
+  function showCoachKind(kind) {
+    if (!COACH[kind]) return;
+    els.coachPop.innerHTML = '<div class="coach-flow">' + COACH[kind] + '</div>';
+    els.coachPop.hidden = false;
+    sfx('click');
   }
 
-  function startDemo(level) {
-    if (!level.demo || !level.solution || !level.solution.nodes.length) return;
-    var target = { id: 'target', kind: 'target', x: level.targetPos.x, y: level.targetPos.y, target: level.target, config: {} };
-    var nodes = [target].concat(JSON.parse(JSON.stringify(level.solution.nodes)));
-    var edges = level.solution.edges.map(function (e, i) { return { id: 'e' + i, from: e.from, to: e.to }; });
-    state.demo = true;
-    document.querySelector('.app').classList.add('is-demo');
-    state.board.setData(nodes, edges);
-    refresh();
-    state.demoTimer = setTimeout(stopDemo, 3200);
+  function showCoach(level) {
+    if (!level.coach || state.coachSeen[level.id] || !COACH[level.coach]) return;
+    state.coachSeen[level.id] = true;
+    saveProgress();
+    showCoachKind(level.coach);
   }
 
   function confetti() {
@@ -283,22 +288,7 @@
       });
       if (base.length) prevBaseLast = base[base.length - 1].id;
     });
-    /* 首次出现某个规则/档案/已证结论时，给一关自动演示（无文字）。 */
-    var seen = {};
-    list.forEach(function (lv, i) {
-      var canDemo = lv.solution && lv.solution.nodes.length <= 14;
-      if (!canDemo) return;
-      if (i === 0) lv.demo = true;
-      (lv.allowed || []).forEach(function (key) {
-        var tag = null;
-        if (key === 'subst' || key === 'replace' || key === 'detach' ||
-            key === 'all-intro' || key === 'all-elim' || key === 'exists-intro' ||
-            key === 'exists-elim' || key === 'syllogism') tag = 'r:' + key;
-        else if (key.indexOf('archive:') === 0) tag = 'archive';
-        else if (key.indexOf('theorem:') === 0) tag = 'theorem';
-        if (tag && !seen[tag]) { seen[tag] = true; lv.demo = true; }
-      });
-    });
+    /* 关卡数据里的 coach 字段决定是否弹规则提示；没有则安静开始。 */
     state.levels = list;
   }
 
@@ -423,11 +413,9 @@
   }
 
   function loadLevel(index) {
-    if (!isUnlocked(index)) { toast('先完成前置关卡'); return; }
+    if (!isUnlocked(index)) { toast('先完成前一关'); return; }
     closeOverlay();
-    state.demo = false;
-    clearTimeout(state.demoTimer);
-    document.querySelector('.app').classList.remove('is-demo');
+    hideCoach();
     state.index = index;
     state.level = state.levels[index];
     state.selectedNode = null;
@@ -460,7 +448,7 @@
     }
     els.coach.hidden = !(index === 0 && state.board.items.length <= 1);
     saveProgress();
-    if (state.level.demo) startDemo(state.level);
+    showCoach(state.level);
   }
 
   function buildTray() {
@@ -557,9 +545,9 @@
     if (!r) return;
     if (r.complete) { win(); return; }
     sfx('fail');
-    if (r.errors.length) { toast('还有模块没接好'); return; }
-    if (r.target && r.target.state === 'error') { toast('公式不对'); return; }
-    toast('把线接到 ⊢');
+    if (r.errors.length) { toast('没接完'); return; }
+    if (r.target && r.target.state === 'error') { toast('不对'); return; }
+    toast('接到 ⊢');
   }
 
   function win() {
@@ -594,7 +582,6 @@
           '<span class="metric-glyph">▦</span><b>' + len + '</b><span class="metric-ref">/ ' + ref + '</span>' +
           '<span class="metric-bar"><i style="width:' + eff + '%"></i></span>' +
         '</div>' +
-        '<div class="win-count">' + Object.keys(state.solved).length + ' / ' + state.levels.length + '</div>' +
         '<button class="primary next-btn" data-next="1">' + (isLast ? '选关' : '下一关') + '</button>' +
       '</div>';
     confetti();
@@ -634,7 +621,6 @@
       return '<div class="band ' + kind + (firstLocked ? ' is-locked' : '') + '">' +
         '<div class="band-head" title="' + (kind === 'challenge' ? '挑战' : '基础') + '">' +
           '<span class="band-glyph">' + glyph + '</span>' +
-          '<span class="band-label">' + (kind === 'challenge' ? '挑战' : '基础') + '</span>' +
           '<span class="band-progress" aria-hidden="true"><i style="width:' + (solved / items.length * 100) + '%"></i></span>' +
         '</div>' +
         '<div class="levels">' + cellsFor(items) + '</div>' +
@@ -668,14 +654,16 @@
     els.sheet.innerHTML =
       '<button class="sheet-x" data-close aria-label="关闭"><svg class="icon"><use href="#i-x-mark"></use></svg></button>' +
       '<div class="help">' +
-        '<div class="help-row"><span class="help-icon">+</span><span class="help-arrow">→</span><span class="help-icon">◉</span></div>' +
-        '<div class="help-row"><span class="help-icon">◉</span><span class="help-arrow">→</span><span class="help-icon">⊢</span></div>' +
-        '<div class="help-row"><span class="help-icon">▷</span></div>' +
+        '<div class="help-steps">' +
+          '<span class="help-box">+</span><span class="help-arrow">→</span>' +
+          '<span class="help-box">◉</span><span class="help-arrow">→</span>' +
+          '<span class="help-box">▶</span>' +
+        '</div>' +
         '<div class="help-cards">' +
-          '<div class="help-card"><b>S</b><span>P · B → A</span></div>' +
-          '<div class="help-card"><b>M</b><span>A · A→B → B</span></div>' +
-          '<div class="help-card"><b>D</b><span>A↔B ⇄ ¬A∨B</span></div>' +
-          '<div class="help-card"><b>∀</b><span>A(x) ⇄ ∀x A</span></div>' +
+          '<div class="help-card" data-coach="subst"><b>S</b><span>P · B → A</span></div>' +
+          '<div class="help-card" data-coach="detach"><b>M</b><span>A · A→B → B</span></div>' +
+          '<div class="help-card" data-coach="replace"><b>D</b><span>A↔B ⇄ ¬A∨B</span></div>' +
+          '<div class="help-card" data-coach="all-intro"><b>∀</b><span>A(x) ⇄ ∀x A</span></div>' +
         '</div>' +
       '</div>' +
       '<p class="credit">Design by yyxcnasd</p>';
@@ -698,6 +686,14 @@
     els.checkBtn.addEventListener('click', check);
     els.helpBtn.addEventListener('click', openHelp);
     els.achvBtn.addEventListener('click', openAchievements);
+    els.coachPop.addEventListener('click', hideCoach);
+    els.coachPop.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
+    els.sheet.addEventListener('click', function (e) {
+      var card = e.target.closest && e.target.closest('[data-coach]');
+      if (!card) return;
+      closeOverlay();
+      showCoachKind(card.dataset.coach);
+    });
     els.themeBtn.addEventListener('click', function () {
       state.theme = state.theme === 'dark' ? 'light' : 'dark';
       applyTheme();
@@ -714,7 +710,6 @@
     });
     document.addEventListener('pointerdown', function () {
       ensureAudio();
-      if (state.demo) stopDemo();
     });
     els.tray.addEventListener('click', function (e) {
       var tile = e.target.closest('.tile');
@@ -752,18 +747,18 @@
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') {
         if (!els.overlay.hidden) closeOverlay();
-        else { state.board.selectedNode = null; state.board.selectedEdge = null; state.board.render(); state.selectedNode = null; state.selectedEdge = null; refresh(); }
+        else { state.board.selectedNode = null; state.board.selectedNodes = []; state.board.selectedEdge = null; state.board.render(); state.selectedNode = null; state.selectedEdge = null; refresh(); }
         return;
       }
       if ((e.key === 'Delete' || e.key === 'Backspace') && !e.target.closest('input,textarea')) {
-        if (state.selectedNode || state.selectedEdge) { e.preventDefault(); deleteSelection(); }
+        if (state.selectedNode || state.selectedEdge || (state.board.selectedNodes && state.board.selectedNodes.length)) { e.preventDefault(); deleteSelection(); }
       }
     });
     window.addEventListener('resize', function () { if (state.board) state.board._updateWires(); });
   }
 
   function init() {
-    ['levelBtn', 'goal', 'goalFormula', 'themeBtn', 'soundBtn', 'helpBtn', 'achvBtn', 'checkBtn', 'progressFill', 'board', 'boardWorld', 'wireLayer', 'nodeLayer', 'tray', 'popover', 'toast', 'overlay', 'sheet', 'coach'].forEach(function (id) { els[id] = $(id); });
+    ['levelBtn', 'goal', 'goalFormula', 'themeBtn', 'soundBtn', 'helpBtn', 'achvBtn', 'checkBtn', 'progressFill', 'board', 'boardWorld', 'wireLayer', 'nodeLayer', 'tray', 'popover', 'toast', 'overlay', 'sheet', 'coach', 'coachPop'].forEach(function (id) { els[id] = $(id); });
     if (!L) { document.body.innerHTML = '<div class="fatal">逻辑引擎未加载</div>'; return; }
     window.RSL.formatFormula = function (ast) { return formulaHTML(ast); };
     loadProgress();
@@ -800,7 +795,7 @@
     }
     loadLevel(start);
     updateProgress();
-    window.RSL.APP = { state: state, loadLevel: loadLevel, refresh: refresh, isUnlocked: isUnlocked, stopDemo: stopDemo, openAchievements: openAchievements };
+    window.RSL.APP = { state: state, loadLevel: loadLevel, refresh: refresh, isUnlocked: isUnlocked, openAchievements: openAchievements };
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
