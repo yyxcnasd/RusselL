@@ -634,6 +634,7 @@
       return '<div class="band ' + kind + (firstLocked ? ' is-locked' : '') + '">' +
         '<div class="band-head" title="' + (kind === 'challenge' ? '挑战' : '基础') + '">' +
           '<span class="band-glyph">' + glyph + '</span>' +
+          '<span class="band-label">' + (kind === 'challenge' ? '挑战' : '基础') + '</span>' +
           '<span class="band-progress" aria-hidden="true"><i style="width:' + (solved / items.length * 100) + '%"></i></span>' +
         '</div>' +
         '<div class="levels">' + cellsFor(items) + '</div>' +

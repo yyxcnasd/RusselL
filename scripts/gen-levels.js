@@ -16,6 +16,7 @@ const vm = require('vm');
 
 const root = path.resolve(__dirname, '..');
 const DATA = path.join(root, 'research', 'setmm-data.json');
+const EXTRA_SET = path.join(root, 'research', 'setmm-set-extra.json');
 const OUT_ARCHIVE = path.join(root, 'src', 'archive.js');
 const OUT_LEVELS = path.join(root, 'src', 'levels-generated.js');
 
@@ -48,6 +49,15 @@ function normalize(formulaUnicode) {
 }
 
 const data = JSON.parse(fs.readFileSync(DATA, 'utf8'));
+{
+  const seen = new Set(data.map((t) => t.label));
+  const extra = JSON.parse(fs.readFileSync(EXTRA_SET, 'utf8'));
+  for (const t of extra) {
+    if (seen.has(t.label)) continue;
+    seen.add(t.label);
+    data.push(Object.assign({}, t, { assertionForm: true }));
+  }
+}
 const ARCHIVE = Object.create(null);
 const CAND = { prop: [], pred: [], eq: [], set: [] };
 
@@ -341,18 +351,29 @@ function substLevel(chapter, num, source, mode) {
 }
 
 function replaceLevel(chapter, num, source) {
-  const opts = source.opts;
+  const src = source && source.source ? source.source : source;
+  const optIndex = source && typeof source.optIndex === 'number' ? source.optIndex : num;
+  const opts = src.opts;
   if (!opts.length) return null;
-  const opt = opts[num % opts.length];
-  if (L.fmt(opt.result) === L.fmt(source.ast)) return null;
-  const c = baseCircuit(source);
+  const opt = opts[optIndex % opts.length];
+  if (L.fmt(opt.result) === L.fmt(src.ast)) return null;
+  const c = baseCircuit(src);
   c.node('r0', 'replace', 620, 700, { optionId: opt.id });
   c.edge('src', 'out', 'r0', 'assertion');
   c.edge('r0', 'out', 'target', 'proof');
   const targetAst = opt.result;
-  const spec = levelBase(chapter, num, source, '定义置换', L.fmt(targetAst));
-  spec.allowed = ['archive:' + source.label, 'replace', 'target'];
+  const spec = levelBase(chapter, num, src, '定义置换', L.fmt(targetAst));
+  spec.allowed = ['archive:' + src.label, 'replace', 'target'];
   return layoutAndFinish(c, L.fmt(targetAst), spec);
+}
+
+function replaceCandidates(list) {
+  const out = [];
+  for (const source of list) {
+    if (!source.opts.length) continue;
+    source.opts.forEach((opt, i) => out.push({ source, optIndex: i }));
+  }
+  return out;
 }
 
 /* ---------- 两个 set.mm 条目 + 分离（真·多步推理） ---------- */
@@ -494,11 +515,13 @@ function closureWithVars(chapter, num, source, use) {
   return layoutAndFinish(c, L.fmt(targetAst), spec);
 }
 
-function instantiateLevel(chapter, num, source, varCount) {
+function instantiateLevel(chapter, num, source, varCount, termOffset) {
   const vars = xyzVars(source);
   if (!vars.length) return null;
   const use = vars.slice(0, Math.min(varCount || vars.length, vars.length));
-  const terms = ['a', 'b', 'c'];
+  const allTerms = ['a', 'b', 'c'];
+  const off = termOffset || 0;
+  const terms = allTerms.slice(off).concat(allTerms.slice(0, off));
   let targetAst = source.ast;
   use.forEach((v, i) => { targetAst = L.substituteVar(targetAst, v, { k: 'var', name: terms[i] }); });
   const c = baseCircuit(source);
@@ -623,9 +646,9 @@ const PLANS = {
     return [
       ['direct', 6, spread(list, 6, 0)],
       ['subst1', 12, spread(atoms, 12, 5)],
-      ['subst2', 10, spread(atoms2, 10, 11)],
       ['substClosure', 10, spread(filter(all.prop, (x) => x.atoms.length >= 1), 10, 17)],
-      ['substClosureElim', 10, spread(filter(all.prop, (x) => x.atoms.length >= 1), 10, 23)]
+      ['substClosureElim', 10, spread(filter(all.prop, (x) => x.atoms.length >= 1), 10, 23)],
+      ['subst2', 10, spread(atoms2, 10, 11)]
     ];
   },
   eq: (list) => {
@@ -633,15 +656,19 @@ const PLANS = {
     const vars = filter(list, (x) => xyzVars(x).length >= 1);
     const vars2 = filter(list, (x) => xyzVars(x).length >= 2);
     return [
-      ['direct', 8, spread(list, 8, 0)],
+      ['direct', 6, spread(list, 6, 0)],
       ['subst1', 8, spread(atoms, 8, 9)],
-      ['closure', 12, spread(vars, 12, 3)],
-      ['instantiate', 12, spread(vars, 12, 15)],
-      ['closure2', 8, spread(vars2, 8, 21)]
+      ['closure', 1, spread(vars, 1, 3)],
+      ['replace', 3, spread(filter(list, (x) => x.opts.length > 0), 3, 31)],
+      ['instantiate1', 15, spread(vars, 15, 15)],
+      ['instantiate', 12, spread(vars2.length >= 12 ? vars2 : vars, 12, 21)],
+      ['instantiate1b', 3, spread(vars, 3, 43)]
     ];
   },
   set: (list) => {
     const vars = filter(list, (x) => xyzVars(x).length >= 1);
+    const vars2 = filter(list, (x) => xyzVars(x).length >= 2);
+    const replacePairs = replaceCandidates(filter(list, (x) => x.opts.length > 0));
     const closureVariants = [];
     for (const s of vars) {
       const vs = xyzVars(s);
@@ -654,16 +681,40 @@ const PLANS = {
     }
     return [
       ['direct', 11, spread(list, 11, 0)],
-      ['closureVariant', 13, closureVariants],
-      ['instantiate', 11, spread(vars, 11, 7)],
-      ['replace', 13, spread(filter(list, (x) => x.opts.length > 0), 13, 23)]
+      ['closureVariant', 5, closureVariants],
+      ['replace', 2, spread(replacePairs, 2, 23)],
+      ['instantiate', 12, spread(vars2, 12, 11)],
+      ['instantiate1', 9, spread(vars, 9, 7)],
+      ['instantiate1b', 8, spread(vars, 8, 41)],
+      ['instantiate1c', 1, spread(vars, 1, 53)]
     ];
   }
 };
 
+const TEMPLATE_DIFF = {
+  direct: 1,
+  replace: 2,
+  closure: 3,
+  closureVariant: 3,
+  closure2: 4,
+  instantiate1: 4,
+  instantiate: 5,
+  subst1: 4,
+  subst2: 6,
+  substClosure: 4.5,
+  substClosureElim: 5.5,
+  detachApply: 7,
+  detachApply2: 7
+};
+
+function difficultyOf(spec, type) {
+  return (TEMPLATE_DIFF[type] || 4) + spec.solution.nodes.length * 0.35 + spec.target.length * 0.01;
+}
+
 function buildChapter(chapter, list, all) {
   const plan = PLANS[chapter](list, all);
   const starts = { prop: 10, pred: 13, eq: 13, set: 13 };
+  const handCount = { prop: 9, pred: 12, eq: 12, set: 12 }[chapter];
   const out = [];
   let num = starts[chapter];
   const usedTargets = new Set();
@@ -685,6 +736,8 @@ function buildChapter(chapter, list, all) {
         else if (type === 'closure2') spec = closureLevel(chapter, num, source, 2);
         else if (type === 'instantiate') spec = instantiateLevel(chapter, num, source, 2);
         else if (type === 'instantiate1') spec = instantiateLevel(chapter, num, source, 1);
+        else if (type === 'instantiate1b') spec = instantiateLevel(chapter, num, source, 1, 1);
+        else if (type === 'instantiate1c') spec = instantiateLevel(chapter, num, source, 1, 2);
         else if (type === 'closureElim') spec = closureElimLevel(chapter, num, source, 2, 1);
         else if (type === 'substClosure') spec = substClosureLevel(chapter, num, source, false);
         else if (type === 'substClosureElim') spec = substClosureLevel(chapter, num, source, true);
@@ -697,13 +750,29 @@ function buildChapter(chapter, list, all) {
       if (!validate(spec)) continue;
       usedTargets.add(spec.target);
       spec.band = num <= 30 ? 'base' : 'challenge';
+      spec._difficulty = difficultyOf(spec, type);
       out.push(spec);
       picked++;
       num++;
     }
     if (picked < count) throw new Error('chapter ' + chapter + ' template ' + type + ' generated ' + picked + '/' + count);
   }
-  return out;
+
+  /* 基础段 / 挑战段各自按难度递增排序，再重新编号。
+     这样挑战段从热身逐步走到收尾，而不是按生成模板块排列。 */
+  const base = out.filter((lv) => lv.band === 'base').sort((a, b) => a._difficulty - b._difficulty);
+  const chal = out.filter((lv) => lv.band === 'challenge').sort((a, b) => a._difficulty - b._difficulty);
+  const ordered = base.concat(chal);
+  if (base.length !== 30 - handCount) {
+    throw new Error('chapter ' + chapter + ' base generated ' + base.length + ', expected ' + (30 - handCount));
+  }
+  ordered.forEach((lv, i) => {
+    const n = starts[chapter] + i;
+    lv.id = 'CH' + ({ prop: 1, pred: 2, eq: 3, set: 4 }[chapter]) + '-' + String(n).padStart(2, '0');
+    lv.code = lv.id;
+    delete lv._difficulty;
+  });
+  return ordered;
 }
 
 /* ---------- 求值校验 ---------- */

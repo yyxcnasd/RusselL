@@ -33,9 +33,9 @@
 
 ## 档案模块
 
-`scripts/gen-levels.js` 从 `research/setmm-data.json` 生成 `src/archive.js`，目前收录 829 条 assertion-form 条目：
+`scripts/gen-levels.js` 从 `research/setmm-data.json` 和 `research/setmm-set-extra.json` 生成 `src/archive.js`，目前收录 993 条 assertion-form 条目：
 
-- 命题 570 条，谓词与等词 244 条，集合 15 条。
+- 命题 570 条，谓词与等词 244 条，集合 179 条。
 - `df-*` 定义被排除。
 - 每条包含 `label`、`formula`、`kind`、`section`、`module`、`proofLength`、`source`。
 - 关卡用 `archive:<label>` 引用。模块输出该条目的公式；这些是 set.mm 的已证定理或公理，不是游戏内重新证明的结果。
@@ -52,6 +52,8 @@
 | 分离 | 把一条 set.mm 定理作为前件代入另一条，再用 ax-mp |
 
 生成器会逐关调用 `src/engine.js` 求值，任何一关不完整就停下，不会写出有问题的关卡。手写的 45 关留在 `src/levels.js`：命题 9 关，其余三章各 12 关。全部 240 关由 `tests/levels.test.js` 逐关校验。
+
+关卡顺序也由生成器安排：基础段放档案、单次代入、闭包和定义置换；挑战段放分离、双代入、闭包后例化等组合操作。两段内部都按难度升序排列，挑战段最后一关是该章难度最高的收尾。
 
 ## 公式比较与替换
 

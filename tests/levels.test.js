@@ -50,6 +50,11 @@ const bandCount = { base: 0, challenge: 0 };
 levels.forEach((lv) => { bandCount[lv.band] = (bandCount[lv.band] || 0) + 1; });
 if (bandCount.base !== 120 || bandCount.challenge !== 120) fail('bands', '基础/挑战应各 120 关，实际 ' + JSON.stringify(bandCount));
 
+/* 挑战段不应该出现“一块档案直接接目标”这种一节点关卡。 */
+for (const lv of levels.filter((l) => l.band === 'challenge')) {
+  if (lv.solution && lv.solution.nodes.length < 2) fail(lv.id, '挑战段关卡过短：' + lv.solution.nodes.length + ' 个模块');
+}
+
 for (const lv of levels) {
   /* 2. 目标可解析 */
   try { L.parse(lv.target); } catch (err) { fail(lv.id, '目标无法解析：' + err.message); continue; }
