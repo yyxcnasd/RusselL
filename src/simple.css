@@ -135,6 +135,7 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
 .port:hover{transform:translateY(-50%) scale(1.18)}
 .node.is-target .port-in{border-color:var(--accent);width:24px;height:24px;left:-12px}
 .node[data-state="error"] .port-in{border-color:var(--red)}
+.port-in[data-port="atom2"],.port-in[data-port="formula2"]{opacity:.55;border-style:dashed}
 
 /* wires */
 .wire{fill:none;stroke:var(--ink);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
@@ -152,7 +153,7 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
 }
 .coach-tile{
   display:grid;place-items:center;width:62px;height:62px;border-radius:16px;
-  background:var(--card);border:1.5px solid var(--line);font-size:22px;font-weight:600;
+  background:var(--card);border:1.5px solid var(--line);font-family:var(--font);font-size:22px;font-weight:600;
   box-shadow:0 3px 0 var(--line);
 }
 .coach-arrow{font-family:var(--math);font-size:30px;color:var(--accent)}
@@ -546,9 +547,9 @@ html[data-theme="dark"] .level-cell.is-locked{box-shadow:inset 0 0 0 1px var(--l
 .help .help-dots{display:flex;gap:8px}
 .help .help-dots i{width:10px;height:10px;border-radius:50%;background:var(--accent-soft);box-shadow:inset 0 0 0 1.5px var(--accent)}
 .help .help-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 0 2px;width:100%;max-width:520px;min-width:0}
-.help .help-card{display:flex;flex-direction:row;align-items:center;gap:8px;padding:10px 12px;border-radius:14px;background:var(--soft);min-width:0;cursor:pointer}
-.help .help-card b{font-family:var(--math);font-size:19px;font-weight:600;color:var(--ink);min-width:18px;text-align:center;flex:none}
-.help .help-card span{font-family:var(--math);font-size:12px;line-height:1.35;color:var(--muted);min-width:0;overflow-wrap:anywhere}
+.help .help-card{display:flex;flex-direction:row;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:var(--soft);min-width:0;cursor:pointer;font-family:var(--font)}
+.help .help-card b{font-family:var(--font);font-size:15px;font-weight:600;color:var(--ink);min-width:22px;text-align:center;flex:none}
+.help .help-formula{font-size:13px;line-height:1.4;color:var(--muted);min-width:0;overflow-wrap:anywhere}
 
 .win-len{display:flex;align-items:center;gap:8px;margin:-10px 0 10px;color:var(--muted);font-size:13px;font-weight:500}
 .win-len b{color:var(--ink);font-size:18px;font-weight:600}
@@ -593,17 +594,17 @@ html[data-theme="dark"] .level-cell.is-locked{box-shadow:inset 0 0 0 1px var(--l
 
 .coach-pop{
   position:absolute;left:50%;top:50%;z-index:9;transform:translate(-50%,-50%);
-  padding:16px 20px;border-radius:22px;background:var(--glass);border:1px solid var(--line);
-  box-shadow:0 10px 30px rgba(45,36,25,.12);cursor:default;
-  backdrop-filter:blur(6px);
-  animation:coach-pop .24s var(--ease);
+  padding:16px 22px;border-radius:22px;background:var(--glass);border:0;
+  box-shadow:none;cursor:default;backdrop-filter:blur(6px);max-width:calc(100vw - 32px);
+  animation:coach 2.2s ease-in-out infinite;
 }
 @keyframes coach-pop{from{opacity:0;transform:translate(-50%,-50%) scale(.94)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
-.coach-flow{display:flex;align-items:center;gap:10px;font-family:var(--math);font-size:20px;color:var(--ink)}
-.coach-flow .chip{padding:10px 12px;border-radius:14px;background:var(--card);border:1.5px solid var(--line);box-shadow:0 3px 0 var(--line);font-size:16px;white-space:nowrap}
-.coach-flow .plus{color:var(--muted);font-size:18px}
-.coach-flow .arrow{color:var(--accent);font-size:20px}
-.coach-flow .coach-mod{display:grid;place-items:center;min-width:52px;height:52px;padding:0 10px;border-radius:14px;background:var(--accent-soft);color:var(--ink);font-weight:600;border:1.5px solid var(--line);box-shadow:0 3px 0 var(--line)}
+.coach-flow{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:14px;font-family:var(--font);font-size:20px;color:var(--ink)}
+.coach-flow .chip{display:grid;place-items:center;min-width:62px;height:62px;padding:0 12px;border-radius:16px;background:var(--card);border:1.5px solid var(--line);box-shadow:0 3px 0 var(--line);font-family:var(--math);font-size:17px;white-space:nowrap}
+.coach-flow .chip .formula{font-size:17px;color:inherit}
+.coach-flow .plus{font-family:var(--math);color:var(--muted);font-size:30px}
+.coach-flow .arrow{font-family:var(--math);color:var(--accent);font-size:30px}
+.coach-flow .coach-mod{display:grid;place-items:center;min-width:62px;height:62px;padding:0 10px;border-radius:16px;background:var(--accent-soft);color:var(--ink);font-family:var(--font);font-weight:600;font-size:20px;border:1.5px solid var(--line);box-shadow:0 3px 0 var(--line)}
 .help .help-steps{display:flex;flex-direction:row;align-items:center;gap:12px;padding:12px 0 20px}
 .help .help-box{display:grid;place-items:center;width:58px;height:58px;border-radius:16px;background:var(--soft);font-size:26px;color:var(--ink)}
 .help .help-box .icon{width:24px;height:24px;stroke-width:2}

@@ -468,7 +468,7 @@
     var fromId = this.draft && this.draft.from ? this.draft.from.node : null;
     var group = this.draft && this.draft.from ? (this.draft.from.node + '|' + this.draft.from.port) : '';
     var start = { x: a.x + 26, y: a.y };
-    var pts = this._route(start, b, this._rects(), {}, fromId, null, group);
+    var pts = this._route(start, b, this._rects(), this._lastUsed || {}, fromId, null, group);
     pts.unshift({ x: a.x, y: a.y });
     d.setAttribute('d', this._pathPoints(pts));
   };
@@ -540,7 +540,7 @@
 
   /* A* on a 16px grid: bend penalty + reuse penalty, but only between different output networks. */
   Board.prototype._route = function (a, b, rects, used, fromId, toId, group) {
-    var CELL = 16;
+    var CELL = 12;
     var xs = [a.x, b.x], ys = [a.y, b.y];
     rects.forEach(function (r) { xs.push(r.x - 28, r.x + r.w + 28); ys.push(r.y - 28, r.y + r.h + 28); });
     var minX = Math.floor((Math.min.apply(null, xs) - 180) / CELL) * CELL;
@@ -632,7 +632,7 @@
             if (groups.hasOwnProperty(gk) && gk !== String(group || '')) { reuse = 1; break; }
           }
         }
-        var cost = 1 + (nd === (dir + 2) % 4 ? 0 : (nd !== dir ? 3 : 0)) + reuse * 64;
+        var cost = 1 + (nd === (dir + 2) % 4 ? 4 : (nd !== dir ? 8 : 0)) + reuse * 64;
         var ndist = dist[state] + cost;
         if (ndist < dist[nstate]) {
           dist[nstate] = ndist;
@@ -662,7 +662,39 @@
     var pts = [{ x: a.x, y: a.y }];
     cells.forEach(function (p) { if (p.x !== a.x || p.y !== a.y) pts.push(p); });
     pts.push({ x: b.x, y: b.y });
-    return this._simplify(pts);
+    return this._shortcut(this._simplify(pts), rects);
+  };
+
+  /* 用清晰的两段折线把 A* 的锯齿和多余拐点收掉。 */
+  Board.prototype._shortcut = function (pts, rects) {
+    if (!pts || pts.length < 3) return pts;
+    var self = this;
+    function clear(p, q) { return self._segmentClear(p, q, rects); }
+    function lpath(p, q) {
+      if (p.x === q.x || p.y === q.y) return clear(p, q) ? [p, q] : null;
+      var c1 = { x: q.x, y: p.y };
+      if (clear(p, c1) && clear(c1, q)) return [p, c1, q];
+      var c2 = { x: p.x, y: q.y };
+      if (clear(p, c2) && clear(c2, q)) return [p, c2, q];
+      return null;
+    }
+    var out = pts.slice();
+    for (var pass = 0; pass < 24; pass++) {
+      var changed = false;
+      for (var i = 0; i < out.length - 2; i++) {
+        var target = null;
+        for (var j = out.length - 1; j > i + 1; j--) {
+          var lp = lpath(out[i], out[j]);
+          if (lp) { target = { j: j, path: lp }; break; }
+        }
+        if (!target) continue;
+        out = out.slice(0, i + 1).concat(target.path.slice(1, -1), [out[target.j]], out.slice(target.j + 1));
+        changed = true;
+        break;
+      }
+      if (!changed) break;
+    }
+    return out;
   };
 
   Board.prototype._segmentClear = function (p, q, rects) {
@@ -760,6 +792,7 @@
       hit.dataset.edge = e.id;
       self.wires.appendChild(hit);
     });
+    this._lastUsed = used;
     if (this.draft) {
       var from = this._portPoint(this.draft.from.node, this.draft.from.port);
       if (from) this._draftPath(from, { x: this.draft.x, y: this.draft.y });

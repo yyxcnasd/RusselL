@@ -308,6 +308,10 @@
   function showCoachKind(kind) {
     if (!COACH[kind]) return;
     els.coachPop.innerHTML = '<div class="coach-flow">' + COACH[kind] + '</div>';
+    els.coachPop.querySelectorAll('.chip').forEach(function (el) {
+      var html = esc(el.textContent).replace(/[A-Za-z]/g, '<span class="f-var">$&</span>');
+      el.innerHTML = '<span class="formula">' + html + '</span>';
+    });
     els.coachPop.hidden = false;
     sfx('click');
   }
@@ -527,6 +531,15 @@
     return ast ? formulaHTML(ast) : esc(text);
   }
 
+  function helpFormula(text) {
+    var html = esc(text).replace(/[A-Za-z]/g, '<span class="f-var">$&</span>');
+    return '<span class="formula help-formula">' + html + '</span>';
+  }
+
+  function helpCard(label, kind, formula) {
+    return '<div class="help-card" data-coach="' + kind + '"><b>' + esc(label) + '</b>' + helpFormula(formula) + '</div>';
+  }
+
   function toast(msg) {
     clearTimeout(toastTimer);
     els.toast.textContent = msg;
@@ -703,13 +716,19 @@
 
   function palettePlacePos(cx, cy, part) {
     var r = els.board.getBoundingClientRect();
-    if (cx < r.left || cx > r.right || cy < r.top || cy > r.bottom) return null;
+    var edge = 24;
+    if (cx < r.left - edge || cx > r.right + edge || cy < r.top - edge || cy > r.bottom + edge) return null;
     var p = state.board._client(cx, cy);
     var x = Math.max(0, Math.round((p.x - 116) / 16) * 16);
     var y = Math.max(0, Math.round((p.y - 50) / 16) * 16);
     var probe = { id: '__palette__', kind: part.kind };
-    if (state.board._overlaps(probe, x, y)) return null;
-    return { x: x, y: y };
+    var offsets = [[0, 0], [0, 32], [32, 0], [-32, 0], [0, 64], [64, 0], [32, 32], [-32, 32], [0, 96]];
+    for (var i = 0; i < offsets.length; i++) {
+      var px = Math.max(0, x + offsets[i][0]);
+      var py = Math.max(0, y + offsets[i][1]);
+      if (!state.board._overlaps(probe, px, py)) return { x: px, y: py };
+    }
+    return null;
   }
 
   function placePaletteAt(cx, cy) {
@@ -755,11 +774,11 @@
       '<div class="node-formula formula">' + formula + '</div>' +
       ins.map(function (p, i) {
         var role = (part.kind === 'subst' && p.id === 'atom') ? 'atom' : p.type;
-        return '<span class="port port-in" data-role="' + esc(role) + '" style="top:' + (47 + i * 32) + 'px"></span>';
+        return '<span class="port port-in" data-port="' + esc(p.id) + '" data-role="' + esc(role) + '" style="top:' + (47 + i * 32) + 'px"></span>';
       }).join('') +
       outs.map(function (p) {
         var role = part.kind === 'atom' ? 'atom' : p.type;
-        return '<span class="port port-out" data-role="' + esc(role) + '" style="top:47px"></span>';
+        return '<span class="port port-out" data-port="' + esc(p.id) + '" data-role="' + esc(role) + '" style="top:47px"></span>';
       }).join('');
     return el;
   }
@@ -973,10 +992,14 @@
           '<span class="help-box"><svg class="icon"><use href="#i-play"></use></svg></span>' +
         '</div>' +
         '<div class="help-cards">' +
-          '<div class="help-card" data-coach="subst"><b>S</b><span>P · B → A</span></div>' +
-          '<div class="help-card" data-coach="detach"><b>M</b><span>A · A→B → B</span></div>' +
-          '<div class="help-card" data-coach="replace"><b>D</b><span>A↔B ⇄ ¬A∨B</span></div>' +
-          '<div class="help-card" data-coach="all-intro"><b>∀</b><span>A(x) ⇄ ∀x A</span></div>' +
+          helpCard('S', 'subst', 'A · P+B · Q+C ⇒ A′') +
+          helpCard('M', 'detach', 'A · (A→B) ⇒ B') +
+          helpCard('D', 'replace', 'A→B ⇔ ¬A∨B') +
+          helpCard('HS', 'syllogism', '(A→B) · (B→C) ⇒ (A→C)') +
+          helpCard('∀I', 'all-intro', 'A ⇒ ∀x A') +
+          helpCard('∀E', 'all-elim', '∀x A ⇒ A[t/x]') +
+          helpCard('∃I', 'exists-intro', 'A[t/x] ⇒ ∃x A') +
+          helpCard('∃E', 'exists-elim', '∃x A · (A[y/x]→B) ⇒ B') +
         '</div>' +
         '<div class="save-row">' +
           '<button class="save-btn" data-save-export title="保存存档" aria-label="保存存档"><svg class="icon"><use href="#i-arrow-down-tray"></use></svg><span>保存</span></button>' +
@@ -1069,7 +1092,23 @@
       hideCoach();
       state.hintDismissed = true;
       if (els.coach) els.coach.hidden = true;
-      if (paletteHold && !(e.target.closest && (e.target.closest('.tile') || e.target.closest('#board')))) clearPaletteHold();
+      var onSurface = e.target.closest && (e.target.closest('.tile') || e.target.closest('#board'));
+      if (paletteHold && paletteHold.sticky && !onSurface) {
+        var br = els.board.getBoundingClientRect();
+        if (e.clientX >= br.left - 24 && e.clientX <= br.right + 24 && e.clientY >= br.top - 24 && e.clientY <= br.bottom + 24) {
+          e.preventDefault();
+          e.stopPropagation();
+          if (!placePaletteAt(e.clientX, e.clientY)) toast('放不下');
+          return;
+        }
+      }
+      if (paletteHold && !onSurface) clearPaletteHold();
+    }, true);
+    document.addEventListener('contextmenu', function (e) {
+      if (!paletteHold) return;
+      e.preventDefault();
+      e.stopPropagation();
+      clearPaletteHold();
     }, true);
     els.tray.addEventListener('pointerdown', function (e) {
       var tile = e.target.closest('.tile');

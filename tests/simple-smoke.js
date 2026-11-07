@@ -48,7 +48,7 @@ async function main() {
   await js('window.RSL.APP.loadLevel(0)'); await sleep(250);
   console.log('saved-circuit', await js('document.querySelectorAll(".node:not(.is-target)").length'));
   await js('window.RSL.APP.loadLevel(1)'); await sleep(250);
-  const pal = await js(`(function(){var t=document.querySelector('.tile'),b=document.getElementById('board');var tr=t.getBoundingClientRect(),br=b.getBoundingClientRect();return {tx:tr.left+tr.width/2,ty:tr.top+tr.height/2,bx:br.left+90,by:br.top+90};})()`);
+  const pal = await js(`(function(){var t=document.querySelector('.tile'),b=document.getElementById('board');var tr=t.getBoundingClientRect(),br=b.getBoundingClientRect();return {tx:tr.left+tr.width/2,ty:tr.top+tr.height/2,bx:br.left+90,by:br.top-12};})()`);
   await send('Input.dispatchMouseEvent', { type: 'mousePressed', x: pal.tx, y: pal.ty, button: 'left', clickCount: 1 });
   await send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: pal.tx, y: pal.ty, button: 'left', clickCount: 1 });
   await sleep(180);
@@ -57,6 +57,13 @@ async function main() {
   await send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: pal.bx, y: pal.by, button: 'left', clickCount: 1 });
   await sleep(250);
   console.log('palette-sticky', await js('({ghostBefore:' + ghost1 + ',ghostAfter:!!document.querySelector(".module-ghost"),nodes:document.querySelectorAll(".node:not(.is-target)").length})'));
+  await send('Input.dispatchMouseEvent', { type: 'mousePressed', x: pal.tx, y: pal.ty, button: 'left', clickCount: 1 });
+  await send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: pal.tx, y: pal.ty, button: 'left', clickCount: 1 });
+  await sleep(150);
+  const ghost2 = await js('!!document.querySelector(".module-ghost")');
+  await js('document.dispatchEvent(new MouseEvent("contextmenu",{bubbles:true,cancelable:true}))');
+  await sleep(120);
+  console.log('palette-right-cancel', await js('({before:' + ghost2 + ',after:!!document.querySelector(".module-ghost")})'));
   await js('document.getElementById("levelBtn").click()'); await sleep(300);
   console.log('level cells', await js('document.querySelectorAll(".level-cell").length'));
   console.log('locks', await js('Array.from(document.querySelectorAll(".chapter")).filter(function(c){return c.classList.contains("is-locked")||c.classList.contains("is-current");}).map(function(c){var b=c.querySelector(".level-cell");return {roman:c.querySelector(".chapter-roman").textContent,cls:c.className,first:b&&b.className,firstDisabled:b&&b.disabled};})'));

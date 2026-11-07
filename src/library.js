@@ -190,7 +190,7 @@
     { key: 'term', kind: 'term', group: 'predicate', symbol: 'x', name: '个体词', code: 'U-TERM', desc: '提供个体变元 x、y、z 或常元 a、b、c。', accent: 'copper' },
     { key: 'quant', kind: 'quant', group: 'predicate', symbol: '∀', name: '量词门', code: 'U-QNT', desc: '输入公式，输出 ∀x 或 ∃x 量化式。', accent: 'copper' },
 
-    { key: 'subst', kind: 'subst', group: 'rule', symbol: 'S', name: '代入规则', code: 'R-SUB', desc: '断言 + 原子 π + 公式 B → 把 π 全部换成 B。', accent: 'copper' },
+    { key: 'subst', kind: 'subst', group: 'rule', symbol: 'S', name: '代入规则', code: 'R-SUB', desc: '断言 + 一组或两组 原子/公式 → 同时完成一到两个变元的代入。', accent: 'copper' },
     { key: 'replace', kind: 'replace', group: 'rule', symbol: 'D', name: '定义置换', code: 'R-DEF', desc: '按 df-or / df-an / dfbi2 / df-ex 双向往返。', accent: 'copper' },
     { key: 'detach', kind: 'detach', group: 'rule', symbol: 'M', name: '分离规则', code: 'R-MP', desc: 'A 与 A→B 两路断言输入，输出 B。', accent: 'copper' },
     { key: 'all-elim', kind: 'all-elim', group: 'predicate', symbol: '∀E', name: '全称例化', code: 'R-∀E', desc: '从 ∀x A 得到 A[t/x]。', accent: 'copper' },

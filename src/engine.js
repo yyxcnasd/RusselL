@@ -59,7 +59,9 @@
         inputs: [
           { id: 'assertion', label: '断言 A', type: 'assertion' },
           { id: 'atom', label: '原子 π', type: 'formula' },
-          { id: 'formula', label: '公式 B', type: 'formula' }
+          { id: 'formula', label: '公式 B', type: 'formula' },
+          { id: 'atom2', label: '原子 ρ（可选）', type: 'formula' },
+          { id: 'formula2', label: '公式 C（可选）', type: 'formula' }
         ],
         outputs: [{ id: 'out', label: 'A[π/B]', type: 'assertion' }]
       },
@@ -290,10 +292,24 @@
           if (!need('assertion') || !need('atom') || !need('formula')) return waiting();
           if (!L.isAtom(vals.atom)) return makeResult(node, null, 'error', '第二路输入必须是单个原子命题');
           var atomName = vals.atom.name;
+          var map = Object.create(null);
+          map[atomName] = vals.formula;
           var atoms = L.atomsOf(vals.assertion).map(function (a) { return typeof a === 'string' ? a : a.name; });
           if (atoms.indexOf(atomName) === -1) return makeResult(node, null, 'error', '原子 ' + atomName + ' 没有出现在断言中');
-          var out = L.substitute(vals.assertion, atomName, vals.formula);
-          return makeResult(node, out, 'valid', null, atomName + ' := ' + L.fmt(vals.formula), { mapping: { atom: atomName, formula: vals.formula } });
+          var secondAtom = !!vals.atom2 || !!vals.formula2;
+          if (secondAtom && (!vals.atom2 || !vals.formula2)) {
+            return makeResult(node, null, 'error', '第二组代入需要同时接原子和公式');
+          }
+          if (secondAtom) {
+            if (!L.isAtom(vals.atom2)) return makeResult(node, null, 'error', '第二组原子必须是单个原子命题');
+            var atomName2 = vals.atom2.name;
+            if (atomName2 === atomName) return makeResult(node, null, 'error', '两组代入不能使用同一个原子');
+            if (atoms.indexOf(atomName2) === -1) return makeResult(node, null, 'error', '原子 ' + atomName2 + ' 没有出现在断言中');
+            map[atomName2] = vals.formula2;
+          }
+          var out = L.instantiate(vals.assertion, map);
+          var label = Object.keys(map).map(function (k) { return k + ' := ' + L.fmt(map[k]); }).join('，');
+          return makeResult(node, out, 'valid', null, label, { mapping: map });
         }
         case 'replace': {
           if (!need('assertion')) return waiting();
