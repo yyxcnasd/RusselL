@@ -110,7 +110,6 @@
     a.click();
     a.parentNode.removeChild(a);
     setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
-    unlockAchv('exporter');
   }
 
   function importSave(file) {
@@ -119,7 +118,6 @@
     reader.onload = function () {
       try {
         var data = cleanSave(JSON.parse(String(reader.result || '')));
-        if (data.achievements.indexOf('importer') < 0) data.achievements.push('importer');
         localStorage.setItem(SAVE_KEY, JSON.stringify(data));
         toast('已导入');
         setTimeout(function () { window.location.reload(); }, 650);
@@ -209,8 +207,9 @@
     return state.levels.filter(function (lv) { return lv.chapter === key; });
   }
 
-  function checkAchievements(level, len, kinds) {
-    if (Object.keys(state.solved).length >= 1) unlockAchv('first');
+  function checkAchievements() {
+    var solved = Object.keys(state.solved).length;
+    if (solved >= 1) unlockAchv('first');
     CHAPTERS.forEach(function (c) {
       var group = chapterLevels(c.key);
       var base = group.filter(function (lv) { return lv.band !== 'challenge'; });
@@ -218,28 +217,22 @@
       if (base.length && base.every(function (lv) { return state.solved[lv.id]; })) unlockAchv('base-' + c.key);
       if (chal.length && chal.every(function (lv) { return state.solved[lv.id]; })) unlockAchv('chal-' + c.key);
     });
-    if (kinds.subst) unlockAchv('rule-subst');
-    if (kinds.replace) unlockAchv('rule-replace');
-    if (kinds.detach) unlockAchv('rule-detach');
-    if (kinds['all-intro'] || kinds['all-elim'] || kinds.syllogism) unlockAchv('rule-quant');
-    var solved = Object.keys(state.solved).length;
-    var ref = (level.solution && level.solution.nodes.length) || 0;
-    if (ref && len <= ref) unlockAchv('efficient');
-    if (ref && len === ref) unlockAchv('perfect');
-    if (ref && len < ref) unlockAchv('shorter');
-    if (solved >= 10) unlockAchv('ten');
-    if (solved >= 120) unlockAchv('half');
-    var all = state.levels;
-    if (all.length && all.filter(function (lv) { return lv.band !== 'challenge'; }).every(function (lv) { return state.solved[lv.id]; })) unlockAchv('all-base');
-    if (all.length && all.filter(function (lv) { return lv.band === 'challenge'; }).every(function (lv) { return state.solved[lv.id]; })) unlockAchv('challenge-all');
-    if (Object.keys(state.usedArchive).length >= 10) unlockAchv('archive-ten');
-    if (Object.keys(state.usedTheorem).length >= 10) unlockAchv('theorem-ten');
+    if (state.usedKinds.subst) unlockAchv('rule-subst');
+    if (state.usedKinds.replace) unlockAchv('rule-replace');
+    if (state.usedKinds.detach) unlockAchv('rule-detach');
+    if (state.usedKinds['all-intro'] || state.usedKinds['all-elim'] || state.usedKinds.syllogism) unlockAchv('rule-quant');
+    var efficient = state.levels.some(function (lv) {
+      var ref = lv.solution && lv.solution.nodes ? lv.solution.nodes.length : 0;
+      return ref && state.bestLen[lv.id] && state.bestLen[lv.id] <= ref;
+    });
+    if (efficient) unlockAchv('efficient');
     if (Object.keys(state.cleanWins).length >= 1) unlockAchv('clean-one');
-    if (Object.keys(state.cleanWins).length >= 5) unlockAchv('clean-five');
-    var hard = all.filter(function (lv) { return lv.band === 'challenge' && state.solved[lv.id]; }).length;
-    if (hard >= 10) unlockAchv('hard-ten');
-    if (hard >= 30) unlockAchv('hard-thirty');
-    if (all.length && all.every(function (lv) { return state.solved[lv.id]; })) unlockAchv('all');
+    ACHIEVEMENTS.forEach(function (a) {
+      if (!a.metric) return;
+      var best = state.bestLen[a.metric.level];
+      if (best && best <= a.metric.max) unlockAchv(a.id);
+    });
+    if (state.levels.length && state.levels.every(function (lv) { return state.solved[lv.id]; })) unlockAchv('all');
   }
 
   function openAchievements() {
@@ -248,7 +241,9 @@
     var got = ACHIEVEMENTS.filter(function (a) { return state.achievements[a.id]; }).length;
     var cards = ACHIEVEMENTS.map(function (a) {
       var on = !!state.achievements[a.id];
-      return '<button class="achv' + (on ? ' is-on' : '') + '" data-achv="' + a.id + '" title="' + esc(on ? a.name : '未解锁') + '" aria-label="' + esc(on ? a.name : '未解锁成就') + '">' +
+      return '<button class="achv' + (on ? ' is-on' : '') + '"' +
+        (on ? ' data-achv="' + a.id + '"' : ' disabled') +
+        ' title="' + esc(on ? a.name : '未解锁') + '" aria-label="' + esc(on ? a.name : '未解锁成就') + '">' +
         (on ? '<span class="achv-icon"><svg class="icon"><use href="#' + a.symbol + '"></use></svg></span>' : '<span class="achv-q"><svg class="icon"><use href="#i-question-mark-circle"></use></svg></span>') +
       '</button>';
     }).join('');
@@ -350,21 +345,11 @@
     { id: 'rule-quant', symbol: 'i-globe-alt', name: '量词', desc: '第一次使用全称、存在或三段论规则。' },
     { id: 'efficient', symbol: 'i-bolt', name: '短证明', desc: '任一关的模块数不超过参考电路。' },
     { id: 'all', symbol: 'i-check-badge', name: '全通关', desc: '打通全部 240 关。' },
-    { id: 'perfect', symbol: 'i-squares-2x2', name: '精确复刻', desc: '任一关的模块数与参考电路完全相同。' },
-    { id: 'shorter', symbol: 'i-arrow-right', name: '更短', desc: '任一关的模块数少于参考电路。' },
-    { id: 'ten', symbol: 'i-book-open', name: '十关', desc: '累计通过 10 关。' },
-    { id: 'half', symbol: 'i-book-open', name: '半程', desc: '累计通过 120 关。' },
-    { id: 'all-base', symbol: 'i-check-badge', name: '基础全通', desc: '四章基础段全部打通。' },
-    { id: 'challenge-all', symbol: 'i-star', name: '挑战全通', desc: '四章挑战段全部打通。' },
-    { id: 'archive-ten', symbol: 'i-book-open', name: '档案员', desc: '在 10 个不同关卡里使用档案模块。' },
-    { id: 'theorem-ten', symbol: 'i-link', name: '定理员', desc: '在 10 个不同关卡里使用已证结论。' },
     { id: 'clean-one', symbol: 'i-check-badge', name: '一次成功', desc: '不删除模块完成一关。' },
-    { id: 'clean-five', symbol: 'i-check-badge', name: '干净五关', desc: '不删除模块完成 5 关。' },
-    { id: 'hard-ten', symbol: 'i-bolt', name: '挑战者', desc: '通过 10 个挑战关。' },
-    { id: 'hard-thirty', symbol: 'i-bolt', name: '硬核', desc: '通过 30 个挑战关。' },
-    { id: 'theme', symbol: 'i-moon', name: '夜间模式', desc: '切换到深色模式。' },
-    { id: 'exporter', symbol: 'i-arrow-up-tray', name: '备份', desc: '导出一次存档。' },
-    { id: 'importer', symbol: 'i-arrow-down-tray', name: '读档', desc: '导入一次存档。' }
+    { id: 'one-step', symbol: 'i-bolt', name: '一步到位', desc: '第一关只用 1 个模块通关。', metric: { level: 'CH1-01', max: 1 } },
+    { id: 'subst-clean', symbol: 'i-arrow-path', name: '代入一次', desc: '代入教程用不超过 4 个模块通关。', metric: { level: 'CH1-04', max: 4 } },
+    { id: 'detach-clean', symbol: 'i-link', name: '分离一次', desc: '分离教程用不超过 8 个模块通关。', metric: { level: 'CH1-05', max: 8 } },
+    { id: 'compose-clean', symbol: 'i-squares-2x2', name: '复合同一', desc: '复合同一关用不超过 5 个模块通关。', metric: { level: 'CH1-12', max: 5 } }
   ];
   var ACHV_BY_ID = {};
   ACHIEVEMENTS.forEach(function (a) { ACHV_BY_ID[a.id] = a; });
@@ -676,17 +661,15 @@
     state.solved[lv.id] = true;
     var items = (state.board.items || []).filter(function (n) { return n.kind !== 'target'; });
     var len = items.length;
-    var kinds = {};
     items.forEach(function (n) {
       state.usedKinds[n.kind] = true;
-      kinds[n.kind] = true;
       if (n.kind === 'archive') state.usedArchive[lv.id] = true;
       if (n.kind === 'theorem') state.usedTheorem[lv.id] = true;
     });
     if (!state.deletedThisLevel) state.cleanWins[lv.id] = true;
     if (!state.bestLen[lv.id] || len < state.bestLen[lv.id]) state.bestLen[lv.id] = len;
     saveProgress();
-    checkAchievements(lv, len, kinds);
+    checkAchievements();
     sfx('win');
     updateProgress();
     els.levelBtn.classList.remove('just-solved');
@@ -833,7 +816,6 @@
       state.theme = state.theme === 'dark' ? 'light' : 'dark';
       applyTheme();
       saveSettings();
-      if (state.theme === 'dark') unlockAchv('theme');
       sfx('click');
     });
     els.soundBtn.addEventListener('click', function () {

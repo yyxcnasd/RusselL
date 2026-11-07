@@ -51,13 +51,10 @@ async function main() {
   console.log('achv-detail', await js('({title:document.querySelector(".achv-detail h2")&&document.querySelector(".achv-detail h2").textContent,desc:document.querySelector(".achv-detail p")&&document.querySelector(".achv-detail p").textContent,status:document.querySelector(".achv-status")&&document.querySelector(".achv-status").textContent})'));
   await js('document.querySelector("[data-back]").click()'); await sleep(150);
   await js('document.querySelector(".achv:not(.is-on)").click()'); await sleep(150);
-  console.log('achv-locked', await js('({icon:!!document.querySelector(".achv-detail .achv-q"),status:document.querySelector(".achv-status")&&document.querySelector(".achv-status").textContent})'));
-  await js('document.querySelector("[data-back]").click()'); await sleep(150);
+  console.log('achv-locked', await js('({detail:!!document.querySelector(".achv-detail"),disabled:document.querySelector(".achv:not(.is-on)").disabled})'));
   await js('document.querySelector("[data-close]").click()'); await sleep(150);
   await js('document.getElementById("helpBtn").click()'); await sleep(250);
   console.log('help', await js('({cards:document.querySelectorAll(".help-card").length,save:document.querySelectorAll(".save-btn").length,credit:document.querySelector(".credit")&&document.querySelector(".credit").textContent})'));
-  await js('document.querySelector("[data-save-export]").click()'); await sleep(200);
-  console.log('export', await js('({achv:!!window.RSL.APP.state.achievements.exporter})'));
   await js('document.querySelector("[data-close]").click()'); await sleep(150);
   console.log('bands', await js(`(function(){
     var app=window.RSL.APP, L=app.state.levels, idx=function(id){return L.findIndex(function(l){return l.id===id});};

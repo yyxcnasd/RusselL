@@ -561,6 +561,7 @@ html[data-theme="dark"] .sheet::-webkit-scrollbar-thumb{border-color:var(--card)
 .achv-bar i{display:block;height:100%;background:var(--accent);border-radius:3px}
 .achv-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;padding:0 2px 12px}
 .achv{display:flex;flex-direction:column;align-items:center;gap:7px;padding:14px 6px 12px;border-radius:16px;background:var(--soft);opacity:.55;filter:grayscale(1);cursor:pointer}
+.achv[disabled]{cursor:default}
 .achv.is-on{opacity:1;filter:none;background:var(--accent-soft)}
 .achv-icon{display:grid;place-items:center;width:24px;height:24px;color:var(--ink)}
 .achv-icon .icon{width:24px;height:24px;stroke-width:1.7}
