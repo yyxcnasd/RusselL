@@ -356,7 +356,7 @@
       }).join('');
     }
     if (!html) { els.popover.hidden = true; return; }
-    els.popover.innerHTML = '<button class="pop-x" aria-label="关闭">×</button>' + html;
+    els.popover.innerHTML = html;
     els.popover.hidden = false;
   }
 
@@ -459,7 +459,6 @@
       if (tile) addPart(tile.dataset.key);
     });
     els.popover.addEventListener('click', function (e) {
-      if (e.target.closest('.pop-x')) { els.popover.hidden = true; return; }
       var opt = e.target.closest('[data-config]');
       if (opt && state.selectedNode) {
         var patch = {};
