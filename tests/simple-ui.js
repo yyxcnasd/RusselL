@@ -1,4 +1,4 @@
-/* Simplified UI: all levels load, level grid, PM level, mobile. */
+/* Simplified UI: all levels load, chapters, mobile overflow. */
 const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -6,11 +6,12 @@ const root = path.resolve(__dirname, '..');
 const edge = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
 const port = 9351;
 const profile = path.join(root, '.research', 'simple-ui');
+const url = 'file:///' + path.join(root, 'index.html').replace(/\\/g, '/');
 let proc;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 try { fs.rmSync(profile, { recursive: true, force: true }); } catch (e) {}
 async function main() {
-  proc = spawn(edge, ['--headless=new', '--disable-gpu', '--remote-debugging-port=' + port, '--user-data-dir=' + profile, '--window-size=1440,900', 'file:///' + path.join(root, 'index.html').replace(/\\/g, '/')], { stdio: 'ignore' });
+  proc = spawn(edge, ['--headless=new', '--disable-gpu', '--remote-debugging-port=' + port, '--user-data-dir=' + profile, '--window-size=1440,900', url], { stdio: 'ignore' });
   let list;
   for (let i = 0; i < 40; i++) { await sleep(250); try { list = await (await fetch('http://127.0.0.1:' + port + '/json/list')).json(); if (list.length) break; } catch (e) {} }
   const page = list.find(x => x.type === 'page') || list[0];
@@ -21,7 +22,7 @@ async function main() {
   const send = (method, params) => new Promise((res, rej) => { const id = ++seq; pend.set(id, m => m.error ? rej(new Error(JSON.stringify(m.error))) : res(m.result)); ws.send(JSON.stringify({ id, method, params: params || {} })); });
   const js = async exp => { const r = await send('Runtime.evaluate', { expression: exp, returnByValue: true, awaitPromise: true }); if (r.exceptionDetails) throw new Error(r.exceptionDetails.text); return r.result.value; };
   const shot = async name => { const r = await send('Page.captureScreenshot', { format: 'png' }); fs.writeFileSync(path.join(root, 'screenshots', name), Buffer.from(r.data, 'base64')); };
-  await send('Runtime.enable'); await send('Page.enable'); await sleep(1400);
+  await send('Runtime.enable'); await sleep(1400);
   const info = await js(`(function(){
     var app=window.RSL.APP; app.state.forceUnlock=true; var list=[];
     for(var i=0;i<app.state.levels.length;i++){
@@ -31,22 +32,16 @@ async function main() {
     return {count:app.state.levels.length, list:list};
   })()`);
   console.log('levels', info.count);
-  const bad = info.list.filter(x => !x.goal || !x.tiles);
-  console.log('bad', bad);
-  const pm = info.list.find(x => x.code === 'PM-2.1');
-  if (pm) { await js('window.RSL.APP.loadLevel(' + pm.i + ')'); await sleep(400); await shot('simple-pm.png'); }
+  console.log('bad', info.list.filter(x => !x.goal || !x.tiles));
   await js('document.getElementById("levelBtn").click()'); await sleep(300);
   console.log('level cells', await js('document.querySelectorAll(".level-cell").length'));
-  console.log('close', await js('(function(){var x=document.querySelector(".sheet-x");if(!x)return null;var r=x.getBoundingClientRect();return {html:x.innerHTML,display:getComputedStyle(x).display,rect:[r.x,r.y,r.width,r.height],opacity:getComputedStyle(x).opacity,color:getComputedStyle(x).color};})()'));
   console.log('chapters', await js('Array.from(document.querySelectorAll(".chapter")).map(function(c){return {roman:c.querySelector(".chapter-roman").textContent,title:c.querySelector(".chapter-title").textContent,levels:c.querySelectorAll(".level-cell").length};})'));
-  console.log('reqs', await js('["Ⅰ","Ⅱ","Ⅲ","Ⅳ","Ⅴ","Ⅵ","Ⅶ","Ⅷ"].map(function(g){return window.RSL.APP.state.levels.filter(function(l){return l.chapterGroup===g;})[0];}).map(function(l){return {id:l.id,group:l.chapterGroup,req:l.requires,challenge:l.challenge};})'));
+  console.log('close', await js('(function(){var x=document.querySelector(".sheet-x");var r=x.getBoundingClientRect();return [r.x,r.y,r.width,r.height];})()'));
   await shot('simple-levels.png');
   await js('document.getElementById("overlay").click()'); await sleep(200);
-  const longIdx = await js('window.RSL.APP.state.levels.findIndex(function(l){return l.code==="*4.87"})');
-  if (longIdx >= 0) { await js('window.RSL.APP.loadLevel(' + longIdx + ')'); await sleep(400); await shot('simple-long.png'); console.log('long goal classes', await js('document.getElementById("goal").className')); }
   await js('window.RSL.APP.loadLevel(0)'); await sleep(300);
   await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
-  await send('Page.navigate', { url: 'file:///' + path.join(root, 'index.html').replace(/\\/g, '/') }); await sleep(1200);
+  await send('Page.navigate', { url }); await sleep(1200);
   await shot('simple-mobile.png');
   console.log('overflow', await js('document.documentElement.scrollWidth + "/" + innerWidth'));
   ws.close();

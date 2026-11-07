@@ -41,7 +41,7 @@ async function main() {
   await shot('04-levels.png');
   await js('document.querySelector("[data-close]").click()'); await sleep(200);
   await js('window.RSL.APP.state.forceUnlock=true');
-  const i = await js('window.RSL.APP.state.levels.findIndex(function(l){return l.chapter==="metamath" && l.code.indexOf("*2.")===0})');
+  const i = await js('window.RSL.APP.state.levels.findIndex(function(l){return l.id==="PC-01"})');
   await js('window.RSL.APP.loadLevel(' + i + ')'); await sleep(300);
   await js('document.querySelector(".tile").click()'); await sleep(250);
   await shot('06-pm.png');

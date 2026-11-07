@@ -1,4 +1,4 @@
-/* 公理板 — minimal one-screen game. */
+﻿/* 公理板 — minimal one-screen game. */
 (function () {
   'use strict';
   window.RSL = window.RSL || {};
@@ -136,26 +136,15 @@
   var CHAPTERS = [
     { id: 'Ⅰ', title: '公理' },
     { id: 'Ⅱ', title: '变形' },
-    { id: 'Ⅲ', title: '代入' },
-    { id: 'Ⅳ', title: '命题 I' },
-    { id: 'Ⅴ', title: '命题 II' },
-    { id: 'Ⅵ', title: '命题 III' },
-    { id: 'Ⅶ', title: '谓词' },
-    { id: 'Ⅷ', title: '等词' }
+    { id: 'Ⅲ', title: '谓词' },
+    { id: 'Ⅳ', title: '等词' }
   ];
   function chapterOf(lv) {
     if (lv.chapter === 'primitives') return 'Ⅰ';
     if (lv.chapter === 'archive') return 'Ⅱ';
     if (lv.chapter === 'transform') return /^(SUB|SB|MIX)/.test(lv.id) ? 'Ⅲ' : 'Ⅱ';
-    if (lv.chapter === 'metamath') {
-      if (lv.pmBand) return lv.pmBand;
-      var major = parseInt(String(lv.code || '').replace('*', '').split('.')[0], 10) || 0;
-      if (major <= 2) return 'Ⅳ';
-      if (major <= 4) return 'Ⅴ';
-      return 'Ⅵ';
-    }
-    if (lv.chapter === 'equality') return 'Ⅷ';
-    return 'Ⅶ';
+    if (lv.chapter === 'equality') return 'Ⅳ';
+    return 'Ⅲ';
   }
   var CHAPTER_RANK = {}; CHAPTERS.forEach(function (c, i) { CHAPTER_RANK[c.id] = i; });
 
@@ -163,6 +152,7 @@
     var list = (window.RSL.LEVELS || []).slice();
     var pred = window.RSL.PREDICATE && window.RSL.PREDICATE.levels;
     if (pred) list = list.concat(pred);
+    list = list.filter(function (lv) { return !(lv.allowed || []).some(function (k) { return k.indexOf('theorem:') === 0; }); });
     list.forEach(function (lv, i) {
       lv.chapter = lv.chapter || 'primitives';
       lv.targetPos = lv.targetPos || { x: 650, y: 300 };
@@ -488,9 +478,9 @@
       '<div class="help">' +
         '<div><span class="help-icon">+</span><b>放模块</b></div>' +
         '<div><span class="help-icon">→</span><b>拖线</b></div>' +
-        '<div><span class="help-icon">✓</span><b>校验</b></div>' +
+        '<div><span class="help-icon"><svg class="icon"><use href="#i-play"></use></svg></span><b>校验</b></div>' +
       '</div>' +
-      '<p class="credit">音乐：MintoDog · CC0</p>';
+      '<p class="credit">音乐：YannZ · CC BY 4.0</p>';
   }
 
   function closeOverlay() {
@@ -614,6 +604,7 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();
+
 
 
 

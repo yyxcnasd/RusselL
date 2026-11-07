@@ -1,4 +1,4 @@
-/* Validate every level's reference circuit against the real engine. */
+﻿/* Validate every level's reference circuit against the real engine. */
 const fs = require('fs');
 const vm = require('vm');
 const path = require('path');
@@ -11,7 +11,7 @@ for (const f of ['src/logic.js', 'src/theorems.js', 'src/metamath.js', 'src/pred
   vm.runInContext(fs.readFileSync(path.join(root, f), 'utf8'), ctx, { filename: f });
 }
 const RSL = ctx.window.RSL;
-const levels = RSL.LEVELS.slice().concat((RSL.PREDICATE && RSL.PREDICATE.levels) || []);
+const levels = RSL.LEVELS.slice().concat((RSL.PREDICATE && RSL.PREDICATE.levels) || []).filter(lv => !(lv.allowed || []).some(k => k.indexOf('theorem:') === 0));
 let failures = 0;
 for (const lv of levels) {
   const target = {
@@ -36,3 +36,4 @@ for (const lv of levels) {
 }
 console.log('\nlevels:', levels.length, 'failures:', failures);
 process.exit(failures ? 1 : 0);
+

@@ -497,3 +497,16 @@ html[data-theme="dark"] .level-cell.is-locked{box-shadow:inset 0 0 0 1px var(--l
 .help{padding-top:8px}
 .win{padding-top:0}
 @media (max-width:700px){.sheet{padding:48px 20px 20px}}
+
+.wire{stroke-width:3.2}
+.wire.is-selected{stroke-width:4}
+.wire-hit{stroke-width:26}
+.wire-draft{stroke-width:2.4}
+
+.sheet{scrollbar-color:var(--line-strong) var(--soft)}
+.sheet::-webkit-scrollbar{width:14px}
+.sheet::-webkit-scrollbar-track{background:var(--soft);border-radius:10px;margin:8px 0;box-shadow:inset 0 0 0 1px var(--line)}
+.sheet::-webkit-scrollbar-thumb{background:var(--line-strong);border:3px solid var(--soft);border-radius:10px}
+.sheet::-webkit-scrollbar-thumb:hover{background:var(--muted)}
+html[data-theme="dark"] .sheet::-webkit-scrollbar-track{background:var(--card);box-shadow:inset 0 0 0 1px var(--line)}
+html[data-theme="dark"] .sheet::-webkit-scrollbar-thumb{border-color:var(--card)}

@@ -1,4 +1,4 @@
-﻿/* 公理板 — minimal graph board. */
+/* 公理板 — minimal graph board. */
 (function () {
   'use strict';
   window.RSL = window.RSL || {};
@@ -328,8 +328,21 @@
 
   Board.prototype._pathPoints = function (pts) {
     if (!pts || !pts.length) return '';
-    var d = 'M' + pts[0].x + ' ' + pts[0].y;
-    for (var i = 1; i < pts.length; i++) d += 'L' + pts[i].x + ' ' + pts[i].y;
+    /* PCB-style 45° chamfers at right-angle corners. */
+    var out = [pts[0]];
+    for (var i = 1; i < pts.length - 1; i++) {
+      var a = out[out.length - 1], b = pts[i], c = pts[i + 1];
+      var horizontal = Math.abs(a.y - b.y) < 1 && Math.abs(b.y - c.y) > 1;
+      var vertical = Math.abs(a.x - b.x) < 1 && Math.abs(b.x - c.x) > 1;
+      var cut = 9;
+      if ((horizontal || vertical) && Math.abs(a.x - b.x) + Math.abs(a.y - b.y) > cut * 2 && Math.abs(c.x - b.x) + Math.abs(c.y - b.y) > cut * 2) {
+        out.push({ x: b.x - Math.sign(b.x - a.x) * cut, y: b.y - Math.sign(b.y - a.y) * cut });
+        out.push({ x: b.x + Math.sign(c.x - b.x) * cut, y: b.y + Math.sign(c.y - b.y) * cut });
+      } else out.push(b);
+    }
+    out.push(pts[pts.length - 1]);
+    var d = 'M' + out[0].x + ' ' + out[0].y;
+    for (var j = 1; j < out.length; j++) d += 'L' + out[j].x + ' ' + out[j].y;
     return d;
   };
 
