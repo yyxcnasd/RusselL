@@ -240,6 +240,7 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
   display:grid;place-items:center;width:72px;height:72px;border-radius:50%;
   background:var(--green);color:#fff;font-size:36px;font-weight:600;
 }
+.win-check .icon{width:34px;height:34px;stroke-width:2.3}
 .win-formula{margin:18px 0 24px;font-family:var(--math);font-size:25px;line-height:1.4;overflow-wrap:anywhere}
 .primary{
   height:50px;padding:0 28px;border-radius:15px;background:var(--ink);color:var(--card);
@@ -524,9 +525,9 @@ html[data-theme="dark"] .sheet::-webkit-scrollbar-thumb{border-color:var(--card)
 /* ---------- 子章节 / 推理长度 / 成就 / 演示 ---------- */
 .band{margin-top:16px}
 .band-head{display:flex;align-items:center;gap:10px;padding:0 2px 8px}
-.band-glyph{width:18px;text-align:center;font-size:14px;color:var(--muted);line-height:1}
-.band-label{font-size:11px;color:var(--muted);letter-spacing:.04em;white-space:nowrap}
-.band.challenge .band-glyph,.band.challenge .band-label{color:var(--accent)}
+.band-glyph{display:grid;place-items:center;width:18px;height:14px;color:var(--muted)}
+.band-glyph .icon{width:13px;height:13px;stroke-width:2}
+.band.challenge .band-glyph{color:var(--accent)}
 .band-progress{flex:1;height:2px;border-radius:2px;background:var(--line);overflow:hidden}
 .band-progress i{display:block;height:100%;background:var(--accent);opacity:.5;border-radius:2px}
 .band.is-locked .band-glyph{opacity:.35}
@@ -548,7 +549,8 @@ html[data-theme="dark"] .sheet::-webkit-scrollbar-thumb{border-color:var(--card)
 
 .win-len{display:flex;align-items:center;gap:8px;margin:-10px 0 10px;color:var(--muted);font-size:13px;font-weight:500}
 .win-len b{color:var(--ink);font-size:18px;font-weight:600}
-.metric-glyph{font-size:14px;color:var(--accent)}
+.metric-glyph{display:grid;place-items:center;width:15px;height:15px;color:var(--accent)}
+.metric-glyph .icon{width:14px;height:14px;stroke-width:2}
 .metric-ref{font-size:12px}
 .metric-bar{width:74px;height:3px;border-radius:3px;background:var(--line);overflow:hidden;margin-left:2px}
 .metric-bar i{display:block;height:100%;background:var(--green);border-radius:3px}
@@ -560,7 +562,8 @@ html[data-theme="dark"] .sheet::-webkit-scrollbar-thumb{border-color:var(--card)
 .achv-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding:0 2px 12px}
 .achv{display:flex;flex-direction:column;align-items:center;gap:7px;padding:14px 6px 12px;border-radius:16px;background:var(--soft);opacity:.36;filter:grayscale(1)}
 .achv.is-on{opacity:1;filter:none;background:var(--accent-soft)}
-.achv-icon{font-family:var(--math);font-size:24px;line-height:1;color:var(--ink)}
+.achv-icon{display:grid;place-items:center;width:24px;height:24px;color:var(--ink)}
+.achv-icon .icon{width:24px;height:24px;stroke-width:1.7}
 .achv.is-on .achv-icon{color:var(--accent)}
 .achv-name{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 @media (max-width:700px){
@@ -582,3 +585,4 @@ html[data-theme="dark"] .sheet::-webkit-scrollbar-thumb{border-color:var(--card)
 .coach-flow .coach-mod{display:grid;place-items:center;min-width:46px;height:46px;padding:0 10px;border-radius:12px;background:var(--accent-soft);color:var(--ink);font-weight:600}
 .help .help-steps{display:flex;flex-direction:row;align-items:center;gap:12px;padding:12px 0 20px}
 .help .help-box{display:grid;place-items:center;width:58px;height:58px;border-radius:16px;background:var(--soft);font-size:26px;color:var(--ink)}
+.help .help-box .icon{width:24px;height:24px;stroke-width:2}

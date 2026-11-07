@@ -134,7 +134,7 @@
     if (!a) return false;
     state.achievements[id] = true;
     sfx('win');
-    toast(a.icon + ' ' + a.name);
+    toast(a.name);
     saveProgress();
     return true;
   }
@@ -167,7 +167,7 @@
     var cards = ACHIEVEMENTS.map(function (a) {
       var on = !!state.achievements[a.id];
       return '<div class="achv' + (on ? ' is-on' : '') + '" title="' + esc(a.name) + '">' +
-        '<span class="achv-icon">' + a.icon + '</span>' +
+        '<span class="achv-icon"><svg class="icon"><use href="#' + a.symbol + '"></use></svg></span>' +
       '</div>';
     }).join('');
     els.sheet.innerHTML =
@@ -234,21 +234,21 @@
 
   /* 成就：图标 + 极短名称；详细条件不写在界面里。 */
   var ACHIEVEMENTS = [
-    { id: 'first', icon: '▶', name: '通电' },
-    { id: 'base-prop', icon: 'Ⅰ', name: '命题基础' },
-    { id: 'base-pred', icon: 'Ⅱ', name: '谓词基础' },
-    { id: 'base-eq', icon: 'Ⅲ', name: '等词基础' },
-    { id: 'base-set', icon: 'Ⅳ', name: '集合基础' },
-    { id: 'chal-prop', icon: '★', name: '命题挑战' },
-    { id: 'chal-pred', icon: '★', name: '谓词挑战' },
-    { id: 'chal-eq', icon: '★', name: '等词挑战' },
-    { id: 'chal-set', icon: '★', name: '集合挑战' },
-    { id: 'rule-subst', icon: 'S', name: '代入' },
-    { id: 'rule-replace', icon: 'D', name: '置换' },
-    { id: 'rule-detach', icon: 'M', name: '分离' },
-    { id: 'rule-quant', icon: '∀', name: '量词' },
-    { id: 'efficient', icon: '⚡', name: '短证明' },
-    { id: 'all', icon: '⊢', name: '全通关' }
+    { id: 'first', symbol: 'i-play', name: '通电' },
+    { id: 'base-prop', symbol: 'i-book-open', name: '命题基础' },
+    { id: 'base-pred', symbol: 'i-book-open', name: '谓词基础' },
+    { id: 'base-eq', symbol: 'i-book-open', name: '等词基础' },
+    { id: 'base-set', symbol: 'i-book-open', name: '集合基础' },
+    { id: 'chal-prop', symbol: 'i-star', name: '命题挑战' },
+    { id: 'chal-pred', symbol: 'i-star', name: '谓词挑战' },
+    { id: 'chal-eq', symbol: 'i-star', name: '等词挑战' },
+    { id: 'chal-set', symbol: 'i-star', name: '集合挑战' },
+    { id: 'rule-subst', symbol: 'i-arrow-path', name: '代入' },
+    { id: 'rule-replace', symbol: 'i-arrows-right-left', name: '置换' },
+    { id: 'rule-detach', symbol: 'i-link', name: '分离' },
+    { id: 'rule-quant', symbol: 'i-globe-alt', name: '量词' },
+    { id: 'efficient', symbol: 'i-bolt', name: '短证明' },
+    { id: 'all', symbol: 'i-check-badge', name: '全通关' }
   ];
   var ACHV_BY_ID = {};
   ACHIEVEMENTS.forEach(function (a) { ACHV_BY_ID[a.id] = a; });
@@ -576,10 +576,10 @@
     els.sheet.innerHTML =
       '<button class="sheet-x" data-close aria-label="关闭"><svg class="icon"><use href="#i-x-mark"></use></svg></button>' +
       '<div class="win">' +
-        '<div class="win-check">✓</div>' +
+        '<div class="win-check"><svg class="icon"><use href="#i-check"></use></svg></div>' +
         '<div class="win-formula formula">' + goalHTML(lv.target) + '</div>' +
         '<div class="win-len" title="推理长度：模块数 / 参考电路模块数">' +
-          '<span class="metric-glyph">▦</span><b>' + len + '</b><span class="metric-ref">/ ' + ref + '</span>' +
+          '<span class="metric-glyph"><svg class="icon"><use href="#i-squares-2x2"></use></svg></span><b>' + len + '</b><span class="metric-ref">/ ' + ref + '</span>' +
           '<span class="metric-bar"><i style="width:' + eff + '%"></i></span>' +
         '</div>' +
         '<button class="primary next-btn" data-next="1">' + (isLast ? '选关' : '下一关') + '</button>' +
@@ -617,10 +617,10 @@
       if (!items.length) return '';
       var solved = items.filter(function (x) { return state.solved[x.lv.id]; }).length;
       var firstLocked = !isUnlocked(items[0].i);
-      var glyph = kind === 'challenge' ? '★' : '◆';
+      var glyph = kind === 'challenge' ? 'i-star' : 'i-book-open';
       return '<div class="band ' + kind + (firstLocked ? ' is-locked' : '') + '">' +
         '<div class="band-head" title="' + (kind === 'challenge' ? '挑战' : '基础') + '">' +
-          '<span class="band-glyph">' + glyph + '</span>' +
+          '<span class="band-glyph"><svg class="icon"><use href="#' + glyph + '"></use></svg></span>' +
           '<span class="band-progress" aria-hidden="true"><i style="width:' + (solved / items.length * 100) + '%"></i></span>' +
         '</div>' +
         '<div class="levels">' + cellsFor(items) + '</div>' +
@@ -655,9 +655,9 @@
       '<button class="sheet-x" data-close aria-label="关闭"><svg class="icon"><use href="#i-x-mark"></use></svg></button>' +
       '<div class="help">' +
         '<div class="help-steps">' +
-          '<span class="help-box">+</span><span class="help-arrow">→</span>' +
-          '<span class="help-box">◉</span><span class="help-arrow">→</span>' +
-          '<span class="help-box">▶</span>' +
+          '<span class="help-box"><svg class="icon"><use href="#i-plus"></use></svg></span>' +
+          '<span class="help-box"><svg class="icon"><use href="#i-arrow-right"></use></svg></span>' +
+          '<span class="help-box"><svg class="icon"><use href="#i-play"></use></svg></span>' +
         '</div>' +
         '<div class="help-cards">' +
           '<div class="help-card" data-coach="subst"><b>S</b><span>P · B → A</span></div>' +
