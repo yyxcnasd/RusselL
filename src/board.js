@@ -1,4 +1,4 @@
-/* 公理板 — minimal graph board. */
+﻿/* 公理板 — minimal graph board. */
 (function () {
   'use strict';
   window.RSL = window.RSL || {};
@@ -354,14 +354,12 @@
       el.dataset.selected = self.selectedNode === n.id ? 'true' : 'false';
       el.style.left = n.x + 'px';
       el.style.top = n.y + 'px';
-      el.style.width = W + 'px';
+      el.style.width = (n.kind === 'target' ? 150 : W) + 'px';
       el.setAttribute('aria-label', self._code(n));
       var code = self._code(n);
       var formula = '';
       var ast = null;
-      if (n.kind === 'target') {
-        try { ast = L.parse(n.target || 'P'); } catch (e) {}
-      } else if (r && r.ast) ast = r.ast;
+      if (n.kind !== 'target' && r && r.ast) ast = r.ast;
       if (ast) formula = window.RSL.formatFormula ? window.RSL.formatFormula(ast) : L.toHTML(ast);
       var ins = (info.ports.inputs || []).map(function (p, i, arr) {
         var top = arr.length === 1 ? 50 : 30 + (40 * i / (arr.length - 1));
@@ -371,12 +369,16 @@
       var outs = (info.ports.outputs || []).map(function (p) {
         return '<button class="port port-out" data-port="' + esc(p.id) + '" style="top:50%" title="' + esc(p.label) + '" aria-label="' + esc(p.label) + '"></button>';
       }).join('');
-      el.innerHTML =
-        '<div class="node-top"><span class="node-code">' + esc(code) + '</span>' +
-          (n.kind === 'target' ? '' : '<button class="node-x" aria-label="删除模块">×</button>') +
-        '</div>' +
-        '<div class="node-formula formula">' + (formula || '<span class="blank">·</span>') + '</div>' +
-        ins + outs;
+      if (n.kind === 'target') {
+        el.innerHTML = '<div class="target-mark">⊢</div>' + ins;
+      } else {
+        el.innerHTML =
+          '<div class="node-top"><span class="node-code">' + esc(code) + '</span>' +
+            '<button class="node-x" aria-label="删除模块">×</button>' +
+          '</div>' +
+          '<div class="node-formula formula">' + (formula || '<span class="blank">·</span>') + '</div>' +
+          ins + outs;
+      }
       self.nodes.appendChild(el);
     });
     this._updateWires();
@@ -396,9 +398,7 @@
       if (code) code.textContent = self._code(n);
       var f = el.querySelector('.node-formula');
       if (f) {
-        var ast = null;
-        if (n.kind === 'target') { try { ast = L.parse(n.target || 'P'); } catch (e) {} }
-        else if (r && r.ast) ast = r.ast;
+        var ast = r && r.ast ? r.ast : null;
         if (ast) f.innerHTML = window.RSL.formatFormula ? window.RSL.formatFormula(ast) : L.toHTML(ast);
         else f.innerHTML = '<span class="blank">·</span>';
       }
@@ -488,3 +488,4 @@
 
   window.RSL.Board = Board;
 })();
+

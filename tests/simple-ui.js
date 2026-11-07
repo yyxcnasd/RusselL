@@ -39,6 +39,8 @@ async function main() {
   console.log('level cells', await js('document.querySelectorAll(".level-cell").length'));
   await shot('simple-levels.png');
   await js('document.getElementById("overlay").click()'); await sleep(200);
+  const longIdx = await js('window.RSL.APP.state.levels.findIndex(function(l){return l.code==="*4.87"})');
+  if (longIdx >= 0) { await js('window.RSL.APP.loadLevel(' + longIdx + ')'); await sleep(400); await shot('simple-long.png'); console.log('long goal classes', await js('document.getElementById("goal").className')); }
   await js('window.RSL.APP.loadLevel(0)'); await sleep(300);
   await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
   await send('Page.navigate', { url: 'file:///' + path.join(root, 'index.html').replace(/\\/g, '/') }); await sleep(1200);

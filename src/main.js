@@ -173,6 +173,8 @@
     };
     state.board.setData([target], []);
     els.goalFormula.innerHTML = goalHTML(state.level.target);
+    var plain = els.goalFormula.textContent || state.level.target;
+    els.goal.classList.toggle('is-long', plain.length > 52);
     els.levelBtn.textContent = String(index + 1).padStart(2, '0');
     els.levelBtn.setAttribute('aria-label', '第 ' + (index + 1) + ' 关，选择关卡');
     els.deleteBtn.hidden = true;
@@ -384,7 +386,7 @@
   }
 
   function init() {
-    ['levelBtn', 'goalFormula', 'deleteBtn', 'helpBtn', 'checkBtn', 'board', 'boardWorld', 'wireLayer', 'nodeLayer', 'tray', 'popover', 'toast', 'overlay', 'sheet', 'coach'].forEach(function (id) { els[id] = $(id); });
+    ['levelBtn', 'goal', 'goalFormula', 'deleteBtn', 'helpBtn', 'checkBtn', 'board', 'boardWorld', 'wireLayer', 'nodeLayer', 'tray', 'popover', 'toast', 'overlay', 'sheet', 'coach'].forEach(function (id) { els[id] = $(id); });
     if (!L) { document.body.innerHTML = '<div class="fatal">逻辑引擎未加载</div>'; return; }
     window.RSL.formatFormula = function (ast) { return formulaHTML(ast); };
     loadProgress();
@@ -420,4 +422,6 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();
+
+
 

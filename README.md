@@ -1,4 +1,4 @@
-# 公理板
+﻿# 公理板
 
 一个极简的模块化证明游戏。把公理、代入、分离和定义置换接成一条线，让最终断言落到 `⊢` 上。
 
@@ -12,7 +12,7 @@
 - 点底部的大块元件，它会放到板上。
 - 从模块右边的圆点拖到另一个模块左边的圆点。也可以先点输出、再点输入。
 - 顶部是当前要证的断言。把它接到右侧 `⊢` 目标卡，然后点“校验”。
-- 点左上角关卡数字选关。共 40 关，全部开放。
+- 点左上角关卡数字选关。共 207 关，全部开放。
 - 点模块可换参数（原子字母、量词、定义置换）；点顶部 `×` 删除选中的模块或线。
 
 没有侧栏、没有教程段落、没有小字说明。第一次打开第一关时，板中央会出现 `A1 → ⊢` 的视觉提示。
@@ -21,10 +21,10 @@
 | --- | --- | --- |
 | ![接线](screenshots/02-wired.png) | ![交板](screenshots/03-win.png) | ![选关](screenshots/04-levels.png) |
 
-## 40 个关卡
+## 207 个关卡
 
 - **15 个命题演算核心关**：四条罗素原始命题、代入、定义置换、分离、双重否定、合取消去、德摩根。
-- **20 个 Metamath 题库关**：直接取自 Metamath Solitaire 记录的《数学原理》命题编号与公式，例如 `*2.1`、`*2.15`、`*3.1`、`*4.4`、`*4.41`。
+- **187 个 Metamath 题库关**：除核心关已用的 6 条外，Metamath Solitaire 记录的其余 187 条《数学原理》命题全部生成关卡，例如 `*2.1`、`*2.15`、`*3.1`、`*4.4`、`*4.41`。
 - **5 个谓词演算关**：全称例化、存在引入、全称推广、量词分配、`∃` 定义桥。
 
 初始公理只有四条：
@@ -52,7 +52,7 @@ D3  A↔B  := (A→B)∧(B→A)
 
 - 来源：[pmproofs-orig.txt](https://us.metamath.org/mmsolitaire/pmproofs-orig.txt)
 - 193 条 PM 定理索引在 `src/theorems.js`，包含编号、公式、步数和证明带
-- 20 个 PM 题库关从这 193 条中选取
+- 193 条全部进入题库（核心关已用的 6 条不重复生成）
 - 详细说明：[docs/metamath.md](docs/metamath.md)
 - 运行时**不请求网络**，所有字体和数据都在仓库里
 
@@ -78,7 +78,7 @@ python -m http.server 8000
 
 ```bash
 npm test
-# 17 个逻辑引擎测试 + 40 个参考电路校验
+# 17 个逻辑引擎测试 + 207 个参考电路校验
 ```
 
 浏览器 smoke 测试（需要本机 Edge）：
@@ -111,7 +111,7 @@ src/board.js             画布、模块、焊盘、铜线
 src/main.js              关卡流程、元件条、参数、选关
 src/logic.js             公式 AST / 解析 / 展开 / 代入 / 置换 / 分离
 src/engine.js            模块求值器
-src/levels.js            40 个关卡与参考电路
+src/levels.js            207 个关卡与参考电路
 src/predicate.js         谓词层
 src/theorems.js          193 条 PM 定理数据
 src/metamath.js          Metamath 数据与证明带
@@ -128,3 +128,5 @@ tests/                   逻辑与浏览器测试
 - Metamath 的 PM 定理记录来自 [us.metamath.org](https://us.metamath.org/)；站点文本为公有领域。
 - IBM Plex Sans / STIX Two Text 为 SIL Open Font License。
 - 本作不是 Metamath 官方产品。
+
+

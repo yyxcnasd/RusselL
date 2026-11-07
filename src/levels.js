@@ -310,30 +310,30 @@
     }
   ];
 
-  /* More PM problem-set levels, indexed by the original Metamath theorem codes. */
-  var PM_LEVELS = [
-    '*2.1', '*2.11', '*2.15', '*2.16', '*2.17', '*2.18', '*2.21', '*2.24',
-    '*2.27', '*2.53', '*2.54', '*2.62', '*3.1', '*3.11', '*3.2', '*3.22',
-    '*4.31', '*4.4', '*4.41', '*4.56'
-  ];
-  PM_LEVELS.forEach(function (code) {
-    var t = window.RSL.theoremData ? window.RSL.theoremData(code) : null;
-    if (!t) return;
+  /* The complete PM problem set: every Metamath theorem not already used above. */
+  var usedTheorems = {};
+  LEVELS.forEach(function (lv) {
+    ((lv.solution && lv.solution.nodes) || []).forEach(function (n) {
+      if (n.kind === 'theorem' && n.config && n.config.theoremCode) usedTheorems[n.config.theoremCode] = true;
+    });
+  });
+  (window.RSL.THEOREMS || []).forEach(function (t) {
+    if (usedTheorems[t.code]) return;
     LEVELS.push({
-      id: 'PM-' + code.replace('*', ''),
+      id: 'PM-' + t.code.replace(/[*.]/g, '-'),
       chapter: 'metamath',
-      code: code,
-      title: code + (t.name ? ' · ' + t.name : ''),
-      kicker: 'METAMATH / PM ' + code,
+      code: t.code,
+      title: t.code + (t.name ? ' · ' + t.name : ''),
+      kicker: 'METAMATH / PM ' + t.code,
       target: t.formula,
       brief: '',
       hint: '',
-      teaches: ['档案定理 ' + code],
-      allowed: ['theorem:' + code, 'target'],
+      teaches: ['档案定理 ' + t.code],
+      allowed: ['theorem:' + t.code, 'target'],
       reward: '—',
       note: '',
       solution: {
-        nodes: [node('t1', 'theorem', 260, 280, { theoremCode: code })],
+        nodes: [node('t1', 'theorem', 260, 280, { theoremCode: t.code })],
         edges: [edge('t1', 'out', 'target', 'proof')]
       }
     });
