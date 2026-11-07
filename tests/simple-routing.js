@@ -1,4 +1,4 @@
-/* Routing/overlap/dark-mode smoke. */
+﻿/* Routing/overlap/dark-mode smoke. */
 const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -33,7 +33,7 @@ async function main() {
     app.state.board.addNode('atom',{name:'P'},{x:100,y:100});
     app.state.board.addNode('atom',{name:'Q'},{x:100,y:100});
     var after=app.state.board.items.slice(-2).map(function(n){return {id:n.id,x:n.x,y:n.y}});
-    return {nodes:before.length,after:after,errors:app.state.results.errors.length,complete:app.state.results.complete,wires:document.querySelectorAll('.wire').length};
+    var used={}; var bad=0; var rects=app.state.board._rects();\n    edges.forEach(function(e){var a=app.state.board._portPoint(e.from.node,e.from.port),b=app.state.board._portPoint(e.to.node,e.to.port);if(!a||!b)return;var pts=app.state.board._route(a,b,rects.filter(function(r){return r.id!==e.from.node&&r.id!==e.to.node;}),used);pts.forEach(function(p){rects.forEach(function(r){if(r.id===e.from.node||r.id===e.to.node)return;if(p.x>r.x+2&&p.x<r.x+r.w-2&&p.y>r.y+2&&p.y<r.y+r.h-2)bad++;});});});\n    return {nodes:before.length,after:after,errors:app.state.results.errors.length,complete:app.state.results.complete,wires:document.querySelectorAll('.wire').length,badPins:bad};
   })()`);
   console.log(info);
   await sleep(500);
@@ -44,3 +44,4 @@ async function main() {
   ws.close();
 }
 main().catch(e => { console.error('FAIL', e); process.exitCode = 1; }).finally(async () => { await sleep(200); try { proc && proc.kill(); } catch (e) {} setTimeout(() => process.exit(process.exitCode || 0), 500); });
+

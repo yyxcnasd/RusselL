@@ -246,6 +246,7 @@
     closeOverlay();
     state.index = index;
     state.level = state.levels[index];
+    state.board.allowMixed = state.level.chapter === 'predicate';
     state.selectedNode = null;
     state.selectedEdge = null;
     var mobile = window.innerWidth <= 700;
@@ -262,7 +263,6 @@
     els.goal.classList.toggle('is-long', plain.length > 52);
     els.levelBtn.textContent = String(index + 1).padStart(2, '0');
     els.levelBtn.setAttribute('aria-label', '第 ' + (index + 1) + ' 关，选择关卡');
-    els.deleteBtn.hidden = true;
     els.popover.hidden = true;
     buildTray();
     state.board.result = null;
@@ -294,7 +294,6 @@
     var r = window.RSL.Engine.evaluate(state.level, data.nodes, data.edges);
     state.results = r;
     state.board.paint(r);
-    els.deleteBtn.hidden = !(state.selectedNode || state.selectedEdge);
     els.coach.hidden = !(state.index === 0 && data.nodes.length <= 1);
     els.checkBtn.classList.toggle('is-ready', r.complete);
     renderPopover();
@@ -365,7 +364,6 @@
     state.board.removeSelected();
     state.selectedNode = null;
     state.selectedEdge = null;
-    els.deleteBtn.hidden = true;
     els.popover.hidden = true;
     refresh();
   }
@@ -441,7 +439,6 @@
     els.levelBtn.addEventListener('click', openLevels);
     els.checkBtn.addEventListener('click', check);
     els.helpBtn.addEventListener('click', openHelp);
-    els.deleteBtn.addEventListener('click', deleteSelection);
     els.themeBtn.addEventListener('click', function () {
       state.theme = state.theme === 'dark' ? 'light' : 'dark';
       applyTheme();
@@ -500,7 +497,7 @@
   }
 
   function init() {
-    ['levelBtn', 'goal', 'goalFormula', 'deleteBtn', 'themeBtn', 'soundBtn', 'helpBtn', 'checkBtn', 'progressFill', 'board', 'boardWorld', 'wireLayer', 'nodeLayer', 'tray', 'popover', 'toast', 'overlay', 'sheet', 'coach'].forEach(function (id) { els[id] = $(id); });
+    ['levelBtn', 'goal', 'goalFormula', 'themeBtn', 'soundBtn', 'helpBtn', 'checkBtn', 'progressFill', 'board', 'boardWorld', 'wireLayer', 'nodeLayer', 'tray', 'popover', 'toast', 'overlay', 'sheet', 'coach'].forEach(function (id) { els[id] = $(id); });
     if (!L) { document.body.innerHTML = '<div class="fatal">逻辑引擎未加载</div>'; return; }
     window.RSL.formatFormula = function (ast) { return formulaHTML(ast); };
     loadProgress();
@@ -542,6 +539,8 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();
+
+
 
 
 

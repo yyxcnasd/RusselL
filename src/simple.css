@@ -411,3 +411,9 @@ html[data-theme="dark"] .win-check{color:#0f1a14}
 
 html[data-theme="dark"] .coach{background:rgba(241,236,226,.055)}
 html[data-theme="dark"] .coach-tile{box-shadow:0 3px 0 rgba(0,0,0,.28)}
+
+.node-turnstile{color:var(--accent);font-family:var(--math);margin-right:4px}
+.node-x{display:none!important}
+
+.port-in{left:-12px}
+.node.is-target .port-in{left:-14px}

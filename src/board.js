@@ -1,8 +1,8 @@
-﻿/* 公理板 — minimal graph board. */
+/* 公理板 — minimal graph board. */
 (function () {
   'use strict';
   window.RSL = window.RSL || {};
-  var W = 232;
+  var W = 241;
 
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
   function esc(s) {
@@ -30,9 +30,11 @@
     this.selectedNode = null;
     this.selectedEdge = null;
     this.draft = null;
+    this.allowMixed = false;
     this.result = null;
     this._drag = null;
     this._pan = null;
+    this._long = null;
     this._bind();
     this._applyView();
   }
@@ -48,6 +50,13 @@
     this.board.addEventListener('dblclick', function (e) {
       var wire = e.target.closest && e.target.closest('.wire-hit');
       if (wire) self.removeEdge(wire.dataset.edge);
+    });
+    this.board.addEventListener('contextmenu', function (e) {
+      e.preventDefault();
+      var wire = e.target.closest && e.target.closest('.wire-hit');
+      if (wire) { self.removeEdge(wire.dataset.edge); return; }
+      var node = e.target.closest && e.target.closest('.node');
+      if (node && node.dataset.kind !== 'target') self.removeNode(node.dataset.id);
     });
     this.wires.addEventListener('click', function (e) {
       var wire = e.target.closest && e.target.closest('.wire-hit');
@@ -140,12 +149,23 @@
       }
       return;
     }
+    var wireHit = e.target.closest && e.target.closest('.wire-hit');
+    if (wireHit) {
+      e.preventDefault();
+      this.selectedNode = null;
+      this.selectedEdge = wireHit.dataset.edge;
+      this.render();
+      this.onSelect(null, this.selectedEdge);
+      if (e.pointerType === 'touch') this._startLong('edge', this.selectedEdge);
+      return;
+    }
     var nodeEl = e.target.closest && e.target.closest('.node');
     if (nodeEl) {
       e.preventDefault();
       var node = this.node(nodeEl.dataset.id);
       if (!node) return;
       this.select(node.id);
+      if (e.pointerType === 'touch' && node.kind !== 'target') this._startLong('node', node.id);
       if (node.kind === 'target') return;
       var p = this._client(e.clientX, e.clientY);
       this._drag = { id: node.id, dx: p.x - node.x, dy: p.y - node.y, moved: false, sx: e.clientX, sy: e.clientY };
@@ -160,6 +180,7 @@
 
   Board.prototype._move = function (e) {
     if (this._drag) {
+      if (this._long) this._cancelLong();
       var node = this.node(this._drag.id);
       if (!node) return;
       var p = this._client(e.clientX, e.clientY);
@@ -186,6 +207,7 @@
   };
 
   Board.prototype._up = function (e) {
+    this._cancelLong();
     if (this._drag) {
       var moved = this._drag.moved;
       var dragId = this._drag.id;
@@ -212,12 +234,6 @@
   };
 
   Board.prototype._click = function (e) {
-    var del = e.target.closest && e.target.closest('.node-x');
-    if (del) {
-      var n = del.closest('.node');
-      if (n) { this.selectedNode = n.dataset.id; this.removeSelected(); }
-      return;
-    }
     var port = e.target.closest && e.target.closest('.port');
     if (port) {
       var mod = port.closest('.node');
@@ -238,7 +254,32 @@
     this.onSelect(null, null);
   };
 
+  Board.prototype._startLong = function (type, id) {
+    var self = this;
+    this._cancelLong();
+    this._long = {
+      type: type,
+      id: id,
+      timer: setTimeout(function () {
+        self._long = null;
+        self._drag = null;
+        self._pan = null;
+        self.board.classList.remove('is-panning');
+        if (type === 'node') self.removeNode(id);
+        else self.removeEdge(id);
+      }, 650)
+    };
+  };
+
+  Board.prototype._cancelLong = function () {
+    if (this._long) {
+      clearTimeout(this._long.timer);
+      this._long = null;
+    }
+  };
+
   Board.prototype._cancel = function () {
+    this._cancelLong();
     this._drag = null;
     this._pan = null;
     this._cancelDraft();
@@ -310,8 +351,8 @@
   };
 
   Board.prototype._nodeRect = function (n, el) {
-    var w = n.kind === 'target' ? 150 : W;
-    var h = el ? el.offsetHeight : (n.kind === 'target' ? 104 : 100);
+    var w = n.kind === 'target' ? 160 : W;
+    var h = el ? el.offsetHeight : (n.kind === 'target' ? 104 : 112);
     return { x: n.x, y: n.y, w: w, h: h, id: n.id };
   };
 
@@ -584,29 +625,31 @@
       el.dataset.selected = self.selectedNode === n.id ? 'true' : 'false';
       el.style.left = n.x + 'px';
       el.style.top = n.y + 'px';
-      el.style.width = (n.kind === 'target' ? 150 : W) + 'px';
+      el.style.width = (n.kind === 'target' ? 160 : W) + 'px';
       el.setAttribute('aria-label', self._code(n));
       var code = self._code(n);
       var formula = '';
       var ast = null;
       if (n.kind !== 'target' && r && r.ast) ast = r.ast;
       if (ast) formula = window.RSL.formatFormula ? window.RSL.formatFormula(ast) : L.toHTML(ast);
+      var isAssertion = (info.ports.outputs || []).some(function (p) { return p.type === 'assertion'; });
+      if (isAssertion) formula = '<span class="node-turnstile">⊢</span>' + formula;
       var ins = (info.ports.inputs || []).map(function (p, i, arr) {
-        var top = arr.length === 1 ? 50 : 30 + (40 * i / (arr.length - 1));
+        var top = 47 + i * 32;
         var role = (n.kind === 'subst' && p.id === 'atom') ? 'atom' : p.type;
-        return '<button class="port port-in" data-port="' + esc(p.id) + '" data-role="' + esc(role) + '" style="top:' + top + '%" title="' + esc(p.label) + '" aria-label="' + esc(p.label) + '"></button>';
+        return '<button class="port port-in" data-port="' + esc(p.id) + '" data-role="' + esc(role) + '" style="top:' + top + 'px" title="' + esc(p.label) + '" aria-label="' + esc(p.label) + '"></button>';
       }).join('');
       var outs = (info.ports.outputs || []).map(function (p) {
         var role = n.kind === 'atom' ? 'atom' : p.type;
-        return '<button class="port port-out" data-port="' + esc(p.id) + '" data-role="' + esc(role) + '" style="top:50%" title="' + esc(p.label) + '" aria-label="' + esc(p.label) + '"></button>';
+        return '<button class="port port-out" data-port="' + esc(p.id) + '" data-role="' + esc(role) + '" style="top:47px" title="' + esc(p.label) + '" aria-label="' + esc(p.label) + '"></button>';
       }).join('');
+      var inCount = (info.ports.inputs || []).length;
+      el.style.minHeight = (n.kind === 'target' ? 104 : Math.max(96, 47 + Math.max(0, inCount - 1) * 32 + 29)) + 'px';
       if (n.kind === 'target') {
-        el.innerHTML = '<div class="target-mark">⊢</div>' + ins;
+        el.innerHTML = '<div class="target-mark">⊢</div>' + ins.replace('style="top:47px"', 'style="top:46px"');
       } else {
         el.innerHTML =
-          '<div class="node-top"><span class="node-code">' + esc(code) + '</span>' +
-            '<button class="node-x" aria-label="删除模块">×</button>' +
-          '</div>' +
+          '<div class="node-top"><span class="node-code">' + esc(code) + '</span></div>' +
           '<div class="node-formula formula">' + (formula || '<span class="blank">·</span>') + '</div>' +
           ins + outs;
       }
@@ -630,7 +673,9 @@
       var f = el.querySelector('.node-formula');
       if (f) {
         var ast = r && r.ast ? r.ast : null;
-        if (ast) f.innerHTML = window.RSL.formatFormula ? window.RSL.formatFormula(ast) : L.toHTML(ast);
+        var info = window.RSL.Engine.info(n.kind);
+        var prefix = (info.ports.outputs || []).some(function (p) { return p.type === 'assertion'; }) ? '<span class="node-turnstile">⊢</span>' : '';
+        if (ast) f.innerHTML = prefix + (window.RSL.formatFormula ? window.RSL.formatFormula(ast) : L.toHTML(ast));
         else f.innerHTML = '<span class="blank">·</span>';
       }
     });
@@ -653,7 +698,7 @@
     var op = (outInfo.ports.outputs || []).filter(function (p) { return p.id === fromPort; })[0];
     var ip = (inInfo.ports.inputs || []).filter(function (p) { return p.id === toPort; })[0];
     if (!op || !ip) return false;
-    if (op.type !== ip.type) { this.onToast('接口不匹配'); return false; }
+    if (!this.allowMixed && op.type !== ip.type) { this.onToast('接口不匹配'); return false; }
     var existing = this.edges.filter(function (e) { return e.to.node === toNode && e.to.port === toPort; })[0];
     if (existing && existing.from.node === fromNode && existing.from.port === fromPort) return false;
     if (existing) this.edges = this.edges.filter(function (e) { return e !== existing; });
@@ -752,6 +797,8 @@
 
   window.RSL.Board = Board;
 })();
+
+
 
 
 

@@ -1,4 +1,4 @@
-/* 公理板 — propositional level catalogue and reference circuits. */
+﻿/* 公理板 — propositional level catalogue and reference circuits. */
 (function () {
   'use strict';
   window.RSL = window.RSL || {};
@@ -196,20 +196,7 @@
       }
     },
 
-    {
-      id: 'RU-09', chapter: 'archive', code: 'RU-09', title: '双重否定', kicker: 'PM *2.14 / 档案定理',
-      target: '¬¬P→P',
-      brief: '罗素在《数学原理》*2.14 已经证成：两个否定互相抵消。把档案定理接入板子。',
-      hint: '从“定理”分类取 PM *2.14，直接接到目标焊盘。',
-      teaches: ['档案定理模块', '引用已证结果'],
-      allowed: ['theorem:*2.14', 'target'],
-      reward: '定理 *2.12',
-      note: '这条定理在 Metamath 的 PM 证明记录里是 17 步。公理板把它作为“已完成的历史电路”接入。',
-      solution: {
-        nodes: [node('t1', 'theorem', 260, 280, { theoremCode: '*2.14' })],
-        edges: [edge('t1', 'out', 'target', 'proof')]
-      }
-    },
+
     {
       id: 'RU-10', chapter: 'archive', code: 'RU-10', title: '代入双重否定', kicker: 'DN SUBSTITUTION / 档案定理',
       target: '¬¬(P∨Q)→(P∨Q)',
@@ -238,76 +225,11 @@
         ]
       }
     },
-    {
-      id: 'RU-11', chapter: 'archive', code: 'RU-11', title: '否定引入', kicker: 'PM *2.12 / 档案定理',
-      target: 'P→¬¬P',
-      brief: '反方向：一个命题蕴涵它的双重否定。',
-      hint: '取档案定理 *2.12，直接接入。',
-      teaches: ['档案定理 *2.12'],
-      allowed: ['theorem:*2.12', 'target'],
-      reward: '定理 *3.26',
-      note: '《数学原理》*2.12。和 *2.14 合起来，双重否定在双向都成立。',
-      solution: {
-        nodes: [node('t1', 'theorem', 260, 280, { theoremCode: '*2.12' })],
-        edges: [edge('t1', 'out', 'target', 'proof')]
-      }
-    },
-    {
-      id: 'RU-12', chapter: 'archive', code: 'RU-12', title: '合取消去', kicker: 'PM *3.26 / 档案定理',
-      target: '(P∧Q)→P',
-      brief: '从“P 且 Q”里取出 P。',
-      hint: '档案定理 *3.26 就是合取消去律。',
-      teaches: ['合取定义', '档案定理 *3.26'],
-      allowed: ['theorem:*3.26', 'target'],
-      reward: '定理 *3.13',
-      note: '《数学原理》*3.26。合取在 PM 里由 D2 定义。',
-      solution: {
-        nodes: [node('t1', 'theorem', 260, 280, { theoremCode: '*3.26' })],
-        edges: [edge('t1', 'out', 'target', 'proof')]
-      }
-    },
-    {
-      id: 'RU-13', chapter: 'archive', code: 'RU-13', title: '德摩根', kicker: 'PM *3.13 / 档案定理',
-      target: '¬(P∧Q)→(¬P∨¬Q)',
-      brief: '把“并非 P 且 Q”拆成“非 P 或非 Q”。',
-      hint: '取档案定理 *3.13。',
-      teaches: ['德摩根律', '档案定理 *3.13'],
-      allowed: ['theorem:*3.13', 'target'],
-      reward: '定理 *4.6',
-      note: '《数学原理》*3.13。另一个方向是 *3.14。',
-      solution: {
-        nodes: [node('t1', 'theorem', 260, 280, { theoremCode: '*3.13' })],
-        edges: [edge('t1', 'out', 'target', 'proof')]
-      }
-    },
-    {
-      id: 'RU-14', chapter: 'archive', code: 'RU-14', title: '蕴涵的定义', kicker: 'PM *4.6 / 档案定理',
-      target: '(P→Q)↔(¬P∨Q)',
-      brief: '让“蕴涵”与“非 P 或 Q”正式等值。',
-      hint: '档案定理 *4.6 已经是完整等值式。',
-      teaches: ['等值定义', '档案定理 *4.6'],
-      allowed: ['theorem:*4.6', 'target'],
-      reward: '定理 *4.51',
-      note: '《数学原理》*4.6。这条定理把 D1 从定义提升为可引用的等值式。',
-      solution: {
-        nodes: [node('t1', 'theorem', 260, 280, { theoremCode: '*4.6' })],
-        edges: [edge('t1', 'out', 'target', 'proof')]
-      }
-    },
-    {
-      id: 'RU-15', chapter: 'archive', code: 'RU-15', title: '德摩根等值', kicker: 'PM *4.51 / 档案定理',
-      target: '¬(P∧Q)↔(¬P∨¬Q)',
-      brief: '德摩根律的双向等值形式。',
-      hint: '取档案定理 *4.51。',
-      teaches: ['等值式', '档案定理 *4.51'],
-      allowed: ['theorem:*4.51', 'target'],
-      reward: '进入谓词层',
-      note: '《数学原理》*4.51。Metamath 记录中为 127 步；它在这里是一块封装好的历史电路。',
-      solution: {
-        nodes: [node('t1', 'theorem', 260, 280, { theoremCode: '*4.51' })],
-        edges: [edge('t1', 'out', 'target', 'proof')]
-      }
-    }
+
+
+
+
+
   ];
 
   /* The complete PM problem set: every Metamath theorem not already used above. */
@@ -319,22 +241,44 @@
   });
   (window.RSL.THEOREMS || []).forEach(function (t) {
     if (usedTheorems[t.code]) return;
+    var Lg = window.RSL.Logic;
+    if (!Lg) return;
+    var schema = Lg.parse(t.formula);
+    var atoms = Lg.atomsOf(schema);
+    var atom = atoms[0] || 'P';
+    var map = {};
+    map[atom] = Lg.parse('P∨Q');
+    var target = Lg.fmt(Lg.instantiate(schema, map));
     LEVELS.push({
       id: 'PM-' + t.code.replace(/[*.]/g, '-'),
       chapter: 'metamath',
       code: t.code,
       title: t.code + (t.name ? ' · ' + t.name : ''),
       kicker: 'METAMATH / PM ' + t.code,
-      target: t.formula,
+      target: target,
       brief: '',
       hint: '',
-      teaches: ['档案定理 ' + t.code],
-      allowed: ['theorem:' + t.code, 'target'],
+      teaches: ['档案定理 ' + t.code, '代入实例'],
+      allowed: ['atom', 'or', 'subst', 'theorem:' + t.code, 'target'],
       reward: '—',
       note: '',
       solution: {
-        nodes: [node('t1', 'theorem', 260, 280, { theoremCode: t.code })],
-        edges: [edge('t1', 'out', 'target', 'proof')]
+        nodes: [
+          node('pa', 'atom', 60, 120, { name: atom }),
+          node('pp', 'atom', 60, 300, { name: 'P' }),
+          node('pq', 'atom', 60, 470, { name: 'Q' }),
+          node('por', 'or', 360, 380),
+          node('pth', 'theorem', 60, 650, { theoremCode: t.code }),
+          node('psub', 'subst', 760, 430)
+        ],
+        edges: [
+          edge('pp', 'out', 'por', 'a'),
+          edge('pq', 'out', 'por', 'b'),
+          edge('pa', 'out', 'psub', 'atom'),
+          edge('pth', 'out', 'psub', 'assertion'),
+          edge('por', 'out', 'psub', 'formula'),
+          edge('psub', 'out', 'target', 'proof')
+        ]
       }
     });
   });
@@ -495,6 +439,39 @@
     }
   });
 
+  /* More predicate levels: archived axiom/theorem cards. */
+  var PRED_EXTRA = [
+    { id: 'PC-06', key: 'pred-axiom:PA1', target: '(∀x F(x))→F(y)', title: '全称例化 · 基本式' },
+    { id: 'PC-07', key: 'pred-axiom:DfNotAll', target: '(¬∀x F(x))↔(∃x ¬F(x))', title: '全称否定' },
+    { id: 'PC-08', key: 'pred-axiom:DfNotExists', target: '(¬∃x F(x))↔(∀x ¬F(x))', title: '存在否定' },
+    { id: 'PC-09', key: 'theorem:*10.12', target: '(∀x (P∨F(x)))→(P∨(∀x F(x)))', title: '量词分配 · 析取' },
+    { id: 'PC-10', key: 'theorem:*10.21', target: '(∀x (P→F(x)))↔(P→(∀x F(x)))', title: '量词分配 · 蕴涵' },
+    { id: 'PC-11', key: 'theorem:*10.23', target: '(∀x (F(x)→P))↔((∃x F(x))→P)', title: '量词分配 · 存在' }
+  ];
+  PRED_EXTRA.forEach(function (spec, pi) {
+    var kind = spec.key.indexOf('pred-axiom:') === 0 ? 'pred-axiom' : 'theorem';
+    var id = spec.key.split(':')[1];
+    var cfg = kind === 'pred-axiom' ? { axiomId: id } : { theoremCode: id };
+    LEVELS.push({
+      id: spec.id,
+      chapter: 'predicate',
+      code: spec.id,
+      title: spec.title,
+      kicker: 'PREDICATE / ' + id,
+      target: spec.target,
+      brief: '',
+      hint: '',
+      teaches: [spec.title],
+      allowed: [spec.key, 'target'],
+      reward: '—',
+      note: '',
+      solution: {
+        nodes: [node('px' + pi, kind, 260, 280, cfg)],
+        edges: [edge('px' + pi, 'out', 'target', 'proof')]
+      }
+    });
+  });
+
   /* Normalize and add useful defaults. */
   LEVELS.forEach(function (lv, i) {
     lv.index = i;
@@ -507,7 +484,7 @@
         maxX = Math.max(maxX, n.x || 0);
         maxY = Math.max(maxY, n.y || 0);
       });
-      lv.targetPos = maxX ? { x: maxX + 340, y: Math.min(700, maxY) } : { x: TARGET_X, y: TARGET_Y };
+      lv.targetPos = maxX ? { x: maxX + 340, y: TARGET_Y } : { x: TARGET_X, y: TARGET_Y };
     }
     lv.world = lv.world || { w: 2200, h: 1100 };
     lv.order = i + 1;
@@ -517,4 +494,5 @@
   window.RSL.TARGET_X = TARGET_X;
   window.RSL.TARGET_Y = TARGET_Y;
 })();
+
 

@@ -26,13 +26,13 @@ async function main() {
   const idx = await js('window.RSL.APP.state.levels.findIndex(function(l){return l.code==="*2.1"})');
   console.log('load', await js('(function(){try{window.RSL.APP.loadLevel(' + idx + ');return "ok"}catch(e){return (e&&e.stack)||String(e)}})()')); await sleep(300);
   console.log('pm', await js('document.getElementById("goalFormula").textContent'), await js('document.querySelectorAll(".tile").length'));
-  await js('document.querySelector(".tile").click()'); await sleep(300);
+  await js('document.querySelector(".tile[data-key^=\\"theorem:\\"]").click()'); await sleep(300);
   const ports = await js(`(function(){var out=document.querySelector('.node[data-kind="theorem"] .port-out'),inp=document.querySelector('.node.is-target .port-in');var a=out.getBoundingClientRect(),b=inp.getBoundingClientRect();return {ox:a.left+a.width/2,oy:a.top+a.height/2,ix:b.left+b.width/2,iy:b.top+b.height/2};})()`);
   await send('Input.dispatchMouseEvent', { type: 'mousePressed', x: ports.ox, y: ports.oy, button: 'left', clickCount: 1 });
   await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: (ports.ox + ports.ix) / 2, y: (ports.oy + ports.iy) / 2, button: 'left' });
   await send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: ports.ix, y: ports.iy, button: 'left', clickCount: 1 });
   await sleep(400);
-  console.log('target', await js('document.querySelector(".node.is-target").dataset.state'));
+  console.log('target after theorem only', await js('document.querySelector(".node.is-target").dataset.state'));
   await shot('simple-pm-wired.png');
   await js('window.RSL.APP.loadLevel(4)'); await sleep(300);
   console.log('L05 tiles', await js('document.querySelectorAll(".tile").length'));
@@ -47,4 +47,5 @@ async function main() {
   ws.close();
 }
 main().catch(e => { console.error('FAIL', e); process.exitCode = 1; }).finally(async () => { await sleep(200); try { proc && proc.kill(); } catch (e) {} setTimeout(() => process.exit(process.exitCode || 0), 500); });
+
 
