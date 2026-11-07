@@ -23,6 +23,7 @@ async function main() {
   const js = async exp => { const r = await send('Runtime.evaluate', { expression: exp, returnByValue: true, awaitPromise: true }); if (r.exceptionDetails) throw new Error(r.exceptionDetails.text); return r.result.value; };
   const shot = async name => { const r = await send('Page.captureScreenshot', { format: 'png' }); fs.writeFileSync(path.join(root, 'screenshots', name), Buffer.from(r.data, 'base64')); };
   await send('Runtime.enable'); await sleep(1300);
+  await js('window.RSL.APP.stopDemo && window.RSL.APP.stopDemo()'); await sleep(250);
   console.log('level', await js('document.getElementById("levelBtn").textContent'), 'goal', await js('document.getElementById("goalFormula").textContent'));
   console.log('tiles', await js('document.querySelectorAll(".tile").length'), 'nodes', await js('document.querySelectorAll(".node").length'));
   await js('document.querySelector(".tile").click()'); await sleep(400);
@@ -44,6 +45,18 @@ async function main() {
   await js('document.getElementById("levelBtn").click()'); await sleep(300);
   console.log('level cells', await js('document.querySelectorAll(".level-cell").length'));
   console.log('locks', await js('Array.from(document.querySelectorAll(".chapter")).filter(function(c){return c.classList.contains("is-locked")||c.classList.contains("is-current");}).map(function(c){var b=c.querySelector(".level-cell");return {roman:c.querySelector(".chapter-roman").textContent,cls:c.className,first:b&&b.className,firstDisabled:b&&b.disabled};})'));
+  await js('document.getElementById("achvBtn").click()'); await sleep(250);
+  console.log('achievements', await js('({total:document.querySelectorAll(".achv").length,on:document.querySelectorAll(".achv.is-on").length})'));
+  await js('document.querySelector("[data-close]").click()'); await sleep(150);
+  await js('document.getElementById("helpBtn").click()'); await sleep(250);
+  console.log('help', await js('({cards:document.querySelectorAll(".help-card").length,credit:document.querySelector(".credit")&&document.querySelector(".credit").textContent})'));
+  await js('document.querySelector("[data-close]").click()'); await sleep(150);
+  console.log('bands', await js(`(function(){
+    var app=window.RSL.APP, L=app.state.levels, idx=function(id){return L.findIndex(function(l){return l.id===id});};
+    var base=L.filter(function(l){return l.chapterGroup==='Ⅰ'&&l.band!=='challenge'});
+    base.forEach(function(l){app.state.solved[l.id]=true;});
+    return {base:base.length,chal:app.isUnlocked(idx('CH1-31')),next:app.isUnlocked(idx('CH2-01')),nextChal:app.isUnlocked(idx('CH2-31')),baseLast:base[base.length-1].id};
+  })()`));
   ws.close();
 }
 main().catch(e => { console.error('FAIL', e); process.exitCode = 1; }).finally(async () => { await sleep(200); try { proc && proc.kill(); } catch (e) {} setTimeout(() => process.exit(process.exitCode || 0), 500); });

@@ -23,6 +23,7 @@ async function main() {
   const js = async exp => { const r = await send('Runtime.evaluate', { expression: exp, returnByValue: true, awaitPromise: true }); if (r.exceptionDetails) throw new Error(r.exceptionDetails.text); return r.result.value; };
   const shot = async name => { const r = await send('Page.captureScreenshot', { format: 'png' }); fs.writeFileSync(path.join(root, 'screenshots', name), Buffer.from(r.data, 'base64')); };
   await send('Runtime.enable'); await sleep(1400);
+  await js('window.RSL.APP.stopDemo && window.RSL.APP.stopDemo()'); await sleep(200);
   const info = await js(`(function(){
     var app=window.RSL.APP; app.state.forceUnlock=true; var list=[];
     for(var i=0;i<app.state.levels.length;i++){

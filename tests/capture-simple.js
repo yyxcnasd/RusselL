@@ -23,6 +23,8 @@ async function main() {
   const js = async exp => { const r = await send('Runtime.evaluate', { expression: exp, returnByValue: true, awaitPromise: true }); if (r.exceptionDetails) throw new Error(r.exceptionDetails.text); return r.result.value; };
   const shot = async name => { const r = await send('Page.captureScreenshot', { format: 'png' }); fs.writeFileSync(path.join(root, 'screenshots', name), Buffer.from(r.data, 'base64')); };
   await send('Runtime.enable'); await sleep(1400);
+  await shot('11-demo.png');
+  await js('window.RSL.APP.stopDemo && window.RSL.APP.stopDemo()'); await sleep(250);
   await shot('01-game.png');
   await js('document.getElementById("themeBtn").click()'); await sleep(350);
   await shot('07-dark.png');
@@ -39,6 +41,12 @@ async function main() {
   await js('document.querySelector("[data-close]").click()'); await sleep(200);
   await js('document.getElementById("levelBtn").click()'); await sleep(300);
   await shot('04-levels.png');
+  await js('document.querySelector("[data-close]").click()'); await sleep(200);
+  await js('document.getElementById("achvBtn").click()'); await sleep(300);
+  await shot('09-achievements.png');
+  await js('document.querySelector("[data-close]").click()'); await sleep(200);
+  await js('document.getElementById("helpBtn").click()'); await sleep(300);
+  await shot('10-help.png');
   await js('document.querySelector("[data-close]").click()'); await sleep(200);
   await js('window.RSL.APP.state.forceUnlock=true');
   const i = await js('window.RSL.APP.state.levels.findIndex(function(l){return l.id==="CH2-01"})');

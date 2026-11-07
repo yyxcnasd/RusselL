@@ -75,6 +75,9 @@ function shortName(label, comment) {
 
 for (const t of data) {
   if (!t.assertionForm) continue;
+  if (t.kind === 'definition') continue;
+  if (/^df/.test(t.label)) continue;
+  if (t.kind === 'syntax') continue;
   const cat = categoryOf(t);
   if (!cat) continue;
   const formula = normalize(t.formulaUnicode);
@@ -607,7 +610,7 @@ const PLANS = {
       pairs.push({ s: sApp[(i * 13 + 3) % sApp.length], t: list[(i * 29 + 7) % list.length] });
     }
     return [
-      ['direct', 8, spread(list, 8, 0)],
+      ['direct', 11, spread(list, 11, 0)],
       ['subst1', 10, spread(atoms, 10, 7)],
       ['subst2', 10, spread(atoms2, 10, 13)],
       ['detachApply', 12, spread(pairs, 12, 19)],
@@ -646,21 +649,23 @@ const PLANS = {
       if (vs.length > 1) {
         closureVariants.push({ source: s, vars: [vs[1]] });
         closureVariants.push({ source: s, vars: vs.slice(0, 2) });
+        closureVariants.push({ source: s, vars: vs.slice(0, 2).reverse() });
       }
     }
     return [
-      ['direct', 14, spread(list, 14, 0)],
-      ['closureVariant', 12, closureVariants],
+      ['direct', 11, spread(list, 11, 0)],
+      ['closureVariant', 13, closureVariants],
       ['instantiate', 11, spread(vars, 11, 7)],
-      ['replace', 11, spread(filter(list, (x) => x.opts.length > 0), 11, 23)]
+      ['replace', 13, spread(filter(list, (x) => x.opts.length > 0), 13, 23)]
     ];
   }
 };
 
 function buildChapter(chapter, list, all) {
   const plan = PLANS[chapter](list, all);
+  const starts = { prop: 10, pred: 13, eq: 13, set: 13 };
   const out = [];
-  let num = 13;
+  let num = starts[chapter];
   const usedTargets = new Set();
   for (const [type, count, sources] of plan) {
     let picked = 0;
@@ -691,6 +696,7 @@ function buildChapter(chapter, list, all) {
       if (usedTargets.has(spec.target)) continue;
       if (!validate(spec)) continue;
       usedTargets.add(spec.target);
+      spec.band = num <= 30 ? 'base' : 'challenge';
       out.push(spec);
       picked++;
       num++;

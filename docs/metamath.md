@@ -36,27 +36,28 @@ node research/parse-setmm.cjs --json   # 生成 research/setmm-data.json
 proofRefs / proofLength / dv / comment / assertionForm`。当前产物 3027 条（公理 29 / 定义 156 /
 语法构造 160 / 定理 2682），set-pred 的 10,448 个压缩证明全部解码成功。
 
-游戏内实际采用的是 `src/library.js` 里人工校对的 24 条公理/定义/定理桥：
+游戏内实际采用的是 `src/library.js` 里人工校对的 20 条公理 + 4 个定义：
 
-- 命题：`ax-1`、`ax-2`、`ax-3`；定义 `df-or`、`df-an`、`df-ex`；`dfbi2`（由 df-bi 导出的定理桥）
+- 命题：`ax-1`、`ax-2`、`ax-3`
 - 谓词：`ax-4`、`ax-5`、`ax-10`、`ax-11`；规则形态 `ax-gen` 由 `all-intro` 承担
 - 等词：`ax-6`、`ax-7`、`ax-8`、`ax-9`、`ax-12`、`ax-13`
 - 集合论：`ax-ext`、`ax-rep`、`ax-pow`、`ax-un`、`ax-reg`、`ax-inf`、`ax-ac`
+- 定义：`df-or`、`df-an`、`df-ex`、`dfbi2`；**只参与定义等价与 `replace`，不作为断言模块**
 
 命题章的 `id`、`pm2.27`、`con1`、`pm2.04`、`imim1`、`con2` 等定理目标同样取自 set.mm
 （label 与公式见 `research/setmm-data.json`）。
 
 ## 档案模块（src/archive.js）
 
-`src/archive.js` 由 `scripts/gen-levels.js` 从 `research/setmm-data.json` 生成，收录 **845 条**
-可被游戏 AST 解析的 assertion-form 条目（命题 581 / 谓词 101 / 等词 144 / 集合 19）：
+`src/archive.js` 由 `scripts/gen-levels.js` 从 `research/setmm-data.json` 生成，收录 **829 条**
+可被游戏 AST 解析的 assertion-form 条目（已排除 `df-*` 定义；命题 570 / 谓词与等词 244 / 集合 15）：
 
 - 每条含 `label / formula / kind / section / module / proofLength / source`；
 - 关卡用 `archive:<label>` 引用，模块输出该条目的公式；
-- 它们是 set.mm 的已证定理/公理/定义，**不是本游戏重证的结果**；UI 用 ARCHIVE/银色标注。
+- 它们是 set.mm 的已证定理/公理，**不是本游戏重证的结果**；UI 用 ARCHIVE/银色标注。
 
-`scripts/gen-levels.js` 还会生成 `src/levels-generated.js`：每章追加 48 关（第 13–60 关），
-共 192 关。模板包括：
+`scripts/gen-levels.js` 还会生成 `src/levels-generated.js`：每章追加 48–51 关，共 **195 关**。
+模板包括：
 
 | 模板 | 做法 |
 | --- | --- |
@@ -67,7 +68,7 @@ proofRefs / proofLength / dv / comment / assertionForm`。当前产物 3027 条�
 | 闭包 + 部分例化 | 先闭包，再消去部分量词 |
 | 分离 | 把一条 set.mm 定理作为前件代入另一条，再用 ax-mp |
 
-生成器逐关调用 `src/engine.js` 求值；任何一关失败就拒绝写出。手写的 48 关（每章前 12 关）
+生成器逐关调用 `src/engine.js` 求值；任何一关失败就拒绝写出。手写的 45 关（命题 9，其余章 12）
 保持在 `src/levels.js`。全部 240 关由 `tests/levels.test.js` 逐关校验。
 
 ## 公式与定义的处理
@@ -106,5 +107,5 @@ set.mm 里是 `¬(A→¬B)`，`∧/∨/↔/∃` 只是显示记法；`replace` �
    完整的 DV 检查；关卡只做安全实例。
 3. **wff 变元**：`ax-rep` 原式的 φ 是任意 wff，游戏里用原子 `P` 占位，属于简化。
 4. **集合论章**：以“公理即元件 + 闭包/例化”为主，不假装在游戏内重证 ZF 定理。
-5. **定义的身份**：`df-or / df-an / dfbi2 / df-ex` 是定义（`dfbi2` 为 set.mm 的导出展开式），
-   不是原始公理；调色板与注记都用“定义”标注。
+5. **定义的身份**：`df-or / df-an / dfbi2 / df-ex` 是缩写，不是对象语言的断言；不进入
+   `RSL.AXIOMS`、不进入档案、不作为关卡模块。它们只参与 `Logic.expand` 与 `replace`。

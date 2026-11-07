@@ -34,11 +34,21 @@ const indexOf = {};
 levels.forEach((lv, i) => { indexOf[lv.id] = i; });
 const axiomIds = new Set(RSL.AXIOMS.map((a) => a.id));
 
-/* 0. 公理目录：id 唯一、公式全部可解析。 */
+/* 0. 公理目录：id 唯一、公式全部可解析；定义不能混进断言/档案。 */
 if (axiomIds.size !== RSL.AXIOMS.length) fail('axioms', '公理 id 有重复');
 for (const a of RSL.AXIOMS) {
   try { L.parse(a.schema); } catch (err) { fail('axiom:' + a.id, 'schema 无法解析：' + err.message); }
+  if (/^df/.test(a.id)) fail('axioms', '定义不能作为公理模块：' + a.id);
 }
+for (const label of archiveIds) {
+  if (/^df/.test(label)) fail('archive', '定义不能进入档案：' + label);
+}
+for (const lv of levels) {
+  if ((lv.allowed || []).some((k) => /^axiom:df/.test(k))) fail(lv.id, '不能使用 axiom:df-*');
+}
+const bandCount = { base: 0, challenge: 0 };
+levels.forEach((lv) => { bandCount[lv.band] = (bandCount[lv.band] || 0) + 1; });
+if (bandCount.base !== 120 || bandCount.challenge !== 120) fail('bands', '基础/挑战应各 120 关，实际 ' + JSON.stringify(bandCount));
 
 for (const lv of levels) {
   /* 2. 目标可解析 */

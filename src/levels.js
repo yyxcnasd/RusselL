@@ -1,9 +1,9 @@
-/* 公理板 — 48 关：Metamath set.mm 的命题 / 谓词 / 等词 / 集合论。
- *
+/* 公理板 — 四章手工关：Metamath set.mm 的命题 / 谓词 / 等词 / 集合论。
+ * 定义不是断言，只由 Logic.expand 与 replace 使用。
+ * 生成的剩余关卡见 src/levels-generated.js（总共 240 关）。
  * 数据来源：assets/data/set.mm（Metamath Proof Explorer，develop，2026-11-07）。
- * 四章各 12 关，同章顺序解锁。参考电路由 tests/levels.test.js 逐关用
- * src/engine.js 实际求值；不允许引用未来的关卡（theorem:<id> 只能指向更早的 id）。
- */
+ * 每章 60 关：手工概念关 + 生成关；基础/挑战分段由 main.js 处理。
+ * 参考电路由 tests/levels.test.js 逐关用 src/engine.js 实际求值。 */
 (function () {
   'use strict';
   window.RSL = window.RSL || {};
@@ -37,7 +37,7 @@
   var LEVELS = [];
 
   /* =====================================================================
-   * Ⅰ 命题（set.mm ax-1..ax-3、df-or / df-an / dfbi2、早期定理）
+   * Ⅰ 命题（set.mm ax-1..ax-3、早期定理；∨/∧/↔ 只由定义展开）
    * ===================================================================== */
 
   LEVELS.push(level({
@@ -82,53 +82,11 @@
     }
   }));
 
-  LEVELS.push(level({
-    id: 'CH1-04', chapter: 'prop', code: 'CH1-04', title: '析取的定义', kicker: 'df-or',
-    target: '(P∨Q)↔(¬P→Q)',
-    brief: 'set.mm 没有把 ∨ 当原始符号，而是用 → 和 ¬ 定义它。',
-    hint: '取定义 df-or。',
-    teaches: ['定义不是定理', '∨ 由 → 定义'],
-    allowed: ['axiom:df-or', 'target'],
-    note: 'Metamath set.mm df-or。“定义”在 Metamath 里是一条可消去的公理。',
-  solution: {
-      nodes: [ax('d1', 260, 280, 'df-or')],
-      edges: [e('d1', 'out', 'target', 'proof')]
-    }
-  }));
+  /* 定义（df-or/df-an/df-ex/dfbi2）不是对象语言的断言，不出现在关卡里；
+     它们只参与 Logic.expand 与 replace 模块。4–9：命题定理。 */
 
   LEVELS.push(level({
-    id: 'CH1-05', chapter: 'prop', code: 'CH1-05', title: '合取的定义', kicker: 'df-an',
-    target: '(P∧Q)↔¬(P→¬Q)',
-    brief: '合取也不是原始的：P∧Q 就是“并非 P 蕴涵非 Q”。',
-    hint: '取定义 df-an。',
-    teaches: ['∧ 由 →/¬ 定义'],
-    allowed: ['axiom:df-an', 'target'],
-    note: 'Metamath set.mm df-an。',
-  solution: {
-      nodes: [ax('d2', 260, 280, 'df-an')],
-      edges: [e('d2', 'out', 'target', 'proof')]
-    }
-  }));
-
-  LEVELS.push(level({
-    id: 'CH1-06', chapter: 'prop', code: 'CH1-06', title: '等值的定义', kicker: 'dfbi2',
-    target: '(P↔Q)↔((P→Q)∧(Q→P))',
-    brief: '等值就是两个方向的蕴涵都成立。',
-    hint: '取 dfbi2（set.mm 由 df-bi 导出的定理桥）。',
-    teaches: ['↔ 由两个 → 定义'],
-    allowed: ['axiom:dfbi2', 'target'],
-    note: 'Metamath set.mm dfbi2：由 df-bi 导出的 assertion-form 定理；本作把它作为 ↔ 的桥。',
-  solution: {
-      nodes: [ax('d3', 260, 280, 'dfbi2')],
-      edges: [e('d3', 'out', 'target', 'proof')]
-    }
-  }));
-
-  /* 7–12：命题定理。7 号（同一律）手工给出；8–12 的参考电路由
-     scripts/prove.js 生成后填入（允许使用前面关卡的 theorem:<id>）。 */
-
-  LEVELS.push(level({
-    id: 'CH1-07', chapter: 'prop', code: 'CH1-07', title: '同一律', kicker: 'id',
+    id: 'CH1-04', chapter: 'prop', code: 'CH1-04', title: '同一律', kicker: 'id',
     target: 'P→P',
     brief: '用 ax-1 与 ax-2 做三次分离，把 P 推回它自己。',
     hint: '先取两条 ax-1 实例与一条 ax-2 实例；先分离出 (P→P)→(P→P)，再分离出 P→P。',
@@ -180,16 +138,16 @@
   /* 8–10：用前面关卡的结论 + 代入 + 分离/三段论拼出的定理。 */
 
   LEVELS.push(level({
-    id: 'CH1-08', chapter: 'prop', code: 'CH1-08', title: '前置同一', kicker: 'idd',
+    id: 'CH1-05', chapter: 'prop', code: 'CH1-05', title: '前置同一', kicker: 'idd',
     target: 'P→(Q→Q)',
     brief: '从同一律 P→P 出发，先把 P 换成 Q，再把 Q→Q 塞进 ax-1。',
-    hint: '引用 CH1-07（同一律），把 P 换成 Q，得到 Q→Q；再用 ax-1 把它变成 (Q→Q)→(P→(Q→Q))，最后分离。',
+    hint: '引用 CH1-04（同一律），把 P 换成 Q，得到 Q→Q；再用 ax-1 把它变成 (Q→Q)→(P→(Q→Q))，最后分离。',
     teaches: ['引用已证结论', '代入复合公式', '分离'],
-    allowed: ['atom', 'axiom:ax-1', 'theorem:CH1-07', 'subst', 'detach', 'target'],
+    allowed: ['atom', 'axiom:ax-1', 'theorem:CH1-04', 'subst', 'detach', 'target'],
     note: 'set.mm 的 idd 是 id 的直接推论。',
   solution: {
       nodes: [
-        th('t7', 60, 120, 'CH1-07'),
+        th('t7', 60, 120, 'CH1-04'),
         atom('p', 60, 380, 'P'),
         atom('q', 60, 540, 'Q'),
         subst('s1', 380, 300),
@@ -221,7 +179,7 @@
   }));
 
   LEVELS.push(level({
-    id: 'CH1-09', chapter: 'prop', code: 'CH1-09', title: '两层前件', kicker: 'ax1w',
+    id: 'CH1-06', chapter: 'prop', code: 'CH1-06', title: '两层前件', kicker: 'ax1w',
     target: 'P→(Q→(S→Q))',
     brief: '在 ax-1 的结论前面再套一层前件。',
     hint: '先用 ax-1 做出 Q→(S→Q)（先 Q:=S，再 P:=Q），再用 ax-1 给它加上前件 P。',
@@ -267,7 +225,7 @@
   }));
 
   LEVELS.push(level({
-    id: 'CH1-10', chapter: 'prop', code: 'CH1-10', title: '前件叠加', kicker: 'ax-1 + ax-2 + HS',
+    id: 'CH1-07', chapter: 'prop', code: 'CH1-07', title: '前件叠加', kicker: 'ax-1 + ax-2 + HS',
     target: '(P→Q)→((S→P)→(S→Q))',
     brief: '把 ax-1 与 ax-2 用假言三段论接起来。',
     hint: 'ax-1 给出 (P→Q)→(S→(P→Q))；ax-2 给出 (S→(P→Q))→((S→P)→(S→Q))；用 HS 串起来。',
@@ -316,7 +274,7 @@
   }));
 
   LEVELS.push(level({
-    id: 'CH1-11', chapter: 'prop', code: 'CH1-11', title: '同一位置', kicker: 'subst',
+    id: 'CH1-08', chapter: 'prop', code: 'CH1-08', title: '同一位置', kicker: 'subst',
     target: 'P→(P→P)',
     brief: '把 ax-1 图式里的 Q 也换成 P：同一个原子可以填两个位置。',
     hint: '取 ax-1，用代入模块把 Q 换成 P。',
@@ -340,19 +298,19 @@
   }));
 
   LEVELS.push(level({
-    id: 'CH1-12', chapter: 'prop', code: 'CH1-12', title: '复合同一', kicker: 'id + subst / 挑战',
+    id: 'CH1-09', chapter: 'prop', code: 'CH1-09', title: '复合同一', kicker: 'id + subst / 挑战',
     target: '(P→Q)→(P→Q)',
     brief: '同一律不只对单个原子成立：把 P 换成整个 P→Q，仍然得到它自己。',
-    hint: '引用 CH1-07（P→P），用 imp 门拼出 P→Q，再把定理里的 P 换成它。',
+    hint: '引用 CH1-04（P→P），用 imp 门拼出 P→Q，再把定理里的 P 换成它。',
     teaches: ['定理图式实例化', '复合公式作代入项', '挑战关'],
-    allowed: ['atom', 'imp', 'theorem:CH1-07', 'subst', 'target'],
+    allowed: ['atom', 'imp', 'theorem:CH1-04', 'subst', 'target'],
     note: 'id 定理的复合实例；这是本章的挑战关。',
   solution: {
       nodes: [
         atom('p', 60, 100, 'P'),
         atom('q', 60, 260, 'Q'),
         n('pq', 'imp', 340, 160),
-        th('t7', 60, 440, 'CH1-07'),
+        th('t7', 60, 440, 'CH1-04'),
         subst('s1', 620, 300)
       ],
       edges: [
@@ -367,7 +325,7 @@
   }));
 
   /* =====================================================================
-   * Ⅱ 谓词（set.mm ax-4 / ax-5 / ax-10 / ax-11、df-ex）
+   * Ⅱ 谓词（set.mm ax-4 / ax-5 / ax-10 / ax-11、全称推广与例化）
    * ===================================================================== */
   LEVELS.push(level({
     id: 'CH2-01', chapter: 'pred', code: 'CH2-01', title: '量化蕴涵', kicker: 'ax-4',
@@ -528,39 +486,41 @@
   }));
 
   LEVELS.push(level({
-    id: 'CH2-09', chapter: 'pred', code: 'CH2-09', title: '存在的定义', kicker: 'df-ex',
-    target: '(∃x P)↔(¬∀x ¬P)',
-    brief: 'set.mm 把 ∃ 定义为 ¬∀¬。',
-    hint: '取定义 df-ex。',
-    teaches: ['∃ 是定义', '量词否定'],
-    allowed: ['axiom:df-ex', 'target'],
-    note: 'Metamath set.mm df-ex。',
+    id: 'CH2-09', chapter: 'pred', code: 'CH2-09', title: '闭包公理', kicker: 'ax-1 + ∀I',
+    target: '∀x(P→(Q→P))',
+    brief: '把 ax-1 整条收进一个全称量词里。',
+    hint: '取 ax-1，接一个 ∀I(x)。',
+    teaches: ['全称推广', '闭公式'],
+    allowed: ['axiom:ax-1', 'all-intro', 'target'],
+    note: 'ax-gen 的规则形态作用在 ax-1 上。',
   solution: {
-      nodes: [ax('dex', 260, 280, 'df-ex')],
-      edges: [e('dex', 'out', 'target', 'proof')]
+      nodes: [
+        ax('a1', 60, 300, 'ax-1'),
+        alli('i1', 420, 300, 'x')
+      ],
+      edges: [
+        e('a1', 'out', 'i1', 'assertion'),
+        e('i1', 'out', 'target', 'proof')
+      ]
     }
   }));
 
   LEVELS.push(level({
-    id: 'CH2-10', chapter: 'pred', code: 'CH2-10', title: '存在的定义 · 实例', kicker: 'df-ex + subst',
-    target: '(∃x F(x))↔(¬∀x ¬F(x))',
-    brief: '把 df-ex 的 P 换成 F(x)。',
-    hint: '把 P 换成 F(x)。',
-    teaches: ['存在定义的实例'],
-    allowed: ['atom', 'pred', 'axiom:df-ex', 'subst', 'target'],
-    note: 'df-ex 的实例。',
+    id: 'CH2-10', chapter: 'pred', code: 'CH2-10', title: '闭包同一律', kicker: 'id + ∀I',
+    target: '∀x(P→P)',
+    brief: '同一律也可以整条闭包。',
+    hint: '引用 CH1-04（同一律），接 ∀I(x)。',
+    teaches: ['已证结论闭包', '量词'],
+    allowed: ['theorem:CH1-04', 'all-intro', 'target'],
+    note: 'set.mm 里将任意定理全称推广（ax-gen）的常见用法。',
   solution: {
       nodes: [
-        ax('dex', 60, 120, 'df-ex'),
-        atom('p', 60, 380, 'P'),
-        pred('fx', 60, 540, 'F', 'x'),
-        subst('s1', 380, 300)
+        th('t4', 60, 300, 'CH1-04'),
+        alli('i1', 420, 300, 'x')
       ],
       edges: [
-        e('dex', 'out', 's1', 'assertion'),
-        e('p', 'out', 's1', 'atom'),
-        e('fx', 'out', 's1', 'formula'),
-        e('s1', 'out', 'target', 'proof')
+        e('t4', 'out', 'i1', 'assertion'),
+        e('i1', 'out', 'target', 'proof')
       ]
     }
   }));
@@ -1069,6 +1029,7 @@
   LEVELS.forEach(function (lv, i) {
     lv.index = i;
     lv.order = i + 1;
+    lv.band = lv.band || 'base';
     lv.allowed = lv.allowed || [];
     lv.target = lv.target.trim();
     if (!lv.targetPos) {

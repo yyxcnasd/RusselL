@@ -8,6 +8,11 @@
     level: null,
     index: 0,
     solved: {},
+    bestLen: {},
+    usedKinds: {},
+    achievements: {},
+    demo: false,
+    demoTimer: null,
     board: null,
     results: null,
     selectedNode: null,
@@ -37,13 +42,21 @@
       var p = JSON.parse(localStorage.getItem('axiom-simple:v2') || '{}');
       state.solved = {};
       (p.solved || []).forEach(function (id) { state.solved[id] = true; });
+      state.bestLen = p.bestLen || {};
+      state.usedKinds = {};
+      (p.usedKinds || []).forEach(function (k) { state.usedKinds[k] = true; });
+      state.achievements = {};
+      (p.achievements || []).forEach(function (k) { state.achievements[k] = true; });
       state.lastId = p.lastId || null;
-    } catch (e) { state.solved = {}; }
+    } catch (e) { state.solved = {}; state.bestLen = {}; state.usedKinds = {}; state.achievements = {}; }
   }
   function saveProgress() {
     try {
       localStorage.setItem('axiom-simple:v2', JSON.stringify({
         solved: Object.keys(state.solved),
+        bestLen: state.bestLen,
+        usedKinds: Object.keys(state.usedKinds),
+        achievements: Object.keys(state.achievements),
         lastId: state.level ? state.level.id : state.lastId
       }));
     } catch (e) {}
@@ -113,6 +126,80 @@
     var solved = state.levels.filter(function (lv) { return state.solved[lv.id]; }).length;
     if (els.progressFill) els.progressFill.style.width = (solved / n * 100) + '%';
   }
+  function unlockAchv(id) {
+    if (state.achievements[id]) return false;
+    var a = ACHV_BY_ID[id];
+    if (!a) return false;
+    state.achievements[id] = true;
+    sfx('win');
+    toast(a.icon + ' ' + a.name);
+    saveProgress();
+    return true;
+  }
+
+  function chapterLevels(key) {
+    return state.levels.filter(function (lv) { return lv.chapter === key; });
+  }
+
+  function checkAchievements(level, len, kinds) {
+    if (Object.keys(state.solved).length >= 1) unlockAchv('first');
+    CHAPTERS.forEach(function (c) {
+      var group = chapterLevels(c.key);
+      var base = group.filter(function (lv) { return lv.band !== 'challenge'; });
+      var chal = group.filter(function (lv) { return lv.band === 'challenge'; });
+      if (base.length && base.every(function (lv) { return state.solved[lv.id]; })) unlockAchv('base-' + c.key);
+      if (chal.length && chal.every(function (lv) { return state.solved[lv.id]; })) unlockAchv('chal-' + c.key);
+    });
+    if (kinds.subst) unlockAchv('rule-subst');
+    if (kinds.replace) unlockAchv('rule-replace');
+    if (kinds.detach) unlockAchv('rule-detach');
+    if (kinds['all-intro'] || kinds['all-elim'] || kinds.syllogism) unlockAchv('rule-quant');
+    if (state.bestLen[level.id] && state.bestLen[level.id] <= ((level.solution && level.solution.nodes.length) || 1)) unlockAchv('efficient');
+    if (state.levels.length && state.levels.every(function (lv) { return state.solved[lv.id]; })) unlockAchv('all');
+  }
+
+  function openAchievements() {
+    sfx('click');
+    els.overlay.hidden = false;
+    var got = ACHIEVEMENTS.filter(function (a) { return state.achievements[a.id]; }).length;
+    var cards = ACHIEVEMENTS.map(function (a) {
+      var on = !!state.achievements[a.id];
+      return '<div class="achv' + (on ? ' is-on' : '') + '" title="' + esc(a.name) + '">' +
+        '<span class="achv-icon">' + a.icon + '</span>' +
+        '<span class="achv-name">' + esc(a.name) + '</span>' +
+      '</div>';
+    }).join('');
+    els.sheet.innerHTML =
+      '<button class="sheet-x" data-close aria-label="关闭"><svg class="icon"><use href="#i-x-mark"></use></svg></button>' +
+      '<div class="achv-head"><span class="achv-count">' + got + ' / ' + ACHIEVEMENTS.length + '</span><span class="achv-bar"><i style="width:' + (got / ACHIEVEMENTS.length * 100) + '%"></i></span></div>' +
+      '<div class="achv-grid">' + cards + '</div>';
+    els.sheet.scrollTop = 0;
+  }
+
+  /* 首次出现某个规则时，用无文字演示回放参考电路；点一下提前结束。 */
+  function stopDemo() {
+    if (!state.demo) return;
+    state.demo = false;
+    clearTimeout(state.demoTimer);
+    document.querySelector('.app').classList.remove('is-demo');
+    if (!state.level) return;
+    var target = { id: 'target', kind: 'target', x: state.level.targetPos.x, y: state.level.targetPos.y, target: state.level.target, config: {} };
+    state.board.setData([target], []);
+    refresh();
+  }
+
+  function startDemo(level) {
+    if (!level.demo || !level.solution || !level.solution.nodes.length) return;
+    var target = { id: 'target', kind: 'target', x: level.targetPos.x, y: level.targetPos.y, target: level.target, config: {} };
+    var nodes = [target].concat(JSON.parse(JSON.stringify(level.solution.nodes)));
+    var edges = level.solution.edges.map(function (e, i) { return { id: 'e' + i, from: e.from, to: e.to }; });
+    state.demo = true;
+    document.querySelector('.app').classList.add('is-demo');
+    state.board.setData(nodes, edges);
+    refresh();
+    state.demoTimer = setTimeout(stopDemo, 3200);
+  }
+
   function confetti() {
     var host = els.sheet.querySelector('.win');
     if (!host) return;
@@ -134,11 +221,32 @@
   }
 
   var CHAPTERS = [
-    { id: 'Ⅰ', title: '命题' },
-    { id: 'Ⅱ', title: '谓词' },
-    { id: 'Ⅲ', title: '等词' },
-    { id: 'Ⅳ', title: '集合' }
+    { id: 'Ⅰ', key: 'prop', title: '命题' },
+    { id: 'Ⅱ', key: 'pred', title: '谓词' },
+    { id: 'Ⅲ', key: 'eq', title: '等词' },
+    { id: 'Ⅳ', key: 'set', title: '集合' }
   ];
+
+  /* 成就：图标 + 极短名称；详细条件不写在界面里。 */
+  var ACHIEVEMENTS = [
+    { id: 'first', icon: '▶', name: '通电' },
+    { id: 'base-prop', icon: 'Ⅰ', name: '命题基础' },
+    { id: 'base-pred', icon: 'Ⅱ', name: '谓词基础' },
+    { id: 'base-eq', icon: 'Ⅲ', name: '等词基础' },
+    { id: 'base-set', icon: 'Ⅳ', name: '集合基础' },
+    { id: 'chal-prop', icon: '★', name: '命题挑战' },
+    { id: 'chal-pred', icon: '★', name: '谓词挑战' },
+    { id: 'chal-eq', icon: '★', name: '等词挑战' },
+    { id: 'chal-set', icon: '★', name: '集合挑战' },
+    { id: 'rule-subst', icon: 'S', name: '代入' },
+    { id: 'rule-replace', icon: 'D', name: '置换' },
+    { id: 'rule-detach', icon: 'M', name: '分离' },
+    { id: 'rule-quant', icon: '∀', name: '量词' },
+    { id: 'efficient', icon: '⚡', name: '短证明' },
+    { id: 'all', icon: '⊢', name: '全通关' }
+  ];
+  var ACHV_BY_ID = {};
+  ACHIEVEMENTS.forEach(function (a) { ACHV_BY_ID[a.id] = a; });
   function chapterOf(lv) {
     if (lv.chapter === 'pred') return 'Ⅱ';
     if (lv.chapter === 'eq') return 'Ⅲ';
@@ -151,6 +259,7 @@
     var list = (window.RSL.LEVELS || []).slice();
     list.forEach(function (lv, i) {
       lv.chapter = lv.chapter || 'prop';
+      lv.band = lv.band || 'base';
       lv.targetPos = lv.targetPos || { x: 650, y: 300 };
       lv.allowed = lv.allowed || [];
       lv._ord = i;
@@ -159,14 +268,36 @@
     list.sort(function (a, b) {
       return (CHAPTER_RANK[a.chapterGroup] - CHAPTER_RANK[b.chapterGroup]) || (a._ord - b._ord);
     });
-    var prevChallenge = null;
+    var prevBaseLast = null;
     CHAPTERS.forEach(function (c) {
       var group = list.filter(function (lv) { return lv.chapterGroup === c.id; });
-      group.forEach(function (lv, i) {
-        lv.requires = i === 0 ? (prevChallenge ? [prevChallenge] : []) : [group[i - 1].id];
-        lv.challenge = i === group.length - 1;
+      var base = group.filter(function (lv) { return lv.band !== 'challenge'; });
+      var chal = group.filter(function (lv) { return lv.band === 'challenge'; });
+      base.forEach(function (lv, i) {
+        lv.requires = i === 0 ? (prevBaseLast ? [prevBaseLast] : []) : [base[i - 1].id];
+        lv.challenge = false;
       });
-      if (group.length) prevChallenge = group[group.length - 1].id;
+      chal.forEach(function (lv, i) {
+        lv.requires = i === 0 ? (base.length ? [base[base.length - 1].id] : (prevBaseLast ? [prevBaseLast] : [])) : [chal[i - 1].id];
+        lv.challenge = i === chal.length - 1;
+      });
+      if (base.length) prevBaseLast = base[base.length - 1].id;
+    });
+    /* 首次出现某个规则/档案/已证结论时，给一关自动演示（无文字）。 */
+    var seen = {};
+    list.forEach(function (lv, i) {
+      var canDemo = lv.solution && lv.solution.nodes.length <= 14;
+      if (!canDemo) return;
+      if (i === 0) lv.demo = true;
+      (lv.allowed || []).forEach(function (key) {
+        var tag = null;
+        if (key === 'subst' || key === 'replace' || key === 'detach' ||
+            key === 'all-intro' || key === 'all-elim' || key === 'exists-intro' ||
+            key === 'exists-elim' || key === 'syllogism') tag = 'r:' + key;
+        else if (key.indexOf('archive:') === 0) tag = 'archive';
+        else if (key.indexOf('theorem:') === 0) tag = 'theorem';
+        if (tag && !seen[tag]) { seen[tag] = true; lv.demo = true; }
+      });
     });
     state.levels = list;
   }
@@ -294,6 +425,9 @@
   function loadLevel(index) {
     if (!isUnlocked(index)) { toast('先完成前置关卡'); return; }
     closeOverlay();
+    state.demo = false;
+    clearTimeout(state.demoTimer);
+    document.querySelector('.app').classList.remove('is-demo');
     state.index = index;
     state.level = state.levels[index];
     state.selectedNode = null;
@@ -326,6 +460,7 @@
     }
     els.coach.hidden = !(index === 0 && state.board.items.length <= 1);
     saveProgress();
+    if (state.level.demo) startDemo(state.level);
   }
 
   function buildTray() {
@@ -430,7 +565,16 @@
   function win() {
     var lv = state.level;
     state.solved[lv.id] = true;
+    var items = (state.board.items || []).filter(function (n) { return n.kind !== 'target'; });
+    var len = items.length;
+    var kinds = {};
+    items.forEach(function (n) {
+      state.usedKinds[n.kind] = true;
+      kinds[n.kind] = true;
+    });
+    if (!state.bestLen[lv.id] || len < state.bestLen[lv.id]) state.bestLen[lv.id] = len;
     saveProgress();
+    checkAchievements(lv, len, kinds);
     sfx('win');
     updateProgress();
     els.levelBtn.classList.remove('just-solved');
@@ -438,12 +582,18 @@
     els.levelBtn.classList.add('just-solved');
     setTimeout(function () { els.levelBtn.classList.remove('just-solved'); }, 520);
     var isLast = state.index >= state.levels.length - 1;
+    var ref = (lv.solution && lv.solution.nodes.length) || len;
+    var eff = Math.max(1, Math.min(100, Math.round(ref / Math.max(1, len) * 100)));
     els.overlay.hidden = false;
     els.sheet.innerHTML =
       '<button class="sheet-x" data-close aria-label="关闭"><svg class="icon"><use href="#i-x-mark"></use></svg></button>' +
       '<div class="win">' +
         '<div class="win-check">✓</div>' +
         '<div class="win-formula formula">' + goalHTML(lv.target) + '</div>' +
+        '<div class="win-len" title="推理长度：模块数 / 参考电路模块数">' +
+          '<span class="metric-glyph">▦</span><b>' + len + '</b><span class="metric-ref">/ ' + ref + '</span>' +
+          '<span class="metric-bar"><i style="width:' + eff + '%"></i></span>' +
+        '</div>' +
         '<div class="win-count">' + Object.keys(state.solved).length + ' / ' + state.levels.length + '</div>' +
         '<button class="primary next-btn" data-next="1">' + (isLast ? '选关' : '下一关') + '</button>' +
       '</div>';
@@ -458,27 +608,53 @@
     state.levels.forEach(function (lv, i) {
       (buckets[chapterOf(lv)] || buckets['Ⅰ']).push({ lv: lv, i: i });
     });
+    function cellsFor(items) {
+      return items.map(function (x) {
+        var unlocked = isUnlocked(x.i);
+        var ref = x.lv.solution && x.lv.solution.nodes ? x.lv.solution.nodes.length : 1;
+        var best = state.bestLen[x.lv.id];
+        var eff = best ? Math.max(8, Math.min(100, Math.round(ref / best * 100))) : 0;
+        var style = best ? ' style="--eff:' + eff + '%;--effpx:' + Math.round(34 * eff / 100) + 'px"' : '';
+        var cls = 'level-cell' + (x.i === state.index ? ' is-current' : '') +
+          (state.solved[x.lv.id] ? ' is-solved' : '') +
+          (x.lv.challenge ? ' is-challenge' : '') +
+          (x.lv.band === 'challenge' ? ' is-challenge-band' : '') +
+          (unlocked ? '' : ' is-locked');
+        return '<button class="' + cls + '" data-level="' + x.i + '" aria-label="第 ' + (x.i + 1) + ' 关' + (unlocked ? '' : '，未解锁') + '"' + (unlocked ? '' : ' disabled') + style + '>' +
+          String(x.i + 1).padStart(2, '0') +
+          '<i class="eff" aria-hidden="true"></i>' +
+          '</button>';
+      }).join('');
+    }
+    function bandHTML(items, kind) {
+      if (!items.length) return '';
+      var solved = items.filter(function (x) { return state.solved[x.lv.id]; }).length;
+      var firstLocked = !isUnlocked(items[0].i);
+      var glyph = kind === 'challenge' ? '★' : '◆';
+      return '<div class="band ' + kind + (firstLocked ? ' is-locked' : '') + '">' +
+        '<div class="band-head" title="' + (kind === 'challenge' ? '挑战' : '基础') + '">' +
+          '<span class="band-glyph">' + glyph + '</span>' +
+          '<span class="band-progress" aria-hidden="true"><i style="width:' + (solved / items.length * 100) + '%"></i></span>' +
+        '</div>' +
+        '<div class="levels">' + cellsFor(items) + '</div>' +
+      '</div>';
+    }
     var html = CHAPTERS.map(function (c) {
       var items = buckets[c.id] || [];
       if (!items.length) return '';
       var solved = items.filter(function (x) { return state.solved[x.lv.id]; }).length;
       var isCurrent = items.some(function (x) { return x.i === state.index; });
+      var base = items.filter(function (x) { return x.lv.band !== 'challenge'; });
+      var chal = items.filter(function (x) { return x.lv.band === 'challenge'; });
       var chapterLocked = !isUnlocked(items[0].i);
-      var cells = items.map(function (x) {
-        var unlocked = isUnlocked(x.i);
-        var cls = 'level-cell' + (x.i === state.index ? ' is-current' : '') +
-          (state.solved[x.lv.id] ? ' is-solved' : '') +
-          (x.lv.challenge ? ' is-challenge' : '') +
-          (unlocked ? '' : ' is-locked');
-        return '<button class="' + cls + '" data-level="' + x.i + '" aria-label="第 ' + (x.i + 1) + ' 关' + (unlocked ? '' : '，未解锁') + '"' + (unlocked ? '' : ' disabled') + '>' + String(x.i + 1).padStart(2, '0') + '</button>';
-      }).join('');
       return '<section class="chapter' + (isCurrent ? ' is-current' : '') + (chapterLocked ? ' is-locked' : '') + '">' +
         '<div class="chapter-head">' +
           '<span class="chapter-roman">' + c.id + '</span>' +
           '<span class="chapter-title">' + c.title + '</span>' +
           '<span class="chapter-progress" aria-hidden="true"><i style="width:' + (solved / items.length * 100) + '%"></i></span>' +
         '</div>' +
-        '<div class="levels">' + cells + '</div>' +
+        bandHTML(base, 'base') +
+        bandHTML(chal, 'challenge') +
       '</section>';
     }).join('');
     els.sheet.innerHTML = '<button class="sheet-x" data-close aria-label="关闭"><svg class="icon"><use href="#i-x-mark"></use></svg></button><div class="chapters">' + html + '</div>';
@@ -491,11 +667,17 @@
     els.sheet.innerHTML =
       '<button class="sheet-x" data-close aria-label="关闭"><svg class="icon"><use href="#i-x-mark"></use></svg></button>' +
       '<div class="help">' +
-        '<div><span class="help-icon">+</span><b>放模块</b></div>' +
-        '<div><span class="help-icon">→</span><b>拖线</b></div>' +
-        '<div><span class="help-icon"><svg class="icon"><use href="#i-play"></use></svg></span><b>校验</b></div>' +
+        '<div class="help-row"><span class="help-icon">+</span><span class="help-arrow">→</span><span class="help-icon">◉</span></div>' +
+        '<div class="help-row"><span class="help-icon">◉</span><span class="help-arrow">→</span><span class="help-icon">⊢</span></div>' +
+        '<div class="help-row"><span class="help-icon">▷</span></div>' +
+        '<div class="help-cards">' +
+          '<div class="help-card"><b>S</b><span>P · B → A</span></div>' +
+          '<div class="help-card"><b>M</b><span>A · A→B → B</span></div>' +
+          '<div class="help-card"><b>D</b><span>A↔B ⇄ ¬A∨B</span></div>' +
+          '<div class="help-card"><b>∀</b><span>A(x) ⇄ ∀x A</span></div>' +
+        '</div>' +
       '</div>' +
-      '<p class="credit">音乐：YannZ · CC BY 4.0</p>';
+      '<p class="credit">Design by yyxcnasd</p>';
   }
 
   function closeOverlay() {
@@ -514,6 +696,7 @@
     els.levelBtn.addEventListener('click', openLevels);
     els.checkBtn.addEventListener('click', check);
     els.helpBtn.addEventListener('click', openHelp);
+    els.achvBtn.addEventListener('click', openAchievements);
     els.themeBtn.addEventListener('click', function () {
       state.theme = state.theme === 'dark' ? 'light' : 'dark';
       applyTheme();
@@ -528,7 +711,10 @@
       else if (bgm) bgm.pause();
       sfx('click');
     });
-    document.addEventListener('pointerdown', function () { ensureAudio(); });
+    document.addEventListener('pointerdown', function () {
+      ensureAudio();
+      if (state.demo) stopDemo();
+    });
     els.tray.addEventListener('click', function (e) {
       var tile = e.target.closest('.tile');
       if (tile) addPart(tile.dataset.key);
@@ -576,7 +762,7 @@
   }
 
   function init() {
-    ['levelBtn', 'goal', 'goalFormula', 'themeBtn', 'soundBtn', 'helpBtn', 'checkBtn', 'progressFill', 'board', 'boardWorld', 'wireLayer', 'nodeLayer', 'tray', 'popover', 'toast', 'overlay', 'sheet', 'coach'].forEach(function (id) { els[id] = $(id); });
+    ['levelBtn', 'goal', 'goalFormula', 'themeBtn', 'soundBtn', 'helpBtn', 'achvBtn', 'checkBtn', 'progressFill', 'board', 'boardWorld', 'wireLayer', 'nodeLayer', 'tray', 'popover', 'toast', 'overlay', 'sheet', 'coach'].forEach(function (id) { els[id] = $(id); });
     if (!L) { document.body.innerHTML = '<div class="fatal">逻辑引擎未加载</div>'; return; }
     window.RSL.formatFormula = function (ast) { return formulaHTML(ast); };
     loadProgress();
@@ -613,7 +799,7 @@
     }
     loadLevel(start);
     updateProgress();
-    window.RSL.APP = { state: state, loadLevel: loadLevel, refresh: refresh, isUnlocked: isUnlocked };
+    window.RSL.APP = { state: state, loadLevel: loadLevel, refresh: refresh, isUnlocked: isUnlocked, stopDemo: stopDemo, openAchievements: openAchievements };
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

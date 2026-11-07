@@ -4,9 +4,10 @@
  * develop branch, downloaded 2026-11-07. Public domain (CC0).
  *
  * 本文件只放“可以焊到板上的原始材料”和调色板条目；关卡在 src/levels.js。
- * 约定：所有公理/定义都用 `RSL.AXIOMS` + `axiom:<id>` 模块，不再区分
- *      predicate/theorem 两套数据源。游戏内已证明的关卡结论用
- *      `theorem:<levelId>` 引用，由 src/engine.js 从 RSL.LEVELS 解析。
+ * 公理用 `RSL.AXIOMS` + `axiom:<id>` 模块；定义（df-or/df-an/df-ex/dfbi2）
+ * 只是缩写，放在 RSL.DEFINITIONS，由 Logic.expand / replace 模块处理，不能作为
+ * 断言模块接进目标。游戏内已证明的关卡结论用 `theorem:<levelId>`，set.mm 档案
+ * 用 `archive:<label>`（见 src/archive.js）。
  */
 (function () {
   'use strict';
@@ -34,32 +35,6 @@
       symbol: 'A3', schema: '(¬P→¬Q)→(Q→P)',
       gloss: '换质位：如果非 P 蕴涵非 Q，那么 Q 蕴涵 P。',
       note: 'Metamath set.mm ax-3。'
-    },
-
-    /* 定义 */
-    {
-      id: 'df-or', code: 'df-or', type: 'definition', section: 'prop', name: '析取', en: 'Disjunction',
-      symbol: 'Df∨', schema: '(P∨Q)↔(¬P→Q)',
-      gloss: '析取由蕴涵定义：P∨Q 就是“非 P 蕴涵 Q”。',
-      note: 'Metamath set.mm df-or（定义，不是定理）。'
-    },
-    {
-      id: 'df-an', code: 'df-an', type: 'definition', section: 'prop', name: '合取', en: 'Conjunction',
-      symbol: 'Df∧', schema: '(P∧Q)↔¬(P→¬Q)',
-      gloss: '合取由蕴涵与否定定义：P∧Q 就是“并非 P 蕴涵非 Q”。',
-      note: 'Metamath set.mm df-an（定义）。'
-    },
-    {
-      id: 'dfbi2', code: 'dfbi2', type: 'theorem', section: 'prop', name: '等值桥', en: 'Biconditional bridge',
-      symbol: 'Df↔', schema: '(P↔Q)↔((P→Q)∧(Q→P))',
-      gloss: '等值就是两个方向的蕴涵同时成立。',
-      note: 'Metamath set.mm dfbi2：由原始定义 df-bi 导出的定理；本作把它作为 ↔ 的定义桥。'
-    },
-    {
-      id: 'df-ex', code: 'df-ex', type: 'definition', section: 'pred', name: '存在量词', en: 'Existential quantifier',
-      symbol: 'Df∃', schema: '(∃x P)↔(¬∀x ¬P)',
-      gloss: '存在就是“并非所有都非”：∃x P 定义为 ¬∀x¬P。',
-      note: 'Metamath set.mm df-ex（定义）。'
     },
 
     /* 谓词演算（Tarski S2） */
@@ -171,7 +146,34 @@
     }
   ];
 
-  var DEFINITIONS = AXIOMS.filter(function (a) { return a.type === 'definition'; });
+  /* 定义不是对象语言的断言，不能作为公理模块接进目标。
+     它们只由 Logic.expand（定义等价）与 replace 模块（双向置换）使用。 */
+  var DEFINITIONS = [
+    {
+      id: 'df-or', code: 'df-or', name: '析取', en: 'Disjunction',
+      schema: '(P∨Q)↔(¬P→Q)',
+      gloss: 'P∨Q 是 ¬P→Q 的缩写。',
+      note: 'Metamath set.mm df-or。'
+    },
+    {
+      id: 'df-an', code: 'df-an', name: '合取', en: 'Conjunction',
+      schema: '(P∧Q)↔¬(P→¬Q)',
+      gloss: 'P∧Q 是 ¬(P→¬Q) 的缩写。',
+      note: 'Metamath set.mm df-an。'
+    },
+    {
+      id: 'df-ex', code: 'df-ex', name: '存在量词', en: 'Existential quantifier',
+      schema: '(∃x P)↔(¬∀x ¬P)',
+      gloss: '∃x P 是 ¬∀x¬P 的缩写。',
+      note: 'Metamath set.mm df-ex。'
+    },
+    {
+      id: 'dfbi2', code: 'dfbi2', name: '等值桥', en: 'Biconditional bridge',
+      schema: '(P↔Q)↔((P→Q)∧(Q→P))',
+      gloss: '↔ 的展开桥；set.mm 里由 df-bi 导出。',
+      note: 'Metamath set.mm dfbi2（定理桥，用于定义置换，不作为断言模块）。'
+    }
+  ];
 
   /* ------------------------------------------------------------------ *
    * 调色板：key 即关卡 allowed 里写的字符串
