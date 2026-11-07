@@ -13,6 +13,7 @@
     usedArchive: {},
     usedTheorem: {},
     cleanWins: {},
+    circuits: {},
     deletedThisLevel: false,
     achievements: {},
     coachSeen: {},
@@ -57,12 +58,13 @@
       (p.usedTheorem || []).forEach(function (k) { state.usedTheorem[k] = true; });
       state.cleanWins = {};
       (p.cleanWins || []).forEach(function (k) { state.cleanWins[k] = true; });
+      state.circuits = p.circuits && typeof p.circuits === 'object' ? p.circuits : {};
       state.achievements = {};
       (p.achievements || []).forEach(function (k) { state.achievements[k] = true; });
       state.coachSeen = {};
       (p.coachSeen || []).forEach(function (k) { state.coachSeen[k] = true; });
       state.lastId = p.lastId || null;
-    } catch (e) { state.solved = {}; state.bestLen = {}; state.usedKinds = {}; state.usedArchive = {}; state.usedTheorem = {}; state.cleanWins = {}; state.achievements = {}; }
+    } catch (e) { state.solved = {}; state.bestLen = {}; state.usedKinds = {}; state.usedArchive = {}; state.usedTheorem = {}; state.cleanWins = {}; state.circuits = {}; state.achievements = {}; }
   }
   function progressPayload() {
     return {
@@ -73,6 +75,7 @@
       usedArchive: Object.keys(state.usedArchive),
       usedTheorem: Object.keys(state.usedTheorem),
       cleanWins: Object.keys(state.cleanWins),
+      circuits: state.circuits,
       achievements: Object.keys(state.achievements),
       coachSeen: Object.keys(state.coachSeen),
       lastId: state.level ? state.level.id : state.lastId
@@ -86,6 +89,15 @@
     if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('bad save');
     function strings(v) { return Array.isArray(v) ? v.filter(function (x) { return typeof x === 'string'; }) : []; }
     function object(v) { return v && typeof v === 'object' && !Array.isArray(v) ? v : {}; }
+    function circuits(v) {
+      var src = object(v), out = {};
+      Object.keys(src).forEach(function (id) {
+        var c = src[id];
+        if (!c || !Array.isArray(c.nodes) || !Array.isArray(c.edges)) return;
+        out[id] = { nodes: c.nodes.slice(0, 200), edges: c.edges.slice(0, 400) };
+      });
+      return out;
+    }
     return {
       version: 2,
       solved: strings(raw.solved),
@@ -94,6 +106,7 @@
       usedArchive: strings(raw.usedArchive),
       usedTheorem: strings(raw.usedTheorem),
       cleanWins: strings(raw.cleanWins),
+      circuits: circuits(raw.circuits),
       achievements: strings(raw.achievements),
       coachSeen: strings(raw.coachSeen),
       lastId: typeof raw.lastId === 'string' ? raw.lastId : null
@@ -224,11 +237,13 @@
     if (state.usedKinds.detach) unlockAchv('rule-detach');
     if (state.usedKinds['all-intro'] || state.usedKinds['all-elim'] || state.usedKinds.syllogism) unlockAchv('rule-quant');
     var efficient = state.levels.some(function (lv) {
+      if (lv.band !== 'challenge') return false;
       var ref = lv.solution && lv.solution.nodes ? lv.solution.nodes.length : 0;
       return ref && state.bestLen[lv.id] && state.bestLen[lv.id] <= ref;
     });
     if (efficient) unlockAchv('efficient');
-    if (Object.keys(state.cleanWins).length >= 1) unlockAchv('clean-one');
+    if (solved >= 3) unlockAchv('three');
+    if (Object.keys(state.cleanWins).length >= 3) unlockAchv('clean-three');
     ACHIEVEMENTS.forEach(function (a) {
       if (!a.metric) return;
       var best = state.bestLen[a.metric.level];
@@ -270,7 +285,6 @@
         '</div>' +
         '<h2>' + esc(a.name) + '</h2>' +
         '<p>' + esc(a.desc) + '</p>' +
-        '<span class="achv-status">' + (on ? '已解锁' : '未解锁') + '</span>' +
       '</div>';
     els.sheet.scrollTop = 0;
   }
@@ -345,10 +359,10 @@
     { id: 'rule-replace', symbol: 'i-arrows-right-left', name: '置换', desc: '第一次使用 D 定义置换模块。' },
     { id: 'rule-detach', symbol: 'i-link', name: '分离', desc: '第一次使用 M 分离模块。' },
     { id: 'rule-quant', symbol: 'i-globe-alt', name: '量词', desc: '第一次使用全称、存在或三段论规则。' },
-    { id: 'efficient', symbol: 'i-bolt', name: '短证明', desc: '任一关的模块数不超过参考电路。' },
+    { id: 'efficient', symbol: 'i-bolt', name: '短证明', desc: '在任一挑战关用不超过参考电路的模块数通关。' },
     { id: 'all', symbol: 'i-check-badge', name: '全通关', desc: '打通全部 240 关。' },
-    { id: 'clean-one', symbol: 'i-check-badge', name: '一次成功', desc: '不删除模块完成一关。' },
-    { id: 'one-step', symbol: 'i-bolt', name: '一步到位', desc: '第一关只用 1 个模块通关。', metric: { level: 'CH1-01', max: 1 } },
+    { id: 'clean-three', symbol: 'i-check-badge', name: '干净三关', desc: '不删除模块完成 3 关。' },
+    { id: 'three', symbol: 'i-book-open', name: '三关', desc: '累计通过 3 关。' },
     { id: 'prefix-clean', symbol: 'i-arrow-path', name: '前置同一', desc: '前置同一关用不超过 10 个模块通关。', metric: { level: 'CH1-08', max: 10 } },
     { id: 'hs-clean', symbol: 'i-link', name: '前件叠加', desc: '前件叠加关用不超过 13 个模块通关。', metric: { level: 'CH1-10', max: 13 } },
     { id: 'compose-clean', symbol: 'i-squares-2x2', name: '复合同一', desc: '复合同一关用不超过 5 个模块通关。', metric: { level: 'CH1-12', max: 5 } }
@@ -538,7 +552,15 @@
       x: tx, y: ty,
       target: state.level.target, config: {}
     };
-    state.board.setData([target], []);
+    var saved = state.circuits[state.level.id];
+    var nodes = [target], edges = [];
+    if (saved && Array.isArray(saved.nodes) && Array.isArray(saved.edges)) {
+      saved.nodes.forEach(function (n) {
+        if (n && n.kind && n.kind !== 'target') nodes.push(JSON.parse(JSON.stringify(n)));
+      });
+      edges = JSON.parse(JSON.stringify(saved.edges));
+    }
+    state.board.setData(nodes, edges);
     els.goalFormula.innerHTML = goalHTML(state.level.target);
     var plain = els.goalFormula.textContent || state.level.target;
     els.goal.classList.toggle('is-long', plain.length > 52);
@@ -658,15 +680,49 @@
     return true;
   }
 
+  function makeModuleGhost(part) {
+    var info = window.RSL.Engine.info(part.kind) || { ports: { inputs: [], outputs: [] } };
+    var ins = (info.ports.inputs || []);
+    var outs = (info.ports.outputs || []);
+    var temp = { kind: part.kind, config: part.config || {} };
+    var code = state.board._code(temp) || part.symbol || '·';
+    var formula = '<span class="blank">·</span>';
+    try {
+      var preview = window.RSL.Engine.evaluate(state.level, [{
+        id: '__ghost', kind: part.kind, x: 0, y: 0, config: temp.config
+      }], []);
+      var pr = preview.results && preview.results.__ghost;
+      if (pr && pr.ast && window.RSL.formatFormula) {
+        var isAssert = outs.some(function (p) { return p.type === 'assertion'; });
+        formula = (isAssert ? '<span class="node-turnstile">⊢</span>' : '') + window.RSL.formatFormula(pr.ast);
+      }
+    } catch (e) {}
+    var minH = Math.max(96, 47 + Math.max(0, ins.length - 1) * 32 + 29);
+    var el = document.createElement('article');
+    el.className = 'node module-ghost';
+    el.style.width = '232px';
+    el.style.minHeight = minH + 'px';
+    el.innerHTML =
+      '<div class="node-top"><span class="node-code">' + esc(code) + '</span></div>' +
+      '<div class="node-formula formula">' + formula + '</div>' +
+      ins.map(function (p, i) {
+        var role = (part.kind === 'subst' && p.id === 'atom') ? 'atom' : p.type;
+        return '<span class="port port-in" data-role="' + esc(role) + '" style="top:' + (47 + i * 32) + 'px"></span>';
+      }).join('') +
+      outs.map(function (p) {
+        var role = part.kind === 'atom' ? 'atom' : p.type;
+        return '<span class="port port-out" data-role="' + esc(role) + '" style="top:47px"></span>';
+      }).join('');
+    return el;
+  }
+
   function startPaletteHold(e, tile) {
     if (e.button !== 0) return;
     e.preventDefault();
     clearPaletteHold();
     var part = palettePart(tile.dataset.key);
     if (!part) return;
-    var ghost = document.createElement('div');
-    ghost.className = 'tile-ghost';
-    ghost.textContent = part.symbol || '·';
+    var ghost = makeModuleGhost(part);
     document.body.appendChild(ghost);
     paletteHold = { part: part, ghost: ghost, sx: e.clientX, sy: e.clientY, dragging: false, sticky: false };
     document.body.classList.add('is-holding');
@@ -743,6 +799,7 @@
 
   function win() {
     var lv = state.level;
+    var prevBest = state.bestLen[lv.id];
     state.solved[lv.id] = true;
     var items = (state.board.items || []).filter(function (n) { return n.kind !== 'target'; });
     var len = items.length;
@@ -752,6 +809,20 @@
       if (n.kind === 'theorem') state.usedTheorem[lv.id] = true;
     });
     if (!state.deletedThisLevel) state.cleanWins[lv.id] = true;
+    if (!state.circuits[lv.id] || !prevBest || len < prevBest) {
+      var data = state.board.getData();
+      state.circuits[lv.id] = {
+        nodes: data.nodes.filter(function (n) { return n.kind !== 'target'; }).map(function (n) {
+          var c = JSON.parse(JSON.stringify(n));
+          delete c._new;
+          return c;
+        }),
+        edges: JSON.parse(JSON.stringify(data.edges)).map(function (e) {
+          delete e._new;
+          return e;
+        })
+      };
+    }
     if (!state.bestLen[lv.id] || len < state.bestLen[lv.id]) state.bestLen[lv.id] = len;
     saveProgress();
     checkAchievements();
@@ -858,8 +929,8 @@
           '<div class="help-card" data-coach="all-intro"><b>∀</b><span>A(x) ⇄ ∀x A</span></div>' +
         '</div>' +
         '<div class="save-row">' +
-          '<button class="save-btn" data-save-export title="导出存档" aria-label="导出存档"><svg class="icon"><use href="#i-arrow-up-tray"></use></svg><span>导出</span></button>' +
-          '<button class="save-btn" data-save-import title="导入存档" aria-label="导入存档"><svg class="icon"><use href="#i-arrow-down-tray"></use></svg><span>导入</span></button>' +
+          '<button class="save-btn" data-save-export title="保存存档" aria-label="保存存档"><svg class="icon"><use href="#i-arrow-down-tray"></use></svg><span>保存</span></button>' +
+          '<button class="save-btn" data-save-import title="加载存档" aria-label="加载存档"><svg class="icon"><use href="#i-arrow-up-tray"></use></svg><span>加载</span></button>' +
         '</div>' +
       '</div>' +
       '<p class="credit">Design by yyxcnasd</p>';

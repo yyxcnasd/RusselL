@@ -466,7 +466,9 @@
       this.wires.appendChild(d);
     }
     var fromId = this.draft && this.draft.from ? this.draft.from.node : null;
-    var pts = this._route(a, b, this._rects(), {}, fromId, null);
+    var start = { x: a.x + 26, y: a.y };
+    var pts = this._route(start, b, this._rects(), {}, fromId, null);
+    pts.unshift({ x: a.x, y: a.y });
     d.setAttribute('d', this._pathPoints(pts));
   };
 
@@ -539,7 +541,7 @@
   Board.prototype._route = function (a, b, rects, used, fromId, toId) {
     var CELL = 16;
     var xs = [a.x, b.x], ys = [a.y, b.y];
-    rects.forEach(function (r) { xs.push(r.x - 20, r.x + r.w + 20); ys.push(r.y - 20, r.y + r.h + 20); });
+    rects.forEach(function (r) { xs.push(r.x - 28, r.x + r.w + 28); ys.push(r.y - 28, r.y + r.h + 28); });
     var minX = Math.floor((Math.min.apply(null, xs) - 180) / CELL) * CELL;
     var maxX = Math.ceil((Math.max.apply(null, xs) + 180) / CELL) * CELL;
     var minY = Math.floor((Math.min.apply(null, ys) - 180) / CELL) * CELL;
@@ -550,8 +552,8 @@
     var i, j, k;
     for (i = 0; i < rects.length; i++) {
       var r = rects[i];
-      var x0 = Math.floor((r.x - 14 - minX) / CELL), x1 = Math.ceil((r.x + r.w + 14 - minX) / CELL);
-      var y0 = Math.floor((r.y - 14 - minY) / CELL), y1 = Math.ceil((r.y + r.h + 14 - minY) / CELL);
+      var x0 = Math.floor((r.x - 20 - minX) / CELL), x1 = Math.ceil((r.x + r.w + 20 - minX) / CELL);
+      var y0 = Math.floor((r.y - 20 - minY) / CELL), y1 = Math.ceil((r.y + r.h + 20 - minY) / CELL);
       for (var yy = Math.max(0, y0); yy <= Math.min(rows - 1, y1); yy++)
         for (var xx = Math.max(0, x0); xx <= Math.min(cols - 1, x1); xx++) blocked[yy * cols + xx] = 1;
     }
@@ -656,7 +658,7 @@
   };
 
   Board.prototype._segmentClear = function (p, q, rects) {
-    var pad = 10;
+    var pad = 18;
     var steps = Math.max(1, Math.ceil((Math.abs(q.x - p.x) + Math.abs(q.y - p.y)) / 8));
     for (var i = 1; i < steps; i++) {
       var t = i / steps;
@@ -708,7 +710,12 @@
       var a = self._portPoint(e.from.node, e.from.port);
       var b = self._portPoint(e.to.node, e.to.port);
       if (!a || !b) return;
-      routes[e.id] = self._route(a, b, rects, used, e.from.node, e.to.node);
+      var aStub = { x: a.x + 26, y: a.y };
+      var bStub = { x: b.x - 26, y: b.y };
+      var pts = self._route(aStub, bStub, rects, used, e.from.node, e.to.node);
+      pts.unshift({ x: a.x, y: a.y });
+      pts.push({ x: b.x, y: b.y });
+      routes[e.id] = pts;
     });
     this.edges.forEach(function (e) {
       var a = self._portPoint(e.from.node, e.from.port);
