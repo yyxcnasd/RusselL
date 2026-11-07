@@ -23,6 +23,7 @@ async function main() {
   const js = async exp => { const r = await send('Runtime.evaluate', { expression: exp, returnByValue: true, awaitPromise: true }); if (r.exceptionDetails) throw new Error(r.exceptionDetails.text); return r.result.value; };
   const shot = async name => { const r = await send('Page.captureScreenshot', { format: 'png' }); fs.writeFileSync(path.join(root, 'screenshots', name), Buffer.from(r.data, 'base64')); };
   await send('Runtime.enable'); await sleep(1300);
+  await js('window.RSL.APP.state.forceUnlock=true');
   const info = await js(`(function(){
     var app=window.RSL.APP; var lv=app.state.levels.find(function(l){return l.id==='RU-07'});
     var target={id:'target',kind:'target',x:lv.targetPos.x,y:lv.targetPos.y,target:lv.target,config:{}};
@@ -44,4 +45,5 @@ async function main() {
   ws.close();
 }
 main().catch(e => { console.error('FAIL', e); process.exitCode = 1; }).finally(async () => { await sleep(200); try { proc && proc.kill(); } catch (e) {} setTimeout(() => process.exit(process.exitCode || 0), 500); });
+
 

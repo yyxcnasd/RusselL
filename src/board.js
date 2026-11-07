@@ -30,7 +30,6 @@
     this.selectedNode = null;
     this.selectedEdge = null;
     this.draft = null;
-    this.allowMixed = false;
     this.result = null;
     this._drag = null;
     this._pan = null;
@@ -698,7 +697,7 @@
     var op = (outInfo.ports.outputs || []).filter(function (p) { return p.id === fromPort; })[0];
     var ip = (inInfo.ports.inputs || []).filter(function (p) { return p.id === toPort; })[0];
     if (!op || !ip) return false;
-    if (!this.allowMixed && op.type !== ip.type) { this.onToast('接口不匹配'); return false; }
+    if (op.type !== ip.type) { this.onToast('接口不匹配'); return false; }
     var existing = this.edges.filter(function (e) { return e.to.node === toNode && e.to.port === toPort; })[0];
     if (existing && existing.from.node === fromNode && existing.from.port === fromPort) return false;
     if (existing) this.edges = this.edges.filter(function (e) { return e !== existing; });
@@ -797,6 +796,7 @@
 
   window.RSL.Board = Board;
 })();
+
 
 
 

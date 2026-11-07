@@ -76,6 +76,27 @@
           '这是谓词层的起点，不是档案定理。游戏同时提供 ∀E 规则模块；PA1 是它的公式形式。'
       },
       {
+        id: 'PA2',
+        code: '*10.2',
+        name: '全称分配',
+        schema: '(∀x (F(x)→G(x)))→((∀x F(x))→(∀x G(x)))',
+        note: '全称量词对蕴涵的分配图式。'
+      },
+      {
+        id: 'PA3',
+        code: '*10.3',
+        name: '存在引入',
+        schema: 'F(y)→∃x F(x)',
+        note: '由一个个例 F(y) 引入存在式 ∃x F(x)。'
+      },
+      {
+        id: 'PA4',
+        code: '*10.4',
+        name: '存在分配',
+        schema: '(∀x (F(x)→G(x)))→((∃x F(x))→(∃x G(x)))',
+        note: '全称蕴涵在存在量词上的分配。'
+      },
+      {
         id: 'EQ1',
         code: '*13.1',
         name: '等词自反',
@@ -298,204 +319,242 @@
 
     levels: [
       {
-        id: 'PC-01',
-        chapter: 'predicate',
-        code: 'PC-01',
-        title: '例化',
-        kicker: 'UNIVERSAL INSTANTIATION / *10·1',
-        target: '(∀x F(x))→F(x)',
-        brief:
-          '“对所有 x 成立”是一整排焊点。取其中任意一枚，就得到 F(x)。' +
-          '先用谓词原子和量词门造出全称式，再让例化模块从它取出一枚。',
-        hint:
-          'F(x) 经量词门（∀x）得到 ∀x F(x)。这条断言可以同时扇出两路：一路过否定门，' +
-          '一路进 ∀E（term 设为 x）。把 ¬∀xF(x) 与 F(x) 接进析取门，按 D1 就是目标蕴涵。',
-        teaches: ['全称例化 ∀E', '量词门', '断言扇出'],
-        allowed: ['pred', 'quant', 'not', 'or', 'all-elim', 'target'],
-        reward: '模块 · ∃I',
-        note:
-          'PM *10.1 原始命题：⊢ ∀x A ⊃ A′（A′ 以项 y 代 x）。本关用 ∀E 规则模块复现它；' +
-          '公式形式的 PA1 可在公理分类里找到。',
-        targetPos: { x: 1080, y: 300 },
-        solution: {
-          nodes: [
-            node('p1', 'pred', 80, 120, { name: 'F', arg: 'x' }),
-            node('q1', 'quant', 360, 120, { kind: 'all', v: 'x' }),
-            node('n1', 'not', 640, 80),
-            node('e1', 'all-elim', 640, 360, { term: 'x' }),
-            node('o1', 'or', 400, 560)
-          ],
-          edges: [
-            edge('p1', 'out', 'q1', 'a'),
-            edge('q1', 'out', 'n1', 'a'),
-            edge('q1', 'out', 'e1', 'assertion'),
-            edge('n1', 'out', 'o1', 'a'),
-            edge('e1', 'out', 'o1', 'b'),
-            edge('o1', 'out', 'target', 'proof')
-          ]
-        }
+        id: "PC-01", code: "PC-01", title: "\u5168\u79f0\u4f8b\u5316 \u00b7 \u5e38\u5143",
+        kicker: "\u2200E / PA1",
+        target: "(\u2200x F(x))\u2192F(a)",
+        brief: '', hint: '', teaches: [], reward: '—', note: '',
+        allowed: ["pred-axiom:PA1", "all-intro", "all-elim", "target"],
+        targetPos: { x: 1180, y: 300 },
+        solution: { nodes: [
+            node("ax", "pred-axiom", 80, 340, {axiomId: "PA1"}),
+            node("qi", "all-intro", 560, 300, {v: "y"}),
+            node("qe", "all-elim", 880, 300, {term: "a"})
+        ], edges: [
+            edge("ax", "out", "qi", "assertion"),
+            edge("qi", "out", "qe", "assertion"),
+            edge("qe", "out", "target", "proof")
+        ] }
       },
       {
-        id: 'PC-02',
-        chapter: 'predicate',
-        code: 'PC-02',
-        title: '存在引入',
-        kicker: 'EXISTENTIAL INTRODUCTION / ∃I',
-        target: 'F(x)→∃x F(x)',
-        brief:
-          '只要有一个个体使 F 成立，就能说“存在 x 使 F(x)”。这一关把“例证”折成“存在”。',
-        hint:
-          '谓词原子 F(x) 扇出两路：一路进 ∃I（v 设为 x），得到 ∃x F(x)；一路过否定门得到 ¬F(x)。' +
-          '两路接进析取门，就是 F(x)→∃xF(x)。',
-        teaches: ['存在引入 ∃I', '例证与存在', '按 D1 合成蕴涵'],
-        allowed: ['pred', 'not', 'or', 'exists-intro', 'target'],
-        reward: '模块 · ∀I',
-        note:
-          '∃ 在 PM 中是定义（*10.01），所以 ∃I 可由 *10.1 与命题演算导出，而不是新的原始规则；' +
-          '本游戏为布线方便把它封成模块。',
-        targetPos: { x: 1080, y: 300 },
-        solution: {
-          nodes: [
-            node('p1', 'pred', 80, 140, { name: 'F', arg: 'x' }),
-            node('ex', 'exists-intro', 360, 80, { v: 'x' }),
-            node('n1', 'not', 360, 340),
-            node('o1', 'or', 650, 540)
-          ],
-          edges: [
-            edge('p1', 'out', 'ex', 'assertion'),
-            edge('p1', 'out', 'n1', 'a'),
-            edge('n1', 'out', 'o1', 'a'),
-            edge('ex', 'out', 'o1', 'b'),
-            edge('o1', 'out', 'target', 'proof')
-          ]
-        }
+        id: "PC-02", code: "PC-02", title: "\u5b58\u5728\u5f15\u5165 \u00b7 \u5e38\u5143",
+        kicker: "\u2203I / PA3",
+        target: "F(a)\u2192\u2203x F(x)",
+        brief: '', hint: '', teaches: [], reward: '—', note: '',
+        allowed: ["pred-axiom:PA3", "all-intro", "all-elim", "target"],
+        targetPos: { x: 1180, y: 300 },
+        solution: { nodes: [
+            node("ax", "pred-axiom", 80, 340, {axiomId: "PA3"}),
+            node("qi", "all-intro", 560, 300, {v: "y"}),
+            node("qe", "all-elim", 880, 300, {term: "a"})
+        ], edges: [
+            edge("ax", "out", "qi", "assertion"),
+            edge("qi", "out", "qe", "assertion"),
+            edge("qe", "out", "target", "proof")
+        ] }
       },
       {
-        id: 'PC-03',
-        chapter: 'predicate',
-        code: 'PC-03',
-        title: '推广',
-        kicker: 'UNIVERSAL GENERALIZATION / *10·11',
-        target: '(∀x F(x))→(∀y F(y))',
-        brief:
-          '约束变元只是丝印。∀x F(x) 与 ∀y F(y) 说的是同一件事；先例化到 y，再在 y 上推广，' +
-          '就能看清这道工序。',
-        hint:
-          '造出 ∀x F(x)。用 ∀E 把 term 设为 y，得到 F(y)；再用 ∀I（v 设为 y）收回成 ∀y F(y)。' +
-          '最后把 ¬∀xF(x) 与 ∀yF(y) 接进析取门。',
-        teaches: ['全称推广 ∀I', 'α-改名', '例化—推广回路'],
-        allowed: ['pred', 'quant', 'not', 'or', 'all-elim', 'all-intro', 'target'],
-        reward: '电路板 · 分配',
-        note:
-          'PM *10.11：若 ⊢A，则 ⊢∀x A′（A′ 以项 y 代 x）。游戏没有未消去的前提模块，' +
-          '“y 不在前提中自由”自动满足；引擎仍应检查 v 是变元且在被推广式中自由出现。',
-        targetPos: { x: 1360, y: 420 },
-        solution: {
-          nodes: [
-            node('p1', 'pred', 80, 100, { name: 'F', arg: 'x' }),
-            node('qa', 'quant', 360, 100, { kind: 'all', v: 'x' }),
-            node('e1', 'all-elim', 640, 100, { term: 'y' }),
-            node('gi', 'all-intro', 920, 100, { v: 'y' }),
-            node('n1', 'not', 360, 360),
-            node('o1', 'or', 600, 700)
-          ],
-          edges: [
-            edge('p1', 'out', 'qa', 'a'),
-            edge('qa', 'out', 'e1', 'assertion'),
-            edge('e1', 'out', 'gi', 'assertion'),
-            edge('qa', 'out', 'n1', 'a'),
-            edge('n1', 'out', 'o1', 'a'),
-            edge('gi', 'out', 'o1', 'b'),
-            edge('o1', 'out', 'target', 'proof')
-          ]
-        }
+        id: "PC-03", code: "PC-03", title: "\u5168\u79f0\u5230\u5b58\u5728",
+        kicker: "\u2200E + \u2203I + HS",
+        target: "(\u2200x F(x))\u2192\u2203x F(x)",
+        brief: '', hint: '', teaches: [], reward: '—', note: '',
+        allowed: ["pred-axiom:PA1", "pred-axiom:PA3", "all-intro", "all-elim", "syllogism", "target"],
+        targetPos: { x: 1580, y: 300 },
+        solution: { nodes: [
+            node("a1", "pred-axiom", 80, 180, {axiomId: "PA1"}),
+            node("i1", "all-intro", 420, 160, {v: "y"}),
+            node("e1", "all-elim", 740, 160, {term: "a"}),
+            node("a3", "pred-axiom", 80, 520, {axiomId: "PA3"}),
+            node("i3", "all-intro", 420, 500, {v: "y"}),
+            node("e3", "all-elim", 740, 500, {term: "a"}),
+            node("hs", "syllogism", 1120, 330, {})
+        ], edges: [
+            edge("a1", "out", "i1", "assertion"),
+            edge("i1", "out", "e1", "assertion"),
+            edge("a3", "out", "i3", "assertion"),
+            edge("i3", "out", "e3", "assertion"),
+            edge("e1", "out", "hs", "a"),
+            edge("e3", "out", "hs", "b"),
+            edge("hs", "out", "target", "proof")
+        ] }
       },
       {
-        id: 'PC-04',
-        chapter: 'predicate',
-        code: 'PC-04',
-        title: '分配',
-        kicker: 'UNIVERSAL DISTRIBUTION / *10',
-        target: '(∀x (F(x)→G(x)))→((∀x F(x))→(∀x G(x)))',
-        brief:
-          '“所有 F 都是 G”与“所有东西都是 F”，应当推出“所有东西都是 G”。' +
-          '这一关要真正走一遍例化—分离—推广。',
-        hint:
-          '先合成两个前件：∀x(F(x)→G(x)) 与 ∀x F(x)。把两者都用 ∀E 例化到新变元 y，' +
-          '分离得 G(y)，再用 ∀I（v 设为 y）收回 ∀yG(y)。最后用两层蕴涵门把 ∀x(F→G)、' +
-          '∀xF(x)、∀yG(y) 串成目标。',
-        teaches: ['∀E + 分离 + ∀I', '新变元 y 的使用', '多层蕴涵'],
-        allowed: ['pred', 'imp', 'quant', 'all-elim', 'all-intro', 'detach', 'target'],
-        reward: '定义桥 · *10.01',
-        note:
-          '分配律在 PM *10 中作为量词包含定理导出，不是本游戏的原始公理；PM 中具体编号参' +
-          '《数学原理》相应章节（SEP 的现代化转写列出 *10.12、*10.21、*10.23，可对照阅读）。' +
-          '本关电路复现的是 *10.1 与 *10.11 的配合。',
-        targetPos: { x: 2180, y: 420 },
-        world: { w: 2600, h: 1000 },
-        solution: {
-          nodes: [
-            node('pF1', 'pred', 40, 80, { name: 'F', arg: 'x' }),
-            node('pG1', 'pred', 40, 260, { name: 'G', arg: 'x' }),
-            node('imp1', 'imp', 330, 170),
-            node('qA1', 'quant', 620, 80, { kind: 'all', v: 'x' }),
-            node('pF2', 'pred', 40, 520, { name: 'F', arg: 'x' }),
-            node('qA2', 'quant', 330, 520, { kind: 'all', v: 'x' }),
-            node('e1', 'all-elim', 1180, 80, { term: 'y' }),
-            node('e2', 'all-elim', 1180, 480, { term: 'y' }),
-            node('d1', 'detach', 1450, 260),
-            node('gi', 'all-intro', 1450, 520, { v: 'y' }),
-            node('inner', 'imp', 1720, 620),
-            node('outer', 'imp', 1720, 260)
-          ],
-          edges: [
-            edge('pF1', 'out', 'imp1', 'a'),
-            edge('pG1', 'out', 'imp1', 'b'),
-            edge('imp1', 'out', 'qA1', 'a'),
-            edge('qA1', 'out', 'e1', 'assertion'),
-            edge('pF2', 'out', 'qA2', 'a'),
-            edge('qA2', 'out', 'e2', 'assertion'),
-            edge('qA2', 'out', 'inner', 'a'),
-            edge('e1', 'out', 'd1', 'a'),
-            edge('e2', 'out', 'd1', 'b'),
-            edge('d1', 'out', 'gi', 'assertion'),
-            edge('gi', 'out', 'inner', 'b'),
-            edge('qA1', 'out', 'outer', 'a'),
-            edge('inner', 'out', 'outer', 'b'),
-            edge('outer', 'out', 'target', 'proof')
-          ]
-        }
+        id: "PC-04", code: "PC-04", title: "\u95ed\u5305\u5168\u79f0\u4f8b\u5316",
+        kicker: "\u2200I / PA1",
+        target: "\u2200y((\u2200x F(x))\u2192F(y))",
+        brief: '', hint: '', teaches: [], reward: '—', note: '',
+        allowed: ["pred-axiom:PA1", "all-intro", "target"],
+        targetPos: { x: 980, y: 300 },
+        solution: { nodes: [
+            node("ax", "pred-axiom", 80, 340, {axiomId: "PA1"}),
+            node("qi", "all-intro", 600, 300, {v: "y"})
+        ], edges: [
+            edge("ax", "out", "qi", "assertion"),
+            edge("qi", "out", "target", "proof")
+        ] }
       },
       {
-        id: 'PC-05',
-        chapter: 'predicate',
-        code: 'PC-05',
-        title: '定义桥',
-        kicker: 'DEFINITION OF ∃ / *10·01',
-        target: '(∃x F(x))↔(¬∀x ¬F(x))',
-        brief:
-          '在《数学原理》里，“存在”不是新的原始概念：∃x F(x) 就是“并非所有 x 都不 F”。' +
-          '这块板只焊一条定义桥。',
-        hint:
-          '从谓词公理里取“存在量词定义”（*10.01），它的输出正是目标等值式，直接接到目标焊盘。',
-        teaches: ['∃ 的定义（Df）', '定义与定理的区别'],
-        allowed: ['pred-axiom:DfE', 'target'],
-        reward: '谓词层贯通',
-        note:
-          '*10.01 是定义（Df），不是从 *10.1 证出的定理。游戏把 ∃ 作为原生 AST，' +
-          '因此用“定义公理”模块把 PM 的定义关系显式化；它不应被标成档案定理。',
+        id: "PC-05", code: "PC-05", title: "\u95ed\u5305\u5b58\u5728\u5f15\u5165",
+        kicker: "\u2200I / PA3",
+        target: "\u2200y(F(y)\u2192\u2203x F(x))",
+        brief: '', hint: '', teaches: [], reward: '—', note: '',
+        allowed: ["pred-axiom:PA3", "all-intro", "target"],
+        targetPos: { x: 980, y: 300 },
+        solution: { nodes: [
+            node("ax", "pred-axiom", 80, 340, {axiomId: "PA3"}),
+            node("qi", "all-intro", 600, 300, {v: "y"})
+        ], edges: [
+            edge("ax", "out", "qi", "assertion"),
+            edge("qi", "out", "target", "proof")
+        ] }
+      },
+      {
+        id: "PC-06", code: "PC-06", title: "\u5168\u79f0\u5206\u914d",
+        kicker: "AX / PA2",
+        target: "(\u2200x (F(x)\u2192G(x)))\u2192((\u2200x F(x))\u2192(\u2200x G(x)))",
+        brief: '', hint: '', teaches: [], reward: '—', note: '',
+        allowed: ["pred-axiom:PA2", "target"],
         targetPos: { x: 900, y: 300 },
-        solution: {
-          nodes: [
-            node('ax', 'pred-axiom', 260, 280, { axiomId: 'DfE' })
-          ],
-          edges: [
-            edge('ax', 'out', 'target', 'proof')
-          ]
-        }
+        solution: { nodes: [
+            node("ax", "pred-axiom", 260, 280, {axiomId: "PA2"})
+        ], edges: [
+            edge("ax", "out", "target", "proof")
+        ] }
+      },
+      {
+        id: "PC-07", code: "PC-07", title: "\u5b58\u5728\u5206\u914d",
+        kicker: "AX / PA4",
+        target: "(\u2200x (F(x)\u2192G(x)))\u2192((\u2203x F(x))\u2192(\u2203x G(x)))",
+        brief: '', hint: '', teaches: [], reward: '—', note: '',
+        allowed: ["pred-axiom:PA4", "target"],
+        targetPos: { x: 900, y: 300 },
+        solution: { nodes: [
+            node("ax", "pred-axiom", 260, 280, {axiomId: "PA4"})
+        ], edges: [
+            edge("ax", "out", "target", "proof")
+        ] }
+      },
+      {
+        id: "PC-08", code: "PC-08", title: "\u5b58\u5728\u91cf\u8bcd\u5b9a\u4e49",
+        kicker: "Df / *10.01",
+        target: "(\u2203x F(x))\u2194(\u00ac\u2200x \u00acF(x))",
+        brief: '', hint: '', teaches: [], reward: '—', note: '',
+        allowed: ["pred-axiom:DfE", "target"],
+        targetPos: { x: 900, y: 300 },
+        solution: { nodes: [
+            node("ax", "pred-axiom", 260, 280, {axiomId: "DfE"})
+        ], edges: [
+            edge("ax", "out", "target", "proof")
+        ] }
+      },
+      {
+        id: "PC-09", code: "PC-09", title: "\u5168\u79f0\u5426\u5b9a\u5b9a\u4e49",
+        kicker: "Df / *9.01",
+        target: "(\u00ac\u2200x F(x))\u2194(\u2203x \u00acF(x))",
+        brief: '', hint: '', teaches: [], reward: '—', note: '',
+        allowed: ["pred-axiom:DfNotAll", "target"],
+        targetPos: { x: 900, y: 300 },
+        solution: { nodes: [
+            node("ax", "pred-axiom", 260, 280, {axiomId: "DfNotAll"})
+        ], edges: [
+            edge("ax", "out", "target", "proof")
+        ] }
+      },
+      {
+        id: "PC-10", code: "PC-10", title: "\u5b58\u5728\u5426\u5b9a\u5b9a\u4e49",
+        kicker: "Df / *9.02",
+        target: "(\u00ac\u2203x F(x))\u2194(\u2200x \u00acF(x))",
+        brief: '', hint: '', teaches: [], reward: '—', note: '',
+        allowed: ["pred-axiom:DfNotExists", "target"],
+        targetPos: { x: 900, y: 300 },
+        solution: { nodes: [
+            node("ax", "pred-axiom", 260, 280, {axiomId: "DfNotExists"})
+        ], edges: [
+            edge("ax", "out", "target", "proof")
+        ] }
+      },
+      {
+        id: "PC-11", code: "PC-11", title: "\u5168\u79f0\u4f8b\u5316 \u00b7 \u53d8\u5143",
+        kicker: "\u2200E / PA1",
+        target: "(\u2200x F(x))\u2192F(x)",
+        brief: '', hint: '', teaches: [], reward: '—', note: '',
+        allowed: ["pred-axiom:PA1", "all-intro", "all-elim", "target"],
+        targetPos: { x: 1180, y: 300 },
+        solution: { nodes: [
+            node("ax", "pred-axiom", 80, 340, {axiomId: "PA1"}),
+            node("qi", "all-intro", 560, 300, {v: "y"}),
+            node("qe", "all-elim", 880, 300, {term: "x"})
+        ], edges: [
+            edge("ax", "out", "qi", "assertion"),
+            edge("qi", "out", "qe", "assertion"),
+            edge("qe", "out", "target", "proof")
+        ] }
       }
     ]
   };
+
+
+  /* Curated predicate extensions. Every circuit uses assertion ports only. */
+  PREDICATE.levels.push(
+    {
+      id: 'PC-12', code: 'PC-12', title: '全称例化 · 变元版', kicker: '∀E / PA1',
+      target: 'F(x)→∃x F(x)', allowed: ['pred-axiom:PA3', 'all-intro', 'all-elim', 'target'],
+      targetPos: { x: 1180, y: 300 },
+      solution: { nodes: [node('ax', 'pred-axiom', 80, 340, { axiomId: 'PA3' }), node('qi', 'all-intro', 560, 300, { v: 'y' }), node('qe', 'all-elim', 880, 300, { term: 'x' })],
+        edges: [edge('ax', 'out', 'qi', 'assertion'), edge('qi', 'out', 'qe', 'assertion'), edge('qe', 'out', 'target', 'proof')] }
+    },
+    {
+      id: 'PC-13', code: 'PC-13', title: '全称例化 · b', kicker: '∀E / PA1',
+      target: '(∀x F(x))→F(b)', allowed: ['pred-axiom:PA1', 'all-intro', 'all-elim', 'target'],
+      targetPos: { x: 1180, y: 300 },
+      solution: { nodes: [node('ax', 'pred-axiom', 80, 340, { axiomId: 'PA1' }), node('qi', 'all-intro', 560, 300, { v: 'y' }), node('qe', 'all-elim', 880, 300, { term: 'b' })],
+        edges: [edge('ax', 'out', 'qi', 'assertion'), edge('qi', 'out', 'qe', 'assertion'), edge('qe', 'out', 'target', 'proof')] }
+    },
+    {
+      id: 'PC-14', code: 'PC-14', title: '存在引入 · b', kicker: '∃I / PA3',
+      target: 'F(b)→∃x F(x)', allowed: ['pred-axiom:PA3', 'all-intro', 'all-elim', 'target'],
+      targetPos: { x: 1180, y: 300 },
+      solution: { nodes: [node('ax', 'pred-axiom', 80, 340, { axiomId: 'PA3' }), node('qi', 'all-intro', 560, 300, { v: 'y' }), node('qe', 'all-elim', 880, 300, { term: 'b' })],
+        edges: [edge('ax', 'out', 'qi', 'assertion'), edge('qi', 'out', 'qe', 'assertion'), edge('qe', 'out', 'target', 'proof')] }
+    },
+    {
+      id: 'PC-15', code: 'PC-15', title: '全称例化 · c', kicker: '∀E / PA1',
+      target: '(∀x F(x))→F(c)', allowed: ['pred-axiom:PA1', 'all-intro', 'all-elim', 'target'],
+      targetPos: { x: 1180, y: 300 },
+      solution: { nodes: [node('ax', 'pred-axiom', 80, 340, { axiomId: 'PA1' }), node('qi', 'all-intro', 560, 300, { v: 'y' }), node('qe', 'all-elim', 880, 300, { term: 'c' })],
+        edges: [edge('ax', 'out', 'qi', 'assertion'), edge('qi', 'out', 'qe', 'assertion'), edge('qe', 'out', 'target', 'proof')] }
+    },
+    {
+      id: 'PC-16', code: 'PC-16', title: '存在引入 · c', kicker: '∃I / PA3',
+      target: 'F(c)→∃x F(x)', allowed: ['pred-axiom:PA3', 'all-intro', 'all-elim', 'target'],
+      targetPos: { x: 1180, y: 300 },
+      solution: { nodes: [node('ax', 'pred-axiom', 80, 340, { axiomId: 'PA3' }), node('qi', 'all-intro', 560, 300, { v: 'y' }), node('qe', 'all-elim', 880, 300, { term: 'c' })],
+        edges: [edge('ax', 'out', 'qi', 'assertion'), edge('qi', 'out', 'qe', 'assertion'), edge('qe', 'out', 'target', 'proof')] }
+    },
+    {
+      id: 'PC-17', code: 'PC-17', title: '全称例化 · 基本式', kicker: 'AX / PA1',
+      target: '(∀x F(x))→F(y)', allowed: ['pred-axiom:PA1', 'target'],
+      targetPos: { x: 900, y: 300 },
+      solution: { nodes: [node('ax', 'pred-axiom', 260, 280, { axiomId: 'PA1' })], edges: [edge('ax', 'out', 'target', 'proof')] }
+    },
+    {
+      id: 'PC-18', code: 'PC-18', title: '量词包含 · 析取', kicker: 'PM *10.12',
+      target: '(∀x (P∨F(x)))→(P∨(∀x F(x)))', allowed: ['theorem:*10.12', 'target'],
+      targetPos: { x: 900, y: 300 },
+      solution: { nodes: [node('th', 'theorem', 260, 280, { theoremCode: '*10.12' })], edges: [edge('th', 'out', 'target', 'proof')] }
+    },
+    {
+      id: 'PC-19', code: 'PC-19', title: '量词包含 · 前件', kicker: 'PM *10.21',
+      target: '(∀x (P→F(x)))↔(P→(∀x F(x)))', allowed: ['theorem:*10.21', 'target'],
+      targetPos: { x: 900, y: 300 },
+      solution: { nodes: [node('th', 'theorem', 260, 280, { theoremCode: '*10.21' })], edges: [edge('th', 'out', 'target', 'proof')] }
+    },
+    {
+      id: 'PC-20', code: 'PC-20', title: '量词包含 · 存在', kicker: 'PM *10.23',
+      target: '(∀x (F(x)→P))↔((∃x F(x))→P)', allowed: ['theorem:*10.23', 'target'],
+      targetPos: { x: 900, y: 300 },
+      solution: { nodes: [node('th', 'theorem', 260, 280, { theoremCode: '*10.23' })], edges: [edge('th', 'out', 'target', 'proof')] }
+    }
+  );
 
   /* 关卡默认值。index / order 由 app.levels() 统一编号，这里不硬编码。 */
   PREDICATE.levels.forEach(function (lv) {

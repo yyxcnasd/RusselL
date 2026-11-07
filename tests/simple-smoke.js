@@ -37,11 +37,13 @@ async function main() {
   await shot('simple-wired.png');
   await js('document.getElementById("checkBtn").click()'); await sleep(500);
   console.log('win', await js('!!document.querySelector(".win")'), 'overlay', await js('!document.getElementById("overlay").hidden'));
+  console.log('unlock', await js('(function(){var a=window.RSL.APP;var iv=a.state.levels.findIndex(function(l){return l.chapterGroup==="Ⅳ"});return {next:a.isUnlocked(1),later:a.isUnlocked(iv+2),iv:a.isUnlocked(iv),solved:Object.keys(a.state.solved)};})()'));
   await shot('simple-win.png');
   await js('document.querySelector("[data-next]").click()'); await sleep(400);
   console.log('next level', await js('document.getElementById("levelBtn").textContent'));
   await js('document.getElementById("levelBtn").click()'); await sleep(300);
   console.log('level cells', await js('document.querySelectorAll(".level-cell").length'));
+  console.log('locks', await js('Array.from(document.querySelectorAll(".chapter")).filter(function(c){return c.classList.contains("is-locked")||c.classList.contains("is-current");}).map(function(c){var b=c.querySelector(".level-cell");return {roman:c.querySelector(".chapter-roman").textContent,cls:c.className,first:b&&b.className,firstDisabled:b&&b.disabled};})'));
   ws.close();
 }
 main().catch(e => { console.error('FAIL', e); process.exitCode = 1; }).finally(async () => { await sleep(200); try { proc && proc.kill(); } catch (e) {} setTimeout(() => process.exit(process.exitCode || 0), 500); });

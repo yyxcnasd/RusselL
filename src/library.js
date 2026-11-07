@@ -1,4 +1,4 @@
-/* 公理板 — static library data: primitive propositions, definitions, parts. */
+﻿/* 公理板 — static library data: primitive propositions, definitions, parts. */
 (function () {
   'use strict';
   window.RSL = window.RSL || {};
@@ -198,7 +198,8 @@
       { key: 'all-elim', kind: 'all-elim', group: 'predicate', symbol: '∀E', name: '全称例化', code: 'R-∀E', desc: '从 ∀x A 得到 A[t/x]。', accent: 'copper' },
       { key: 'all-intro', kind: 'all-intro', group: 'predicate', symbol: '∀I', name: '全称推广', code: 'R-∀I', desc: '从 A 得到 ∀x A（x 不在前提中自由）。', accent: 'copper' },
       { key: 'exists-intro', kind: 'exists-intro', group: 'predicate', symbol: '∃I', name: '存在引入', code: 'R-∃I', desc: '从 A[t/x] 得到 ∃x A。', accent: 'copper' },
-      { key: 'exists-elim', kind: 'exists-elim', group: 'predicate', symbol: '∃E', name: '存在消去', code: 'R-∃E', desc: '从 ∃x A 与 A[y/x]→B 得到 B（y 新）。', accent: 'copper' }
+      { key: 'exists-elim', kind: 'exists-elim', group: 'predicate', symbol: '∃E', name: '存在消去', code: 'R-∃E', desc: '从 ∃x A 与 A[y/x]→B 得到 B（y 新）。', accent: 'copper' },
+      { key: 'syllogism', kind: 'syllogism', group: 'predicate', symbol: 'HS', name: '假言三段论', code: 'R-HS', desc: '从 A→B 与 B→C 得到 A→C。', accent: 'copper' }
     );
     (P.axioms || []).forEach(function (a) {
       parts.push({
@@ -227,3 +228,4 @@
   window.RSL.ARCHIVE_ORDER = ARCHIVE_ORDER;
   window.RSL.ARCHIVE_FALLBACK = ARCHIVE_FALLBACK;
 })();
+

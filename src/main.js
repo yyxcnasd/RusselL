@@ -14,6 +14,7 @@
     selectedEdge: null,
     overlay: false,
     lastId: null,
+    forceUnlock: false,
     sound: true,
     theme: 'light'
   };
@@ -146,6 +147,7 @@
     if (lv.chapter === 'archive') return 'Ⅱ';
     if (lv.chapter === 'transform') return /^(SUB|SB|MIX)/.test(lv.id) ? 'Ⅲ' : 'Ⅱ';
     if (lv.chapter === 'metamath') {
+      if (lv.pmBand) return lv.pmBand;
       var major = parseInt(String(lv.code || '').replace('*', '').split('.')[0], 10) || 0;
       if (major <= 2) return 'Ⅳ';
       if (major <= 4) return 'Ⅴ';
@@ -170,7 +172,23 @@
     list.sort(function (a, b) {
       return (CHAPTER_RANK[a.chapterGroup] - CHAPTER_RANK[b.chapterGroup]) || (a._ord - b._ord);
     });
+    var prevChallenge = null;
+    CHAPTERS.forEach(function (c) {
+      var group = list.filter(function (lv) { return lv.chapterGroup === c.id; });
+      group.forEach(function (lv, i) {
+        lv.requires = i === 0 ? (prevChallenge ? [prevChallenge] : []) : [group[i - 1].id];
+        lv.challenge = i === group.length - 1;
+      });
+      if (group.length) prevChallenge = group[group.length - 1].id;
+    });
     state.levels = list;
+  }
+
+  function isUnlocked(index) {
+    if (state.forceUnlock) return true;
+    var lv = state.levels[index];
+    if (!lv) return false;
+    return (lv.requires || []).every(function (id) { return !!state.solved[id]; });
   }
 
   function partPool() {
@@ -268,10 +286,10 @@
   }
 
   function loadLevel(index) {
+    if (!isUnlocked(index)) { toast('先完成前置关卡'); return; }
     closeOverlay();
     state.index = index;
     state.level = state.levels[index];
-    state.board.allowMixed = state.level.chapter === 'predicate';
     state.selectedNode = null;
     state.selectedEdge = null;
     var mobile = window.innerWidth <= 700;
@@ -439,11 +457,16 @@
       if (!items.length) return '';
       var solved = items.filter(function (x) { return state.solved[x.lv.id]; }).length;
       var isCurrent = items.some(function (x) { return x.i === state.index; });
+      var chapterLocked = !isUnlocked(items[0].i);
       var cells = items.map(function (x) {
-        var cls = 'level-cell' + (x.i === state.index ? ' is-current' : '') + (state.solved[x.lv.id] ? ' is-solved' : '');
-        return '<button class="' + cls + '" data-level="' + x.i + '" aria-label="第 ' + (x.i + 1) + ' 关">' + String(x.i + 1).padStart(2, '0') + '</button>';
+        var unlocked = isUnlocked(x.i);
+        var cls = 'level-cell' + (x.i === state.index ? ' is-current' : '') +
+          (state.solved[x.lv.id] ? ' is-solved' : '') +
+          (x.lv.challenge ? ' is-challenge' : '') +
+          (unlocked ? '' : ' is-locked');
+        return '<button class="' + cls + '" data-level="' + x.i + '" aria-label="第 ' + (x.i + 1) + ' 关' + (unlocked ? '' : '，未解锁') + '"' + (unlocked ? '' : ' disabled') + '>' + String(x.i + 1).padStart(2, '0') + '</button>';
       }).join('');
-      return '<section class="chapter' + (isCurrent ? ' is-current' : '') + '">' +
+      return '<section class="chapter' + (isCurrent ? ' is-current' : '') + (chapterLocked ? ' is-locked' : '') + '">' +
         '<div class="chapter-head">' +
           '<span class="chapter-roman">' + c.id + '</span>' +
           '<span class="chapter-title">' + c.title + '</span>' +
@@ -477,8 +500,9 @@
   }
 
   function nextLevel() {
-    if (state.index + 1 >= state.levels.length) { openLevels(); return; }
-    loadLevel(state.index + 1);
+    var next = state.index + 1;
+    if (next >= state.levels.length || !isUnlocked(next)) { openLevels(); return; }
+    loadLevel(next);
   }
 
   function bind() {
@@ -524,7 +548,12 @@
     els.overlay.addEventListener('click', function (e) {
       if (e.target.closest('[data-close]')) { closeOverlay(); return; }
       var lv = e.target.closest('[data-level]');
-      if (lv) { loadLevel(parseInt(lv.dataset.level, 10)); return; }
+      if (lv) {
+        var idx = parseInt(lv.dataset.level, 10);
+        if (!isUnlocked(idx)) return;
+        loadLevel(idx);
+        return;
+      }
       if (e.target.closest('[data-next]')) { nextLevel(); return; }
       if (e.target === els.overlay) closeOverlay();
     });
@@ -566,24 +595,29 @@
       onRemove: function () { sfx('click'); }
     });
     bind();
-    var start = 0;
+    var start = -1;
     if (state.lastId) {
       for (var i = 0; i < state.levels.length; i++) if (state.levels[i].id === state.lastId) { start = i; break; }
     }
-    if (state.solved[state.levels[start].id]) {
-      var next = -1;
-      for (var j = start + 1; j < state.levels.length; j++) if (!state.solved[state.levels[j].id]) { next = j; break; }
-      if (next < 0) for (var k = 0; k <= start; k++) if (!state.solved[state.levels[k].id]) { next = k; break; }
-      if (next >= 0) start = next;
+    if (start < 0 || state.solved[state.levels[start].id] || !isUnlocked(start)) {
+      start = -1;
+      for (var j = 0; j < state.levels.length; j++) {
+        if (!state.solved[state.levels[j].id] && isUnlocked(j)) { start = j; break; }
+      }
+      if (start < 0) start = state.levels.length - 1;
     }
     loadLevel(start);
     updateProgress();
-    window.RSL.APP = { state: state, loadLevel: loadLevel, refresh: refresh };
+    window.RSL.APP = { state: state, loadLevel: loadLevel, refresh: refresh, isUnlocked: isUnlocked };
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();
+
+
+
+
 
 
 

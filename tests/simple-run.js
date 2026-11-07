@@ -1,4 +1,4 @@
-﻿/* Simplified UI: PM theorem level and config popover. */
+/* Simplified UI: PM theorem level and config popover. */
 const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -23,7 +23,8 @@ async function main() {
   const js = async exp => { const r = await send('Runtime.evaluate', { expression: exp, returnByValue: true, awaitPromise: true }); if (r.exceptionDetails) throw new Error(r.exceptionDetails.text); return r.result.value; };
   const shot = async name => { const r = await send('Page.captureScreenshot', { format: 'png' }); fs.writeFileSync(path.join(root, 'screenshots', name), Buffer.from(r.data, 'base64')); };
   await send('Runtime.enable'); await sleep(1300);
-  const idx = await js('window.RSL.APP.state.levels.findIndex(function(l){return l.code==="*2.1"})');
+  await js('window.RSL.APP.state.forceUnlock=true');
+  const idx = await js('window.RSL.APP.state.levels.findIndex(function(l){return l.chapter==="metamath" && l.code.indexOf("*2.")===0})');
   console.log('load', await js('(function(){try{window.RSL.APP.loadLevel(' + idx + ');return "ok"}catch(e){return (e&&e.stack)||String(e)}})()')); await sleep(300);
   console.log('pm', await js('document.getElementById("goalFormula").textContent'), await js('document.querySelectorAll(".tile").length'));
   await js('document.querySelector(".tile[data-key^=\\"theorem:\\"]").click()'); await sleep(300);

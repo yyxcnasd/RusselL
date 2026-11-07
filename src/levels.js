@@ -1,4 +1,4 @@
-/* 公理板 — propositional level catalogue and reference circuits. */
+﻿/* 公理板 — propositional level catalogue and reference circuits. */
 (function () {
   'use strict';
   window.RSL = window.RSL || {};
@@ -239,47 +239,74 @@
       if (n.kind === 'theorem' && n.config && n.config.theoremCode) usedTheorems[n.config.theoremCode] = true;
     });
   });
-  (window.RSL.THEOREMS || []).forEach(function (t) {
-    if (usedTheorems[t.code]) return;
-    var Lg = window.RSL.Logic;
-    if (!Lg) return;
-    var schema = Lg.parse(t.formula);
-    var atoms = Lg.atomsOf(schema);
-    var atom = atoms[0] || 'P';
-    var map = {};
-    map[atom] = Lg.parse('P∨Q');
-    var target = Lg.fmt(Lg.instantiate(schema, map));
-    LEVELS.push({
-      id: 'PM-' + t.code.replace(/[*.]/g, '-'),
-      chapter: 'metamath',
-      code: t.code,
-      title: t.code + (t.name ? ' · ' + t.name : ''),
-      kicker: 'METAMATH / PM ' + t.code,
-      target: target,
-      brief: '',
-      hint: '',
-      teaches: ['档案定理 ' + t.code, '代入实例'],
-      allowed: ['atom', 'or', 'subst', 'theorem:' + t.code, 'target'],
-      reward: '—',
-      note: '',
-      solution: {
-        nodes: [
-          node('pa', 'atom', 60, 120, { name: atom }),
-          node('pp', 'atom', 60, 300, { name: 'P' }),
-          node('pq', 'atom', 60, 470, { name: 'Q' }),
-          node('por', 'or', 360, 380),
-          node('pth', 'theorem', 60, 650, { theoremCode: t.code }),
-          node('psub', 'subst', 760, 430)
-        ],
-        edges: [
-          edge('pp', 'out', 'por', 'a'),
-          edge('pq', 'out', 'por', 'b'),
-          edge('pa', 'out', 'psub', 'atom'),
-          edge('pth', 'out', 'psub', 'assertion'),
-          edge('por', 'out', 'psub', 'formula'),
-          edge('psub', 'out', 'target', 'proof')
-        ]
-      }
+  /* Curated Metamath set: 120 theorem instances, split evenly over three chapters.
+     Each level gets a deliberately chosen replacement formula and only the modules needed to build it. */
+  var usedExtra = {};
+  ['*2.12', '*2.18', '*2.1', '*2.11', '*2.21', '*2.24', '*2.27', '*3.22', '*4.31',
+   '*2.05', '*2.08', '*2.14'].forEach(function (c) { usedExtra[c] = true; });
+  var Lg = window.RSL.Logic;
+  var pmPool = (window.RSL.THEOREMS || []).filter(function (t) {
+    return !usedTheorems[t.code] && !usedExtra[t.code];
+  });
+  var pmGroupA = pmPool.filter(function (t) { return (parseInt(t.code.slice(1).split('.')[0], 10) || 0) <= 2; });
+  var pmGroupB = pmPool.filter(function (t) { var n = parseInt(t.code.slice(1).split('.')[0], 10) || 0; return n === 3 || n === 4; });
+  var pmGroupC = pmPool.filter(function (t) { return (parseInt(t.code.slice(1).split('.')[0], 10) || 0) >= 5; });
+  function pickEven(list, n) {
+    if (n >= list.length) return list.slice();
+    var out = [];
+    for (var i = 0; i < n; i++) out.push(list[Math.floor(i * list.length / n)]);
+    return out.filter(function (x, i, a) { return a.indexOf(x) === i; });
+  }
+  function replacementFor(group, index) {
+    if (group === 'A') return index % 2 ? 'P∨Q' : '¬P';
+    if (group === 'B') return ['¬P', 'P∨Q', 'P→Q'][index % 3];
+    return ['P→Q', 'P∨Q', '¬P'][index % 3];
+  }
+  function buildReplacement(rep, suffix) {
+    if (rep === '¬P') {
+      return { nodes: [node('pa' + suffix, 'atom', 60, 120, { name: 'P' }), node('nf' + suffix, 'not', 360, 200)],
+        edges: [edge('pa' + suffix, 'out', 'nf' + suffix, 'a')], out: 'nf' + suffix, ctor: 'not' };
+    }
+    if (rep === 'P∨Q') {
+      return { nodes: [node('pp' + suffix, 'atom', 60, 120, { name: 'P' }), node('pq' + suffix, 'atom', 60, 300, { name: 'Q' }), node('or' + suffix, 'or', 360, 210)],
+        edges: [edge('pp' + suffix, 'out', 'or' + suffix, 'a'), edge('pq' + suffix, 'out', 'or' + suffix, 'b')], out: 'or' + suffix, ctor: 'or' };
+    }
+    return { nodes: [node('pp' + suffix, 'atom', 60, 120, { name: 'P' }), node('pq' + suffix, 'atom', 60, 300, { name: 'Q' }), node('im' + suffix, 'imp', 360, 210)],
+      edges: [edge('pp' + suffix, 'out', 'im' + suffix, 'a'), edge('pq' + suffix, 'out', 'im' + suffix, 'b')], out: 'im' + suffix, ctor: 'imp' };
+  }
+  var pickedA = pickEven(pmGroupA, 40);
+  var pickedB = pickEven(pmGroupB, 40);
+  var pickedC = pmGroupC.concat(pmGroupB.filter(function (t) { return pickedB.indexOf(t) < 0; }).slice(-2)).slice(0, 40);
+  [['A', pickedA, 'Ⅳ'], ['B', pickedB, 'Ⅴ'], ['C', pickedC, 'Ⅵ']].forEach(function (plan) {
+    var group = plan[0], picked = plan[1], band = plan[2];
+    picked.forEach(function (t, i) {
+      var schema = Lg.parse(t.formula);
+      var atoms = Lg.atomsOf(schema);
+      var atom = atoms[0] || 'P';
+      var rep = replacementFor(group, i);
+      var map = {}; map[atom] = Lg.parse(rep);
+      var target = Lg.fmt(Lg.instantiate(schema, map));
+      var built = buildReplacement(rep, i);
+      var nodes = [node('pv' + i, 'atom', 60, 470, { name: atom }), node('th' + i, 'theorem', 60, 650, { theoremCode: t.code })]
+        .concat(built.nodes, [node('sub' + i, 'subst', 760, 420)]);
+      var edges = [edge('pv' + i, 'out', 'sub' + i, 'atom'), edge('th' + i, 'out', 'sub' + i, 'assertion'), edge(built.out, 'out', 'sub' + i, 'formula'), edge('sub' + i, 'out', 'target', 'proof')]
+        .concat(built.edges);
+      LEVELS.push({
+        id: 'PM-' + t.code.replace(/[*.]/g, '-'),
+        chapter: 'metamath',
+        code: t.code,
+        title: t.code + (t.name ? ' · ' + t.name : ''),
+        kicker: 'METAMATH / PM ' + t.code,
+        pmBand: band,
+        target: target,
+        brief: '',
+        hint: '',
+        teaches: ['档案定理 ' + t.code, '代入实例'],
+        allowed: ['atom', built.ctor, 'subst', 'theorem:' + t.code, 'target'],
+        reward: '—',
+        note: '',
+        solution: { nodes: nodes, edges: edges }
+      });
     });
   });
 
@@ -439,39 +466,6 @@
     }
   });
 
-  /* More predicate levels: archived axiom/theorem cards. */
-  var PRED_EXTRA = [
-    { id: 'PC-06', key: 'pred-axiom:PA1', target: '(∀x F(x))→F(y)', title: '全称例化 · 基本式' },
-    { id: 'PC-07', key: 'pred-axiom:DfNotAll', target: '(¬∀x F(x))↔(∃x ¬F(x))', title: '全称否定' },
-    { id: 'PC-08', key: 'pred-axiom:DfNotExists', target: '(¬∃x F(x))↔(∀x ¬F(x))', title: '存在否定' },
-    { id: 'PC-09', key: 'theorem:*10.12', target: '(∀x (P∨F(x)))→(P∨(∀x F(x)))', title: '量词分配 · 析取' },
-    { id: 'PC-10', key: 'theorem:*10.21', target: '(∀x (P→F(x)))↔(P→(∀x F(x)))', title: '量词分配 · 蕴涵' },
-    { id: 'PC-11', key: 'theorem:*10.23', target: '(∀x (F(x)→P))↔((∃x F(x))→P)', title: '量词分配 · 存在' }
-  ];
-  PRED_EXTRA.forEach(function (spec, pi) {
-    var kind = spec.key.indexOf('pred-axiom:') === 0 ? 'pred-axiom' : 'theorem';
-    var id = spec.key.split(':')[1];
-    var cfg = kind === 'pred-axiom' ? { axiomId: id } : { theoremCode: id };
-    LEVELS.push({
-      id: spec.id,
-      chapter: 'predicate',
-      code: spec.id,
-      title: spec.title,
-      kicker: 'PREDICATE / ' + id,
-      target: spec.target,
-      brief: '',
-      hint: '',
-      teaches: [spec.title],
-      allowed: [spec.key, 'target'],
-      reward: '—',
-      note: '',
-      solution: {
-        nodes: [node('px' + pi, kind, 260, 280, cfg)],
-        edges: [edge('px' + pi, 'out', 'target', 'proof')]
-      }
-    });
-  });
-
   /* Equality chapter: quantifier rules applied to the identity axioms. */
   var EQ_LEVELS = [
     { id: 'EQ-01', target: '∀x x=x', title: '等词自反', nodes: [['eqax', 'pred-axiom', 80, 360, { axiomId: 'EQ1' }], ['eqi', 'all-intro', 720, 300, { v: 'x' }]], edges: [['eqax', 'out', 'eqi', 'assertion'], ['eqi', 'out', 'target', 'proof']] },
@@ -506,6 +500,63 @@
     });
   });
 
+
+  /* Curated equality extensions. */
+  function addEqLevel(id, title, axiom, target, terms, kind) {
+    var nodes = [node('ax', 'pred-axiom', 80, 380, { axiomId: axiom })];
+    var edges = [];
+    var last = 'ax';
+    if (kind === 'refl') {
+      nodes.push(node('i', 'all-intro', 480, 300, { v: 'x' }));
+      edges.push(edge('ax', 'out', 'i', 'assertion'));
+      last = 'i';
+    } else if (kind === 'sym') {
+      nodes.push(node('iy', 'all-intro', 420, 300, { v: 'y' }));
+      nodes.push(node('ix', 'all-intro', 680, 300, { v: 'x' }));
+      edges.push(edge('ax', 'out', 'iy', 'assertion'));
+      edges.push(edge('iy', 'out', 'ix', 'assertion'));
+      last = 'ix';
+    } else if (kind === 'trans') {
+      nodes.push(node('iz', 'all-intro', 340, 300, { v: 'z' }));
+      nodes.push(node('iy', 'all-intro', 560, 300, { v: 'y' }));
+      nodes.push(node('ix', 'all-intro', 780, 300, { v: 'x' }));
+      edges.push(edge('ax', 'out', 'iz', 'assertion'));
+      edges.push(edge('iz', 'out', 'iy', 'assertion'));
+      edges.push(edge('iy', 'out', 'ix', 'assertion'));
+      last = 'ix';
+    } else {
+      nodes.push(node('iy', 'all-intro', 420, 300, { v: 'y' }));
+      nodes.push(node('ix', 'all-intro', 680, 300, { v: 'x' }));
+      edges.push(edge('ax', 'out', 'iy', 'assertion'));
+      edges.push(edge('iy', 'out', 'ix', 'assertion'));
+      last = 'ix';
+    }
+    terms.forEach(function (term, i) {
+      var id2 = 'e' + i;
+      nodes.push(node(id2, 'all-elim', 980 + i * 220, 300, { term: term }));
+      edges.push(edge(last, 'out', id2, 'assertion'));
+      last = id2;
+    });
+    edges.push(edge(last, 'out', 'target', 'proof'));
+    var axAllowed = axiom === 'EQ1' ? ['pred-axiom:EQ1'] : ['pred-axiom:' + axiom];
+    var allowed = axAllowed.concat(['all-intro', 'all-elim', 'target']);
+    LEVELS.push({
+      id: id, chapter: 'equality', code: id, title: title, kicker: 'EQUALITY',
+      target: target, brief: '', hint: '', teaches: ['等词公理', '量词规则'], reward: '—', note: '',
+      allowed: allowed,
+      solution: { nodes: nodes, edges: edges }
+    });
+  }
+  addEqLevel('EQ-12', '自反 · b', 'EQ1', 'b=b', ['b'], 'refl');
+  addEqLevel('EQ-13', '自反 · c', 'EQ1', 'c=c', ['c'], 'refl');
+  addEqLevel('EQ-14', '对称 · b/c', 'EQ2', 'b=c→c=b', ['b', 'c'], 'sym');
+  addEqLevel('EQ-15', '传递 · b/c/a', 'EQ3', '(b=c∧c=a)→b=a', ['b', 'c', 'a'], 'trans');
+  addEqLevel('EQ-16', '替换 · b/c', 'EQ4', 'b=c→(F(b)→F(c))', ['b', 'c'], 'subst');
+  addEqLevel('EQ-17', '反向替换 · b/c', 'EQ5', 'b=c→(F(c)→F(b))', ['b', 'c'], 'subst');
+  addEqLevel('EQ-18', '传递 · 回环', 'EQ3', '(b=c∧c=b)→b=b', ['b', 'c', 'b'], 'trans');
+  addEqLevel('EQ-19', '对称 · c/b', 'EQ2', 'c=b→b=c', ['c', 'b'], 'sym');
+  addEqLevel('EQ-20', '传递 · c/b/a', 'EQ3', '(c=b∧b=a)→c=a', ['c', 'b', 'a'], 'trans');
+
   /* Normalize and add useful defaults. */
   LEVELS.forEach(function (lv, i) {
     lv.index = i;
@@ -528,5 +579,6 @@
   window.RSL.TARGET_X = TARGET_X;
   window.RSL.TARGET_Y = TARGET_Y;
 })();
+
 
 

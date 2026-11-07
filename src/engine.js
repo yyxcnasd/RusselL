@@ -1,4 +1,4 @@
-/* 公理板 — module metadata and graph evaluator. */
+﻿/* 公理板 — module metadata and graph evaluator. */
 (function () {
   'use strict';
   window.RSL = window.RSL || {};
@@ -114,6 +114,12 @@
       ports: { inputs: [{ id: 'assertion', label: '断言 A', type: 'assertion' }], outputs: [{ id: 'out', label: '∃x A', type: 'assertion' }] },
       config: { v: 'x' },
       help: '从 A 得到 ∃x A。'
+    },
+    'syllogism': {
+      label: '假言三段论', kindLabel: 'HS', group: 'predicate', symbol: 'HS',
+      ports: { inputs: [{ id: 'a', label: '断言 A→B', type: 'assertion' }, { id: 'b', label: '断言 B→C', type: 'assertion' }], outputs: [{ id: 'out', label: 'A→C', type: 'assertion' }] },
+      config: {},
+      help: '从 A→B 与 B→C 得到 A→C。'
     },
     'exists-elim': {
       label: '存在消去', kindLabel: '∃E', group: 'predicate', symbol: '∃E',
@@ -320,6 +326,12 @@
           if (!need('assertion')) return waiting();
           return makeResult(node, { k: 'exists', v: cfg.v || 'x', a: vals.assertion }, 'valid', null, '∃I · ' + (cfg.v || 'x'));
         }
+        case 'syllogism': {
+          if (!need('a') || !need('b')) return waiting();
+          if (vals.a.k !== 'imp' || vals.b.k !== 'imp') return makeResult(node, null, 'error', '两路输入都必须是以蕴涵为顶层的断言');
+          if (!L.eq(vals.a.b, vals.b.a)) return makeResult(node, null, 'error', '中间命题不匹配');
+          return makeResult(node, { k: 'imp', a: vals.a.a, b: vals.b.b }, 'valid', null, 'HS');
+        }
         case 'exists-elim': {
           if (!need('exists') || !need('implication')) return waiting();
           if (vals.exists.k !== 'exists') return makeResult(node, null, 'error', '第一路输入必须是存在量化式 ∃x A');
@@ -384,3 +396,4 @@
   window.RSL.MODULES = MODULES;
   window.RSL.Engine = { modules: MODULES, info: info, evaluate: evaluate, topo: topo, getAxiom: getAxiom, getPredicateTheorem: getPredicateTheorem };
 })();
+

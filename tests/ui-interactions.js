@@ -1,4 +1,4 @@
-/* Interaction checks: pin grid, right-click delete, assertion turnstiles, predicate completion. */
+﻿/* Interaction checks: pin grid, right-click delete, assertion turnstiles, predicate completion. */
 const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -22,11 +22,8 @@ async function main() {
   const send = (method, params) => new Promise((res, rej) => { const id = ++seq; pend.set(id, m => m.error ? rej(new Error(JSON.stringify(m.error))) : res(m.result)); ws.send(JSON.stringify({ id, method, params: params || {} })); });
   const js = async exp => { const r = await send('Runtime.evaluate', { expression: exp, returnByValue: true, awaitPromise: true }); if (r.exceptionDetails) throw new Error(r.exceptionDetails.text); return r.result.value; };
   await send('Runtime.enable'); await sleep(1300);
+  await js('window.RSL.APP.state.forceUnlock=true');
 
-  await js(`(function(){var app=window.RSL.APP;app.loadLevel(app.state.levels.findIndex(function(l){return l.code==='*2.1'}));document.querySelector('.tile').click();})()`); await sleep(300);
-  console.log('atom html', await js('document.querySelector(".node:not(.is-target)").innerHTML'));
-  console.log('nodes', await js('Array.from(document.querySelectorAll(".node")).map(function(n){var r=n.getBoundingClientRect();return {cls:n.className,text:n.innerText,x:r.x,y:r.y,w:r.width,h:r.height};})'));
-  await js('window.RSL.APP.loadLevel(0)'); await sleep(300);
   // Pin alignment + assertion turnstile
   await js('document.querySelector(".tile").click()'); await sleep(300);
   console.log('pins', await js(`(function(){var b=window.RSL.APP.state.board,n=b.items.find(function(x){return x.kind==='axiom'});var p=b._portPoint(n.id,'out');var t=b.node('target');var ti=b._portPoint('target','proof');return {node:[n.x%16,n.y%16],raw:[n.x,n.y,p.x,p.y],target:[t.x,t.y,ti.x,ti.y],pin:[p.x%16,p.y%16],turnstiles:document.querySelectorAll('.node-turnstile').length,deleteBtns:document.querySelectorAll('#deleteBtn,.node-x').length};})()`));
@@ -54,10 +51,10 @@ async function main() {
     var target={id:'target',kind:'target',x:lv.targetPos.x,y:lv.targetPos.y,target:lv.target,config:{}};
     var nodes=[target].concat(JSON.parse(JSON.stringify(lv.solution.nodes)));
     var edges=lv.solution.edges.map(function(e,n){return {id:'e'+n,from:e.from,to:e.to}});
-    b.allowMixed=true; b.setData(nodes,edges); app.refresh();
+    b.setData(nodes,edges); app.refresh();
     var complete=app.state.results.complete;
     document.getElementById('checkBtn').click();
-    return {complete:complete, win:!!document.querySelector('.win'), mixed:b.allowMixed, errors:app.state.results.errors.length};
+    return {complete:complete, win:!!document.querySelector('.win'), errors:app.state.results.errors.length};
   })()`);
   console.log('predicate', pred);
 
@@ -77,5 +74,6 @@ async function main() {
   ws.close();
 }
 main().catch(e => { console.error('FAIL', e); process.exitCode = 1; }).finally(async () => { await sleep(200); try { proc && proc.kill(); } catch (e) {} setTimeout(() => process.exit(process.exitCode || 0), 500); });
+
 
 

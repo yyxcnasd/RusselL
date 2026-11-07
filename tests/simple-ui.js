@@ -23,7 +23,7 @@ async function main() {
   const shot = async name => { const r = await send('Page.captureScreenshot', { format: 'png' }); fs.writeFileSync(path.join(root, 'screenshots', name), Buffer.from(r.data, 'base64')); };
   await send('Runtime.enable'); await send('Page.enable'); await sleep(1400);
   const info = await js(`(function(){
-    var app=window.RSL.APP; var list=[];
+    var app=window.RSL.APP; app.state.forceUnlock=true; var list=[];
     for(var i=0;i<app.state.levels.length;i++){
       app.loadLevel(i);
       list.push({i:i,code:app.state.level.id,goal:document.getElementById('goalFormula').textContent,tiles:document.querySelectorAll('.tile').length});
@@ -38,6 +38,7 @@ async function main() {
   await js('document.getElementById("levelBtn").click()'); await sleep(300);
   console.log('level cells', await js('document.querySelectorAll(".level-cell").length'));
   console.log('chapters', await js('Array.from(document.querySelectorAll(".chapter")).map(function(c){return {roman:c.querySelector(".chapter-roman").textContent,title:c.querySelector(".chapter-title").textContent,levels:c.querySelectorAll(".level-cell").length};})'));
+  console.log('reqs', await js('["Ⅰ","Ⅱ","Ⅲ","Ⅳ","Ⅴ","Ⅵ","Ⅶ","Ⅷ"].map(function(g){return window.RSL.APP.state.levels.filter(function(l){return l.chapterGroup===g;})[0];}).map(function(l){return {id:l.id,group:l.chapterGroup,req:l.requires,challenge:l.challenge};})'));
   await shot('simple-levels.png');
   await js('document.getElementById("overlay").click()'); await sleep(200);
   const longIdx = await js('window.RSL.APP.state.levels.findIndex(function(l){return l.code==="*4.87"})');
