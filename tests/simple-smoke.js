@@ -41,14 +41,23 @@ async function main() {
   await shot('simple-win.png');
   await js('document.querySelector("[data-next]").click()'); await sleep(400);
   console.log('next level', await js('document.getElementById("levelBtn").textContent'));
+  console.log('first-six', await js('window.RSL.APP.state.levels.slice(0,6).map(function(l){return l.id+":"+l.title})'));
   await js('document.getElementById("levelBtn").click()'); await sleep(300);
   console.log('level cells', await js('document.querySelectorAll(".level-cell").length'));
   console.log('locks', await js('Array.from(document.querySelectorAll(".chapter")).filter(function(c){return c.classList.contains("is-locked")||c.classList.contains("is-current");}).map(function(c){var b=c.querySelector(".level-cell");return {roman:c.querySelector(".chapter-roman").textContent,cls:c.className,first:b&&b.className,firstDisabled:b&&b.disabled};})'));
   await js('document.getElementById("achvBtn").click()'); await sleep(250);
-  console.log('achievements', await js('({total:document.querySelectorAll(".achv").length,on:document.querySelectorAll(".achv.is-on").length})'));
+  console.log('achievements', await js('({total:document.querySelectorAll(".achv").length,on:document.querySelectorAll(".achv.is-on").length,questions:document.querySelectorAll(".achv-q").length})'));
+  await js('document.querySelector(".achv").click()'); await sleep(150);
+  console.log('achv-detail', await js('({title:document.querySelector(".achv-detail h2")&&document.querySelector(".achv-detail h2").textContent,desc:document.querySelector(".achv-detail p")&&document.querySelector(".achv-detail p").textContent,status:document.querySelector(".achv-status")&&document.querySelector(".achv-status").textContent})'));
+  await js('document.querySelector("[data-back]").click()'); await sleep(150);
+  await js('document.querySelector(".achv:not(.is-on)").click()'); await sleep(150);
+  console.log('achv-locked', await js('({icon:!!document.querySelector(".achv-detail .achv-q"),status:document.querySelector(".achv-status")&&document.querySelector(".achv-status").textContent})'));
+  await js('document.querySelector("[data-back]").click()'); await sleep(150);
   await js('document.querySelector("[data-close]").click()'); await sleep(150);
   await js('document.getElementById("helpBtn").click()'); await sleep(250);
-  console.log('help', await js('({cards:document.querySelectorAll(".help-card").length,credit:document.querySelector(".credit")&&document.querySelector(".credit").textContent})'));
+  console.log('help', await js('({cards:document.querySelectorAll(".help-card").length,save:document.querySelectorAll(".save-btn").length,credit:document.querySelector(".credit")&&document.querySelector(".credit").textContent})'));
+  await js('document.querySelector("[data-save-export]").click()'); await sleep(200);
+  console.log('export', await js('({achv:!!window.RSL.APP.state.achievements.exporter})'));
   await js('document.querySelector("[data-close]").click()'); await sleep(150);
   console.log('bands', await js(`(function(){
     var app=window.RSL.APP, L=app.state.levels, idx=function(id){return L.findIndex(function(l){return l.id===id});};

@@ -25,7 +25,7 @@ async function main() {
   await send('Runtime.enable'); await sleep(1400);
   await shot('01-game.png');
   await js('window.RSL.APP.state.forceUnlock=true');
-  await js('(function(){var a=window.RSL.APP;a.loadLevel(a.state.levels.findIndex(function(l){return l.id==="CH1-10"}));})()'); await sleep(400);
+  await js('(function(){var a=window.RSL.APP;a.loadLevel(a.state.levels.findIndex(function(l){return l.id==="CH1-04"}));})()'); await sleep(400);
   await shot('11-guide.png');
   await js('document.getElementById("coachPop").click()'); await sleep(200);
   await js('window.RSL.APP.loadLevel(0)'); await sleep(250);
@@ -47,6 +47,9 @@ async function main() {
   await js('document.querySelector("[data-close]").click()'); await sleep(200);
   await js('document.getElementById("achvBtn").click()'); await sleep(300);
   await shot('09-achievements.png');
+  await js('document.querySelector(".achv").click()'); await sleep(220);
+  await shot('14-achievement-detail.png');
+  await js('document.querySelector("[data-back]").click()'); await sleep(180);
   await js('document.querySelector("[data-close]").click()'); await sleep(200);
   await js('document.getElementById("helpBtn").click()'); await sleep(300);
   await shot('10-help.png');

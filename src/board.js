@@ -936,7 +936,7 @@
     this.render();
     this.onChange();
     this.onSelect(null, null);
-    this.onRemove();
+    this.onRemove('node');
   };
 
   Board.prototype.removeEdge = function (id) {
@@ -945,7 +945,7 @@
     this.render();
     this.onChange();
     this.onSelect(null, null);
-    this.onRemove();
+    this.onRemove('edge');
   };
 
   Board.prototype.removeSelected = function () {

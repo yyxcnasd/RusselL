@@ -10,6 +10,10 @@
     solved: {},
     bestLen: {},
     usedKinds: {},
+    usedArchive: {},
+    usedTheorem: {},
+    cleanWins: {},
+    deletedThisLevel: false,
     achievements: {},
     coachSeen: {},
     board: null,
@@ -24,6 +28,7 @@
   };
   var els = {};
   var toastTimer = null;
+  var SAVE_KEY = 'axiom-simple:v2';
 
   function $(id) { return document.getElementById(id); }
   function esc(s) {
@@ -38,30 +43,91 @@
 
   function loadProgress() {
     try {
-      var p = JSON.parse(localStorage.getItem('axiom-simple:v2') || '{}');
+      var p = JSON.parse(localStorage.getItem(SAVE_KEY) || '{}');
       state.solved = {};
       (p.solved || []).forEach(function (id) { state.solved[id] = true; });
       state.bestLen = p.bestLen || {};
       state.usedKinds = {};
       (p.usedKinds || []).forEach(function (k) { state.usedKinds[k] = true; });
+      state.usedArchive = {};
+      (p.usedArchive || []).forEach(function (k) { state.usedArchive[k] = true; });
+      state.usedTheorem = {};
+      (p.usedTheorem || []).forEach(function (k) { state.usedTheorem[k] = true; });
+      state.cleanWins = {};
+      (p.cleanWins || []).forEach(function (k) { state.cleanWins[k] = true; });
       state.achievements = {};
       (p.achievements || []).forEach(function (k) { state.achievements[k] = true; });
       state.coachSeen = {};
       (p.coachSeen || []).forEach(function (k) { state.coachSeen[k] = true; });
       state.lastId = p.lastId || null;
-    } catch (e) { state.solved = {}; state.bestLen = {}; state.usedKinds = {}; state.achievements = {}; }
+    } catch (e) { state.solved = {}; state.bestLen = {}; state.usedKinds = {}; state.usedArchive = {}; state.usedTheorem = {}; state.cleanWins = {}; state.achievements = {}; }
+  }
+  function progressPayload() {
+    return {
+      version: 2,
+      solved: Object.keys(state.solved),
+      bestLen: state.bestLen,
+      usedKinds: Object.keys(state.usedKinds),
+      usedArchive: Object.keys(state.usedArchive),
+      usedTheorem: Object.keys(state.usedTheorem),
+      cleanWins: Object.keys(state.cleanWins),
+      achievements: Object.keys(state.achievements),
+      coachSeen: Object.keys(state.coachSeen),
+      lastId: state.level ? state.level.id : state.lastId
+    };
   }
   function saveProgress() {
-    try {
-      localStorage.setItem('axiom-simple:v2', JSON.stringify({
-        solved: Object.keys(state.solved),
-        bestLen: state.bestLen,
-        usedKinds: Object.keys(state.usedKinds),
-        achievements: Object.keys(state.achievements),
-        coachSeen: Object.keys(state.coachSeen),
-        lastId: state.level ? state.level.id : state.lastId
-      }));
-    } catch (e) {}
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(progressPayload())); } catch (e) {}
+  }
+
+  function cleanSave(raw) {
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('bad save');
+    function strings(v) { return Array.isArray(v) ? v.filter(function (x) { return typeof x === 'string'; }) : []; }
+    function object(v) { return v && typeof v === 'object' && !Array.isArray(v) ? v : {}; }
+    return {
+      version: 2,
+      solved: strings(raw.solved),
+      bestLen: object(raw.bestLen),
+      usedKinds: strings(raw.usedKinds),
+      usedArchive: strings(raw.usedArchive),
+      usedTheorem: strings(raw.usedTheorem),
+      cleanWins: strings(raw.cleanWins),
+      achievements: strings(raw.achievements),
+      coachSeen: strings(raw.coachSeen),
+      lastId: typeof raw.lastId === 'string' ? raw.lastId : null
+    };
+  }
+
+  function exportSave() {
+    var data = progressPayload();
+    data.exportedAt = new Date().toISOString();
+    var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'russell-save-' + new Date().toISOString().slice(0, 10) + '.json';
+    document.body.appendChild(a);
+    a.click();
+    a.parentNode.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    unlockAchv('exporter');
+  }
+
+  function importSave(file) {
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      try {
+        var data = cleanSave(JSON.parse(String(reader.result || '')));
+        if (data.achievements.indexOf('importer') < 0) data.achievements.push('importer');
+        localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+        toast('已导入');
+        setTimeout(function () { window.location.reload(); }, 650);
+      } catch (e) {
+        toast('存档不对');
+      }
+    };
+    reader.readAsText(file);
   }
 
   function loadSettings() {
@@ -156,8 +222,24 @@
     if (kinds.replace) unlockAchv('rule-replace');
     if (kinds.detach) unlockAchv('rule-detach');
     if (kinds['all-intro'] || kinds['all-elim'] || kinds.syllogism) unlockAchv('rule-quant');
-    if (state.bestLen[level.id] && state.bestLen[level.id] <= ((level.solution && level.solution.nodes.length) || 1)) unlockAchv('efficient');
-    if (state.levels.length && state.levels.every(function (lv) { return state.solved[lv.id]; })) unlockAchv('all');
+    var solved = Object.keys(state.solved).length;
+    var ref = (level.solution && level.solution.nodes.length) || 0;
+    if (ref && len <= ref) unlockAchv('efficient');
+    if (ref && len === ref) unlockAchv('perfect');
+    if (ref && len < ref) unlockAchv('shorter');
+    if (solved >= 10) unlockAchv('ten');
+    if (solved >= 120) unlockAchv('half');
+    var all = state.levels;
+    if (all.length && all.filter(function (lv) { return lv.band !== 'challenge'; }).every(function (lv) { return state.solved[lv.id]; })) unlockAchv('all-base');
+    if (all.length && all.filter(function (lv) { return lv.band === 'challenge'; }).every(function (lv) { return state.solved[lv.id]; })) unlockAchv('challenge-all');
+    if (Object.keys(state.usedArchive).length >= 10) unlockAchv('archive-ten');
+    if (Object.keys(state.usedTheorem).length >= 10) unlockAchv('theorem-ten');
+    if (Object.keys(state.cleanWins).length >= 1) unlockAchv('clean-one');
+    if (Object.keys(state.cleanWins).length >= 5) unlockAchv('clean-five');
+    var hard = all.filter(function (lv) { return lv.band === 'challenge' && state.solved[lv.id]; }).length;
+    if (hard >= 10) unlockAchv('hard-ten');
+    if (hard >= 30) unlockAchv('hard-thirty');
+    if (all.length && all.every(function (lv) { return state.solved[lv.id]; })) unlockAchv('all');
   }
 
   function openAchievements() {
@@ -166,14 +248,33 @@
     var got = ACHIEVEMENTS.filter(function (a) { return state.achievements[a.id]; }).length;
     var cards = ACHIEVEMENTS.map(function (a) {
       var on = !!state.achievements[a.id];
-      return '<div class="achv' + (on ? ' is-on' : '') + '" title="' + esc(a.name) + '">' +
-        '<span class="achv-icon"><svg class="icon"><use href="#' + a.symbol + '"></use></svg></span>' +
-      '</div>';
+      return '<button class="achv' + (on ? ' is-on' : '') + '" data-achv="' + a.id + '" title="' + esc(on ? a.name : '未解锁') + '" aria-label="' + esc(on ? a.name : '未解锁成就') + '">' +
+        (on ? '<span class="achv-icon"><svg class="icon"><use href="#' + a.symbol + '"></use></svg></span>' : '<span class="achv-q">?</span>') +
+      '</button>';
     }).join('');
     els.sheet.innerHTML =
       '<button class="sheet-x" data-close aria-label="关闭"><svg class="icon"><use href="#i-x-mark"></use></svg></button>' +
       '<div class="achv-head"><span class="achv-count">' + got + ' / ' + ACHIEVEMENTS.length + '</span><span class="achv-bar"><i style="width:' + (got / ACHIEVEMENTS.length * 100) + '%"></i></span></div>' +
       '<div class="achv-grid">' + cards + '</div>';
+    els.sheet.scrollTop = 0;
+  }
+
+  function openAchievement(id) {
+    var a = ACHV_BY_ID[id];
+    if (!a) return;
+    var on = !!state.achievements[id];
+    els.overlay.hidden = false;
+    els.sheet.innerHTML =
+      '<button class="sheet-x" data-close aria-label="关闭"><svg class="icon"><use href="#i-x-mark"></use></svg></button>' +
+      '<div class="achv-detail">' +
+        '<button class="achv-back" data-back aria-label="返回成就列表"><svg class="icon"><use href="#i-arrow-left"></use></svg></button>' +
+        '<div class="achv-detail-icon' + (on ? ' is-on' : '') + '">' +
+          (on ? '<svg class="icon"><use href="#' + a.symbol + '"></use></svg>' : '<span class="achv-q">?</span>') +
+        '</div>' +
+        '<h2>' + esc(a.name) + '</h2>' +
+        '<p>' + esc(a.desc) + '</p>' +
+        '<span class="achv-status">' + (on ? '已解锁' : '未解锁') + '</span>' +
+      '</div>';
     els.sheet.scrollTop = 0;
   }
 
@@ -232,23 +333,38 @@
     { id: 'Ⅳ', key: 'set', title: '集合' }
   ];
 
-  /* 成就：图标 + 极短名称；详细条件不写在界面里。 */
+  /* 30 个成就：短名称 + 一句条件说明。 */
   var ACHIEVEMENTS = [
-    { id: 'first', symbol: 'i-play', name: '通电' },
-    { id: 'base-prop', symbol: 'i-book-open', name: '命题基础' },
-    { id: 'base-pred', symbol: 'i-book-open', name: '谓词基础' },
-    { id: 'base-eq', symbol: 'i-book-open', name: '等词基础' },
-    { id: 'base-set', symbol: 'i-book-open', name: '集合基础' },
-    { id: 'chal-prop', symbol: 'i-star', name: '命题挑战' },
-    { id: 'chal-pred', symbol: 'i-star', name: '谓词挑战' },
-    { id: 'chal-eq', symbol: 'i-star', name: '等词挑战' },
-    { id: 'chal-set', symbol: 'i-star', name: '集合挑战' },
-    { id: 'rule-subst', symbol: 'i-arrow-path', name: '代入' },
-    { id: 'rule-replace', symbol: 'i-arrows-right-left', name: '置换' },
-    { id: 'rule-detach', symbol: 'i-link', name: '分离' },
-    { id: 'rule-quant', symbol: 'i-globe-alt', name: '量词' },
-    { id: 'efficient', symbol: 'i-bolt', name: '短证明' },
-    { id: 'all', symbol: 'i-check-badge', name: '全通关' }
+    { id: 'first', symbol: 'i-play', name: '通电', desc: '完成第一关。' },
+    { id: 'base-prop', symbol: 'i-book-open', name: '命题基础', desc: '打通命题章基础段。' },
+    { id: 'base-pred', symbol: 'i-book-open', name: '谓词基础', desc: '打通谓词章基础段。' },
+    { id: 'base-eq', symbol: 'i-book-open', name: '等词基础', desc: '打通等词章基础段。' },
+    { id: 'base-set', symbol: 'i-book-open', name: '集合基础', desc: '打通集合章基础段。' },
+    { id: 'chal-prop', symbol: 'i-star', name: '命题挑战', desc: '打通命题章挑战段。' },
+    { id: 'chal-pred', symbol: 'i-star', name: '谓词挑战', desc: '打通谓词章挑战段。' },
+    { id: 'chal-eq', symbol: 'i-star', name: '等词挑战', desc: '打通等词章挑战段。' },
+    { id: 'chal-set', symbol: 'i-star', name: '集合挑战', desc: '打通集合章挑战段。' },
+    { id: 'rule-subst', symbol: 'i-arrow-path', name: '代入', desc: '第一次使用 S 代入模块。' },
+    { id: 'rule-replace', symbol: 'i-arrows-right-left', name: '置换', desc: '第一次使用 D 定义置换模块。' },
+    { id: 'rule-detach', symbol: 'i-link', name: '分离', desc: '第一次使用 M 分离模块。' },
+    { id: 'rule-quant', symbol: 'i-globe-alt', name: '量词', desc: '第一次使用全称、存在或三段论规则。' },
+    { id: 'efficient', symbol: 'i-bolt', name: '短证明', desc: '任一关的模块数不超过参考电路。' },
+    { id: 'all', symbol: 'i-check-badge', name: '全通关', desc: '打通全部 240 关。' },
+    { id: 'perfect', symbol: 'i-squares-2x2', name: '精确复刻', desc: '任一关的模块数与参考电路完全相同。' },
+    { id: 'shorter', symbol: 'i-arrow-right', name: '更短', desc: '任一关的模块数少于参考电路。' },
+    { id: 'ten', symbol: 'i-book-open', name: '十关', desc: '累计通过 10 关。' },
+    { id: 'half', symbol: 'i-book-open', name: '半程', desc: '累计通过 120 关。' },
+    { id: 'all-base', symbol: 'i-check-badge', name: '基础全通', desc: '四章基础段全部打通。' },
+    { id: 'challenge-all', symbol: 'i-star', name: '挑战全通', desc: '四章挑战段全部打通。' },
+    { id: 'archive-ten', symbol: 'i-book-open', name: '档案员', desc: '在 10 个不同关卡里使用档案模块。' },
+    { id: 'theorem-ten', symbol: 'i-link', name: '定理员', desc: '在 10 个不同关卡里使用已证结论。' },
+    { id: 'clean-one', symbol: 'i-check-badge', name: '一次成功', desc: '不删除模块完成一关。' },
+    { id: 'clean-five', symbol: 'i-check-badge', name: '干净五关', desc: '不删除模块完成 5 关。' },
+    { id: 'hard-ten', symbol: 'i-bolt', name: '挑战者', desc: '通过 10 个挑战关。' },
+    { id: 'hard-thirty', symbol: 'i-bolt', name: '硬核', desc: '通过 30 个挑战关。' },
+    { id: 'theme', symbol: 'i-moon', name: '夜间模式', desc: '切换到深色模式。' },
+    { id: 'exporter', symbol: 'i-arrow-up-tray', name: '备份', desc: '导出一次存档。' },
+    { id: 'importer', symbol: 'i-arrow-down-tray', name: '读档', desc: '导入一次存档。' }
   ];
   var ACHV_BY_ID = {};
   ACHIEVEMENTS.forEach(function (a) { ACHV_BY_ID[a.id] = a; });
@@ -270,8 +386,12 @@
       lv._ord = i;
       lv.chapterGroup = chapterOf(lv);
     });
+    function levelNo(lv) {
+      var m = /^CH\d+-(\d+)$/.exec(String(lv.id || ''));
+      return m ? parseInt(m[1], 10) : lv._ord;
+    }
     list.sort(function (a, b) {
-      return (CHAPTER_RANK[a.chapterGroup] - CHAPTER_RANK[b.chapterGroup]) || (a._ord - b._ord);
+      return (CHAPTER_RANK[a.chapterGroup] - CHAPTER_RANK[b.chapterGroup]) || (levelNo(a) - levelNo(b));
     });
     var prevBaseLast = null;
     CHAPTERS.forEach(function (c) {
@@ -416,6 +536,7 @@
     if (!isUnlocked(index)) { toast('先完成前一关'); return; }
     closeOverlay();
     hideCoach();
+    state.deletedThisLevel = false;
     state.index = index;
     state.level = state.levels[index];
     state.selectedNode = null;
@@ -559,7 +680,10 @@
     items.forEach(function (n) {
       state.usedKinds[n.kind] = true;
       kinds[n.kind] = true;
+      if (n.kind === 'archive') state.usedArchive[lv.id] = true;
+      if (n.kind === 'theorem') state.usedTheorem[lv.id] = true;
     });
+    if (!state.deletedThisLevel) state.cleanWins[lv.id] = true;
     if (!state.bestLen[lv.id] || len < state.bestLen[lv.id]) state.bestLen[lv.id] = len;
     saveProgress();
     checkAchievements(lv, len, kinds);
@@ -665,6 +789,10 @@
           '<div class="help-card" data-coach="replace"><b>D</b><span>A↔B ⇄ ¬A∨B</span></div>' +
           '<div class="help-card" data-coach="all-intro"><b>∀</b><span>A(x) ⇄ ∀x A</span></div>' +
         '</div>' +
+        '<div class="save-row">' +
+          '<button class="save-btn" data-save-export title="导出存档" aria-label="导出存档"><svg class="icon"><use href="#i-arrow-up-tray"></use></svg><span>导出</span></button>' +
+          '<button class="save-btn" data-save-import title="导入存档" aria-label="导入存档"><svg class="icon"><use href="#i-arrow-down-tray"></use></svg><span>导入</span></button>' +
+        '</div>' +
       '</div>' +
       '<p class="credit">Design by yyxcnasd</p>';
   }
@@ -690,14 +818,22 @@
     els.coachPop.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
     els.sheet.addEventListener('click', function (e) {
       var card = e.target.closest && e.target.closest('[data-coach]');
-      if (!card) return;
-      closeOverlay();
-      showCoachKind(card.dataset.coach);
+      if (card) { closeOverlay(); showCoachKind(card.dataset.coach); return; }
+      var achv = e.target.closest && e.target.closest('[data-achv]');
+      if (achv) { openAchievement(achv.dataset.achv); return; }
+      if (e.target.closest && e.target.closest('[data-back]')) { openAchievements(); return; }
+      if (e.target.closest && e.target.closest('[data-save-export]')) { exportSave(); return; }
+      if (e.target.closest && e.target.closest('[data-save-import]')) { els.saveFile.click(); return; }
+    });
+    els.saveFile.addEventListener('change', function () {
+      importSave(els.saveFile.files && els.saveFile.files[0]);
+      els.saveFile.value = '';
     });
     els.themeBtn.addEventListener('click', function () {
       state.theme = state.theme === 'dark' ? 'light' : 'dark';
       applyTheme();
       saveSettings();
+      if (state.theme === 'dark') unlockAchv('theme');
       sfx('click');
     });
     els.soundBtn.addEventListener('click', function () {
@@ -758,7 +894,7 @@
   }
 
   function init() {
-    ['levelBtn', 'goal', 'goalFormula', 'themeBtn', 'soundBtn', 'helpBtn', 'achvBtn', 'checkBtn', 'progressFill', 'board', 'boardWorld', 'wireLayer', 'nodeLayer', 'tray', 'popover', 'toast', 'overlay', 'sheet', 'coach', 'coachPop'].forEach(function (id) { els[id] = $(id); });
+    ['levelBtn', 'goal', 'goalFormula', 'themeBtn', 'soundBtn', 'helpBtn', 'achvBtn', 'checkBtn', 'progressFill', 'board', 'boardWorld', 'wireLayer', 'nodeLayer', 'tray', 'popover', 'toast', 'overlay', 'sheet', 'coach', 'coachPop', 'saveFile'].forEach(function (id) { els[id] = $(id); });
     if (!L) { document.body.innerHTML = '<div class="fatal">逻辑引擎未加载</div>'; return; }
     window.RSL.formatFormula = function (ast) { return formulaHTML(ast); };
     loadProgress();
@@ -779,7 +915,7 @@
       },
       onToast: function (msg) { toast(msg); },
       onConnect: function () { sfx('connect'); },
-      onRemove: function () { sfx('click'); }
+      onRemove: function (kind) { if (kind === 'node') state.deletedThisLevel = true; sfx('click'); }
     });
     bind();
     var start = -1;

@@ -559,13 +559,27 @@ html[data-theme="dark"] .sheet::-webkit-scrollbar-thumb{border-color:var(--card)
 .achv-count{font-size:13px;color:var(--muted);font-weight:600;white-space:nowrap}
 .achv-bar{flex:1;height:3px;border-radius:3px;background:var(--line);overflow:hidden}
 .achv-bar i{display:block;height:100%;background:var(--accent);border-radius:3px}
-.achv-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding:0 2px 12px}
-.achv{display:flex;flex-direction:column;align-items:center;gap:7px;padding:14px 6px 12px;border-radius:16px;background:var(--soft);opacity:.36;filter:grayscale(1)}
+.achv-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;padding:0 2px 12px}
+.achv{display:flex;flex-direction:column;align-items:center;gap:7px;padding:14px 6px 12px;border-radius:16px;background:var(--soft);opacity:.55;filter:grayscale(1);cursor:pointer}
 .achv.is-on{opacity:1;filter:none;background:var(--accent-soft)}
 .achv-icon{display:grid;place-items:center;width:24px;height:24px;color:var(--ink)}
 .achv-icon .icon{width:24px;height:24px;stroke-width:1.7}
 .achv.is-on .achv-icon{color:var(--accent)}
-.achv-name{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.achv-q{font-family:var(--math);font-size:24px;font-weight:600;line-height:1;color:var(--muted)}
+.achv-detail{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:30px 12px 12px}
+.achv-back{position:absolute;top:14px;left:14px;width:36px;height:36px;border-radius:50%;background:var(--soft);color:var(--muted);display:grid;place-items:center}
+.achv-back:hover{color:var(--ink)}
+.achv-back .icon{width:17px;height:17px}
+.achv-detail-icon{display:grid;place-items:center;width:72px;height:72px;border-radius:22px;background:var(--soft);color:var(--muted);margin-top:12px}
+.achv-detail-icon.is-on{background:var(--accent-soft);color:var(--accent)}
+.achv-detail-icon .icon{width:34px;height:34px;stroke-width:1.7}
+.achv-detail h2{font-size:20px;font-weight:600;line-height:1.25;margin:2px 0 0}
+.achv-detail p{font-size:14px;line-height:1.55;color:var(--muted);max-width:300px;margin:0}
+.achv-status{font-size:12px;color:var(--accent);border:1px solid var(--line);border-radius:999px;padding:5px 12px;margin-top:4px}
+.help .save-row{display:flex;flex-direction:row;justify-content:center;gap:10px;padding:6px 0 0}
+.save-btn{display:flex;align-items:center;gap:6px;height:40px;padding:0 12px;border-radius:12px;background:var(--soft);color:var(--muted);font-size:12px}
+.save-btn:hover{color:var(--ink);background:var(--soft-hover)}
+.save-btn .icon{width:18px;height:18px}
 @media (max-width:700px){
   .achv-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
   .help .help-cards{grid-template-columns:1fr 1fr;gap:9px}

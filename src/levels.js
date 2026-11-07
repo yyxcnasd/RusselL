@@ -86,7 +86,7 @@
      它们只参与 Logic.expand 与 replace 模块。4–9：命题定理。 */
 
   LEVELS.push(level({
-    id: 'CH1-04', chapter: 'prop', code: 'CH1-04', title: '同一律', kicker: 'id',
+    id: 'CH1-07', chapter: 'prop', code: 'CH1-07', title: '同一律', kicker: 'id',
     target: 'P→P',
     brief: '用 ax-1 与 ax-2 做三次分离，把 P 推回它自己。',
     hint: '先取两条 ax-1 实例与一条 ax-2 实例；先分离出 (P→P)→(P→P)，再分离出 P→P。',
@@ -138,16 +138,16 @@
   /* 8–10：用前面关卡的结论 + 代入 + 分离/三段论拼出的定理。 */
 
   LEVELS.push(level({
-    id: 'CH1-05', chapter: 'prop', code: 'CH1-05', title: '前置同一', kicker: 'idd',
+    id: 'CH1-08', chapter: 'prop', code: 'CH1-08', title: '前置同一', kicker: 'idd',
     target: 'P→(Q→Q)',
     brief: '从同一律 P→P 出发，先把 P 换成 Q，再把 Q→Q 塞进 ax-1。',
-    hint: '引用 CH1-04（同一律），把 P 换成 Q，得到 Q→Q；再用 ax-1 把它变成 (Q→Q)→(P→(Q→Q))，最后分离。',
+    hint: '引用 CH1-07（同一律），把 P 换成 Q，得到 Q→Q；再用 ax-1 把它变成 (Q→Q)→(P→(Q→Q))，最后分离。',
     teaches: ['引用已证结论', '代入复合公式', '分离'],
-    allowed: ['atom', 'axiom:ax-1', 'theorem:CH1-04', 'subst', 'detach', 'target'],
+    allowed: ['atom', 'axiom:ax-1', 'theorem:CH1-07', 'subst', 'detach', 'target'],
     note: 'set.mm 的 idd 是 id 的直接推论。',
   solution: {
       nodes: [
-        th('t7', 60, 120, 'CH1-04'),
+        th('t7', 60, 120, 'CH1-07'),
         atom('p', 60, 380, 'P'),
         atom('q', 60, 540, 'Q'),
         subst('s1', 380, 300),
@@ -179,7 +179,7 @@
   }));
 
   LEVELS.push(level({
-    id: 'CH1-06', chapter: 'prop', code: 'CH1-06', title: '两层前件', kicker: 'ax1w',
+    id: 'CH1-09', chapter: 'prop', code: 'CH1-09', title: '两层前件', kicker: 'ax1w',
     target: 'P→(Q→(S→Q))',
     brief: '在 ax-1 的结论前面再套一层前件。',
     hint: '先用 ax-1 做出 Q→(S→Q)（先 Q:=S，再 P:=Q），再用 ax-1 给它加上前件 P。',
@@ -225,7 +225,7 @@
   }));
 
   LEVELS.push(level({
-    id: 'CH1-07', chapter: 'prop', code: 'CH1-07', title: '前件叠加', kicker: 'ax-1 + ax-2 + HS',
+    id: 'CH1-10', chapter: 'prop', code: 'CH1-10', title: '前件叠加', kicker: 'ax-1 + ax-2 + HS',
     target: '(P→Q)→((S→P)→(S→Q))',
     brief: '把 ax-1 与 ax-2 用假言三段论接起来。',
     hint: 'ax-1 给出 (P→Q)→(S→(P→Q))；ax-2 给出 (S→(P→Q))→((S→P)→(S→Q))；用 HS 串起来。',
@@ -275,7 +275,7 @@
   }));
 
   LEVELS.push(level({
-    id: 'CH1-08', chapter: 'prop', code: 'CH1-08', title: '同一位置', kicker: 'subst',
+    id: 'CH1-11', chapter: 'prop', code: 'CH1-11', title: '同一位置', kicker: 'subst',
     target: 'P→(P→P)',
     brief: '把 ax-1 图式里的 Q 也换成 P：同一个原子可以填两个位置。',
     hint: '取 ax-1，用代入模块把 Q 换成 P。',
@@ -299,19 +299,19 @@
   }));
 
   LEVELS.push(level({
-    id: 'CH1-09', chapter: 'prop', code: 'CH1-09', title: '复合同一', kicker: 'id + subst / 挑战',
+    id: 'CH1-12', chapter: 'prop', code: 'CH1-12', title: '复合同一', kicker: 'id + subst / 挑战',
     target: '(P→Q)→(P→Q)',
     brief: '同一律不只对单个原子成立：把 P 换成整个 P→Q，仍然得到它自己。',
-    hint: '引用 CH1-04（P→P），用 imp 门拼出 P→Q，再把定理里的 P 换成它。',
+    hint: '引用 CH1-07（P→P），用 imp 门拼出 P→Q，再把定理里的 P 换成它。',
     teaches: ['定理图式实例化', '复合公式作代入项', '挑战关'],
-    allowed: ['atom', 'imp', 'theorem:CH1-04', 'subst', 'target'],
+    allowed: ['atom', 'imp', 'theorem:CH1-07', 'subst', 'target'],
     note: 'id 定理的复合实例；这是本章的挑战关。',
   solution: {
       nodes: [
         atom('p', 60, 100, 'P'),
         atom('q', 60, 260, 'Q'),
         n('pq', 'imp', 340, 160),
-        th('t7', 60, 440, 'CH1-04'),
+        th('t7', 60, 440, 'CH1-07'),
         subst('s1', 620, 300)
       ],
       edges: [
@@ -328,7 +328,7 @@
   /* 三个单独的规则教程关：代入、分离、定义置换。 */
 
   LEVELS.push(level({
-    id: 'CH1-10', chapter: 'prop', code: 'CH1-10', title: '代入', kicker: 'S · subst',
+    id: 'CH1-04', chapter: 'prop', code: 'CH1-04', title: '代入', kicker: 'S · subst',
     target: 'P→(R→P)',
     brief: '把公理里的一个字母换成另一个原子。',
     hint: '取 ax-1；用 S 把 Q 换成 R。',
@@ -354,31 +354,35 @@
   }));
 
   LEVELS.push(level({
-    id: 'CH1-11', chapter: 'prop', code: 'CH1-11', title: '分离', kicker: 'M · detach',
-    target: 'Q→(P→P)',
+    id: 'CH1-05', chapter: 'prop', code: 'CH1-05', title: '分离', kicker: 'M · detach',
+    target: 'Q→(P→(Q→P))',
     brief: '两条断言：一条是 A，一条是 A→B。接上 M，得到 B。',
-    hint: '用同一律做 A，用 ax-1 的实例做 A→B，再用 M 分离。',
+    hint: '取两条 ax-1：一条当 A，另一条把 P 换成 A，得到 A→B，再用 M。',
     teaches: ['分离模块', 'A 与 A→B'],
-    allowed: ['atom', 'imp', 'axiom:ax-1', 'theorem:CH1-04', 'subst', 'detach', 'target'],
+    allowed: ['atom', 'imp', 'axiom:ax-1', 'subst', 'detach', 'target'],
     mustUse: ['detach'],
     coach: 'detach',
     note: '单独练习 detach：A 与 A→B 两路断言输入，输出 B。',
   solution: {
       nodes: [
-        atom('p', 60, 100, 'P'),
-        n('pp', 'imp', 340, 160),
-        ax('a1', 60, 380, 'ax-1'),
-        subst('s1', 620, 300),
-        th('idt', 60, 620, 'CH1-04'),
-        detach('m1', 960, 300)
+        atom('q', 60, 100, 'Q'),
+        atom('p', 60, 260, 'P'),
+        n('qp', 'imp', 340, 120),
+        n('a', 'imp', 620, 220),
+        ax('a1a', 60, 420, 'ax-1'),
+        ax('a1b', 60, 600, 'ax-1'),
+        subst('s1', 900, 360),
+        detach('m1', 1180, 360)
       ],
       edges: [
-        e('p', 'out', 'pp', 'a'),
-        e('p', 'out', 'pp', 'b'),
-        e('a1', 'out', 's1', 'assertion'),
+        e('q', 'out', 'qp', 'a'),
+        e('p', 'out', 'qp', 'b'),
+        e('p', 'out', 'a', 'a'),
+        e('qp', 'out', 'a', 'b'),
+        e('a1b', 'out', 's1', 'assertion'),
         e('p', 'out', 's1', 'atom'),
-        e('pp', 'out', 's1', 'formula'),
-        e('idt', 'out', 'm1', 'a'),
+        e('a', 'out', 's1', 'formula'),
+        e('a1a', 'out', 'm1', 'a'),
         e('s1', 'out', 'm1', 'b'),
         e('m1', 'out', 'target', 'proof')
       ]
@@ -386,7 +390,7 @@
   }));
 
   LEVELS.push(level({
-    id: 'CH1-12', chapter: 'prop', code: 'CH1-12', title: '定义置换', kicker: 'D · replace',
+    id: 'CH1-06', chapter: 'prop', code: 'CH1-06', title: '定义置换', kicker: 'D · replace',
     target: 'P→(¬Q→P)',
     brief: '把公式里的定义式按展开方向换掉。',
     hint: '取 archive:olc，让 D 把 Q∨P 展开成 ¬Q→P。',
@@ -592,13 +596,13 @@
     id: 'CH2-10', chapter: 'pred', code: 'CH2-10', title: '闭包同一律', kicker: 'id + ∀I',
     target: '∀x(P→P)',
     brief: '同一律也可以整条闭包。',
-    hint: '引用 CH1-04（同一律），接 ∀I(x)。',
+    hint: '引用 CH1-07（同一律），接 ∀I(x)。',
     teaches: ['已证结论闭包', '量词'],
-    allowed: ['theorem:CH1-04', 'all-intro', 'target'],
+    allowed: ['theorem:CH1-07', 'all-intro', 'target'],
     note: 'set.mm 里将任意定理全称推广（ax-gen）的常见用法。',
   solution: {
       nodes: [
-        th('t4', 60, 300, 'CH1-04'),
+        th('t4', 60, 300, 'CH1-07'),
         alli('i1', 420, 300, 'x')
       ],
       edges: [

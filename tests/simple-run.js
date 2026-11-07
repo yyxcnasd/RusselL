@@ -24,7 +24,7 @@ async function main() {
   const shot = async name => { const r = await send('Page.captureScreenshot', { format: 'png' }); fs.writeFileSync(path.join(root, 'screenshots', name), Buffer.from(r.data, 'base64')); };
   await send('Runtime.enable'); await sleep(1300);
   await js('window.RSL.APP.state.forceUnlock=true');
-  const idx = await js('window.RSL.APP.state.levels.findIndex(function(l){return l.id==="CH1-05"})');
+  const idx = await js('window.RSL.APP.state.levels.findIndex(function(l){return l.id==="CH1-08"})');
   console.log('load', await js('(function(){try{window.RSL.APP.loadLevel(' + idx + ');return "ok"}catch(e){return (e&&e.stack)||String(e)}})()')); await sleep(300);
   console.log('goal', await js('document.getElementById("goalFormula").textContent'), await js('document.querySelectorAll(".tile").length'));
   await js('document.querySelector(".tile[data-key^=\\"theorem:\\"]").click()'); await sleep(300);
