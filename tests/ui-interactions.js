@@ -60,6 +60,20 @@ async function main() {
     return {complete:complete, win:!!document.querySelector('.win'), mixed:b.allowMixed, errors:app.state.results.errors.length};
   })()`);
   console.log('predicate', pred);
+
+  const eq = await js(`(function(){
+    var app=window.RSL.APP, i=app.state.levels.findIndex(function(l){return l.id==='EQ-04'});
+    app.loadLevel(i);
+    var lv=app.state.level, b=app.state.board;
+    var target={id:'target',kind:'target',x:lv.targetPos.x,y:lv.targetPos.y,target:lv.target,config:{}};
+    var nodes=[target].concat(JSON.parse(JSON.stringify(lv.solution.nodes)));
+    var edges=lv.solution.edges.map(function(e,n){return {id:'e'+n,from:e.from,to:e.to}});
+    b.setData(nodes,edges); app.refresh();
+    var complete=app.state.results.complete;
+    document.getElementById('checkBtn').click();
+    return {complete:complete, win:!!document.querySelector('.win'), target:lv.target, tiles:document.querySelectorAll('.tile').length};
+  })()`);
+  console.log('equality', eq);
   ws.close();
 }
 main().catch(e => { console.error('FAIL', e); process.exitCode = 1; }).finally(async () => { await sleep(200); try { proc && proc.kill(); } catch (e) {} setTimeout(() => process.exit(process.exitCode || 0), 500); });

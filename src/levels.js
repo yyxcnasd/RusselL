@@ -1,4 +1,4 @@
-﻿/* 公理板 — propositional level catalogue and reference circuits. */
+/* 公理板 — propositional level catalogue and reference circuits. */
 (function () {
   'use strict';
   window.RSL = window.RSL || {};
@@ -469,6 +469,40 @@
         nodes: [node('px' + pi, kind, 260, 280, cfg)],
         edges: [edge('px' + pi, 'out', 'target', 'proof')]
       }
+    });
+  });
+
+  /* Equality chapter: quantifier rules applied to the identity axioms. */
+  var EQ_LEVELS = [
+    { id: 'EQ-01', target: '∀x x=x', title: '等词自反', nodes: [['eqax', 'pred-axiom', 80, 360, { axiomId: 'EQ1' }], ['eqi', 'all-intro', 720, 300, { v: 'x' }]], edges: [['eqax', 'out', 'eqi', 'assertion'], ['eqi', 'out', 'target', 'proof']] },
+    { id: 'EQ-02', target: 'a=a', title: '自反实例', nodes: [['eqax', 'pred-axiom', 80, 360, { axiomId: 'EQ1' }], ['eqi', 'all-intro', 620, 300, { v: 'x' }], ['eqe', 'all-elim', 980, 300, { term: 'a' }]], edges: [['eqax', 'out', 'eqi', 'assertion'], ['eqi', 'out', 'eqe', 'assertion'], ['eqe', 'out', 'target', 'proof']] },
+    { id: 'EQ-03', target: '∀x∀y(x=y→y=x)', title: '等词对称', nodes: [['eqax', 'pred-axiom', 80, 400, { axiomId: 'EQ2' }], ['eqy', 'all-intro', 660, 300, { v: 'y' }], ['eqx', 'all-intro', 1010, 300, { v: 'x' }]], edges: [['eqax', 'out', 'eqy', 'assertion'], ['eqy', 'out', 'eqx', 'assertion'], ['eqx', 'out', 'target', 'proof']] },
+    { id: 'EQ-04', target: 'a=b→b=a', title: '对称实例', nodes: [['eqax', 'pred-axiom', 80, 400, { axiomId: 'EQ2' }], ['eqy', 'all-intro', 560, 300, { v: 'y' }], ['eqx', 'all-intro', 820, 300, { v: 'x' }], ['ex', 'all-elim', 1080, 300, { term: 'a' }], ['ey', 'all-elim', 1320, 300, { term: 'b' }]], edges: [['eqax', 'out', 'eqy', 'assertion'], ['eqy', 'out', 'eqx', 'assertion'], ['eqx', 'out', 'ex', 'assertion'], ['ex', 'out', 'ey', 'assertion'], ['ey', 'out', 'target', 'proof']] },
+    { id: 'EQ-05', target: '∀x∀y∀z((x=y∧y=z)→x=z)', title: '等词传递', nodes: [['eqax', 'pred-axiom', 80, 440, { axiomId: 'EQ3' }], ['eqz', 'all-intro', 620, 300, { v: 'z' }], ['eqy', 'all-intro', 880, 300, { v: 'y' }], ['eqx', 'all-intro', 1140, 300, { v: 'x' }]], edges: [['eqax', 'out', 'eqz', 'assertion'], ['eqz', 'out', 'eqy', 'assertion'], ['eqy', 'out', 'eqx', 'assertion'], ['eqx', 'out', 'target', 'proof']] },
+    { id: 'EQ-06', target: '(a=b∧b=c)→a=c', title: '传递实例', nodes: [['eqax', 'pred-axiom', 80, 440, { axiomId: 'EQ3' }], ['eqz', 'all-intro', 520, 300, { v: 'z' }], ['eqy', 'all-intro', 760, 300, { v: 'y' }], ['eqx', 'all-intro', 1000, 300, { v: 'x' }], ['ex', 'all-elim', 1240, 300, { term: 'a' }], ['ey', 'all-elim', 1480, 300, { term: 'b' }], ['ez', 'all-elim', 1720, 300, { term: 'c' }]], edges: [['eqax', 'out', 'eqz', 'assertion'], ['eqz', 'out', 'eqy', 'assertion'], ['eqy', 'out', 'eqx', 'assertion'], ['eqx', 'out', 'ex', 'assertion'], ['ex', 'out', 'ey', 'assertion'], ['ey', 'out', 'ez', 'assertion'], ['ez', 'out', 'target', 'proof']] },
+    { id: 'EQ-07', target: '∀x∀y(x=y→(F(x)→F(y)))', title: '等词替换', nodes: [['eqax', 'pred-axiom', 80, 400, { axiomId: 'EQ4' }], ['eqy', 'all-intro', 660, 300, { v: 'y' }], ['eqx', 'all-intro', 1010, 300, { v: 'x' }]], edges: [['eqax', 'out', 'eqy', 'assertion'], ['eqy', 'out', 'eqx', 'assertion'], ['eqx', 'out', 'target', 'proof']] },
+    { id: 'EQ-08', target: 'a=b→(F(a)→F(b))', title: '替换实例', nodes: [['eqax', 'pred-axiom', 80, 400, { axiomId: 'EQ4' }], ['eqy', 'all-intro', 520, 300, { v: 'y' }], ['eqx', 'all-intro', 760, 300, { v: 'x' }], ['ea', 'all-elim', 1000, 300, { term: 'a' }], ['eb', 'all-elim', 1240, 300, { term: 'b' }]], edges: [['eqax', 'out', 'eqy', 'assertion'], ['eqy', 'out', 'eqx', 'assertion'], ['eqx', 'out', 'ea', 'assertion'], ['ea', 'out', 'eb', 'assertion'], ['eb', 'out', 'target', 'proof']] },
+    { id: 'EQ-09', target: '∀x∀y(x=y→(F(y)→F(x)))', title: '反向替换', nodes: [['eqax', 'pred-axiom', 80, 400, { axiomId: 'EQ5' }], ['eqy', 'all-intro', 660, 300, { v: 'y' }], ['eqx', 'all-intro', 1010, 300, { v: 'x' }]], edges: [['eqax', 'out', 'eqy', 'assertion'], ['eqy', 'out', 'eqx', 'assertion'], ['eqx', 'out', 'target', 'proof']] },
+    { id: 'EQ-10', target: 'a=b→(F(b)→F(a))', title: '反向替换实例', nodes: [['eqax', 'pred-axiom', 80, 400, { axiomId: 'EQ5' }], ['eqy', 'all-intro', 520, 300, { v: 'y' }], ['eqx', 'all-intro', 760, 300, { v: 'x' }], ['ea', 'all-elim', 1000, 300, { term: 'a' }], ['eb', 'all-elim', 1240, 300, { term: 'b' }]], edges: [['eqax', 'out', 'eqy', 'assertion'], ['eqy', 'out', 'eqx', 'assertion'], ['eqx', 'out', 'ea', 'assertion'], ['ea', 'out', 'eb', 'assertion'], ['eb', 'out', 'target', 'proof']] },
+    { id: 'EQ-11', target: '∃x x=x', title: '存在自反', nodes: [['eqax', 'pred-axiom', 80, 360, { axiomId: 'EQ1' }], ['eqe', 'exists-intro', 720, 300, { v: 'x' }]], edges: [['eqax', 'out', 'eqe', 'assertion'], ['eqe', 'out', 'target', 'proof']] }
+  ];
+  EQ_LEVELS.forEach(function (spec) {
+    var nodes = spec.nodes.map(function (n) { return node(n[0], n[1], n[2], n[3], n[4]); });
+    var edges = spec.edges.map(function (e) { return edge(e[0], e[1], e[2], e[3]); });
+    LEVELS.push({
+      id: spec.id,
+      chapter: 'equality',
+      code: spec.id,
+      title: spec.title,
+      kicker: 'EQUALITY',
+      target: spec.target,
+      brief: '',
+      hint: '',
+      teaches: ['等词公理', '量词规则'],
+      allowed: ['pred-axiom:EQ1', 'pred-axiom:EQ2', 'pred-axiom:EQ3', 'pred-axiom:EQ4', 'pred-axiom:EQ5', 'all-intro', 'all-elim', 'exists-intro', 'target'],
+      reward: '—',
+      note: '',
+      solution: { nodes: nodes, edges: edges }
     });
   });
 

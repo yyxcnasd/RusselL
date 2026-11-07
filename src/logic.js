@@ -92,7 +92,7 @@
   var SINGLE_OPS = {
     '¬': 'NOT', '~': 'NOT', '!': 'NOT', '∨': 'OR', '|': 'OR', '→': 'IMP', '⇒': 'IMP',
     '∧': 'AND', '&': 'AND', '^': 'AND', '↔': 'IFF', '⇔': 'IFF', '∀': 'FORALL', '∃': 'EXISTS',
-    '(': 'LPAREN', ')': 'RPAREN', ',': 'COMMA'
+    '(': 'LPAREN', ')': 'RPAREN', ',': 'COMMA', '=': 'EQ'
   };
   var KEYWORDS = { forall: 'FORALL', exists: 'EXISTS', not: 'NOT' };
 
@@ -173,6 +173,11 @@
       }
       if (t.t === 'IDENT') {
         advance();
+        if (peek().t === 'EQ') {
+          advance();
+          var rhs = expect('IDENT', '等词右项').v;
+          return { k: 'pred', name: '=', args: [{ k: 'var', name: t.v }, { k: 'var', name: rhs }] };
+        }
         if (peek().t !== 'LPAREN') return { k: 'atom', name: t.v };
         advance();
         var args = [];
@@ -265,6 +270,7 @@
       case 'var': return requireName(n, '变元');
       case 'pred':
         if (!Array.isArray(n.args)) throw new LogicError('pred.args 必须是数组');
+        if (n.name === '=' && n.args.length === 2) return fmtTerm(n.args[0]) + ' = ' + fmtTerm(n.args[1]);
         return requireName(n, '谓词') + '(' + n.args.map(fmtTerm).join(', ') + ')';
       case 'not': return '¬' + fmtPrefix(n.a);
       case 'or': return fmtBinary('or', '∨', n.a, n.b);
@@ -308,6 +314,7 @@
       case 'var': return '<span class="f-var">' + escapeHTML(requireName(n, '变元')) + '</span>';
       case 'pred':
         if (!Array.isArray(n.args)) throw new LogicError('pred.args 必须是数组');
+        if (n.name === '=' && n.args.length === 2) return htmlTerm(n.args[0]) + '<span class="f-op"> = </span>' + htmlTerm(n.args[1]);
         return '<span class="f-name">' + escapeHTML(requireName(n, '谓词')) + '</span>' +
           '<span class="f-paren">(</span>' + n.args.map(htmlTerm).join(', ') + '<span class="f-paren">)</span>';
       case 'not': return '<span class="f-op">¬</span>' + htmlPrefix(n.a);
@@ -877,3 +884,4 @@
   }
   if (typeof module !== 'undefined' && module && module.exports) module.exports = Logic;
 })(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this));
+

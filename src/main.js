@@ -1,4 +1,4 @@
-/* 公理板 — minimal one-screen game. */
+﻿/* 公理板 — minimal one-screen game. */
 (function () {
   'use strict';
   window.RSL = window.RSL || {};
@@ -131,21 +131,44 @@
     setTimeout(function () { if (box.parentNode) box.parentNode.removeChild(box); }, 2200);
   }
 
+  var CHAPTERS = [
+    { id: 'Ⅰ', title: '公理' },
+    { id: 'Ⅱ', title: '变形' },
+    { id: 'Ⅲ', title: '代入' },
+    { id: 'Ⅳ', title: '命题 I' },
+    { id: 'Ⅴ', title: '命题 II' },
+    { id: 'Ⅵ', title: '命题 III' },
+    { id: 'Ⅶ', title: '谓词' },
+    { id: 'Ⅷ', title: '等词' }
+  ];
+  function chapterOf(lv) {
+    if (lv.chapter === 'primitives') return 'Ⅰ';
+    if (lv.chapter === 'archive') return 'Ⅱ';
+    if (lv.chapter === 'transform') return /^(SUB|SB|MIX)/.test(lv.id) ? 'Ⅲ' : 'Ⅱ';
+    if (lv.chapter === 'metamath') {
+      var major = parseInt(String(lv.code || '').replace('*', '').split('.')[0], 10) || 0;
+      if (major <= 2) return 'Ⅳ';
+      if (major <= 4) return 'Ⅴ';
+      return 'Ⅵ';
+    }
+    if (lv.chapter === 'equality') return 'Ⅷ';
+    return 'Ⅶ';
+  }
+  var CHAPTER_RANK = {}; CHAPTERS.forEach(function (c, i) { CHAPTER_RANK[c.id] = i; });
+
   function buildLevels() {
     var list = (window.RSL.LEVELS || []).slice();
     var pred = window.RSL.PREDICATE && window.RSL.PREDICATE.levels;
     if (pred) list = list.concat(pred);
-    var order = {};
-    (window.RSL.CHAPTERS || []).forEach(function (c, i) { order[c.id] = i; });
-    list.sort(function (a, b) {
-      var ao = order[a.chapter] == null ? 99 : order[a.chapter];
-      var bo = order[b.chapter] == null ? 99 : order[b.chapter];
-      return ao - bo;
-    });
-    list.forEach(function (lv) {
+    list.forEach(function (lv, i) {
       lv.chapter = lv.chapter || 'primitives';
       lv.targetPos = lv.targetPos || { x: 650, y: 300 };
       lv.allowed = lv.allowed || [];
+      lv._ord = i;
+      lv.chapterGroup = chapterOf(lv);
+    });
+    list.sort(function (a, b) {
+      return (CHAPTER_RANK[a.chapterGroup] - CHAPTER_RANK[b.chapterGroup]) || (a._ord - b._ord);
     });
     state.levels = list;
   }
@@ -196,7 +219,9 @@
       switch (n.k) {
         case 'atom': return sp('f-var', n.name);
         case 'var': return sp('f-var', n.name);
-        case 'pred': return sp('f-name', n.name) + sp('f-paren', '(') + (n.args || []).map(term).join(sp('f-op', ', ')) + sp('f-paren', ')');
+        case 'pred':
+          if (n.name === '=' && (n.args || []).length === 2) return term(n.args[0]) + sp('f-op', ' = ') + term(n.args[1]);
+          return sp('f-name', n.name) + sp('f-paren', '(') + (n.args || []).map(term).join(sp('f-op', ', ')) + sp('f-paren', ')');
         case 'not': {
           var c = n.a;
           return sp('f-op', '¬') + ((isBin(c) || c.k === 'all' || c.k === 'exists') ? sp('f-paren', '(') + go(c) + sp('f-paren', ')') : go(c));
@@ -343,7 +368,7 @@
         return '<button class="opt' + (cfg.arg === v ? ' is-on' : '') + '" data-config="arg" data-value="' + v + '">' + v + '</button>';
       }).join('');
     } else if (n.kind === 'all-elim') {
-      html = ['a', 'x', 'y', 'z'].map(function (v) {
+      html = ['a', 'b', 'c', 'x', 'y', 'z'].map(function (v) {
         return '<button class="opt' + (cfg.term === v ? ' is-on' : '') + '" data-config="term" data-value="' + v + '">' + v + '</button>';
       }).join('');
     } else if (n.kind === 'all-intro' || n.kind === 'exists-intro') {
@@ -404,11 +429,32 @@
   function openLevels() {
     sfx('click');
     els.overlay.hidden = false;
-    var grid = state.levels.map(function (lv, i) {
-      var cls = 'level-cell' + (i === state.index ? ' is-current' : '') + (state.solved[lv.id] ? ' is-solved' : '');
-      return '<button class="' + cls + '" data-level="' + i + '" aria-label="第 ' + (i + 1) + ' 关">' + String(i + 1).padStart(2, '0') + '</button>';
+    var buckets = {};
+    CHAPTERS.forEach(function (c) { buckets[c.id] = []; });
+    state.levels.forEach(function (lv, i) {
+      (buckets[chapterOf(lv)] || buckets['Ⅶ']).push({ lv: lv, i: i });
+    });
+    var html = CHAPTERS.map(function (c) {
+      var items = buckets[c.id] || [];
+      if (!items.length) return '';
+      var solved = items.filter(function (x) { return state.solved[x.lv.id]; }).length;
+      var isCurrent = items.some(function (x) { return x.i === state.index; });
+      var cells = items.map(function (x) {
+        var cls = 'level-cell' + (x.i === state.index ? ' is-current' : '') + (state.solved[x.lv.id] ? ' is-solved' : '');
+        return '<button class="' + cls + '" data-level="' + x.i + '" aria-label="第 ' + (x.i + 1) + ' 关">' + String(x.i + 1).padStart(2, '0') + '</button>';
+      }).join('');
+      return '<section class="chapter' + (isCurrent ? ' is-current' : '') + '">' +
+        '<div class="chapter-head">' +
+          '<span class="chapter-roman">' + c.id + '</span>' +
+          '<span class="chapter-title">' + c.title + '</span>' +
+          '<span class="chapter-progress" aria-hidden="true"><i style="width:' + (solved / items.length * 100) + '%"></i></span>' +
+        '</div>' +
+        '<div class="levels">' + cells + '</div>' +
+      '</section>';
     }).join('');
-    els.sheet.innerHTML = '<button class="sheet-x" data-close aria-label="关闭">×</button><div class="levels">' + grid + '</div>';
+    els.sheet.innerHTML = '<button class="sheet-x" data-close aria-label="关闭">×</button><div class="chapters">' + html + '</div>';
+    var cur = els.sheet.querySelector('.chapter.is-current');
+    if (cur) setTimeout(function () { els.sheet.scrollTop = Math.max(0, cur.offsetTop - 18); }, 0);
   }
 
   function openHelp() {
@@ -538,6 +584,8 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();
+
+
 
 
 

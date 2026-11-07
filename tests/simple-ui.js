@@ -37,6 +37,7 @@ async function main() {
   if (pm) { await js('window.RSL.APP.loadLevel(' + pm.i + ')'); await sleep(400); await shot('simple-pm.png'); }
   await js('document.getElementById("levelBtn").click()'); await sleep(300);
   console.log('level cells', await js('document.querySelectorAll(".level-cell").length'));
+  console.log('chapters', await js('Array.from(document.querySelectorAll(".chapter")).map(function(c){return {roman:c.querySelector(".chapter-roman").textContent,title:c.querySelector(".chapter-title").textContent,levels:c.querySelectorAll(".level-cell").length};})'));
   await shot('simple-levels.png');
   await js('document.getElementById("overlay").click()'); await sleep(200);
   const longIdx = await js('window.RSL.APP.state.levels.findIndex(function(l){return l.code==="*4.87"})');

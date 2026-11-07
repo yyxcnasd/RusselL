@@ -44,6 +44,8 @@ async function main() {
   await js('window.RSL.APP.loadLevel(' + i + ')'); await sleep(300);
   await js('document.querySelector(".tile").click()'); await sleep(250);
   await shot('06-pm.png');
+  const eq = await js('window.RSL.APP.state.levels.findIndex(function(l){return l.id==="EQ-01"})');
+  if (eq >= 0) { await js('window.RSL.APP.loadLevel(' + eq + ')'); await sleep(300); await shot('08-equality.png'); }
   await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
   await send('Page.navigate', { url }); await sleep(1200);
   await shot('05-mobile.png');
