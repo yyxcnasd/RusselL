@@ -23,11 +23,21 @@ function mpp(a, b) {
   if (ib && same(ib.ant, a.f)) return { t: P.mp(a.t, b.t), f: ib.cons, a, b };
   throw new Error('mpp: 前件不匹配\n a=' + a.f.join(' ') + '\n b=' + b.f.join(' '));
 }
+function gen(node, v) {
+  return { t: P.gen(node.t, v), f: F.all(v, node.f), op: 'gen', v, of: node };
+}
 function dt(node, H) {
   if (node.hyp) {
     if (same(node.f, H)) return leaf(P.subst(P.thm(1), { atoms: { P: H } }), F.imp(H, H));
     const a1 = leaf(P.subst(P.ax('A1'), { atoms: { P: node.f, Q: H } }), F.imp(node.f, F.imp(H, node.f)));
     return mpp(node, a1);
+  }
+  if (node.op === 'gen') {
+    const inner = dt(node.of, H);            // H → A
+    const g = leaf(P.gen(inner.t, node.v), F.all(node.v, inner.f));
+    const shift = leaf(P.subst(P.thm(64), { atoms: { P: H, Q: node.of.f } }),
+      F.imp(F.all(node.v, F.imp(H, inner.f)), F.imp(H, F.all(node.v, inner.f))));
+    return mpp(g, shift);
   }
   if (node.t && node.t.op === 'mp' && node.a) {
     const da = dt(node.a, H), db = dt(node.b, H);
@@ -38,4 +48,4 @@ function dt(node, H) {
   const a1 = leaf(P.subst(P.ax('A1'), { atoms: { P: node.f, Q: H } }), F.imp(node.f, F.imp(H, node.f)));
   return mpp(node, a1);
 }
-module.exports = { leaf, hyp, mpp, dt, splitImp, same };
+module.exports = { leaf, hyp, mpp, gen, dt, splitImp, same };
