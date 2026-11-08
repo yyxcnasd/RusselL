@@ -554,6 +554,38 @@ runTest('acceptance', async ({ openPage }) => {
   equal(zeroGroups.minus, false, '只剩 1 组时代换减号隐藏');
   equal(zeroGroups.plus, true, '只剩 1 组时加号仍可继续加组');
 
+  /* 原子命题可选 A–Z：第 22 关目标里出现 U，不能被 P–T 限制挡住 */
+  await page.js(`(function(){
+    var st=window.RSL.APP.state;
+    var i=st.levels.findIndex(function(l){return l.id==='CH1-22';});
+    window.RSL.APP.loadLevel(i);
+  })()`);
+  await page.waitFor('window.RSL.APP.state.level.id === "CH1-22"');
+  await page.js('try{window.RSL.UI.els.coachPop.click();}catch(e){}');
+  await page.js('document.querySelector(".tile[data-key=\\"atom\\"]").click()');
+  await page.waitFor('!!document.querySelector(".node[data-kind=\\"atom\\"]")');
+  await page.js(`(function(){
+    var b=window.RSL.APP.state.board;
+    var n=b.items.find(function(x){return x.kind==='atom';});
+    b.select(n.id);
+  })()`);
+  const atomOptions = await page.js(`(function(){
+    var opts=Array.prototype.map.call(document.querySelectorAll('.opt[data-config="name"]'),function(o){return o.dataset.value;});
+    return {count:opts.length, hasU:opts.indexOf('U')>=0, head:opts.slice(0,4), target:window.RSL.APP.state.level.target};
+  })()`);
+  ok(atomOptions.count >= 26, '原子选项覆盖 A–Z（实际 ' + atomOptions.count + ' 个）');
+  equal(atomOptions.hasU, true, '第 22 关的命题 U 能出现在原子选项里');
+  equal(atomOptions.head[0] === 'Q' && atomOptions.head[1] === 'U', true, '目标里出现的原子排在最前（Q、U）');
+  await page.js('document.querySelector(".opt[data-value=\\"U\\"]").click()');
+  await page.sleep(250);
+  const atomU = await page.js(`(function(){
+    var b=window.RSL.APP.state.board;
+    var n=b.items.find(function(x){return x.kind==='atom';});
+    return {name:n.config.name, formula:b.nodes.querySelector('[data-id="'+n.id+'"] .node-formula').textContent};
+  })()`);
+  equal(atomU.name, 'U', '点 U 后原子模块配置为 U');
+  equal(atomU.formula, 'U', '原子模块输出公式 U');
+
   const multiSubst = await page.js(`(function(){
     var Engine=window.RSL.Engine, L=window.RSL.Logic;
     var nodes=[

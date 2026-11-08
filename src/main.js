@@ -478,6 +478,25 @@
    * 6. 模块参数弹层
    * ========================================================================= */
 
+  /* 关卡目标里出现的原子排在最前，其次是常用 P–Z，最后补全 A–O。
+     有些 set.mm 条目用 U/V/W/…/Z 甚至 E/F 等字母，不能只给 P–T。 */
+  function atomChoices() {
+    var targetAtoms = [];
+    if (state.level) {
+      try { targetAtoms = L.atomsOf(L.parse(state.level.target)); } catch (e) { targetAtoms = []; }
+    }
+    var out = [], seen = {};
+    function add(letter) {
+      if (!/^[A-Z]$/.test(letter) || seen[letter]) return;
+      seen[letter] = true;
+      out.push(letter);
+    }
+    targetAtoms.forEach(add);
+    'PQRSTUVWXYZ'.split('').forEach(add);
+    'ABCDEFGHIJKLMNO'.split('').forEach(add);
+    return out;
+  }
+
   function renderPopover() {
     var node = state.selectedNode ? state.board.node(state.selectedNode) : null;
     if (!node || node.kind === 'target') { els.popover.hidden = true; return; }
@@ -485,7 +504,7 @@
     var config = node.config || {};
     var html = '';
     if (node.kind === 'atom') {
-      html = ['P', 'Q', 'R', 'S', 'T'].map(function (x) {
+      html = atomChoices().map(function (x) {
         return '<button class="opt opt-var' + (config.name === x ? ' is-on' : '') + '" data-config="name" data-value="' + x + '">' + x + '</button>';
       }).join('');
     } else if (node.kind === 'replace' && result && result.meta && result.meta.options) {

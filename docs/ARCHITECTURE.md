@@ -98,8 +98,8 @@ research/setmm-data.json (+ setmm-set-extra.json)
 
 | 命令 | 覆盖 |
 | --- | --- |
-| `npm test` | 41 项单测：逻辑 17、成就 4、存档 2、走线 10、关卡目录 8；加上 240 关参考电路 |
-| `npm run test:ui` | Edge headless 真浏览器：放置/连线/通关/拖放/暗色/移动端/多选等 |
+| `npm test` | 42 项单测：逻辑 17、成就 4、存档 2、走线 11、关卡目录 8；加上 240 关参考电路 |
+| `npm run test:ui` | Edge headless 真浏览器：放置/连线/通关/拆线/拖回删除/拖放/暗色/移动端/多选等 |
 | `npm run test:acceptance` | 先构建 `dist/`，再跑独立验收（含 dist 产物 file:// 冒烟与清单核对） |
 | `npm run capture:screens` | 重新采集 `screenshots/` 的 12 张文档图（`--repo`） |
 | `node .research/perf.js` | 大电路（18 节点 20 边）走线与渲染耗时（开发用，`.research/` 不进仓库） |
