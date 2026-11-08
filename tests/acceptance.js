@@ -469,6 +469,35 @@ runTest('acceptance', async ({ openPage }) => {
   equal(placement.after, 0, 'S 元件加满 4 组变高后自动让位，不压住邻居');
   ok(placement.tall > 300, 'S 元件 5 组时高度按端口数增长（' + placement.tall + 'px）');
 
+  /* 世界坐标可以为负：先把画布平移到原点上方，仍能放置而不是提示“放不下” */
+  await page.js('window.RSL.APP.loadLevel(1)');
+  await page.waitFor('window.RSL.APP.state.level.id === "CH1-02"');
+  await page.js(`(function(){
+    var b=window.RSL.APP.state.board;
+    b.addNode('axiom',{}, {x:0,y:0});
+    b.setView(20,300,1);
+  })()`);
+  await page.sleep(250);
+  const negativeDrop = await page.js(`(function(){
+    var t=document.querySelector('.tile');
+    var br=document.getElementById('board').getBoundingClientRect();
+    var tr=t.getBoundingClientRect();
+    return {from:{x:tr.left+tr.width/2,y:tr.top+tr.height/2}, to:{x:br.left+160,y:br.top+20}};
+  })()`);
+  const nodesBeforeNegative = await page.js('document.querySelectorAll(".node:not(.is-target)").length');
+  await page.mouse.drag(negativeDrop.from, negativeDrop.to, { steps: 8 });
+  await page.sleep(400);
+  const negativeAfter = await page.js(`(function(){
+    var b=window.RSL.APP.state.board;
+    var ys=b.items.filter(function(n){return n.kind!=='target';}).map(function(n){return n.y;});
+    return {count:ys.length, minY:Math.min.apply(null,ys), toast:document.getElementById('toast').textContent,
+            toastOn:document.getElementById('toast').classList.contains('is-on')};
+  })()`);
+  equal(negativeAfter.count, nodesBeforeNegative + 1, '画布平移到原点上方后仍能放下模块');
+  ok(negativeAfter.minY < 0, '模块可以获得负的世界 y 坐标（实际 ' + negativeAfter.minY + '）');
+  equal(negativeAfter.toast.indexOf('放不下'), -1, '放置成功时不再提示“放不下”');
+  equal(negativeAfter.toastOn, false, '放置成功后没有遗留错误 toast');
+
   /* ------------------------------------------------------------------
    * F2. S 元件：最多 4 组额外代换（共 5 组），每组橙原子 + 蓝公式
    * ------------------------------------------------------------------ */

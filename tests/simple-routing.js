@@ -67,7 +67,7 @@ runTest('simple-routing', async ({ openPage }) => {
 
   equal(setup.after.length, 2, '新增 2 个 atom 模块');
   setup.after.forEach((n) => {
-    equal([n.x % 16, n.y % 16], [0, 0], '新增模块 ' + n.id + ' 吸附 16px 网格');
+    equal([(n.x % 16) || 0, (n.y % 16) || 0], [0, 0], '新增模块 ' + n.id + ' 吸附 16px 网格');
   });
   ok(setup.after[0].x !== setup.after[1].x || setup.after[0].y !== setup.after[1].y, '同坐标新增的两个模块被自动错开');
 

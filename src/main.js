@@ -183,8 +183,8 @@
   function freeSpot() {
     var nodes = state.board.items || [];
     var view = state.board.view;
-    var left = Math.max(30, -view.x / view.scale + 30);
-    var top = Math.max(30, -view.y / view.scale + 30);
+    var left = -view.x / view.scale + 30;
+    var top = -view.y / view.scale + 30;
     var cols = [left, left + 270, left + 540, left + 810];
     var rows = [top, top + 170, top + 340, top + 510];
     for (var c = 0; c < cols.length; c++) {
@@ -382,13 +382,13 @@
     var edge = 24;
     if (cx < rect.left - edge || cx > rect.right + edge || cy < rect.top - edge || cy > rect.bottom + edge) return null;
     var p = state.board._client(cx, cy);
-    var x = Math.max(0, Math.round((p.x - 116) / 16) * 16);
-    var y = Math.max(0, Math.round((p.y - 50) / 16) * 16);
+    var x = Math.round((p.x - 116) / 16) * 16;
+    var y = Math.round((p.y - 50) / 16) * 16;
     var probe = { id: '__palette__', kind: part.kind };
     var offsets = [[0, 0], [0, 32], [32, 0], [-32, 0], [0, 64], [64, 0], [32, 32], [-32, 32], [0, 96]];
     for (var i = 0; i < offsets.length; i++) {
-      var px = Math.max(0, x + offsets[i][0]);
-      var py = Math.max(0, y + offsets[i][1]);
+      var px = x + offsets[i][0];
+      var py = y + offsets[i][1];
       if (!state.board._overlaps(probe, px, py)) return { x: px, y: py };
     }
     return null;

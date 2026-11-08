@@ -1066,7 +1066,7 @@
       for (var oy = -ring; oy <= ring; oy++) {
         for (var ox = -ring; ox <= ring; ox++) {
           if (Math.max(Math.abs(ox), Math.abs(oy)) !== ring) continue;
-          var x = Math.max(0, snap(n.x + ox * PORT_STEP)), y = Math.max(0, snap(n.y + oy * PORT_STEP));
+          var x = snap(n.x + ox * PORT_STEP), y = snap(n.y + oy * PORT_STEP);
           if (!this._overlaps(n, x, y)) { n.x = x; n.y = y; return; }
         }
       }
