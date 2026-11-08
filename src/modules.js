@@ -36,20 +36,36 @@
 
   var AXIOMS = {
     A1: {
-      label: '公理 A1', formula: 'P→(Q→P)', why: '肯定前件式的第一条：任意命题蕴涵一切蕴涵它的命题。'
+      label: '公理 A1', formula: 'P→(Q→P)', why: '任意命题蕴涵一切蕴涵它的命题。'
     },
     A2: {
       label: '公理 A2', formula: '(P→(Q→R))→((P→Q)→(P→R))', why: '蕴涵的分销：前件可以分配到后件的三个位置。'
     },
     A3: {
       label: '公理 A3', formula: '(¬P→¬Q)→(Q→P)', why: '逆否与反证法的基础。'
+    },
+    A4: {
+      label: '公理 A4', formula: '∀x P→P', why: '全称消去：∀x P 推出 P；x 可换成 x/y/z。', needsVar: true
+    },
+    A5: {
+      label: '公理 A5', formula: '∀x(P→Q)→(∀xP→∀xQ)', why: '全称分配：∀ 可以分配到蕴涵两侧。', needsVar: true
+    },
+    A6: {
+      label: '公理 A6', formula: 'P→∀xP', why: '全称引入：若 x 不在 P 中自由出现，则 P 推出 ∀xP。', needsVar: true
     }
   };
 
   var cache = { axiom: {} };
-  function axiomBody(schema) {
+  function axiomBody(schema, v) {
     var ax = AXIOMS[schema];
     if (!ax) fail('未知公理 ' + schema);
+    if (ax.needsVar) {
+      var b = v || 'x';
+      if (!/^[xyz]$/.test(b)) b = 'x';
+      if (schema === 'A4') return ['A.', b, 'P', '->', 'P'];
+      if (schema === 'A5') return ['(', 'A.', b, '(', 'P', '->', 'Q', ')', ')', '->', '(', 'A.', b, 'P', '->', 'A.', b, 'Q', ')', ')'];
+      if (schema === 'A6') return ['P', '->', 'A.', b, 'P'];
+    }
     if (!cache.axiom[schema]) cache.axiom[schema] = asBody(T.parse(ax.formula));
     return cache.axiom[schema];
   }
@@ -206,8 +222,10 @@
       help: '命题演算的三条公理之一；代入规则可以把 P/Q/R 换成任意公式。',
       apply: function (inputs, cfg) {
         var schema = cfg.schema || 'A1';
+        var v = cfg.v || 'x';
         var ax = AXIOMS[schema];
-        return { tokens: assertionOf(axiomBody(schema)), note: ax.label, meta: { axiom: { id: schema, name: ax.label, formula: ax.formula } } };
+        var note = ax.label + (ax.needsVar ? ' · ' + v : '');
+        return { tokens: assertionOf(axiomBody(schema, v)), note: note, meta: { axiom: { id: schema, name: ax.label, formula: ax.formula } } };
       }
     },
 
@@ -381,9 +399,17 @@
   }
 
   function axiomList() {
-    return Object.keys(AXIOMS).map(function (k) {
-      return { id: k, label: AXIOMS[k].label, formula: AXIOMS[k].formula, why: AXIOMS[k].why };
+    var out = [];
+    Object.keys(AXIOMS).forEach(function (k) {
+      if (AXIOMS[k].needsVar) {
+        ['x', 'y', 'z'].forEach(function (v) {
+          out.push({ id: k, v: v, label: AXIOMS[k].label + ' · ' + v, formula: AXIOMS[k].formula, why: AXIOMS[k].why });
+        });
+      } else {
+        out.push({ id: k, label: AXIOMS[k].label, formula: AXIOMS[k].formula, why: AXIOMS[k].why });
+      }
     });
+    return out;
   }
 
   host.RSL.Modules = {

@@ -32,8 +32,13 @@ function db() {
   return PARSED;
 }
 const keyOf = (t) => t.join('\u0000');
+const GAME_VARS = new Set(['x', 'y', 'z']);
 function conv(tokens) {
-  return tokens.map((t) => (VAR_MAP[t] ? VAR_MAP[t] : t));
+  return tokens.map((t) => {
+    if (VAR_MAP[t]) return VAR_MAP[t];
+    if (/^[a-z]$/.test(t) && !GAME_VARS.has(t)) throw new Error('不支持的变元 ' + t);
+    return t;
+  });
 }
 const TYPES = new Set(['|-', 'wff', 'setvar', 'class']);
 function bodyTokens(expr) {
@@ -58,6 +63,7 @@ function matchSchema(schemaBody, goalBody) {
     if (a.k === 'atom' || a.k === 'pred' || a.k === 'var') return JSON.stringify(a) === JSON.stringify(b);
     if (a.k === 'not') return m(a.a, b.a);
     if (a.k === 'imp') return m(a.a, b.a) && m(a.b, b.b);
+    if (a.k === 'all') return a.v === b.v && m(a.a, b.a);
     return false;
   }
   return m(s, g) ? binds : null;
@@ -109,11 +115,62 @@ function expand(label, sub, hypTerms, levelMap) {
       }
     } else if (SYNTAX.has(s.label)) {
       out = null;
+    } else if (s.label === 'ax-4') {
+      /* ax-4: ∀x(φ→ψ) → (∀xφ → ∀xψ)，对应本作 A5（全称分配）。 */
+      const body = conv(actual(s));
+      const tree = Term.read(['wff'].concat(body));
+      if (tree.k !== 'imp' || tree.a.k !== 'all') throw new Error('ax-4 形状不符');
+      const v = tree.a.v;
+      const inner = Term.read(['wff'].concat(Term.treeToBody(tree.a.a)));
+      if (inner.k !== 'imp') throw new Error('ax-4 内层不是蕴涵');
+      const P = Term.treeToBody(inner.a);
+      const Q = Term.treeToBody(inner.b);
+      const right = Term.read(['wff'].concat(Term.treeToBody(tree.b)));
+      if (right.k !== 'imp' || right.a.k !== 'all' || right.b.k !== 'all') throw new Error('ax-4 右侧形状不符');
+      if (keyOf(Term.treeToBody(right.a.a)) !== keyOf(P) || keyOf(Term.treeToBody(right.b.a)) !== keyOf(Q)) throw new Error('ax-4 实例不匹配');
+      out = { op: 'axiom', schema: 'A5', v, atoms: { P, Q } };
+    } else if (s.label === 'sp') {
+      /* sp: ∀xφ → φ，对应本作 A4（全称消去）。 */
+      const body = conv(actual(s));
+      const tree = Term.read(['wff'].concat(body));
+      if (tree.k !== 'imp' || tree.a.k !== 'all') throw new Error('sp 形状不符');
+      const v = tree.a.v;
+      const P = Term.treeToBody(tree.a.a);
+      if (keyOf(P) !== keyOf(Term.treeToBody(tree.b))) throw new Error('sp 实例不匹配');
+      out = { op: 'axiom', schema: 'A4', v, atoms: { P } };
+    } else if (s.label === 'ax-5') {
+      /* ax-5: φ → ∀xφ（x 不在 φ 中自由出现），对应本作 A6。 */
+      const body = conv(actual(s));
+      const tree = Term.read(['wff'].concat(body));
+      if (tree.k !== 'imp' || tree.b.k !== 'all') throw new Error('ax-5 形状不符');
+      const v = tree.b.v;
+      const P = Term.treeToBody(tree.a);
+      if (keyOf(P) !== keyOf(Term.treeToBody(tree.b.a))) throw new Error('ax-5 实例不匹配');
+      out = { op: 'axiom', schema: 'A6', v, atoms: { P } };
     } else if (AXIOM_SCHEMA[s.label]) {
       const ax = AXIOM_SCHEMA[s.label];
       const binds = matchSchema(ax.body, conv(actual(s)));
       if (!binds) throw new Error('无法匹配公理 ' + s.label + '：' + conv(actual(s)).join(' '));
       out = { op: 'axiom', schema: ax.schema, atoms: binds };
+    } else if (s.label === 'ax-gen') {
+      /* ax-gen 是本作的 gen 规则：从 |-φ 得到 |-∀xφ。 */
+      const mand = replay('ax-gen').frame.mandatory || [];
+      let binder = 'x';
+      let proofId = null;
+      for (let i = 0; i < mand.length; i += 1) {
+        const h = mand[i];
+        const inputStep = s.inputs[i] ? byId[s.inputs[i]] : null;
+        if (!inputStep) continue;
+        if (h.kind === '$f' && h.var && (/^[xyz]$/.test(h.var))) {
+          const body = bodyTokens(inputStep.conclusion);
+          if (body.length === 1) binder = body[0];
+        }
+        if (h.kind === '$e') proofId = s.inputs[i];
+      }
+      if (!proofId) throw new Error('ax-gen 缺少前提证明');
+      const inner = stepTerm(proofId);
+      if (!inner) throw new Error('ax-gen 的前提不是断言');
+      out = { op: 'gen', of: inner, v: binder };
     } else if (s.label === 'ax-mp') {
       /* ax-mp 的 mandatory 里既有 $f（表达式）也有 $e（两个断言），只能取 $e 位置的输入。 */
       const mpFrame = replay('ax-mp').frame;
@@ -202,6 +259,7 @@ function main() {
 function countNodes(t) {
   if (!t) return 0;
   if (t.op === 'mp') return 1 + countNodes(t.a) + countNodes(t.b);
+  if (t.op === 'gen') return 1 + countNodes(t.of);
   return 1;
 }
 

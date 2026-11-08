@@ -148,7 +148,7 @@ function compileProof(proof, builder, ctx) {
       case 'axiom':
       case 'lemma': {
         const base = pt.op === 'axiom'
-          ? builder.addNode('axiom', { schema: pt.schema })
+          ? builder.addNode('axiom', pt.v ? { schema: pt.schema, v: pt.v } : { schema: pt.schema })
           : (function () {
             if (pt.n >= ctx.no) throw new Error('关卡 *' + PAD(ctx.no) + ' 不能引用自己或更晚的 *' + PAD(pt.n));
             return builder.addNode('theorem', { n: pt.n });
