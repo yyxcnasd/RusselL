@@ -470,19 +470,7 @@
         return { tokens: assertionOf(['('].concat(iff, ['->'], body, [')'])), note: '↔E*' };
       }
     },
-    'exists-intro': {
-      label: '存在推广', kindLabel: '∃I', group: 'rule', symbol: '∃I', construct: false,
-      ports: { inputs: [{ id: 'assertion', label: '断言 A', type: ASSERTION }], outputs: [{ id: 'out', label: '∃x A', type: ASSERTION }] },
-      config: { v: 'x' },
-      help: '从已证的 A 得到 ∃x A。',
-      apply: function (inputs, cfg) {
-        var a = need(inputs, 'assertion', '断言 A');
-        if (T.typeOf(a) !== '|-') fail('输入必须是 ⊢ 断言');
-        var v = (cfg.v || 'x').toLowerCase().slice(0, 1);
-        if (!/^[xyzuvw]$/.test(v)) v = 'x';
-        return { tokens: assertionOf(['E.', v].concat(asBody(a))), note: '∃I · ' + v };
-      }
-    },
+
     'exists-elim': {
       label: '存在消去', kindLabel: '∃E', group: 'rule', symbol: '∃E', construct: false,
       ports: {
