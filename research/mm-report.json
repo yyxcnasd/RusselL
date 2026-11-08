@@ -1,0 +1,878 @@
+{
+  "generatedAt": "2026-11-08T11:12:44.159Z",
+  "source": "assets/data/set.mm",
+  "targets": [
+    {
+      "label": "pm3.24",
+      "ok": true,
+      "kind": "$p",
+      "errors": [],
+      "stats": {
+        "steps": 14,
+        "asserts": 7,
+        "hyps": 7,
+        "maxDepth": 5,
+        "refs": [
+          "wi",
+          "wn",
+          "wa",
+          "id",
+          "iman",
+          "mpbi"
+        ],
+        "tokens": 68
+      },
+      "sizeBytes": 3758,
+      "checked": 14
+    },
+    {
+      "label": "pm2.07",
+      "ok": true,
+      "kind": "$p",
+      "errors": [],
+      "stats": {
+        "steps": 3,
+        "asserts": 1,
+        "hyps": 2,
+        "maxDepth": 2,
+        "refs": [
+          "olc"
+        ],
+        "tokens": 14
+      },
+      "sizeBytes": 973,
+      "checked": 3
+    },
+    {
+      "label": "simp2",
+      "ok": true,
+      "kind": "$p",
+      "errors": [],
+      "stats": {
+        "steps": 7,
+        "asserts": 2,
+        "hyps": 5,
+        "maxDepth": 3,
+        "refs": [
+          "id",
+          "3ad2ant2"
+        ],
+        "tokens": 28
+      },
+      "sizeBytes": 2058,
+      "checked": 7
+    },
+    {
+      "label": "3mix1",
+      "ok": true,
+      "kind": "$p",
+      "errors": [],
+      "stats": {
+        "steps": 17,
+        "asserts": 6,
+        "hyps": 11,
+        "maxDepth": 4,
+        "refs": [
+          "wo",
+          "w3o",
+          "orc",
+          "3orass",
+          "sylibr"
+        ],
+        "tokens": 92
+      },
+      "sizeBytes": 4651,
+      "checked": 17
+    },
+    {
+      "label": "pm2.5",
+      "ok": true,
+      "kind": "$p",
+      "errors": [],
+      "stats": {
+        "steps": 4,
+        "asserts": 1,
+        "hyps": 3,
+        "maxDepth": 2,
+        "refs": [
+          "pm2.5g"
+        ],
+        "tokens": 22
+      },
+      "sizeBytes": 1327,
+      "checked": 4
+    },
+    {
+      "label": "pm3.11",
+      "ok": true,
+      "kind": "$p",
+      "errors": [],
+      "stats": {
+        "steps": 13,
+        "asserts": 7,
+        "hyps": 6,
+        "maxDepth": 5,
+        "refs": [
+          "wa",
+          "wn",
+          "wo",
+          "anor",
+          "biimpri"
+        ],
+        "tokens": 75
+      },
+      "sizeBytes": 3619,
+      "checked": 13
+    },
+    {
+      "label": "simprrr",
+      "ok": true,
+      "kind": "$p",
+      "errors": [],
+      "stats": {
+        "steps": 10,
+        "asserts": 3,
+        "hyps": 7,
+        "maxDepth": 3,
+        "refs": [
+          "wa",
+          "simpr",
+          "ad2antll"
+        ],
+        "tokens": 48
+      },
+      "sizeBytes": 2946,
+      "checked": 10
+    },
+    {
+      "label": "simpr12",
+      "ok": true,
+      "kind": "$p",
+      "errors": [],
+      "stats": {
+        "steps": 14,
+        "asserts": 3,
+        "hyps": 11,
+        "maxDepth": 3,
+        "refs": [
+          "w3a",
+          "simpr2",
+          "3ad2antr1"
+        ],
+        "tokens": 68
+      },
+      "sizeBytes": 4044,
+      "checked": 14
+    },
+    {
+      "label": "alex",
+      "ok": true,
+      "kind": "$p",
+      "errors": [],
+      "stats": {
+        "steps": 19,
+        "asserts": 10,
+        "hyps": 9,
+        "maxDepth": 5,
+        "refs": [
+          "wal",
+          "wn",
+          "wex",
+          "notnotb",
+          "albii",
+          "alnex",
+          "bitri"
+        ],
+        "tokens": 92
+      },
+      "sizeBytes": 5150,
+      "checked": 19
+    },
+    {
+      "label": "ax-11",
+      "ok": true,
+      "kind": "$a",
+      "errors": [],
+      "stats": {
+        "steps": 0,
+        "asserts": 0,
+        "hyps": 0,
+        "maxDepth": 0,
+        "refs": [],
+        "tokens": 14
+      },
+      "sizeBytes": 469,
+      "checked": 0
+    },
+    {
+      "label": "exancom",
+      "ok": true,
+      "kind": "$p",
+      "errors": [],
+      "stats": {
+        "steps": 11,
+        "asserts": 4,
+        "hyps": 7,
+        "maxDepth": 3,
+        "refs": [
+          "wa",
+          "ancom",
+          "exbii"
+        ],
+        "tokens": 58
+      },
+      "sizeBytes": 3001,
+      "checked": 11
+    },
+    {
+      "label": "19.31v",
+      "ok": true,
+      "kind": "$p",
+      "errors": [],
+      "stats": {
+        "steps": 29,
+        "asserts": 12,
+        "hyps": 17,
+        "maxDepth": 4,
+        "refs": [
+          "wo",
+          "wal",
+          "19.32v",
+          "orcom",
+          "albii",
+          "3bitr4i"
+        ],
+        "tokens": 168
+      },
+      "sizeBytes": 7200,
+      "checked": 29
+    },
+    {
+      "label": "3exdistr",
+      "ok": true,
+      "kind": "$p",
+      "errors": [],
+      "stats": {
+        "steps": 53,
+        "asserts": 21,
+        "hyps": 32,
+        "maxDepth": 7,
+        "refs": [
+          "w3a",
+          "wex",
+          "wa",
+          "3anass",
+          "2exbii",
+          "19.42vv",
+          "exdistr",
+          "anbi2i",
+          "3bitri",
+          "exbii"
+        ],
+        "tokens": 394
+      },
+      "sizeBytes": 14009,
+      "checked": 53
+    },
+    {
+      "label": "19.33b",
+      "ok": true,
+      "kind": "$p",
+      "errors": [],
+      "stats": {
+        "steps": 56,
+        "asserts": 31,
+        "hyps": 25,
+        "maxDepth": 9,
+        "refs": [
+          "wex",
+          "wa",
+          "wn",
+          "wo",
+          "wal",
+          "wi",
+          "ianor",
+          "alnex",
+          "pm2.53",
+          "al2imi",
+          "biimtrrid",
+          "olc",
+          "syl6com",
+          "19.30",
+          "orcomd",
+          "ord",
+          "orc",
+          "jaoi",
+          "sylbi",
+          "19.33",
+          "impbid1"
+        ],
+        "tokens": 522
+      },
+      "sizeBytes": 18461,
+      "checked": 56
+    },
+    {
+      "label": "equequ1",
+      "ok": true,
+      "kind": "$p",
+      "errors": [],
+      "stats": {
+        "steps": 18,
+        "asserts": 6,
+        "hyps": 12,
+        "maxDepth": 3,
+        "refs": [
+          "weq",
+          "ax7",
+          "equtr",
+          "impbid"
+        ],
+        "tokens": 84
+      },
+      "sizeBytes": 4470,
+      "checked": 18
+    },
+    {
+      "label": "ax8",
+      "ok": true,
+      "kind": "$p",
+      "errors": [],
+      "stats": {
+        "steps": 42,
+        "asserts": 17,
+        "hyps": 25,
+        "maxDepth": 7,
+        "refs": [
+          "weq",
+          "wa",
+          "wex",
+          "wel",
+          "wi",
+          "equvinv",
+          "ax8v2",
+          "equcoms",
+          "ax8v1",
+          "sylan9",
+          "exlimiv",
+          "sylbi"
+        ],
+        "tokens": 244
+      },
+      "sizeBytes": 11320,
+      "checked": 42
+    },
+    {
+      "label": "axc16",
+      "ok": true,
+      "kind": "$p",
+      "errors": [],
+      "stats": {
+        "steps": 5,
+        "asserts": 1,
+        "hyps": 4,
+        "maxDepth": 2,
+        "refs": [
+          "axc16g"
+        ],
+        "tokens": 24
+      },
+      "sizeBytes": 1642,
+      "checked": 5
+    },
+    {
+      "label": "axc11r",
+      "ok": true,
+      "kind": "$p",
+      "errors": [],
+      "stats": {
+        "steps": 28,
+        "asserts": 12,
+        "hyps": 16,
+        "maxDepth": 7,
+        "refs": [
+          "weq",
+          "wal",
+          "wi",
+          "ax-12",
+          "sps",
+          "pm2.27",
+          "al2imi",
+          "syld"
+        ],
+        "tokens": 190
+      },
+      "sizeBytes": 7837,
+      "checked": 28
+    },
+    {
+      "label": "equvel",
+      "ok": true,
+      "kind": "$p",
+      "errors": [],
+      "stats": {
+        "steps": 55,
+        "asserts": 31,
+        "hyps": 24,
+        "maxDepth": 9,
+        "refs": [
+          "weq",
+          "wb",
+          "wal",
+          "wex",
+          "albi",
+          "wi",
+          "ax6e",
+          "biimpr",
+          "ax7",
+          "syli",
+          "com12",
+          "eximii",
+          "19.35i",
+          "spsd",
+          "sps",
+          "a1dd",
+          "wn",
+          "wa",
+          "nfeqf",
+          "19.9d",
+          "ex",
+          "bija",
+          "sylc"
+        ],
+        "tokens": 534
+      },
+      "sizeBytes": 19168,
+      "checked": 55
+    },
+    {
+      "label": "19.12vvv",
+      "ok": true,
+      "kind": "$p",
+      "errors": [],
+      "stats": {
+        "steps": 46,
+        "asserts": 20,
+        "hyps": 26,
+        "maxDepth": 6,
+        "refs": [
+          "wi",
+          "wal",
+          "wex",
+          "19.21v",
+          "exbii",
+          "19.36v",
+          "albii",
+          "bitr2i",
+          "3bitri"
+        ],
+        "tokens": 316
+      },
+      "sizeBytes": 11682,
+      "checked": 46
+    },
+    {
+      "label": "vex",
+      "ok": true,
+      "kind": "$p",
+      "errors": [],
+      "stats": {
+        "steps": 12,
+        "asserts": 7,
+        "hyps": 5,
+        "maxDepth": 3,
+        "refs": [
+          "cv",
+          "wtru",
+          "cab",
+          "cvv",
+          "vextru",
+          "dfv2",
+          "eleqtrri"
+        ],
+        "tokens": 42
+      },
+      "sizeBytes": 3365,
+      "checked": 12
+    },
+    {
+      "label": "vneqv",
+      "ok": true,
+      "kind": "$p",
+      "errors": [],
+      "stats": {
+        "steps": 24,
+        "asserts": 16,
+        "hyps": 8,
+        "maxDepth": 6,
+        "refs": [
+          "wel",
+          "wn",
+          "cv",
+          "cvv",
+          "wceq",
+          "wcel",
+          "vex",
+          "eleq2",
+          "mpbiri",
+          "con3i",
+          "exnelv",
+          "exlimiiv"
+        ],
+        "tokens": 102
+      },
+      "sizeBytes": 7009,
+      "checked": 24
+    },
+    {
+      "label": "fin41",
+      "ok": true,
+      "kind": "$p",
+      "errors": [],
+      "stats": {
+        "steps": 28,
+        "asserts": 24,
+        "hyps": 4,
+        "maxDepth": 8,
+        "refs": [
+          "cfin4",
+          "cfn",
+          "cv",
+          "com",
+          "csdm",
+          "wbr",
+          "cdom",
+          "wn",
+          "wcel",
+          "vex",
+          "domtriom",
+          "con2bii",
+          "isfinite",
+          "wb",
+          "cvv",
+          "isfin4-2",
+          "elv",
+          "3bitr4ri",
+          "eqriv"
+        ],
+        "tokens": 138
+      },
+      "sizeBytes": 9127,
+      "checked": 28
+    },
+    {
+      "label": "en3lp",
+      "ok": true,
+      "kind": "$p",
+      "errors": [],
+      "stats": {
+        "steps": 70,
+        "asserts": 42,
+        "hyps": 28,
+        "maxDepth": 9,
+        "refs": [
+          "wcel",
+          "w3a",
+          "wn",
+          "ctp",
+          "c0",
+          "wceq",
+          "noel",
+          "eleq2",
+          "mtbiri",
+          "tpid3g",
+          "nsyl",
+          "intn3an3d",
+          "wne",
+          "cv",
+          "cin",
+          "wrex",
+          "cvv",
+          "tpex",
+          "zfreg",
+          "mpan",
+          "en3lplem2",
+          "com12",
+          "necon2bd",
+          "rexlimiv",
+          "syl",
+          "pm2.61ine"
+        ],
+        "tokens": 665
+      },
+      "sizeBytes": 22590,
+      "checked": 70
+    },
+    {
+      "label": "eqtr2",
+      "ok": true,
+      "kind": "$p",
+      "errors": [],
+      "stats": {
+        "steps": 14,
+        "asserts": 5,
+        "hyps": 9,
+        "maxDepth": 3,
+        "refs": [
+          "wceq",
+          "eqeq1",
+          "biimpa"
+        ],
+        "tokens": 62
+      },
+      "sizeBytes": 3440,
+      "checked": 14
+    },
+    {
+      "label": "axprlem1",
+      "ok": true,
+      "kind": "$p",
+      "errors": [],
+      "stats": {
+        "steps": 34,
+        "asserts": 17,
+        "hyps": 17,
+        "maxDepth": 7,
+        "refs": [
+          "wel",
+          "wi",
+          "wal",
+          "wn",
+          "ax-pow",
+          "pm2.21",
+          "alimi",
+          "imim1i",
+          "eximii"
+        ],
+        "tokens": 293
+      },
+      "sizeBytes": 9730,
+      "checked": 34
+    },
+    {
+      "label": "ax-pr",
+      "ok": true,
+      "kind": "$a",
+      "errors": [],
+      "stats": {
+        "steps": 0,
+        "asserts": 0,
+        "hyps": 0,
+        "maxDepth": 0,
+        "refs": [],
+        "tokens": 20
+      },
+      "sizeBytes": 625,
+      "checked": 0
+    },
+    {
+      "label": "axunnd",
+      "ok": true,
+      "kind": "$p",
+      "errors": [],
+      "stats": {
+        "steps": 206,
+        "asserts": 98,
+        "hyps": 108,
+        "maxDepth": 17,
+        "refs": [
+          "weq",
+          "wal",
+          "wel",
+          "wa",
+          "wex",
+          "wi",
+          "wn",
+          "axunndlem1",
+          "nfnae",
+          "nfan",
+          "nfv",
+          "cv",
+          "wnfc",
+          "nfcvf",
+          "adantr",
+          "nfcvd",
+          "nfeld",
+          "adantl",
+          "nfand",
+          "nfexd",
+          "nfimd",
+          "nfald",
+          "wb",
+          "nfcvf2",
+          "nfeqd",
+          "nfan1",
+          "elequ2",
+          "elequ1",
+          "anbi12d",
+          "a1i",
+          "cbvexd",
+          "imbi12d",
+          "albid",
+          "ex",
+          "mpbii",
+          "nfae",
+          "elirrv",
+          "mtbiri",
+          "intnanrd",
+          "sps",
+          "nexd",
+          "pm2.21d",
+          "alrimi",
+          "19.8ad",
+          "intnand",
+          "pm2.61ii"
+        ],
+        "tokens": 2108
+      },
+      "sizeBytes": 60204,
+      "checked": 206
+    },
+    {
+      "label": "oneltri",
+      "ok": true,
+      "kind": "$p",
+      "errors": [],
+      "stats": {
+        "steps": 32,
+        "asserts": 18,
+        "hyps": 14,
+        "maxDepth": 5,
+        "refs": [
+          "con0",
+          "wcel",
+          "wa",
+          "wceq",
+          "w3o",
+          "word",
+          "eloni",
+          "ordtri3or",
+          "syl2an",
+          "3orcomb",
+          "sylib"
+        ],
+        "tokens": 220
+      },
+      "sizeBytes": 9088,
+      "checked": 32
+    },
+    {
+      "label": "axrep1",
+      "ok": true,
+      "kind": "$p",
+      "errors": [],
+      "stats": {
+        "steps": 131,
+        "asserts": 62,
+        "hyps": 69,
+        "maxDepth": 12,
+        "refs": [
+          "weq",
+          "wi",
+          "wal",
+          "wex",
+          "wel",
+          "wa",
+          "wb",
+          "elequ2",
+          "anbi1d",
+          "exbidv",
+          "bibi2d",
+          "albidv",
+          "imbi2d",
+          "ax-rep",
+          "19.3v",
+          "imbi1i",
+          "albii",
+          "exbii",
+          "nfv",
+          "nfe1",
+          "nfbi",
+          "nfal",
+          "anbi2i",
+          "a1i",
+          "bibi12d",
+          "cbvexv1",
+          "3imtr3i",
+          "chvarvv",
+          "19.35ri"
+        ],
+        "tokens": 1430
+      },
+      "sizeBytes": 39415,
+      "checked": 131
+    },
+    {
+      "label": "axacnd",
+      "ok": true,
+      "kind": "$p",
+      "errors": [],
+      "stats": {
+        "steps": 304,
+        "asserts": 139,
+        "hyps": 165,
+        "maxDepth": 21,
+        "refs": [
+          "weq",
+          "wal",
+          "wel",
+          "wa",
+          "wex",
+          "wb",
+          "wi",
+          "wn",
+          "w3a",
+          "axacndlem5",
+          "nfnae",
+          "nf3an",
+          "cv",
+          "wnfc",
+          "nfcvf",
+          "3ad2ant2",
+          "nfcvd",
+          "nfeld",
+          "3ad2ant3",
+          "nfand",
+          "nfald",
+          "3ad2ant1",
+          "nfexd",
+          "nfeqd",
+          "nfbid",
+          "nfimd",
+          "nfcvf2",
+          "nfan1",
+          "simpr",
+          "eleq2d",
+          "eleq1d",
+          "anbi12d",
+          "albid",
+          "anbi1d",
+          "exbid",
+          "bibi1d",
+          "imbi12d",
+          "ex",
+          "cbvald",
+          "mpbii",
+          "3exp",
+          "axacndlem2",
+          "aecoms",
+          "axacndlem3",
+          "nfae",
+          "alimi",
+          "nd3",
+          "pm2.21d",
+          "syl5",
+          "axc4i",
+          "alrimi",
+          "19.8ad",
+          "pm2.61iii"
+        ],
+        "tokens": 4919
+      },
+      "sizeBytes": 101446,
+      "checked": 304
+    }
+  ],
+  "ok": 31,
+  "failed": 0
+}
