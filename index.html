@@ -9,6 +9,7 @@
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <script>try{var t=JSON.parse(localStorage.getItem("axiom-simple:settings")||"{}").theme;if(t==="dark")document.documentElement.dataset.theme="dark";}catch(e){}</script>
 <link rel="stylesheet" href="src/simple.css">
+<link rel="stylesheet" href="src/mm/mm.css">
 </head>
 <body>
 <div class="app">
@@ -88,11 +89,18 @@
 <script src="src/library.js"></script>
 <script src="src/levels.js"></script>
 <script src="src/levels-generated.js"></script>
+<!-- mm-replay：开关/证明数据/公式层/重放校验必须在 catalog 之前加载（顺序见 docs/MM-REPLAY.md §0）。 -->
+<script src="src/mm/flags.js"></script>
+<script src="src/mm/proofs.js"></script>
+<script src="src/mm/levels.js"></script>
+<script src="src/mm/expr.js"></script>
+<script src="src/mm/verify.js"></script>
 <script src="src/engine.js"></script>
 <script src="src/route.js"></script>
 <script src="src/achievements.js"></script>
 <script src="src/save.js"></script>
 <script src="src/ui.js"></script>
+<script src="src/mm/panel.js"></script>
 <script src="src/audio.js"></script>
 <script src="src/coach.js"></script>
 <script src="src/catalog.js"></script>

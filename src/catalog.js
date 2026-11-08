@@ -19,8 +19,11 @@
   ];
   var CHAPTER_RANK = {};
   CHAPTERS.forEach(function (c, i) { CHAPTER_RANK[c.id] = i; });
+  /* mm-replay 是独立分组，排在原有四章之后；只在特性开关打开时才出现。 */
+  CHAPTER_RANK.MM = 4;
 
   function chapterOf(level) {
+    if (level.chapter === 'mm') return 'MM';
     if (level.chapter === 'pred') return 'Ⅱ';
     if (level.chapter === 'eq') return 'Ⅲ';
     if (level.chapter === 'set') return 'Ⅳ';
@@ -30,6 +33,13 @@
   function levelNo(level) {
     var m = /^CH\d+-(\d+)$/.exec(String(level.id || ''));
     return m ? parseInt(m[1], 10) : level._ord;
+  }
+
+  /** mm-replay 开关：flags.js 尚未加载（或没有启用）时一律按关闭处理。 */
+  function mmEnabled() {
+    var mm = host.RSL.MM;
+    var flags = mm && mm.Flags;
+    return !!(flags && typeof flags.enabled === 'function' && flags.enabled());
   }
 
   /** 生成运行时关卡目录：补齐字段、按章/关号排序、串好基础段与挑战段的解锁链。 */
@@ -67,6 +77,27 @@
       });
       if (base.length) prevBaseLast = base[base.length - 1].id;
     });
+
+    /* mm-replay（契约 §7）：仅当特性开关为真时，把 RSL.MM_LEVELS 追加到目录末尾。
+       重放关不进入原有四章，也不参与原有解锁链（requires 恒为空数组）；
+       原有 240 关的 requires / chapter / band 一个字节都不改。 */
+    if (mmEnabled()) {
+      var mmLevels = host.RSL.MM_LEVELS;
+      if (Array.isArray(mmLevels)) {
+        mmLevels.forEach(function (level) {
+          var copy = Object.assign({}, level);
+          copy.chapter = level.chapter || 'mm';
+          copy.band = level.band || 'mm';
+          copy.targetPos = level.targetPos || { x: 650, y: 300 };
+          copy.allowed = (level.allowed || []).slice();
+          copy.solution = level.solution || { nodes: [], edges: [] };
+          copy._ord = list.length;
+          copy.chapterGroup = 'MM';
+          copy.requires = [];
+          list.push(copy);
+        });
+      }
+    }
 
     return list;
   }

@@ -6,12 +6,14 @@ const out = path.join(root, 'dist');
 
 /*
  * 运行时脚本的加载顺序必须与 index.html 完全一致：
- * 数据 → 引擎 → 纯逻辑（route）→ 存档/成就 → UI 基础件 → 面板 → 编辑器 → 应用。
+ * 数据 → mm-replay（开关/证明/关卡）→ 引擎 → 纯逻辑（route）→ 存档/成就
+ * → UI 基础件 → 重放面板 → 编辑器 → 应用。
  */
 const RUNTIME_JS = [
   'logic.js', 'archive.js', 'library.js', 'levels.js', 'levels-generated.js',
+  'mm/flags.js', 'mm/proofs.js', 'mm/levels.js', 'mm/expr.js', 'mm/verify.js',
   'engine.js', 'route.js', 'achievements.js', 'save.js',
-  'ui.js', 'audio.js', 'coach.js', 'catalog.js', 'screens.js',
+  'ui.js', 'mm/panel.js', 'audio.js', 'coach.js', 'catalog.js', 'screens.js',
   'board.js', 'main.js'
 ];
 
@@ -40,6 +42,7 @@ fs.mkdirSync(out, { recursive: true });
 copy(path.join(root, 'index.html'), 'index.html');
 for (const f of RUNTIME_JS) copy(path.join(root, 'src', f), 'src/' + f);
 copy(path.join(root, 'src', 'simple.css'), 'src/simple.css');
+copy(path.join(root, 'src', 'mm', 'mm.css'), 'src/mm/mm.css');
 copy(path.join(root, 'CREDITS.md'), 'CREDITS.md');
 for (const dir of ['fonts', 'audio']) walk(path.join(root, 'assets', dir), 'assets/' + dir);
 copy(path.join(root, 'assets', 'favicon.svg'), 'assets/favicon.svg');
