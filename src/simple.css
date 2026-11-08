@@ -202,11 +202,12 @@ html{
   text-size-adjust:100%;
 }
 body{
-  height:100%;margin:0;overflow:hidden;
+  height:100%;margin:0;overflow:hidden;overscroll-behavior:none;
   background:var(--bg);
   color:var(--ink);
   font-family:var(--font);
   -webkit-font-smoothing:antialiased;
+  -webkit-tap-highlight-color:transparent;
   font-variant-numeric:tabular-nums;
 }
 button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer}
@@ -254,7 +255,8 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
   grid-row:1;grid-column:1;
   width:100%;max-width:var(--shell-w);margin-inline:auto;
   display:grid;grid-template-columns:auto minmax(0,1fr) auto;
-  align-items:center;gap:22px;padding:20px var(--gap) 10px;
+  align-items:center;gap:22px;
+  padding:calc(20px + env(safe-area-inset-top,0px)) calc(var(--gap) + env(safe-area-inset-right,0px)) 10px calc(var(--gap) + env(safe-area-inset-left,0px));
 }
 
 .level-num{
@@ -359,6 +361,7 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
   box-shadow:var(--board-inset);
   touch-action:none;cursor:default;
 }
+.board,.topbar,.tray{-webkit-user-select:none;user-select:none}
 .board.is-panning{cursor:grabbing}
 .board.is-pinching{cursor:zoom-in}
 .board.is-wiring{cursor:crosshair}
@@ -497,7 +500,7 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
   transform:translate(-50%,-50%);max-width:calc(100vw - 32px);
   padding:14px 18px;border-radius:var(--radius-lg);background:var(--coach-bg);border:0;
   box-shadow:var(--pop-shadow);cursor:default;
-  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
   text-align:center;
 }
 .coach-flow{
@@ -528,7 +531,8 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
   grid-row:4;grid-column:1;
   width:100%;max-width:var(--shell-w);margin-inline:auto;
   display:flex;align-items:center;justify-content:center;gap:12px;
-  min-height:108px;padding:14px var(--gap) 20px;
+  min-height:108px;
+  padding:14px calc(var(--gap) + env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) calc(var(--gap) + env(safe-area-inset-left,0px));
   overflow-x:auto;overflow-y:hidden;
   scrollbar-width:none;overscroll-behavior-x:contain;
 }
@@ -569,7 +573,7 @@ body.is-holding *{cursor:grabbing!important}
  * ========================================================================= */
 
 .popover{
-  position:fixed;left:50%;bottom:112px;z-index:var(--z-popover);
+  position:fixed;left:50%;bottom:calc(112px + env(safe-area-inset-bottom,0px));z-index:var(--z-popover);
   transform:translateX(-50%);
   display:flex;align-items:center;gap:8px;max-width:calc(100vw - 28px);
   padding:10px 12px;border-radius:var(--radius-lg);
@@ -635,7 +639,7 @@ body.is-holding *{cursor:grabbing!important}
   padding:56px 24px 24px;
   background:var(--card);border-radius:var(--radius-sheet);
   box-shadow:var(--sheet-shadow);
-  scrollbar-width:none;overscroll-behavior:contain;
+  scrollbar-width:none;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
 }
 .sheet::-webkit-scrollbar{display:none;width:0;height:0}
 /* 面板容器由脚本 focus() 承接键盘焦点，不需要再画一圈焦点环（否则整个面板描边） */
@@ -807,7 +811,7 @@ body.is-holding *{cursor:grabbing!important}
 }
 .help-card{
   display:flex;flex-direction:row;align-items:center;gap:9px;
-  padding:9px 11px;border-radius:var(--radius-sm);background:var(--soft);
+  min-height:44px;padding:9px 11px;border-radius:var(--radius-sm);background:var(--soft);
   min-width:0;cursor:pointer;font-family:var(--font);text-align:left;
   transition:background .12s var(--ease),transform .12s var(--ease);
 }
@@ -822,7 +826,7 @@ body.is-holding *{cursor:grabbing!important}
 
 .save-row{display:flex;flex-direction:row;justify-content:center;gap:10px;padding:14px 0 0}
 .save-btn{
-  display:flex;align-items:center;justify-content:center;width:40px;height:40px;padding:0;
+  display:flex;align-items:center;justify-content:center;width:44px;height:44px;padding:0;
   border-radius:var(--radius-sm);background:var(--soft);color:var(--muted);
   transition:background .12s var(--ease),color .12s var(--ease);
 }
@@ -939,7 +943,7 @@ body.is-holding *{cursor:grabbing!important}
     grid-template-areas:"level actions" "goal goal";
     align-items:center;
     column-gap:10px;row-gap:6px;
-    padding:10px 12px 6px;
+    padding:calc(10px + env(safe-area-inset-top,0px)) calc(12px + env(safe-area-inset-right,0px)) 6px calc(12px + env(safe-area-inset-left,0px));
   }
   .level-num{
     grid-area:level;
@@ -951,8 +955,8 @@ body.is-holding *{cursor:grabbing!important}
   .goal.is-long{font-size:13px;line-height:1.25}
 
   .actions{grid-area:actions;justify-self:end;gap:3px;padding:3px;border-radius:var(--radius-sm)}
-  .actions .round-btn{width:34px;height:34px;font-size:16px}
-  .actions .check-btn{width:34px;height:34px;font-size:19px}
+  .actions .round-btn{width:38px;height:38px;font-size:16px}
+  .actions .check-btn{width:38px;height:38px;font-size:19px}
 
   .progress{width:calc(100% - 24px);max-width:calc(100% - 24px);margin:0 auto 2px}
 
@@ -975,7 +979,9 @@ body.is-holding *{cursor:grabbing!important}
 
   .tray{
     max-width:100%;
-    min-height:88px;padding:10px 12px 16px;gap:9px;
+    min-height:88px;
+    padding:10px calc(12px + env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) calc(12px + env(safe-area-inset-left,0px));
+    gap:9px;
     justify-content:flex-start;
     /* 横向溢出提示：两侧 12px 渐隐，不引入图片 */
     -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 12px,#000 calc(100% - 12px),transparent 100%);
@@ -987,8 +993,8 @@ body.is-holding *{cursor:grabbing!important}
   .tile.is-code{font-size:14px}
   .tile.is-code.is-long{font-size:10.5px}
 
-  .popover{bottom:96px;gap:6px;padding:8px 10px;border-radius:var(--radius-lg)}
-  .opt{min-width:42px;height:42px;border-radius:var(--radius-sm);font-size:16px}
+  .popover{bottom:calc(96px + env(safe-area-inset-bottom,0px));gap:6px;padding:8px 10px;border-radius:var(--radius-lg)}
+  .opt{min-width:44px;height:44px;border-radius:var(--radius-sm);font-size:16px}
   .opt-var{font-size:18px}
   .opt-sym{font-size:17px}
   .opt-code{font-size:13.5px}
@@ -997,11 +1003,11 @@ body.is-holding *{cursor:grabbing!important}
   /* toast 跟随两行顶栏自动下移（grid 第 3 行顶部），只需收紧间距 */
   .toast{margin-top:8px;font-size:13px;padding:9px 15px}
 
-  .sheet{padding:52px 20px 20px;border-radius:var(--radius-lg)}
+  .sheet{padding:52px 20px calc(20px + env(safe-area-inset-bottom,0px)) 20px;border-radius:var(--radius-lg)}
   /* 窄屏 sheet 内边距更小，滚动条滑块右移，别压住卡片右缘 */
   .sheet-bar i{left:8px}
-  .sheet-x{top:12px;right:12px;width:34px;height:34px}
-  .achv-back{top:12px;left:12px;width:34px;height:34px}
+  .sheet-x{top:12px;right:12px;width:38px;height:38px}
+  .achv-back{top:12px;left:12px;width:38px;height:38px}
 
   .levels{grid-template-columns:repeat(5,46px);gap:9px}
   .level-cell{width:46px;height:46px;border-radius:var(--radius-sm)}
@@ -1029,14 +1035,48 @@ body.is-holding *{cursor:grabbing!important}
 
   .check-btn{padding:0 11px}
   .actions{gap:2px;padding:2px}
-  .actions .round-btn{width:32px;height:32px}
-  .actions .check-btn{width:32px;height:32px;font-size:18px}
+  .actions .round-btn{width:38px;height:38px}
+  .actions .check-btn{width:38px;height:38px;font-size:19px}
 
   .levels{grid-template-columns:repeat(4,46px)}
   .sheet{padding:50px 16px 18px}
   .help-cards{grid-template-columns:1fr}
   .win-formula{font-size:19px}
   .next-btn{min-width:0;width:100%}
+}
+
+/* =========================================================================
+ * 23b 触屏 / 横屏补充
+ * ========================================================================= */
+
+/* 粗指针（手指）设备：端口视觉略大、命中环更大；实际连接还有 30px 就近吸附 */
+@media (pointer:coarse){
+  .port{width:24px;height:24px;border-width:3px}
+  .port-in{left:-13px}
+  .port-out{right:-12px}
+  .port::after{inset:-10px}
+  .node.is-target .port-in{width:26px;height:26px;left:-14px}
+}
+
+/* 横屏且高度紧张：压缩顶栏/元件盘，把高度让给棋盘 */
+@media (orientation:landscape) and (max-height:520px){
+  .topbar{padding:6px calc(12px + env(safe-area-inset-right,0px)) 4px calc(12px + env(safe-area-inset-left,0px));row-gap:2px;column-gap:8px}
+  .goal{font-size:16px;gap:6px}
+  .goal.is-long{font-size:11.5px}
+  .level-num{width:38px;height:38px;border-radius:12px;font-size:14px}
+  .actions{gap:2px;padding:2px}
+  .actions .round-btn{width:34px;height:34px;font-size:15px}
+  .actions .check-btn{width:34px;height:34px;font-size:18px}
+  .stage{padding-top:2px}
+  .tray{min-height:64px;padding-top:6px;padding-bottom:calc(8px + env(safe-area-inset-bottom,0px));gap:8px}
+  .tile{width:48px;height:48px;border-radius:12px;box-shadow:var(--sticker)}
+  .tile.is-var{font-size:20px}
+  .tile.is-symbol{font-size:20px}
+  .tile.is-code{font-size:12px}
+  .tile.is-code.is-long{font-size:9px}
+  .popover{bottom:calc(72px + env(safe-area-inset-bottom,0px))}
+  .sheet{max-height:94dvh;padding-top:46px}
+  .coach{top:52%}
 }
 
 /* =========================================================================

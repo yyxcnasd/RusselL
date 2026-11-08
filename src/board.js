@@ -72,6 +72,7 @@
     this._long = null;
     this._touches = Object.create(null);   // pointerId -> {x,y}，双指缩放用
     this._pinch = null;
+    this._lastTap = null;                  // 双击空板 = 适应视图
     this._elById = Object.create(null);   // id -> node element, rebuilt by render()
     this._wireEls = Object.create(null);  // edge id -> { path, hit }, rebuilt by full _updateWires
     this._lastUsed = null;
@@ -90,7 +91,9 @@
     this.board.addEventListener('click', function (e) { self._click(e); });
     this.board.addEventListener('dblclick', function (e) {
       var wire = e.target.closest && e.target.closest('.wire-hit');
-      if (wire) self.removeEdge(wire.dataset.edge);
+      if (wire) { self.removeEdge(wire.dataset.edge); return; }
+      var node = e.target.closest && e.target.closest('.node');
+      if (!node) { self.fit({ minScale: 0.35 }); self.onChange(); }
     });
     this.board.addEventListener('contextmenu', function (e) {
       e.preventDefault();
@@ -261,7 +264,16 @@
         return;
       }
     }
-    var port = e.target.closest && e.target.closest('.port');
+    var directPort = e.target.closest && e.target.closest('.port');
+    if (!directPort && e.pointerType === 'touch') {
+      var nearOut = this._nearestPort(e.clientX, e.clientY, '.port-out', 26);
+      if (nearOut) {
+        e.preventDefault();
+        this._startDraft(nearOut.nodeId, nearOut.portId, e.clientX, e.clientY);
+        return;
+      }
+    }
+    var port = directPort;
     if (port) {
       e.preventDefault();
       e.stopPropagation();
@@ -424,6 +436,7 @@
     if (this._pan) {
       this.view.x = this._pan.x + (e.clientX - this._pan.sx);
       this.view.y = this._pan.y + (e.clientY - this._pan.sy);
+      if (Math.abs(e.clientX - this._pan.sx) + Math.abs(e.clientY - this._pan.sy) > 5) this._pan.moved = true;
       this._applyView();
       return;
     }
@@ -494,10 +507,21 @@
       } else if (staleDrag) this._updateWires();
       return;
     }
-    if (this._pan) { this._pan = null; this.board.classList.remove('is-panning'); return; }
+    if (this._pan) {
+      var wasTap = !this._pan.moved;
+      this._pan = null;
+      this.board.classList.remove('is-panning');
+      if (wasTap && e.pointerType === 'touch') this._handleTapFit(e.clientX, e.clientY);
+      return;
+    }
     if (!this.draft) return;
     var el = document.elementFromPoint(e.clientX, e.clientY);
     var inPort = el && el.closest && el.closest('.port-in');
+    if (!inPort && e.pointerType === 'touch') {
+      inPort = (function (near) {
+        return near ? this.nodes.querySelector('.node[data-id="' + near.nodeId + '"] .port-in[data-port="' + near.portId + '"]') : null;
+      }).call(this, this._nearestPort(e.clientX, e.clientY, '.port-in', 30));
+    }
     if (inPort) {
       var mod = inPort.closest('.node');
       this.connect(this.draft.from.node, this.draft.from.port, mod.dataset.id, inPort.dataset.port);
@@ -505,6 +529,37 @@
       return;
     }
     if (e.pointerType !== 'touch') this._cancelDraft();
+  };
+
+  /* 触屏端口命中容差：取离手指最近、且在 maxDist 内的端口。 */
+  Board.prototype._nearestPort = function (cx, cy, selector, maxDist) {
+    var list = this.nodes.querySelectorAll(selector);
+    var best = null, bestDist = maxDist;
+    for (var i = 0; i < list.length; i += 1) {
+      var el = list[i];
+      var r = el.getBoundingClientRect();
+      var dx = (r.left + r.width / 2) - cx;
+      var dy = (r.top + r.height / 2) - cy;
+      var dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist <= bestDist) {
+        bestDist = dist;
+        var nodeEl = el.closest('.node');
+        best = { nodeId: nodeEl.dataset.id, portId: el.dataset.port, el: el, dist: dist };
+      }
+    }
+    return best;
+  };
+
+  /* 双击/双点空板：把当前电路（含目标焊盘）重新框进视口。 */
+  Board.prototype._handleTapFit = function (cx, cy) {
+    var now = Date.now();
+    var last = this._lastTap;
+    this._lastTap = { t: now, x: cx, y: cy };
+    if (!last || now - last.t > 320) return;
+    if (Math.sqrt((cx - last.x) * (cx - last.x) + (cy - last.y) * (cy - last.y)) > 24) return;
+    this._lastTap = null;
+    this.fit({ minScale: 0.35 });
+    this.onChange();
   };
 
   Board.prototype._click = function (e) {

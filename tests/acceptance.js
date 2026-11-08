@@ -619,6 +619,37 @@ runTest('acceptance', async ({ openPage }) => {
   ok(pinchMid.active === true, '双指按下进入 pinch 态');
   ok(pinchAfter.scale > pinchBefore * 1.3, '双指拉开后棋盘放大（' + pinchBefore.toFixed(2) + ' → ' + pinchAfter.scale.toFixed(2) + '）');
   equal(pinchAfter.active, false, '松手后退出 pinch 态');
+
+  /* 手指连接：按在端口附近（偏离 9px）也能起线/落线；双击空板回到适应视图 */
+  await page.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 2 });
+  await page.js('window.RSL.APP.state.forceUnlock = true');
+  await page.js('window.RSL.APP.loadLevel(1)');
+  await page.waitFor('window.RSL.APP.state.level.id === "CH1-02"');
+  await page.js('document.querySelector(".tile").click()');
+  await page.waitFor('document.querySelectorAll(".node").length === 2');
+  await page.sleep(400);
+  const nearPorts = await page.js(`(function(){
+    var o=document.querySelector('.node[data-kind="axiom"] .port-out').getBoundingClientRect();
+    var i=document.querySelector('.node.is-target .port-in').getBoundingClientRect();
+    return {o:{x:o.left+o.width/2+9,y:o.top+o.height/2+7}, i:{x:i.left+i.width/2-9,y:i.top+i.height/2-7}};
+  })()`);
+  const tapAt = async (pt) => {
+    await page.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: pt.x, y: pt.y, id: 0 }] });
+    await page.sleep(70);
+    await page.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    await page.sleep(250);
+  };
+  await tapAt(nearPorts.o);
+  await tapAt(nearPorts.i);
+  equal(await page.js('document.querySelectorAll(".wire").length'), 1, '手指偏离端口 9px 仍能完成连线');
+  equal(await page.js('document.querySelector(".node.is-target").dataset.state'), 'complete', '手指连线后目标 complete');
+  const tapFitBefore = await page.js('window.RSL.APP.state.board.view.scale');
+  const boardTap = await page.js(`(function(){var b=document.getElementById('board').getBoundingClientRect();return {x:b.left+b.width/2,y:b.top+b.height*0.78};})()`);
+  await tapAt(boardTap);
+  await tapAt(boardTap);
+  const tapFitAfter = await page.js('window.RSL.APP.state.board.view.scale');
+  ok(Math.abs(tapFitAfter - tapFitBefore) > 0.01, '双击空板把视图复位到适应视图（' + tapFitBefore.toFixed(2) + ' → ' + tapFitAfter.toFixed(2) + '）');
+  await page.send('Emulation.setTouchEmulationEnabled', { enabled: false });
   await page.shot('08-mobile-390');
 
   await reloadAt(320, 640, '320×640');
@@ -645,6 +676,21 @@ runTest('acceptance', async ({ openPage }) => {
   equal((await measureTarget(page, 'CH1-13')).inside, true, '320×640：y=640 远目标完整可见');
   equal((await measureTarget(page, 'CH4-23')).inside, true, '320×640：长目标完整可见');
   await page.shot('09-narrow-320');
+
+  /* 横屏手机：压缩顶栏/元件盘后棋盘仍保留可用高度 */
+  await reloadAt(844, 390, '844×390');
+  const landscape = await page.js(`(function(){
+    var b=document.getElementById('board').getBoundingClientRect();
+    var tb=document.querySelector('.topbar').getBoundingClientRect();
+    var tr=document.getElementById('tray').getBoundingClientRect();
+    return {boardH:b.height, topbarH:tb.height, trayH:tr.height,
+            overflow:document.documentElement.scrollWidth>innerWidth,
+            targetInside:window.__qa.inside(window.__qa.rect('.node.is-target'), window.__qa.rect('#board'))};
+  })()`);
+  ok(landscape.boardH >= 230, '844×390 横屏：棋盘高度 ≥230px（实际 ' + Math.round(landscape.boardH) + 'px）');
+  equal(landscape.overflow, false, '844×390 横屏：无横向溢出');
+  equal(landscape.targetInside, true, '844×390 横屏：目标焊盘完整可见');
+  await page.shot('11-landscape-844');
 
   /* ------------------------------------------------------------------
    * J. dist 构建产物 smoke：file:// 打开，首关放置 → 连线 → 通关
