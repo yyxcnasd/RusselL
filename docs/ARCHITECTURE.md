@@ -83,6 +83,7 @@ research/setmm-data.json (+ setmm-set-extra.json)
 
 改生成器后：`node scripts/gen-levels.js`，然后 `git diff src/archive.js src/levels-generated.js` 应为你预期的变化（纯重构应为空）。
 `src/levels.js` 是手工关，可直接改；四章各 12 关手工 + 48 关生成。
+生成关的前若干关是**推理关**：从公理或已证结论出发，用代入/全称闭包/闭包+例化推出目标，不使用 archive 直连；档案条目只作为已证引理出现在后续关卡。
 
 ## 5. 视觉与交互约定
 

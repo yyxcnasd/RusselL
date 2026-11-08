@@ -9,22 +9,25 @@
   "id": "CH1-13",
   "chapter": "prop",
   "code": "CH1-13",
-  "title": "pm3.24 · 档案",
-  "kicker": "set.mm / pm3.24",
+  "title": "CH1-07 · 代入推演",
+  "kicker": "推理 / CH1-07",
   "brief": "",
   "hint": "",
   "teaches": [
-   "档案"
+   "代入推演"
   ],
   "allowed": [
-   "archive:pm3.24",
-   "target"
+   "target",
+   "theorem:CH1-07",
+   "subst",
+   "atom",
+   "not"
   ],
   "reward": "—",
-  "note": "set.mm pm3.24（Propositional calculus）；本作不重证档案定理。",
-  "target": "¬ ( P ∧ ¬ P )",
+  "note": "不使用档案结论；从 已证结论 CH1-07 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "¬K→¬K",
   "targetPos": {
-   "x": 900,
+   "x": 980,
    "y": 640
   },
   "world": {
@@ -35,18 +38,90 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "archive",
+     "kind": "theorem",
      "x": 60,
      "y": 700,
      "config": {
-      "label": "pm3.24"
+      "theoremCode": "CH1-07"
      }
+    },
+    {
+     "id": "s0",
+     "kind": "subst",
+     "x": 620,
+     "y": 700,
+     "config": {}
+    },
+    {
+     "id": "a0",
+     "kind": "atom",
+     "x": 60,
+     "y": 80,
+     "config": {
+      "name": "P"
+     }
+    },
+    {
+     "id": "a1",
+     "kind": "atom",
+     "x": 280,
+     "y": 80,
+     "config": {
+      "name": "K"
+     }
+    },
+    {
+     "id": "f2",
+     "kind": "not",
+     "x": 500,
+     "y": 80,
+     "config": {}
     }
    ],
    "edges": [
     {
      "from": {
       "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "a0",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "atom"
+     }
+    },
+    {
+     "from": {
+      "node": "a1",
+      "port": "out"
+     },
+     "to": {
+      "node": "f2",
+      "port": "a"
+     }
+    },
+    {
+     "from": {
+      "node": "f2",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "formula"
+     }
+    },
+    {
+     "from": {
+      "node": "s0",
       "port": "out"
      },
      "to": {
@@ -62,22 +137,25 @@
   "id": "CH1-14",
   "chapter": "prop",
   "code": "CH1-14",
-  "title": "pm2.07 · 档案",
-  "kicker": "set.mm / pm2.07",
+  "title": "ax-1 · 代入推演",
+  "kicker": "推理 / ax-1",
   "brief": "",
   "hint": "",
   "teaches": [
-   "档案"
+   "代入推演"
   ],
   "allowed": [
-   "archive:pm2.07",
-   "target"
+   "target",
+   "axiom:ax-1",
+   "subst",
+   "atom",
+   "or"
   ],
   "reward": "—",
-  "note": "set.mm pm2.07（Propositional calculus）；本作不重证档案定理。",
-  "target": "( P → ( P ∨ P ) )",
+  "note": "不使用档案结论；从 公理 ax-1 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "H∨I→Q→H∨I",
   "targetPos": {
-   "x": 900,
+   "x": 1080,
    "y": 640
   },
   "world": {
@@ -88,18 +166,109 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "archive",
+     "kind": "axiom",
      "x": 60,
      "y": 700,
      "config": {
-      "label": "pm2.07"
+      "axiomId": "ax-1"
      }
+    },
+    {
+     "id": "s0",
+     "kind": "subst",
+     "x": 620,
+     "y": 700,
+     "config": {}
+    },
+    {
+     "id": "a0",
+     "kind": "atom",
+     "x": 60,
+     "y": 80,
+     "config": {
+      "name": "P"
+     }
+    },
+    {
+     "id": "a1",
+     "kind": "atom",
+     "x": 280,
+     "y": 80,
+     "config": {
+      "name": "H"
+     }
+    },
+    {
+     "id": "a2",
+     "kind": "atom",
+     "x": 500,
+     "y": 80,
+     "config": {
+      "name": "I"
+     }
+    },
+    {
+     "id": "f3",
+     "kind": "or",
+     "x": 720,
+     "y": 80,
+     "config": {}
     }
    ],
    "edges": [
     {
      "from": {
       "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "a0",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "atom"
+     }
+    },
+    {
+     "from": {
+      "node": "a1",
+      "port": "out"
+     },
+     "to": {
+      "node": "f3",
+      "port": "a"
+     }
+    },
+    {
+     "from": {
+      "node": "a2",
+      "port": "out"
+     },
+     "to": {
+      "node": "f3",
+      "port": "b"
+     }
+    },
+    {
+     "from": {
+      "node": "f3",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "formula"
+     }
+    },
+    {
+     "from": {
+      "node": "s0",
       "port": "out"
      },
      "to": {
@@ -115,22 +284,25 @@
   "id": "CH1-15",
   "chapter": "prop",
   "code": "CH1-15",
-  "title": "simp2 · 档案",
-  "kicker": "set.mm / simp2",
+  "title": "CH1-12 · 代入推演",
+  "kicker": "推理 / CH1-12",
   "brief": "",
   "hint": "",
   "teaches": [
-   "档案"
+   "代入推演"
   ],
   "allowed": [
-   "archive:simp2",
-   "target"
+   "target",
+   "theorem:CH1-12",
+   "subst",
+   "atom",
+   "or"
   ],
   "reward": "—",
-  "note": "set.mm simp2（Propositional calculus）；本作不重证档案定理。",
-  "target": "( ( P ∧ Q ∧ R ) → Q )",
+  "note": "不使用档案结论；从 已证结论 CH1-12 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "(M∨N→Q)→M∨N→Q",
   "targetPos": {
-   "x": 900,
+   "x": 1080,
    "y": 640
   },
   "world": {
@@ -141,18 +313,109 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "archive",
+     "kind": "theorem",
      "x": 60,
      "y": 700,
      "config": {
-      "label": "simp2"
+      "theoremCode": "CH1-12"
      }
+    },
+    {
+     "id": "s0",
+     "kind": "subst",
+     "x": 620,
+     "y": 700,
+     "config": {}
+    },
+    {
+     "id": "a0",
+     "kind": "atom",
+     "x": 60,
+     "y": 80,
+     "config": {
+      "name": "P"
+     }
+    },
+    {
+     "id": "a1",
+     "kind": "atom",
+     "x": 280,
+     "y": 80,
+     "config": {
+      "name": "M"
+     }
+    },
+    {
+     "id": "a2",
+     "kind": "atom",
+     "x": 500,
+     "y": 80,
+     "config": {
+      "name": "N"
+     }
+    },
+    {
+     "id": "f3",
+     "kind": "or",
+     "x": 720,
+     "y": 80,
+     "config": {}
     }
    ],
    "edges": [
     {
      "from": {
       "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "a0",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "atom"
+     }
+    },
+    {
+     "from": {
+      "node": "a1",
+      "port": "out"
+     },
+     "to": {
+      "node": "f3",
+      "port": "a"
+     }
+    },
+    {
+     "from": {
+      "node": "a2",
+      "port": "out"
+     },
+     "to": {
+      "node": "f3",
+      "port": "b"
+     }
+    },
+    {
+     "from": {
+      "node": "f3",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "formula"
+     }
+    },
+    {
+     "from": {
+      "node": "s0",
       "port": "out"
      },
      "to": {
@@ -168,22 +431,25 @@
   "id": "CH1-16",
   "chapter": "prop",
   "code": "CH1-16",
-  "title": "3mix1 · 档案",
-  "kicker": "set.mm / 3mix1",
+  "title": "ax-1 · 代入推演",
+  "kicker": "推理 / ax-1",
   "brief": "",
   "hint": "",
   "teaches": [
-   "档案"
+   "代入推演"
   ],
   "allowed": [
-   "archive:3mix1",
-   "target"
+   "target",
+   "axiom:ax-1",
+   "subst",
+   "atom",
+   "iff"
   ],
   "reward": "—",
-  "note": "set.mm 3mix1（Propositional calculus）；本作不重证档案定理。",
-  "target": "( P → ( P ∨ Q ∨ R ) )",
+  "note": "不使用档案结论；从 公理 ax-1 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "(N↔O)→Q→(N↔O)",
   "targetPos": {
-   "x": 900,
+   "x": 1080,
    "y": 640
   },
   "world": {
@@ -194,18 +460,109 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "archive",
+     "kind": "axiom",
      "x": 60,
      "y": 700,
      "config": {
-      "label": "3mix1"
+      "axiomId": "ax-1"
      }
+    },
+    {
+     "id": "s0",
+     "kind": "subst",
+     "x": 620,
+     "y": 700,
+     "config": {}
+    },
+    {
+     "id": "a0",
+     "kind": "atom",
+     "x": 60,
+     "y": 80,
+     "config": {
+      "name": "P"
+     }
+    },
+    {
+     "id": "a1",
+     "kind": "atom",
+     "x": 280,
+     "y": 80,
+     "config": {
+      "name": "N"
+     }
+    },
+    {
+     "id": "a2",
+     "kind": "atom",
+     "x": 500,
+     "y": 80,
+     "config": {
+      "name": "O"
+     }
+    },
+    {
+     "id": "f3",
+     "kind": "iff",
+     "x": 720,
+     "y": 80,
+     "config": {}
     }
    ],
    "edges": [
     {
      "from": {
       "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "a0",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "atom"
+     }
+    },
+    {
+     "from": {
+      "node": "a1",
+      "port": "out"
+     },
+     "to": {
+      "node": "f3",
+      "port": "a"
+     }
+    },
+    {
+     "from": {
+      "node": "a2",
+      "port": "out"
+     },
+     "to": {
+      "node": "f3",
+      "port": "b"
+     }
+    },
+    {
+     "from": {
+      "node": "f3",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "formula"
+     }
+    },
+    {
+     "from": {
+      "node": "s0",
       "port": "out"
      },
      "to": {
@@ -221,22 +578,25 @@
   "id": "CH1-17",
   "chapter": "prop",
   "code": "CH1-17",
-  "title": "pm2.5 · 档案",
-  "kicker": "set.mm / pm2.5",
+  "title": "ax-3 · 代入推演",
+  "kicker": "推理 / ax-3",
   "brief": "",
   "hint": "",
   "teaches": [
-   "档案"
+   "代入推演"
   ],
   "allowed": [
-   "archive:pm2.5",
-   "target"
+   "target",
+   "axiom:ax-3",
+   "subst",
+   "atom",
+   "imp"
   ],
   "reward": "—",
-  "note": "set.mm pm2.5（Propositional calculus）；本作不重证档案定理。",
-  "target": "( ¬ ( P → Q ) → ( ¬ P → Q ) )",
+  "note": "不使用档案结论；从 公理 ax-3 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "(¬(J→K)→¬Q)→Q→J→K",
   "targetPos": {
-   "x": 900,
+   "x": 1080,
    "y": 640
   },
   "world": {
@@ -247,18 +607,109 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "archive",
+     "kind": "axiom",
      "x": 60,
      "y": 700,
      "config": {
-      "label": "pm2.5"
+      "axiomId": "ax-3"
      }
+    },
+    {
+     "id": "s0",
+     "kind": "subst",
+     "x": 620,
+     "y": 700,
+     "config": {}
+    },
+    {
+     "id": "a0",
+     "kind": "atom",
+     "x": 60,
+     "y": 80,
+     "config": {
+      "name": "P"
+     }
+    },
+    {
+     "id": "a1",
+     "kind": "atom",
+     "x": 280,
+     "y": 80,
+     "config": {
+      "name": "J"
+     }
+    },
+    {
+     "id": "a2",
+     "kind": "atom",
+     "x": 500,
+     "y": 80,
+     "config": {
+      "name": "K"
+     }
+    },
+    {
+     "id": "f3",
+     "kind": "imp",
+     "x": 720,
+     "y": 80,
+     "config": {}
     }
    ],
    "edges": [
     {
      "from": {
       "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "a0",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "atom"
+     }
+    },
+    {
+     "from": {
+      "node": "a1",
+      "port": "out"
+     },
+     "to": {
+      "node": "f3",
+      "port": "a"
+     }
+    },
+    {
+     "from": {
+      "node": "a2",
+      "port": "out"
+     },
+     "to": {
+      "node": "f3",
+      "port": "b"
+     }
+    },
+    {
+     "from": {
+      "node": "f3",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "formula"
+     }
+    },
+    {
+     "from": {
+      "node": "s0",
       "port": "out"
      },
      "to": {
@@ -274,22 +725,25 @@
   "id": "CH1-18",
   "chapter": "prop",
   "code": "CH1-18",
-  "title": "pm3.11 · 档案",
-  "kicker": "set.mm / pm3.11",
+  "title": "CH1-10 · 代入推演",
+  "kicker": "推理 / CH1-10",
   "brief": "",
   "hint": "",
   "teaches": [
-   "档案"
+   "代入推演"
   ],
   "allowed": [
-   "archive:pm3.11",
-   "target"
+   "target",
+   "theorem:CH1-10",
+   "subst",
+   "atom",
+   "and"
   ],
   "reward": "—",
-  "note": "set.mm pm3.11（Propositional calculus）；本作不重证档案定理。",
-  "target": "( ¬ ( ¬ P ∨ ¬ Q ) → ( P ∧ Q ) )",
+  "note": "不使用档案结论；从 已证结论 CH1-10 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "(L∧M→Q)→(S→L∧M)→S→Q",
   "targetPos": {
-   "x": 900,
+   "x": 1080,
    "y": 640
   },
   "world": {
@@ -300,18 +754,109 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "archive",
+     "kind": "theorem",
      "x": 60,
      "y": 700,
      "config": {
-      "label": "pm3.11"
+      "theoremCode": "CH1-10"
      }
+    },
+    {
+     "id": "s0",
+     "kind": "subst",
+     "x": 620,
+     "y": 700,
+     "config": {}
+    },
+    {
+     "id": "a0",
+     "kind": "atom",
+     "x": 60,
+     "y": 80,
+     "config": {
+      "name": "P"
+     }
+    },
+    {
+     "id": "a1",
+     "kind": "atom",
+     "x": 280,
+     "y": 80,
+     "config": {
+      "name": "L"
+     }
+    },
+    {
+     "id": "a2",
+     "kind": "atom",
+     "x": 500,
+     "y": 80,
+     "config": {
+      "name": "M"
+     }
+    },
+    {
+     "id": "f3",
+     "kind": "and",
+     "x": 720,
+     "y": 80,
+     "config": {}
     }
    ],
    "edges": [
     {
      "from": {
       "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "a0",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "atom"
+     }
+    },
+    {
+     "from": {
+      "node": "a1",
+      "port": "out"
+     },
+     "to": {
+      "node": "f3",
+      "port": "a"
+     }
+    },
+    {
+     "from": {
+      "node": "a2",
+      "port": "out"
+     },
+     "to": {
+      "node": "f3",
+      "port": "b"
+     }
+    },
+    {
+     "from": {
+      "node": "f3",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "formula"
+     }
+    },
+    {
+     "from": {
+      "node": "s0",
       "port": "out"
      },
      "to": {
@@ -327,22 +872,25 @@
   "id": "CH1-19",
   "chapter": "prop",
   "code": "CH1-19",
-  "title": "simprrr · 档案",
-  "kicker": "set.mm / simprrr",
+  "title": "ax-2 · 代入推演",
+  "kicker": "推理 / ax-2",
   "brief": "",
   "hint": "",
   "teaches": [
-   "档案"
+   "代入推演"
   ],
   "allowed": [
-   "archive:simprrr",
-   "target"
+   "target",
+   "axiom:ax-2",
+   "subst",
+   "atom",
+   "iff"
   ],
   "reward": "—",
-  "note": "set.mm simprrr（Propositional calculus）；本作不重证档案定理。",
-  "target": "( ( P ∧ ( Q ∧ ( R ∧ S ) ) ) → S )",
+  "note": "不使用档案结论；从 公理 ax-2 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "((I↔J)→Q→R)→((I↔J)→Q)→(I↔J)→R",
   "targetPos": {
-   "x": 900,
+   "x": 1080,
    "y": 640
   },
   "world": {
@@ -353,18 +901,109 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "archive",
+     "kind": "axiom",
      "x": 60,
      "y": 700,
      "config": {
-      "label": "simprrr"
+      "axiomId": "ax-2"
      }
+    },
+    {
+     "id": "s0",
+     "kind": "subst",
+     "x": 620,
+     "y": 700,
+     "config": {}
+    },
+    {
+     "id": "a0",
+     "kind": "atom",
+     "x": 60,
+     "y": 80,
+     "config": {
+      "name": "P"
+     }
+    },
+    {
+     "id": "a1",
+     "kind": "atom",
+     "x": 280,
+     "y": 80,
+     "config": {
+      "name": "I"
+     }
+    },
+    {
+     "id": "a2",
+     "kind": "atom",
+     "x": 500,
+     "y": 80,
+     "config": {
+      "name": "J"
+     }
+    },
+    {
+     "id": "f3",
+     "kind": "iff",
+     "x": 720,
+     "y": 80,
+     "config": {}
     }
    ],
    "edges": [
     {
      "from": {
       "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "a0",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "atom"
+     }
+    },
+    {
+     "from": {
+      "node": "a1",
+      "port": "out"
+     },
+     "to": {
+      "node": "f3",
+      "port": "a"
+     }
+    },
+    {
+     "from": {
+      "node": "a2",
+      "port": "out"
+     },
+     "to": {
+      "node": "f3",
+      "port": "b"
+     }
+    },
+    {
+     "from": {
+      "node": "f3",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "formula"
+     }
+    },
+    {
+     "from": {
+      "node": "s0",
       "port": "out"
      },
      "to": {
@@ -380,22 +1019,25 @@
   "id": "CH1-20",
   "chapter": "prop",
   "code": "CH1-20",
-  "title": "simpr12 · 档案",
-  "kicker": "set.mm / simpr12",
+  "title": "ax-2 · 代入推演",
+  "kicker": "推理 / ax-2",
   "brief": "",
   "hint": "",
   "teaches": [
-   "档案"
+   "代入推演"
   ],
   "allowed": [
-   "archive:simpr12",
-   "target"
+   "target",
+   "axiom:ax-2",
+   "subst",
+   "atom",
+   "imp"
   ],
   "reward": "—",
-  "note": "set.mm simpr12（Propositional calculus）；本作不重证档案定理。",
-  "target": "( ( U ∧ ( ( P ∧ Q ∧ R ) ∧ S ∧ T ) ) → Q )",
+  "note": "不使用档案结论；从 公理 ax-2 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "((O→S)→Q→R)→((O→S)→Q)→(O→S)→R",
   "targetPos": {
-   "x": 900,
+   "x": 1080,
    "y": 640
   },
   "world": {
@@ -406,18 +1048,109 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "archive",
+     "kind": "axiom",
      "x": 60,
      "y": 700,
      "config": {
-      "label": "simpr12"
+      "axiomId": "ax-2"
      }
+    },
+    {
+     "id": "s0",
+     "kind": "subst",
+     "x": 620,
+     "y": 700,
+     "config": {}
+    },
+    {
+     "id": "a0",
+     "kind": "atom",
+     "x": 60,
+     "y": 80,
+     "config": {
+      "name": "P"
+     }
+    },
+    {
+     "id": "a1",
+     "kind": "atom",
+     "x": 280,
+     "y": 80,
+     "config": {
+      "name": "O"
+     }
+    },
+    {
+     "id": "a2",
+     "kind": "atom",
+     "x": 500,
+     "y": 80,
+     "config": {
+      "name": "S"
+     }
+    },
+    {
+     "id": "f3",
+     "kind": "imp",
+     "x": 720,
+     "y": 80,
+     "config": {}
     }
    ],
    "edges": [
     {
      "from": {
       "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "a0",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "atom"
+     }
+    },
+    {
+     "from": {
+      "node": "a1",
+      "port": "out"
+     },
+     "to": {
+      "node": "f3",
+      "port": "a"
+     }
+    },
+    {
+     "from": {
+      "node": "a2",
+      "port": "out"
+     },
+     "to": {
+      "node": "f3",
+      "port": "b"
+     }
+    },
+    {
+     "from": {
+      "node": "f3",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "formula"
+     }
+    },
+    {
+     "from": {
+      "node": "s0",
       "port": "out"
      },
      "to": {
@@ -10152,22 +10885,25 @@
   "id": "CH2-13",
   "chapter": "pred",
   "code": "CH2-13",
-  "title": "alex · 档案",
-  "kicker": "set.mm / alex",
+  "title": "CH1-07 · 代入推演",
+  "kicker": "推理 / CH1-07",
   "brief": "",
   "hint": "",
   "teaches": [
-   "档案"
+   "代入推演"
   ],
   "allowed": [
-   "archive:alex",
-   "target"
+   "target",
+   "theorem:CH1-07",
+   "subst",
+   "atom",
+   "pred"
   ],
   "reward": "—",
-  "note": "set.mm alex（Predicate calculus with equality:  Tarski's system S2 (1 rule, 6 schemes)）；本作不重证档案定理。",
-  "target": "( ∀ x P ↔ ¬ ∃ x ¬ P )",
+  "note": "不使用档案结论；从 已证结论 CH1-07 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "F(x)→F(x)",
   "targetPos": {
-   "x": 900,
+   "x": 980,
    "y": 640
   },
   "world": {
@@ -10178,11 +10914,37 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "archive",
+     "kind": "theorem",
      "x": 60,
      "y": 700,
      "config": {
-      "label": "alex"
+      "theoremCode": "CH1-07"
+     }
+    },
+    {
+     "id": "s0",
+     "kind": "subst",
+     "x": 620,
+     "y": 700,
+     "config": {}
+    },
+    {
+     "id": "a0",
+     "kind": "atom",
+     "x": 60,
+     "y": 80,
+     "config": {
+      "name": "P"
+     }
+    },
+    {
+     "id": "a1",
+     "kind": "pred",
+     "x": 280,
+     "y": 80,
+     "config": {
+      "name": "F",
+      "arg": "x"
      }
     }
    ],
@@ -10190,6 +10952,36 @@
     {
      "from": {
       "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "a0",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "atom"
+     }
+    },
+    {
+     "from": {
+      "node": "a1",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "formula"
+     }
+    },
+    {
+     "from": {
+      "node": "s0",
       "port": "out"
      },
      "to": {
@@ -10205,22 +10997,25 @@
   "id": "CH2-14",
   "chapter": "pred",
   "code": "CH2-14",
-  "title": "ax-11 · 档案",
-  "kicker": "set.mm / ax-11",
+  "title": "ax-5 · 代入推演",
+  "kicker": "推理 / ax-5",
   "brief": "",
   "hint": "",
   "teaches": [
-   "档案"
+   "代入推演"
   ],
   "allowed": [
-   "archive:ax-11",
-   "target"
+   "target",
+   "axiom:ax-5",
+   "subst",
+   "atom",
+   "pred"
   ],
   "reward": "—",
-  "note": "set.mm ax-11（Predicate calculus with equality:  Auxiliary axiom schemes (4 schemes)）；本作不重证档案定理。",
-  "target": "( ∀ x ∀ y P → ∀ y ∀ x P )",
+  "note": "不使用档案结论；从 公理 ax-5 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "F(x)→∀x F(x)",
   "targetPos": {
-   "x": 900,
+   "x": 980,
    "y": 640
   },
   "world": {
@@ -10231,11 +11026,37 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "archive",
+     "kind": "axiom",
      "x": 60,
      "y": 700,
      "config": {
-      "label": "ax-11"
+      "axiomId": "ax-5"
+     }
+    },
+    {
+     "id": "s0",
+     "kind": "subst",
+     "x": 620,
+     "y": 700,
+     "config": {}
+    },
+    {
+     "id": "a0",
+     "kind": "atom",
+     "x": 60,
+     "y": 80,
+     "config": {
+      "name": "P"
+     }
+    },
+    {
+     "id": "a1",
+     "kind": "pred",
+     "x": 280,
+     "y": 80,
+     "config": {
+      "name": "F",
+      "arg": "x"
      }
     }
    ],
@@ -10243,6 +11064,36 @@
     {
      "from": {
       "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "a0",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "atom"
+     }
+    },
+    {
+     "from": {
+      "node": "a1",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "formula"
+     }
+    },
+    {
+     "from": {
+      "node": "s0",
       "port": "out"
      },
      "to": {
@@ -10258,22 +11109,25 @@
   "id": "CH2-15",
   "chapter": "pred",
   "code": "CH2-15",
-  "title": "exancom · 档案",
-  "kicker": "set.mm / exancom",
+  "title": "ax-10 · 代入推演",
+  "kicker": "推理 / ax-10",
   "brief": "",
   "hint": "",
   "teaches": [
-   "档案"
+   "代入推演"
   ],
   "allowed": [
-   "archive:exancom",
-   "target"
+   "target",
+   "axiom:ax-10",
+   "subst",
+   "atom",
+   "pred"
   ],
   "reward": "—",
-  "note": "set.mm exancom（Predicate calculus with equality:  Tarski's system S2 (1 rule, 6 schemes)）；本作不重证档案定理。",
-  "target": "( ∃ x ( P ∧ Q ) ↔ ∃ x ( Q ∧ P ) )",
+  "note": "不使用档案结论；从 公理 ax-10 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "¬∀x F(x)→∀x ¬∀x F(x)",
   "targetPos": {
-   "x": 900,
+   "x": 980,
    "y": 640
   },
   "world": {
@@ -10284,11 +11138,37 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "archive",
+     "kind": "axiom",
      "x": 60,
      "y": 700,
      "config": {
-      "label": "exancom"
+      "axiomId": "ax-10"
+     }
+    },
+    {
+     "id": "s0",
+     "kind": "subst",
+     "x": 620,
+     "y": 700,
+     "config": {}
+    },
+    {
+     "id": "a0",
+     "kind": "atom",
+     "x": 60,
+     "y": 80,
+     "config": {
+      "name": "P"
+     }
+    },
+    {
+     "id": "a1",
+     "kind": "pred",
+     "x": 280,
+     "y": 80,
+     "config": {
+      "name": "F",
+      "arg": "x"
      }
     }
    ],
@@ -10296,6 +11176,36 @@
     {
      "from": {
       "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "a0",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "atom"
+     }
+    },
+    {
+     "from": {
+      "node": "a1",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "formula"
+     }
+    },
+    {
+     "from": {
+      "node": "s0",
       "port": "out"
      },
      "to": {
@@ -10311,22 +11221,25 @@
   "id": "CH2-16",
   "chapter": "pred",
   "code": "CH2-16",
-  "title": "19.31v · 档案",
-  "kicker": "set.mm / 19.31v",
+  "title": "ax-11 · 代入推演",
+  "kicker": "推理 / ax-11",
   "brief": "",
   "hint": "",
   "teaches": [
-   "档案"
+   "代入推演"
   ],
   "allowed": [
-   "archive:19.31v",
-   "target"
+   "target",
+   "axiom:ax-11",
+   "subst",
+   "atom",
+   "pred"
   ],
   "reward": "—",
-  "note": "set.mm 19.31v（Predicate calculus with equality:  Tarski's system S2 (1 rule, 6 schemes)）；本作不重证档案定理。",
-  "target": "( ∀ x ( P ∨ Q ) ↔ ( ∀ x P ∨ Q ) )",
+  "note": "不使用档案结论；从 公理 ax-11 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "∀x ∀y F(x)→∀y ∀x F(x)",
   "targetPos": {
-   "x": 900,
+   "x": 980,
    "y": 640
   },
   "world": {
@@ -10337,11 +11250,37 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "archive",
+     "kind": "axiom",
      "x": 60,
      "y": 700,
      "config": {
-      "label": "19.31v"
+      "axiomId": "ax-11"
+     }
+    },
+    {
+     "id": "s0",
+     "kind": "subst",
+     "x": 620,
+     "y": 700,
+     "config": {}
+    },
+    {
+     "id": "a0",
+     "kind": "atom",
+     "x": 60,
+     "y": 80,
+     "config": {
+      "name": "P"
+     }
+    },
+    {
+     "id": "a1",
+     "kind": "pred",
+     "x": 280,
+     "y": 80,
+     "config": {
+      "name": "F",
+      "arg": "x"
      }
     }
    ],
@@ -10349,6 +11288,36 @@
     {
      "from": {
       "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "a0",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "atom"
+     }
+    },
+    {
+     "from": {
+      "node": "a1",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "formula"
+     }
+    },
+    {
+     "from": {
+      "node": "s0",
       "port": "out"
      },
      "to": {
@@ -10364,22 +11333,25 @@
   "id": "CH2-17",
   "chapter": "pred",
   "code": "CH2-17",
-  "title": "3exdistr · 档案",
-  "kicker": "set.mm / 3exdistr",
+  "title": "CH1-10 · 代入推演",
+  "kicker": "推理 / CH1-10",
   "brief": "",
   "hint": "",
   "teaches": [
-   "档案"
+   "代入推演"
   ],
   "allowed": [
-   "archive:3exdistr",
-   "target"
+   "target",
+   "theorem:CH1-10",
+   "subst",
+   "atom",
+   "pred"
   ],
   "reward": "—",
-  "note": "set.mm 3exdistr（Predicate calculus with equality:  Tarski's system S2 (1 rule, 6 schemes)）；本作不重证档案定理。",
-  "target": "( ∃ x ∃ y ∃ z ( P ∧ Q ∧ R ) ↔ ∃ x ( P ∧ ∃ y ( Q ∧ ∃ z R ) ) )",
+  "note": "不使用档案结论；从 已证结论 CH1-10 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "(F(x)→Q)→(S→F(x))→S→Q",
   "targetPos": {
-   "x": 900,
+   "x": 980,
    "y": 640
   },
   "world": {
@@ -10390,11 +11362,37 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "archive",
+     "kind": "theorem",
      "x": 60,
      "y": 700,
      "config": {
-      "label": "3exdistr"
+      "theoremCode": "CH1-10"
+     }
+    },
+    {
+     "id": "s0",
+     "kind": "subst",
+     "x": 620,
+     "y": 700,
+     "config": {}
+    },
+    {
+     "id": "a0",
+     "kind": "atom",
+     "x": 60,
+     "y": 80,
+     "config": {
+      "name": "P"
+     }
+    },
+    {
+     "id": "a1",
+     "kind": "pred",
+     "x": 280,
+     "y": 80,
+     "config": {
+      "name": "F",
+      "arg": "x"
      }
     }
    ],
@@ -10402,6 +11400,36 @@
     {
      "from": {
       "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "a0",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "atom"
+     }
+    },
+    {
+     "from": {
+      "node": "a1",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "formula"
+     }
+    },
+    {
+     "from": {
+      "node": "s0",
       "port": "out"
      },
      "to": {
@@ -10417,22 +11445,25 @@
   "id": "CH2-18",
   "chapter": "pred",
   "code": "CH2-18",
-  "title": "19.33b · 档案",
-  "kicker": "set.mm / 19.33b",
+  "title": "ax-4 · 代入推演",
+  "kicker": "推理 / ax-4",
   "brief": "",
   "hint": "",
   "teaches": [
-   "档案"
+   "代入推演"
   ],
   "allowed": [
-   "archive:19.33b",
-   "target"
+   "target",
+   "axiom:ax-4",
+   "subst",
+   "atom",
+   "pred"
   ],
   "reward": "—",
-  "note": "set.mm 19.33b（Predicate calculus with equality:  Tarski's system S2 (1 rule, 6 schemes)）；本作不重证档案定理。",
-  "target": "( ¬ ( ∃ x P ∧ ∃ x Q ) → ( ∀ x ( P ∨ Q ) ↔ ( ∀ x P ∨ ∀ x Q ) ) )",
+  "note": "不使用档案结论；从 公理 ax-4 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "∀x (F(x)→Q)→∀x F(x)→∀x Q",
   "targetPos": {
-   "x": 900,
+   "x": 980,
    "y": 640
   },
   "world": {
@@ -10443,11 +11474,37 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "archive",
+     "kind": "axiom",
      "x": 60,
      "y": 700,
      "config": {
-      "label": "19.33b"
+      "axiomId": "ax-4"
+     }
+    },
+    {
+     "id": "s0",
+     "kind": "subst",
+     "x": 620,
+     "y": 700,
+     "config": {}
+    },
+    {
+     "id": "a0",
+     "kind": "atom",
+     "x": 60,
+     "y": 80,
+     "config": {
+      "name": "P"
+     }
+    },
+    {
+     "id": "a1",
+     "kind": "pred",
+     "x": 280,
+     "y": 80,
+     "config": {
+      "name": "F",
+      "arg": "x"
      }
     }
    ],
@@ -10455,6 +11512,36 @@
     {
      "from": {
       "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "a0",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "atom"
+     }
+    },
+    {
+     "from": {
+      "node": "a1",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "formula"
+     }
+    },
+    {
+     "from": {
+      "node": "s0",
       "port": "out"
      },
      "to": {
@@ -17144,22 +18231,23 @@
   "id": "CH3-13",
   "chapter": "eq",
   "code": "CH3-13",
-  "title": "equequ1 · 档案",
-  "kicker": "set.mm / equequ1",
+  "title": "ax-6 · 全称闭包",
+  "kicker": "推理 / ax-6",
   "brief": "",
   "hint": "",
   "teaches": [
-   "档案"
+   "全称闭包"
   ],
   "allowed": [
-   "archive:equequ1",
-   "target"
+   "target",
+   "axiom:ax-6",
+   "all-intro"
   ],
   "reward": "—",
-  "note": "set.mm equequ1（Predicate calculus with equality:  Tarski's system S2 (1 rule, 6 schemes)）；本作不重证档案定理。",
-  "target": "( x = y → ( x = z ↔ y = z ) )",
+  "note": "不使用档案结论；从 公理 ax-6 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "∀y ¬∀x ¬x = y",
   "targetPos": {
-   "x": 900,
+   "x": 980,
    "y": 640
   },
   "world": {
@@ -17170,11 +18258,20 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "archive",
+     "kind": "axiom",
      "x": 60,
      "y": 700,
      "config": {
-      "label": "equequ1"
+      "axiomId": "ax-6"
+     }
+    },
+    {
+     "id": "i0",
+     "kind": "all-intro",
+     "x": 620,
+     "y": 700,
+     "config": {
+      "v": "y"
      }
     }
    ],
@@ -17182,6 +18279,16 @@
     {
      "from": {
       "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "i0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "i0",
       "port": "out"
      },
      "to": {
@@ -17197,22 +18304,24 @@
   "id": "CH3-14",
   "chapter": "eq",
   "code": "CH3-14",
-  "title": "ax8 · 档案",
-  "kicker": "set.mm / ax8",
+  "title": "ax-7 · 闭包 + 例化",
+  "kicker": "推理 / ax-7",
   "brief": "",
   "hint": "",
   "teaches": [
-   "档案"
+   "闭包 + 例化"
   ],
   "allowed": [
-   "archive:ax8",
-   "target"
+   "target",
+   "axiom:ax-7",
+   "all-intro",
+   "all-elim"
   ],
   "reward": "—",
-  "note": "set.mm ax8（Predicate calculus with equality:  Tarski's system S2 (1 rule, 6 schemes)）；本作不重证档案定理。",
-  "target": "( x = y → ( x ∈ z → y ∈ z ) )",
+  "note": "不使用档案结论；从 公理 ax-7 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "a = y→a = z→y = z",
   "targetPos": {
-   "x": 900,
+   "x": 1280,
    "y": 640
   },
   "world": {
@@ -17223,11 +18332,29 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "archive",
+     "kind": "axiom",
      "x": 60,
      "y": 700,
      "config": {
-      "label": "ax8"
+      "axiomId": "ax-7"
+     }
+    },
+    {
+     "id": "i0",
+     "kind": "all-intro",
+     "x": 620,
+     "y": 700,
+     "config": {
+      "v": "x"
+     }
+    },
+    {
+     "id": "e0",
+     "kind": "all-elim",
+     "x": 920,
+     "y": 700,
+     "config": {
+      "term": "a"
      }
     }
    ],
@@ -17235,6 +18362,26 @@
     {
      "from": {
       "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "i0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "i0",
+      "port": "out"
+     },
+     "to": {
+      "node": "e0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "e0",
       "port": "out"
      },
      "to": {
@@ -17250,22 +18397,24 @@
   "id": "CH3-15",
   "chapter": "eq",
   "code": "CH3-15",
-  "title": "axc16 · 档案",
-  "kicker": "set.mm / axc16",
+  "title": "ax-8 · 闭包 + 例化",
+  "kicker": "推理 / ax-8",
   "brief": "",
   "hint": "",
   "teaches": [
-   "档案"
+   "闭包 + 例化"
   ],
   "allowed": [
-   "archive:axc16",
-   "target"
+   "target",
+   "axiom:ax-8",
+   "all-intro",
+   "all-elim"
   ],
   "reward": "—",
-  "note": "set.mm axc16（Predicate calculus with equality:  Auxiliary axiom schemes (4 schemes)）；本作不重证档案定理。",
-  "target": "( ∀ x x = y → ( P → ∀ x P ) )",
+  "note": "不使用档案结论；从 公理 ax-8 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "b = y→b ∈ z→y ∈ z",
   "targetPos": {
-   "x": 900,
+   "x": 1280,
    "y": 640
   },
   "world": {
@@ -17276,11 +18425,29 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "archive",
+     "kind": "axiom",
      "x": 60,
      "y": 700,
      "config": {
-      "label": "axc16"
+      "axiomId": "ax-8"
+     }
+    },
+    {
+     "id": "i0",
+     "kind": "all-intro",
+     "x": 620,
+     "y": 700,
+     "config": {
+      "v": "x"
+     }
+    },
+    {
+     "id": "e0",
+     "kind": "all-elim",
+     "x": 920,
+     "y": 700,
+     "config": {
+      "term": "b"
      }
     }
    ],
@@ -17288,6 +18455,26 @@
     {
      "from": {
       "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "i0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "i0",
+      "port": "out"
+     },
+     "to": {
+      "node": "e0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "e0",
       "port": "out"
      },
      "to": {
@@ -17303,22 +18490,24 @@
   "id": "CH3-16",
   "chapter": "eq",
   "code": "CH3-16",
-  "title": "axc11r · 档案",
-  "kicker": "set.mm / axc11r",
+  "title": "ax-9 · 闭包 + 例化",
+  "kicker": "推理 / ax-9",
   "brief": "",
   "hint": "",
   "teaches": [
-   "档案"
+   "闭包 + 例化"
   ],
   "allowed": [
-   "archive:axc11r",
-   "target"
+   "target",
+   "axiom:ax-9",
+   "all-intro",
+   "all-elim"
   ],
   "reward": "—",
-  "note": "set.mm axc11r（Predicate calculus with equality:  Auxiliary axiom schemes (4 schemes)）；本作不重证档案定理。",
-  "target": "( ∀ y y = x → ( ∀ x P → ∀ y P ) )",
+  "note": "不使用档案结论；从 公理 ax-9 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "c = y→z ∈ c→z ∈ y",
   "targetPos": {
-   "x": 900,
+   "x": 1280,
    "y": 640
   },
   "world": {
@@ -17329,11 +18518,29 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "archive",
+     "kind": "axiom",
      "x": 60,
      "y": 700,
      "config": {
-      "label": "axc11r"
+      "axiomId": "ax-9"
+     }
+    },
+    {
+     "id": "i0",
+     "kind": "all-intro",
+     "x": 620,
+     "y": 700,
+     "config": {
+      "v": "x"
+     }
+    },
+    {
+     "id": "e0",
+     "kind": "all-elim",
+     "x": 920,
+     "y": 700,
+     "config": {
+      "term": "c"
      }
     }
    ],
@@ -17341,6 +18548,26 @@
     {
      "from": {
       "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "i0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "i0",
+      "port": "out"
+     },
+     "to": {
+      "node": "e0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "e0",
       "port": "out"
      },
      "to": {
@@ -17356,22 +18583,23 @@
   "id": "CH3-17",
   "chapter": "eq",
   "code": "CH3-17",
-  "title": "equvel · 档案",
-  "kicker": "set.mm / equvel",
+  "title": "ax-12 · 全称闭包",
+  "kicker": "推理 / ax-12",
   "brief": "",
   "hint": "",
   "teaches": [
-   "档案"
+   "全称闭包"
   ],
   "allowed": [
-   "archive:equvel",
-   "target"
+   "target",
+   "axiom:ax-12",
+   "all-intro"
   ],
   "reward": "—",
-  "note": "set.mm equvel（Predicate calculus with equality:  Auxiliary axiom schemes (4 schemes)）；本作不重证档案定理。",
-  "target": "( ∀ z ( z = x ↔ z = y ) → x = y )",
+  "note": "不使用档案结论；从 公理 ax-12 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "∀y ∀x (x = y→∀y P→∀x (x = y→P))",
   "targetPos": {
-   "x": 900,
+   "x": 1280,
    "y": 640
   },
   "world": {
@@ -17382,11 +18610,29 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "archive",
+     "kind": "axiom",
      "x": 60,
      "y": 700,
      "config": {
-      "label": "equvel"
+      "axiomId": "ax-12"
+     }
+    },
+    {
+     "id": "i0",
+     "kind": "all-intro",
+     "x": 620,
+     "y": 700,
+     "config": {
+      "v": "x"
+     }
+    },
+    {
+     "id": "i1",
+     "kind": "all-intro",
+     "x": 920,
+     "y": 700,
+     "config": {
+      "v": "y"
      }
     }
    ],
@@ -17394,6 +18640,26 @@
     {
      "from": {
       "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "i0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "i0",
+      "port": "out"
+     },
+     "to": {
+      "node": "i1",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "i1",
       "port": "out"
      },
      "to": {
@@ -17409,22 +18675,23 @@
   "id": "CH3-18",
   "chapter": "eq",
   "code": "CH3-18",
-  "title": "19.12vvv · 档案",
-  "kicker": "set.mm / 19.12vvv",
+  "title": "ax-13 · 全称闭包",
+  "kicker": "推理 / ax-13",
   "brief": "",
   "hint": "",
   "teaches": [
-   "档案"
+   "全称闭包"
   ],
   "allowed": [
-   "archive:19.12vvv",
-   "target"
+   "target",
+   "axiom:ax-13",
+   "all-intro"
   ],
   "reward": "—",
-  "note": "set.mm 19.12vvv（Predicate calculus with equality:  Tarski's system S2 (1 rule, 6 schemes)）；本作不重证档案定理。",
-  "target": "( ∃ x ∀ y ( P → Q ) ↔ ∀ y ∃ x ( P → Q ) )",
+  "note": "不使用档案结论；从 公理 ax-13 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "∀z ∀y ∀x (¬x = y→y = z→∀x y = z)",
   "targetPos": {
-   "x": 900,
+   "x": 1580,
    "y": 640
   },
   "world": {
@@ -17435,11 +18702,38 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "archive",
+     "kind": "axiom",
      "x": 60,
      "y": 700,
      "config": {
-      "label": "19.12vvv"
+      "axiomId": "ax-13"
+     }
+    },
+    {
+     "id": "i0",
+     "kind": "all-intro",
+     "x": 620,
+     "y": 700,
+     "config": {
+      "v": "x"
+     }
+    },
+    {
+     "id": "i1",
+     "kind": "all-intro",
+     "x": 920,
+     "y": 700,
+     "config": {
+      "v": "y"
+     }
+    },
+    {
+     "id": "i2",
+     "kind": "all-intro",
+     "x": 1220,
+     "y": 700,
+     "config": {
+      "v": "z"
      }
     }
    ],
@@ -17447,6 +18741,36 @@
     {
      "from": {
       "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "i0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "i0",
+      "port": "out"
+     },
+     "to": {
+      "node": "i1",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "i1",
+      "port": "out"
+     },
+     "to": {
+      "node": "i2",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "i2",
       "port": "out"
      },
      "to": {
@@ -22178,22 +23502,23 @@
   "id": "CH4-13",
   "chapter": "set",
   "code": "CH4-13",
-  "title": "vex · 档案",
-  "kicker": "set.mm / vex",
+  "title": "ax-pow · 全称闭包",
+  "kicker": "推理 / ax-pow",
   "brief": "",
   "hint": "",
   "teaches": [
-   "档案"
+   "全称闭包"
   ],
   "allowed": [
-   "archive:vex",
-   "target"
+   "target",
+   "axiom:ax-pow",
+   "all-intro"
   ],
   "reward": "—",
-  "note": "set.mm vex（ZF Set Theory - start with the Axiom of Extensionality）；本作不重证档案定理。",
-  "target": "x ∈ V",
+  "note": "不使用档案结论；从 公理 ax-pow 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "∀x ∃y ∀z (∀w (w ∈ z→w ∈ x)→z ∈ y)",
   "targetPos": {
-   "x": 900,
+   "x": 980,
    "y": 640
   },
   "world": {
@@ -22204,11 +23529,20 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "archive",
+     "kind": "axiom",
      "x": 60,
      "y": 700,
      "config": {
-      "label": "vex"
+      "axiomId": "ax-pow"
+     }
+    },
+    {
+     "id": "i0",
+     "kind": "all-intro",
+     "x": 620,
+     "y": 700,
+     "config": {
+      "v": "x"
      }
     }
    ],
@@ -22216,6 +23550,16 @@
     {
      "from": {
       "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "i0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "i0",
       "port": "out"
      },
      "to": {
@@ -22231,22 +23575,23 @@
   "id": "CH4-14",
   "chapter": "set",
   "code": "CH4-14",
-  "title": "vneqv · 档案",
-  "kicker": "set.mm / vneqv",
+  "title": "ax-un · 全称闭包",
+  "kicker": "推理 / ax-un",
   "brief": "",
   "hint": "",
   "teaches": [
-   "档案"
+   "全称闭包"
   ],
   "allowed": [
-   "archive:vneqv",
-   "target"
+   "target",
+   "axiom:ax-un",
+   "all-intro"
   ],
   "reward": "—",
-  "note": "set.mm vneqv（ZF Set Theory - add the Axiom of Replacement）；本作不重证档案定理。",
-  "target": "¬ x = V",
+  "note": "不使用档案结论；从 公理 ax-un 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "∀x ∃y ∀z (∃w (z ∈ w∧w ∈ x)→z ∈ y)",
   "targetPos": {
-   "x": 900,
+   "x": 980,
    "y": 640
   },
   "world": {
@@ -22257,11 +23602,20 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "archive",
+     "kind": "axiom",
      "x": 60,
      "y": 700,
      "config": {
-      "label": "vneqv"
+      "axiomId": "ax-un"
+     }
+    },
+    {
+     "id": "i0",
+     "kind": "all-intro",
+     "x": 620,
+     "y": 700,
+     "config": {
+      "v": "x"
      }
     }
    ],
@@ -22269,6 +23623,16 @@
     {
      "from": {
       "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "i0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "i0",
       "port": "out"
      },
      "to": {
@@ -22284,22 +23648,23 @@
   "id": "CH4-15",
   "chapter": "set",
   "code": "CH4-15",
-  "title": "fin41 · 档案",
-  "kicker": "set.mm / fin41",
+  "title": "ax-inf · 全称闭包",
+  "kicker": "推理 / ax-inf",
   "brief": "",
   "hint": "",
   "teaches": [
-   "档案"
+   "全称闭包"
   ],
   "allowed": [
-   "archive:fin41",
-   "target"
+   "target",
+   "axiom:ax-inf",
+   "all-intro"
   ],
   "reward": "—",
-  "note": "set.mm fin41（ZFC Set Theory - add Countable Choice and Dependent Choice）；本作不重证档案定理。",
-  "target": "Fin4 = Fin",
+  "note": "不使用档案结论；从 公理 ax-inf 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "∀x ∃y (x ∈ y∧∀z (z ∈ y→∃w (z ∈ w∧w ∈ y)))",
   "targetPos": {
-   "x": 900,
+   "x": 980,
    "y": 640
   },
   "world": {
@@ -22310,11 +23675,20 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "archive",
+     "kind": "axiom",
      "x": 60,
      "y": 700,
      "config": {
-      "label": "fin41"
+      "axiomId": "ax-inf"
+     }
+    },
+    {
+     "id": "i0",
+     "kind": "all-intro",
+     "x": 620,
+     "y": 700,
+     "config": {
+      "v": "x"
      }
     }
    ],
@@ -22322,6 +23696,16 @@
     {
      "from": {
       "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "i0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "i0",
       "port": "out"
      },
      "to": {
@@ -22337,22 +23721,23 @@
   "id": "CH4-16",
   "chapter": "set",
   "code": "CH4-16",
-  "title": "en3lp · 档案",
-  "kicker": "set.mm / en3lp",
+  "title": "ax-reg · 全称闭包",
+  "kicker": "推理 / ax-reg",
   "brief": "",
   "hint": "",
   "teaches": [
-   "档案"
+   "全称闭包"
   ],
   "allowed": [
-   "archive:en3lp",
-   "target"
+   "target",
+   "axiom:ax-reg",
+   "all-intro"
   ],
   "reward": "—",
-  "note": "set.mm en3lp（ZF Set Theory - add the Axiom of Regularity）；本作不重证档案定理。",
-  "target": "¬ ( A ∈ B ∧ B ∈ C ∧ C ∈ A )",
+  "note": "不使用档案结论；从 公理 ax-reg 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "∀x (∃y y ∈ x→∃y (y ∈ x∧∀z (z ∈ y→¬z ∈ x)))",
   "targetPos": {
-   "x": 900,
+   "x": 980,
    "y": 640
   },
   "world": {
@@ -22363,11 +23748,20 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "archive",
+     "kind": "axiom",
      "x": 60,
      "y": 700,
      "config": {
-      "label": "en3lp"
+      "axiomId": "ax-reg"
+     }
+    },
+    {
+     "id": "i0",
+     "kind": "all-intro",
+     "x": 620,
+     "y": 700,
+     "config": {
+      "v": "x"
      }
     }
    ],
@@ -22375,6 +23769,16 @@
     {
      "from": {
       "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "i0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "i0",
       "port": "out"
      },
      "to": {
@@ -22390,22 +23794,23 @@
   "id": "CH4-17",
   "chapter": "set",
   "code": "CH4-17",
-  "title": "eqtr2 · 档案",
-  "kicker": "set.mm / eqtr2",
+  "title": "ax-rep · 全称闭包",
+  "kicker": "推理 / ax-rep",
   "brief": "",
   "hint": "",
   "teaches": [
-   "档案"
+   "全称闭包"
   ],
   "allowed": [
-   "archive:eqtr2",
-   "target"
+   "target",
+   "axiom:ax-rep",
+   "all-intro"
   ],
   "reward": "—",
-  "note": "set.mm eqtr2（ZF Set Theory - start with the Axiom of Extensionality）；本作不重证档案定理。",
-  "target": "( ( A = B ∧ A = C ) → B = C )",
+  "note": "不使用档案结论；从 公理 ax-rep 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "∀x (∀w ∃y ∀z (∀y P→z = y)→∃y ∀z (z ∈ y↔∃w (w ∈ x∧∀y P)))",
   "targetPos": {
-   "x": 900,
+   "x": 980,
    "y": 640
   },
   "world": {
@@ -22416,11 +23821,20 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "archive",
+     "kind": "axiom",
      "x": 60,
      "y": 700,
      "config": {
-      "label": "eqtr2"
+      "axiomId": "ax-rep"
+     }
+    },
+    {
+     "id": "i0",
+     "kind": "all-intro",
+     "x": 620,
+     "y": 700,
+     "config": {
+      "v": "x"
      }
     }
    ],
@@ -22428,6 +23842,16 @@
     {
      "from": {
       "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "i0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "i0",
       "port": "out"
      },
      "to": {
@@ -22443,22 +23867,24 @@
   "id": "CH4-18",
   "chapter": "set",
   "code": "CH4-18",
-  "title": "axprlem1 · 档案",
-  "kicker": "set.mm / axprlem1",
+  "title": "ax-ext · 闭包 + 例化",
+  "kicker": "推理 / ax-ext",
   "brief": "",
   "hint": "",
   "teaches": [
-   "档案"
+   "闭包 + 例化"
   ],
   "allowed": [
-   "archive:axprlem1",
-   "target"
+   "target",
+   "axiom:ax-ext",
+   "all-intro",
+   "all-elim"
   ],
   "reward": "—",
-  "note": "set.mm axprlem1（ZF Set Theory - add the Axiom of Power Sets）；本作不重证档案定理。",
-  "target": "∃ x ∀ y ( ∀ z ¬ z ∈ y → y ∈ x )",
+  "note": "不使用档案结论；从 公理 ax-ext 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "∀z (z ∈ a↔z ∈ y)→a = y",
   "targetPos": {
-   "x": 900,
+   "x": 1280,
    "y": 640
   },
   "world": {
@@ -22469,11 +23895,29 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "archive",
+     "kind": "axiom",
      "x": 60,
      "y": 700,
      "config": {
-      "label": "axprlem1"
+      "axiomId": "ax-ext"
+     }
+    },
+    {
+     "id": "i0",
+     "kind": "all-intro",
+     "x": 620,
+     "y": 700,
+     "config": {
+      "v": "x"
+     }
+    },
+    {
+     "id": "e0",
+     "kind": "all-elim",
+     "x": 920,
+     "y": 700,
+     "config": {
+      "term": "a"
      }
     }
    ],
@@ -22481,6 +23925,26 @@
     {
      "from": {
       "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "i0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "i0",
+      "port": "out"
+     },
+     "to": {
+      "node": "e0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "e0",
       "port": "out"
      },
      "to": {
@@ -22496,22 +23960,23 @@
   "id": "CH4-19",
   "chapter": "set",
   "code": "CH4-19",
-  "title": "ax-pr · 档案",
-  "kicker": "set.mm / ax-pr",
+  "title": "ax-ext · 全称闭包",
+  "kicker": "推理 / ax-ext",
   "brief": "",
   "hint": "",
   "teaches": [
-   "档案"
+   "全称闭包"
   ],
   "allowed": [
-   "archive:ax-pr",
-   "target"
+   "target",
+   "axiom:ax-ext",
+   "all-intro"
   ],
   "reward": "—",
-  "note": "set.mm ax-pr（ZF Set Theory - add the Axiom of Power Sets）；本作不重证档案定理。",
-  "target": "∃ z ∀ w ( ( w = x ∨ w = y ) → w ∈ z )",
+  "note": "不使用档案结论；从 公理 ax-ext 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "∀y ∀x (∀z (z ∈ x↔z ∈ y)→x = y)",
   "targetPos": {
-   "x": 900,
+   "x": 1280,
    "y": 640
   },
   "world": {
@@ -22522,11 +23987,29 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "archive",
+     "kind": "axiom",
      "x": 60,
      "y": 700,
      "config": {
-      "label": "ax-pr"
+      "axiomId": "ax-ext"
+     }
+    },
+    {
+     "id": "i0",
+     "kind": "all-intro",
+     "x": 620,
+     "y": 700,
+     "config": {
+      "v": "x"
+     }
+    },
+    {
+     "id": "i1",
+     "kind": "all-intro",
+     "x": 920,
+     "y": 700,
+     "config": {
+      "v": "y"
      }
     }
    ],
@@ -22534,6 +24017,26 @@
     {
      "from": {
       "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "i0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "i0",
+      "port": "out"
+     },
+     "to": {
+      "node": "i1",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "i1",
       "port": "out"
      },
      "to": {
@@ -22549,22 +24052,24 @@
   "id": "CH4-20",
   "chapter": "set",
   "code": "CH4-20",
-  "title": "axunnd · 档案",
-  "kicker": "set.mm / axunnd",
+  "title": "ax-pow · 闭包 + 例化",
+  "kicker": "推理 / ax-pow",
   "brief": "",
   "hint": "",
   "teaches": [
-   "档案"
+   "闭包 + 例化"
   ],
   "allowed": [
-   "archive:axunnd",
-   "target"
+   "target",
+   "axiom:ax-pow",
+   "all-intro",
+   "all-elim"
   ],
   "reward": "—",
-  "note": "set.mm axunnd（ZFC Axioms with no distinct variable requirements）；本作不重证档案定理。",
-  "target": "∃ x ∀ y ( ∃ x ( y ∈ x ∧ x ∈ z ) → y ∈ x )",
+  "note": "不使用档案结论；从 公理 ax-pow 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "∃y ∀z (∀w (w ∈ z→w ∈ b)→z ∈ y)",
   "targetPos": {
-   "x": 900,
+   "x": 1280,
    "y": 640
   },
   "world": {
@@ -22575,11 +24080,29 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "archive",
+     "kind": "axiom",
      "x": 60,
      "y": 700,
      "config": {
-      "label": "axunnd"
+      "axiomId": "ax-pow"
+     }
+    },
+    {
+     "id": "i0",
+     "kind": "all-intro",
+     "x": 620,
+     "y": 700,
+     "config": {
+      "v": "x"
+     }
+    },
+    {
+     "id": "e0",
+     "kind": "all-elim",
+     "x": 920,
+     "y": 700,
+     "config": {
+      "term": "b"
      }
     }
    ],
@@ -22587,6 +24110,26 @@
     {
      "from": {
       "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "i0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "i0",
+      "port": "out"
+     },
+     "to": {
+      "node": "e0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "e0",
       "port": "out"
      },
      "to": {
@@ -22602,22 +24145,24 @@
   "id": "CH4-21",
   "chapter": "set",
   "code": "CH4-21",
-  "title": "oneltri · 档案",
-  "kicker": "set.mm / oneltri",
+  "title": "ax-un · 闭包 + 例化",
+  "kicker": "推理 / ax-un",
   "brief": "",
   "hint": "",
   "teaches": [
-   "档案"
+   "闭包 + 例化"
   ],
   "allowed": [
-   "archive:oneltri",
-   "target"
+   "target",
+   "axiom:ax-un",
+   "all-intro",
+   "all-elim"
   ],
   "reward": "—",
-  "note": "set.mm oneltri（ZF Set Theory - add the Axiom of Power Sets）；本作不重证档案定理。",
-  "target": "( ( A ∈ On ∧ B ∈ On ) → ( A ∈ B ∨ B ∈ A ∨ A = B ) )",
+  "note": "不使用档案结论；从 公理 ax-un 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "∃y ∀z (∃w (z ∈ w∧w ∈ c)→z ∈ y)",
   "targetPos": {
-   "x": 900,
+   "x": 1280,
    "y": 640
   },
   "world": {
@@ -22628,11 +24173,29 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "archive",
+     "kind": "axiom",
      "x": 60,
      "y": 700,
      "config": {
-      "label": "oneltri"
+      "axiomId": "ax-un"
+     }
+    },
+    {
+     "id": "i0",
+     "kind": "all-intro",
+     "x": 620,
+     "y": 700,
+     "config": {
+      "v": "x"
+     }
+    },
+    {
+     "id": "e0",
+     "kind": "all-elim",
+     "x": 920,
+     "y": 700,
+     "config": {
+      "term": "c"
      }
     }
    ],
@@ -22640,6 +24203,26 @@
     {
      "from": {
       "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "i0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "i0",
+      "port": "out"
+     },
+     "to": {
+      "node": "e0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "e0",
       "port": "out"
      },
      "to": {
@@ -22655,22 +24238,23 @@
   "id": "CH4-22",
   "chapter": "set",
   "code": "CH4-22",
-  "title": "axrep1 · 档案",
-  "kicker": "set.mm / axrep1",
+  "title": "ax-ac · 全称闭包",
+  "kicker": "推理 / ax-ac",
   "brief": "",
   "hint": "",
   "teaches": [
-   "档案"
+   "全称闭包"
   ],
   "allowed": [
-   "archive:axrep1",
-   "target"
+   "target",
+   "axiom:ax-ac",
+   "all-intro"
   ],
   "reward": "—",
-  "note": "set.mm axrep1（ZF Set Theory - add the Axiom of Replacement）；本作不重证档案定理。",
-  "target": "∃ x ( ∃ y ∀ z ( P → z = y ) → ∀ z ( z ∈ x ↔ ∃ x ( x ∈ y ∧ P ) ) )",
+  "note": "不使用档案结论；从 公理 ax-ac 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "∀x ∃y ∀z ∀w (z ∈ w∧w ∈ x→∃v ∀u (∃t (u ∈ w∧w ∈ t∧(u ∈ t∧t ∈ y))↔u = v))",
   "targetPos": {
-   "x": 900,
+   "x": 980,
    "y": 640
   },
   "world": {
@@ -22681,11 +24265,20 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "archive",
+     "kind": "axiom",
      "x": 60,
      "y": 700,
      "config": {
-      "label": "axrep1"
+      "axiomId": "ax-ac"
+     }
+    },
+    {
+     "id": "i0",
+     "kind": "all-intro",
+     "x": 620,
+     "y": 700,
+     "config": {
+      "v": "x"
      }
     }
    ],
@@ -22693,6 +24286,16 @@
     {
      "from": {
       "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "i0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "i0",
       "port": "out"
      },
      "to": {
@@ -22708,22 +24311,24 @@
   "id": "CH4-23",
   "chapter": "set",
   "code": "CH4-23",
-  "title": "axacnd · 档案",
-  "kicker": "set.mm / axacnd",
+  "title": "ax-ac · 闭包 + 例化",
+  "kicker": "推理 / ax-ac",
   "brief": "",
   "hint": "",
   "teaches": [
-   "档案"
+   "闭包 + 例化"
   ],
   "allowed": [
-   "archive:axacnd",
-   "target"
+   "target",
+   "axiom:ax-ac",
+   "all-intro",
+   "all-elim"
   ],
   "reward": "—",
-  "note": "set.mm axacnd（ZFC Axioms with no distinct variable requirements）；本作不重证档案定理。",
-  "target": "∃ x ∀ y ∀ z ( ∀ x ( y ∈ z ∧ z ∈ w ) → ∃ w ∀ y ( ∃ w ( ( y ∈ z ∧ z ∈ w ) ∧ ( y ∈ w ∧ w ∈ x ) ) ↔ y = w ) )",
+  "note": "不使用档案结论；从 公理 ax-ac 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "∃y ∀z ∀w (z ∈ w∧w ∈ b→∃v ∀u (∃t (u ∈ w∧w ∈ t∧(u ∈ t∧t ∈ y))↔u = v))",
   "targetPos": {
-   "x": 900,
+   "x": 1280,
    "y": 640
   },
   "world": {
@@ -22734,11 +24339,29 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "archive",
+     "kind": "axiom",
      "x": 60,
      "y": 700,
      "config": {
-      "label": "axacnd"
+      "axiomId": "ax-ac"
+     }
+    },
+    {
+     "id": "i0",
+     "kind": "all-intro",
+     "x": 620,
+     "y": 700,
+     "config": {
+      "v": "x"
+     }
+    },
+    {
+     "id": "e0",
+     "kind": "all-elim",
+     "x": 920,
+     "y": 700,
+     "config": {
+      "term": "b"
      }
     }
    ],
@@ -22746,6 +24369,26 @@
     {
      "from": {
       "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "i0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "i0",
+      "port": "out"
+     },
+     "to": {
+      "node": "e0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "e0",
       "port": "out"
      },
      "to": {
@@ -23126,23 +24769,23 @@
   "id": "CH4-29",
   "chapter": "set",
   "code": "CH4-29",
-  "title": "ax-ext · 全称闭包",
-  "kicker": "set.mm / ax-ext",
+  "title": "axextb · 全称闭包",
+  "kicker": "set.mm / axextb",
   "brief": "",
   "hint": "",
   "teaches": [
    "全称闭包"
   ],
   "allowed": [
-   "archive:ax-ext",
+   "archive:axextb",
    "all-intro",
    "target"
   ],
   "reward": "—",
-  "note": "set.mm ax-ext（ZF Set Theory - start with the Axiom of Extensionality）；本作不重证档案定理。",
-  "target": "∀y ∀x (∀z (z ∈ x↔z ∈ y)→x = y)",
+  "note": "set.mm axextb（ZF Set Theory - start with the Axiom of Extensionality）；本作不重证档案定理。",
+  "target": "∀y (x = y↔∀z (z ∈ x↔z ∈ y))",
   "targetPos": {
-   "x": 1280,
+   "x": 980,
    "y": 640
   },
   "world": {
@@ -23157,22 +24800,13 @@
      "x": 60,
      "y": 700,
      "config": {
-      "label": "ax-ext"
+      "label": "axextb"
      }
     },
     {
      "id": "i0",
      "kind": "all-intro",
      "x": 620,
-     "y": 700,
-     "config": {
-      "v": "x"
-     }
-    },
-    {
-     "id": "i1",
-     "kind": "all-intro",
-     "x": 920,
      "y": 700,
      "config": {
       "v": "y"
@@ -23193,16 +24827,6 @@
     {
      "from": {
       "node": "i0",
-      "port": "out"
-     },
-     "to": {
-      "node": "i1",
-      "port": "assertion"
-     }
-    },
-    {
-     "from": {
-      "node": "i1",
       "port": "out"
      },
      "to": {

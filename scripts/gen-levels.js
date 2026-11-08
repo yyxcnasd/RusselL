@@ -221,7 +221,9 @@ Circuit.prototype.layoutFormulaNodes = function () {
 
 function baseCircuit(source) {
   const c = new Circuit();
-  c.node('src', 'archive', 60, 700, { label: source.label });
+  if (source.sourceKind === 'axiom') c.node('src', 'axiom', 60, 700, { axiomId: source.id });
+  else if (source.sourceKind === 'theorem') c.node('src', 'theorem', 60, 700, { theoremCode: source.id });
+  else c.node('src', 'archive', 60, 700, { label: source.label });
   return c;
 }
 
@@ -255,12 +257,6 @@ function levelBase(chapter, num, source, kindName, target) {
     note: 'set.mm ' + source.label + (source.section ? '（' + source.section + '）' : '') + '；本作不重证档案定理。',
     target
   };
-}
-
-function directLevel(chapter, num, source) {
-  const c = baseCircuit(source);
-  c.edge('src', 'out', 'target', 'proof');
-  return layoutAndFinish(c, source.formula, levelBase(chapter, num, source, '档案', source.formula));
 }
 
 function freshAtoms(source, n, offset) {
@@ -619,6 +615,123 @@ function substClosureLevel(chapter, num, source, withElim) {
   return layoutAndFinish(c, L.fmt(targetAst), spec);
 }
 
+/* ---------- 推理关（替代“直接接档案”）：从公理 / 已证结论出发 ---------- */
+
+function sourceFromAxiom(a) {
+  const ast = L.parse(a.schema);
+  return {
+    sourceKind: 'axiom', id: a.id, label: a.id, formula: a.schema,
+    ast, atoms: L.atomsOf(ast), free: L.freeVars(ast),
+    section: a.section, name: a.name
+  };
+}
+function sourceFromTheorem(level) {
+  const ast = L.parse(level.target);
+  return {
+    sourceKind: 'theorem', id: level.id, label: level.id, formula: level.target,
+    ast, atoms: L.atomsOf(ast), free: L.freeVars(ast),
+    section: level.chapter, name: level.title
+  };
+}
+
+const AXIOM_SOURCE = Object.create(null);
+RSL.AXIOMS.forEach((a) => { AXIOM_SOURCE[a.id] = sourceFromAxiom(a); });
+const HAND_SOURCE = Object.create(null);
+RSL.LEVELS.forEach((lv) => { if (/^CH[1-4]-(0[1-9]|1[0-2])$/.test(lv.id)) HAND_SOURCE[lv.id] = sourceFromTheorem(lv); });
+
+function reasoningAllowed(nodes) {
+  const set = new Set(['target']);
+  nodes.forEach((n) => {
+    if (n.kind === 'axiom') set.add('axiom:' + n.config.axiomId);
+    else if (n.kind === 'theorem') set.add('theorem:' + n.config.theoremCode);
+    else if (n.kind !== 'target') set.add(n.kind);
+  });
+  return Array.from(set);
+}
+
+function decorateReasoning(spec, source, kindName) {
+  if (!spec) return null;
+  spec.allowed = reasoningAllowed(spec.solution.nodes);
+  spec.title = source.id + ' · ' + kindName;
+  spec.kicker = '推理 / ' + source.id;
+  spec.teaches = [kindName];
+  spec.note = '不使用档案结论；从 ' + (source.sourceKind === 'axiom' ? '公理 ' : '已证结论 ') +
+    source.id + ' 出发，用代入 / 量词 / 分离规则推出目标。';
+  return spec;
+}
+
+function reasoningSubstLevel(chapter, num, source) {
+  return decorateReasoning(substLevel(chapter, num, source, 'subst1'), source, '代入推演');
+}
+function reasoningClosureLevel(chapter, num, source, vars) {
+  return decorateReasoning(closureWithVars(chapter, num, source, vars), source, '全称闭包');
+}
+function reasoningInstantiateLevel(chapter, num, source, termOffset) {
+  return decorateReasoning(instantiateLevel(chapter, num, source, 1, termOffset), source, '闭包 + 例化');
+}
+
+/* 每章直接接档案的关卡数量，替换成不依赖档案的推理关。 */
+function reasoningPlan(chapter) {
+  if (chapter === 'prop') {
+    return [
+      { type: 'subst', source: AXIOM_SOURCE['ax-1'] },
+      { type: 'subst', source: AXIOM_SOURCE['ax-2'] },
+      { type: 'subst', source: AXIOM_SOURCE['ax-3'] },
+      { type: 'subst', source: HAND_SOURCE['CH1-07'] },
+      { type: 'subst', source: HAND_SOURCE['CH1-10'] },
+      { type: 'subst', source: HAND_SOURCE['CH1-12'] },
+      { type: 'subst', source: AXIOM_SOURCE['ax-1'] },
+      { type: 'subst', source: AXIOM_SOURCE['ax-2'] }
+    ];
+  }
+  if (chapter === 'pred') {
+    return [
+      { type: 'subst', source: AXIOM_SOURCE['ax-4'] },
+      { type: 'subst', source: AXIOM_SOURCE['ax-5'] },
+      { type: 'subst', source: AXIOM_SOURCE['ax-10'] },
+      { type: 'subst', source: AXIOM_SOURCE['ax-11'] },
+      { type: 'subst', source: HAND_SOURCE['CH1-07'] },
+      { type: 'subst', source: HAND_SOURCE['CH1-10'] }
+    ];
+  }
+  if (chapter === 'eq') {
+    const closure = ['ax-6', 'ax-12', 'ax-13'].map((id) => ({
+      type: 'closure', source: AXIOM_SOURCE[id], vars: xyzVars(AXIOM_SOURCE[id])
+    }));
+    const inst = [
+      { type: 'inst', source: AXIOM_SOURCE['ax-7'], termOffset: 0 },
+      { type: 'inst', source: AXIOM_SOURCE['ax-8'], termOffset: 1 },
+      { type: 'inst', source: AXIOM_SOURCE['ax-9'], termOffset: 2 }
+    ];
+    return inst.concat(closure);
+  }
+  if (chapter === 'set') {
+    const base = ['ax-ext', 'ax-rep', 'ax-pow', 'ax-un', 'ax-reg', 'ax-inf', 'ax-ac'].map((id) => ({
+      type: 'closure', source: AXIOM_SOURCE[id], vars: xyzVars(AXIOM_SOURCE[id])
+    }));
+    const extra = [
+      { type: 'inst', source: AXIOM_SOURCE['ax-ext'], termOffset: 0 },
+      { type: 'inst', source: AXIOM_SOURCE['ax-pow'], termOffset: 1 },
+      { type: 'inst', source: AXIOM_SOURCE['ax-un'], termOffset: 2 },
+      { type: 'inst', source: AXIOM_SOURCE['ax-ac'], termOffset: 1 }
+    ];
+    return base.concat(extra);
+  }
+  return [];
+}
+
+function buildReasoningLevel(chapter, num, desc) {
+  if (!desc || !desc.source) return null;
+  try {
+    if (desc.type === 'subst') return reasoningSubstLevel(chapter, num, desc.source);
+    if (desc.type === 'closure') return reasoningClosureLevel(chapter, num, desc.source, desc.vars);
+    if (desc.type === 'inst') return reasoningInstantiateLevel(chapter, num, desc.source, desc.termOffset);
+  } catch (e) {
+    if (process.env.DEBUG) console.error('reasoning error', chapter, desc.type, desc.source.id, e && e.stack || e);
+  }
+  return null;
+}
+
 /* ---------- 章节计划 ---------- */
 const PLANS = {
   prop: (list) => {
@@ -630,7 +743,7 @@ const PLANS = {
       pairs.push({ s: sApp[(i * 13 + 3) % sApp.length], t: list[(i * 29 + 7) % list.length] });
     }
     return [
-      ['direct', 8, spread(list, 8, 0)],
+      ['reasoning', 8, reasoningPlan('prop')],
       ['subst1', 10, spread(atoms, 10, 7)],
       ['subst2', 10, spread(atoms2, 10, 13)],
       ['detachApply', 12, spread(pairs, 12, 19)],
@@ -641,7 +754,7 @@ const PLANS = {
     const atoms = filter(list.concat(all.prop), (x) => x.atoms.length >= 1);
     const atoms2 = filter(list.concat(all.prop), (x) => x.atoms.length >= 2);
     return [
-      ['direct', 6, spread(list, 6, 0)],
+      ['reasoning', 6, reasoningPlan('pred')],
       ['subst1', 12, spread(atoms, 12, 5)],
       ['substClosure', 10, spread(filter(all.prop, (x) => x.atoms.length >= 1), 10, 17)],
       ['substClosureElim', 10, spread(filter(all.prop, (x) => x.atoms.length >= 1), 10, 23)],
@@ -653,7 +766,7 @@ const PLANS = {
     const vars = filter(list, (x) => xyzVars(x).length >= 1);
     const vars2 = filter(list, (x) => xyzVars(x).length >= 2);
     return [
-      ['direct', 6, spread(list, 6, 0)],
+      ['reasoning', 6, reasoningPlan('eq')],
       ['subst1', 8, spread(atoms, 8, 9)],
       ['closure', 1, spread(vars, 1, 3)],
       ['replace', 3, spread(filter(list, (x) => x.opts.length > 0), 3, 31)],
@@ -677,7 +790,7 @@ const PLANS = {
       }
     }
     return [
-      ['direct', 11, spread(list, 11, 0)],
+      ['reasoning', 11, reasoningPlan('set')],
       ['closureVariant', 5, closureVariants],
       ['replace', 2, spread(replacePairs, 2, 23)],
       ['instantiate', 12, spread(vars2, 12, 11)],
@@ -689,7 +802,7 @@ const PLANS = {
 };
 
 const TEMPLATE_DIFF = {
-  direct: 1,
+  reasoning: 0.5,
   replace: 2,
   closure: 3,
   closureVariant: 3,
@@ -722,6 +835,7 @@ function buildChapter(chapter, list, all) {
       let spec = null;
       try {
         if (type === 'direct') spec = directLevel(chapter, num, source);
+        else if (type === 'reasoning') spec = buildReasoningLevel(chapter, num, source);
         else if (type === 'subst1') spec = substLevel(chapter, num, source, 'subst1');
         else if (type === 'subst2') spec = substLevel(chapter, num, source, 'subst2');
         else if (type === 'replace') spec = replaceLevel(chapter, num, source);
