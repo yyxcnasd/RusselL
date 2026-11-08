@@ -90,10 +90,7 @@
       if (!up || !up.tokens) return makeResult(node, null, 'open', null, '等待最终断言');
       var target = targetTokensOf(node, level);
       if (!target) return makeResult(node, null, 'error', '目标公式无法解析');
-      /* 重放关比较 set.mm 原始 token（精确相等）；接线关比较定义展开 + α 等价。 */
-      var same = (level && level.track === 'replay')
-        ? T.keyOf(up.tokens) === T.keyOf(target)
-        : T.eq(up.tokens, target);
+      var same = T.eq(up.tokens, target);
       if (!same) {
         return makeResult(node, null, 'error',
           '输出与目标断言不一致（输出 [ ' + T.fmt(up.tokens) + ' ] / 目标 [ ' + T.fmt(target) + ' ]）');
@@ -203,11 +200,7 @@
     modules: M.MODULES,
     info: info,
     evaluate: evaluate,
-    topo: topo,
-    getAxiom: M.getAxiom,
-    getLevelTheorem: M.getLevelTheorem,
-    getArchive: M.getArchive,
-    resetCache: M.resetCache
+    topo: topo
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = host.RSL.Engine;
 })(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this));
