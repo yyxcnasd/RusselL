@@ -224,6 +224,43 @@ function compileProof(proof, builder, ctx) {
         builder.connect(builder.termNode(pt.t), 'out', id, 'term');
         break;
       }
+      case 'andIntroAx': {
+        id = builder.addNode('and-intro-ax', {});
+        builder.connect(builder.formula(pt.a), 'out', id, 'a');
+        builder.connect(builder.formula(pt.b), 'out', id, 'b');
+        break;
+      }
+      case 'andElimAx': {
+        id = builder.addNode('and-elim-ax', { side: pt.side || 'l' });
+        builder.connect(builder.formula(pt.a), 'out', id, 'a');
+        builder.connect(builder.formula(pt.b), 'out', id, 'b');
+        break;
+      }
+      case 'orIntroAx': {
+        id = builder.addNode('or-intro-ax', { side: pt.side || 'l' });
+        builder.connect(builder.formula(pt.a), 'out', id, 'a');
+        builder.connect(builder.formula(pt.b), 'out', id, 'b');
+        break;
+      }
+      case 'orElimAx': {
+        id = builder.addNode('or-elim-ax', {});
+        builder.connect(builder.formula(pt.a), 'out', id, 'a');
+        builder.connect(builder.formula(pt.b), 'out', id, 'b');
+        builder.connect(builder.formula(pt.c), 'out', id, 'c');
+        break;
+      }
+      case 'iffIntroAx': {
+        id = builder.addNode('iff-intro-ax', {});
+        builder.connect(builder.formula(pt.a), 'out', id, 'a');
+        builder.connect(builder.formula(pt.b), 'out', id, 'b');
+        break;
+      }
+      case 'iffElimAx': {
+        id = builder.addNode('iff-elim-ax', { dir: pt.dir || 'lr' });
+        builder.connect(builder.formula(pt.a), 'out', id, 'a');
+        builder.connect(builder.formula(pt.b), 'out', id, 'b');
+        break;
+      }
       case 'existsI': {
         id = builder.addNode('exists-intro', { v: pt.v });
         builder.connect(resolve(pt.of), 'out', id, 'assertion');

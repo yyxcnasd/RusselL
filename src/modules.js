@@ -400,6 +400,75 @@
         };
       }
     },
+    'and-intro-ax': {
+      label: '合取引入公理', kindLabel: '∧I*', group: 'rule', symbol: '∧I*', construct: false,
+      ports: { inputs: [{ id: 'a', label: '公式 A', type: FORMULA }, { id: 'b', label: '公式 B', type: FORMULA }], outputs: [{ id: 'out', label: 'A→(B→A∧B)', type: ASSERTION }] },
+      config: {},
+      help: 'A→(B→(A∧B))：希尔伯特形式的合取引入。',
+      apply: function (inputs) {
+        var a = asBody(need(inputs, 'a', '公式 A')), b = asBody(need(inputs, 'b', '公式 B'));
+        return { tokens: assertionOf(['('].concat(a, ['->'], ['('].concat(b, ['->'], ['('].concat(a, ['/\\'], b, [')']), [')']), [')'])), note: '∧I*' };
+      }
+    },
+    'and-elim-ax': {
+      label: '合取消去公理', kindLabel: '∧E*', group: 'rule', symbol: '∧E*', construct: false,
+      ports: { inputs: [{ id: 'a', label: '公式 A', type: FORMULA }, { id: 'b', label: '公式 B', type: FORMULA }], outputs: [{ id: 'out', label: '(A∧B)→A / B', type: ASSERTION }] },
+      config: { side: 'l' },
+      help: '合取的希尔伯特消去：(A∧B)→A 或 (A∧B)→B。',
+      apply: function (inputs, cfg) {
+        var a = asBody(need(inputs, 'a', '公式 A')), b = asBody(need(inputs, 'b', '公式 B'));
+        var pick = cfg.side === 'r' ? b : a;
+        return { tokens: assertionOf(['('].concat(['('].concat(a, ['/\\'], b, [')']), ['->'], pick, [')'])), note: '∧E*' };
+      }
+    },
+    'or-intro-ax': {
+      label: '析取引入公理', kindLabel: '∨I*', group: 'rule', symbol: '∨I*', construct: false,
+      ports: { inputs: [{ id: 'a', label: '公式 A', type: FORMULA }, { id: 'b', label: '公式 B', type: FORMULA }], outputs: [{ id: 'out', label: 'A→A∨B / B→A∨B', type: ASSERTION }] },
+      config: { side: 'l' },
+      help: 'A→(A∨B) 或 B→(A∨B)。',
+      apply: function (inputs, cfg) {
+        var a = asBody(need(inputs, 'a', '公式 A')), b = asBody(need(inputs, 'b', '公式 B'));
+        var left = cfg.side === 'l' ? a : b;
+        return { tokens: assertionOf(['('].concat(left, ['->'], ['('].concat(a, ['\\/'], b, [')']), [')'])), note: '∨I*' };
+      }
+    },
+    'or-elim-ax': {
+      label: '析取消去公理', kindLabel: '∨E*', group: 'rule', symbol: '∨E*', construct: false,
+      ports: { inputs: [{ id: 'a', label: '公式 A', type: FORMULA }, { id: 'b', label: '公式 B', type: FORMULA }, { id: 'c', label: '公式 C', type: FORMULA }], outputs: [{ id: 'out', label: '(A∨B)→((A→C)→((B→C)→C))', type: ASSERTION }] },
+      config: {},
+      help: '析取消去的希尔伯特形式。',
+      apply: function (inputs) {
+        var a = asBody(need(inputs, 'a', '公式 A')), b = asBody(need(inputs, 'b', '公式 B')), c = asBody(need(inputs, 'c', '公式 C'));
+        var or = ['('].concat(a, ['\\/'], b, [')']);
+        var ac = ['('].concat(a, ['->'], c, [')']);
+        var bc = ['('].concat(b, ['->'], c, [')']);
+        return { tokens: assertionOf(['('].concat(or, ['->'], ['('].concat(ac, ['->'], ['('].concat(bc, ['->'], c, [')']), [')']), [')'])), note: '∨E*' };
+      }
+    },
+    'iff-intro-ax': {
+      label: '等值引入公理', kindLabel: '↔I*', group: 'rule', symbol: '↔I*', construct: false,
+      ports: { inputs: [{ id: 'a', label: '公式 A', type: FORMULA }, { id: 'b', label: '公式 B', type: FORMULA }], outputs: [{ id: 'out', label: '(A→B)→((B→A)→A↔B)', type: ASSERTION }] },
+      config: {},
+      help: '等值引入的希尔伯特形式。',
+      apply: function (inputs) {
+        var a = asBody(need(inputs, 'a', '公式 A')), b = asBody(need(inputs, 'b', '公式 B'));
+        var ab = ['('].concat(a, ['->'], b, [')']);
+        var ba = ['('].concat(b, ['->'], a, [')']);
+        return { tokens: assertionOf(['('].concat(ab, ['->'], ['('].concat(ba, ['->'], ['('].concat(a, ['<->'], b, [')']), [')']), [')'])), note: '↔I*' };
+      }
+    },
+    'iff-elim-ax': {
+      label: '等值消去公理', kindLabel: '↔E*', group: 'rule', symbol: '↔E*', construct: false,
+      ports: { inputs: [{ id: 'a', label: '公式 A', type: FORMULA }, { id: 'b', label: '公式 B', type: FORMULA }], outputs: [{ id: 'out', label: '(A↔B)→(A→B) / (B→A)', type: ASSERTION }] },
+      config: { dir: 'lr' },
+      help: '等值消去的希尔伯特形式。',
+      apply: function (inputs, cfg) {
+        var a = asBody(need(inputs, 'a', '公式 A')), b = asBody(need(inputs, 'b', '公式 B'));
+        var iff = ['('].concat(a, ['<->'], b, [')']);
+        var body = cfg.dir === 'rl' ? ['('].concat(b, ['->'], a, [')']) : ['('].concat(a, ['->'], b, [')']);
+        return { tokens: assertionOf(['('].concat(iff, ['->'], body, [')'])), note: '↔E*' };
+      }
+    },
     'exists-intro': {
       label: '存在推广', kindLabel: '∃I', group: 'rule', symbol: '∃I', construct: false,
       ports: { inputs: [{ id: 'assertion', label: '断言 A', type: ASSERTION }], outputs: [{ id: 'out', label: '∃x A', type: ASSERTION }] },
