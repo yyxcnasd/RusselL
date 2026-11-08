@@ -385,6 +385,95 @@
         return { tokens: assertionOf(asBody(impTree.b)), note: '∃E · ' + v };
       }
     },
+    'and-intro': {
+      label: '合取引入', kindLabel: '∧I', group: 'rule', symbol: '∧I', construct: false,
+      ports: { inputs: [{ id: 'a', label: '断言 A', type: ASSERTION }, { id: 'b', label: '断言 B', type: ASSERTION }], outputs: [{ id: 'out', label: 'A∧B', type: ASSERTION }] },
+      config: {},
+      help: 'A 与 B 得到 A∧B。',
+      apply: function (inputs) {
+        var a = need(inputs, 'a', '断言 A'), b = need(inputs, 'b', '断言 B');
+        if (T.typeOf(a) !== '|-' || T.typeOf(b) !== '|-') fail('两路输入必须是断言');
+        return { tokens: assertionOf(['('].concat(asBody(a), ['/\\'], asBody(b), [')'])), note: '∧I' };
+      }
+    },
+    'and-elim': {
+      label: '合取消去', kindLabel: '∧E', group: 'rule', symbol: '∧E', construct: false,
+      ports: { inputs: [{ id: 'assertion', label: '断言 A∧B', type: ASSERTION }], outputs: [{ id: 'out', label: 'A 或 B', type: ASSERTION }] },
+      config: { side: 'l' },
+      help: '从 A∧B 取出左件或右件。',
+      apply: function (inputs, cfg) {
+        var a = need(inputs, 'assertion', '断言 A∧B');
+        var tree = T.read(wffOf(asBody(a)));
+        if (tree.k !== 'and') fail('输入必须是 A∧B');
+        var pick = cfg.side === 'r' ? tree.b : tree.a;
+        return { tokens: assertionOf(T.treeToBody(pick)), note: '∧E' };
+      }
+    },
+    'or-intro': {
+      label: '析取引入', kindLabel: '∨I', group: 'rule', symbol: '∨I', construct: false,
+      ports: { inputs: [{ id: 'assertion', label: '断言 A', type: ASSERTION }, { id: 'formula', label: '公式 B', type: FORMULA }], outputs: [{ id: 'out', label: 'A∨B / B∨A', type: ASSERTION }] },
+      config: { side: 'r' },
+      help: '从 A 得到 A∨B（或 B∨A）。',
+      apply: function (inputs, cfg) {
+        var a = need(inputs, 'assertion', '断言 A'), b = need(inputs, 'formula', '公式 B');
+        if (T.typeOf(a) !== '|-') fail('输入必须是断言');
+        var left = cfg.side === 'r' ? asBody(a) : asBody(b);
+        var right = cfg.side === 'r' ? asBody(b) : asBody(a);
+        return { tokens: assertionOf(['('].concat(left, ['\\/'], right, [')'])), note: '∨I' };
+      }
+    },
+    'or-elim': {
+      label: '析取消去', kindLabel: '∨E', group: 'rule', symbol: '∨E', construct: false,
+      ports: {
+        inputs: [
+          { id: 'or', label: '断言 A∨B', type: ASSERTION },
+          { id: 'ca', label: '断言 A→C', type: ASSERTION },
+          { id: 'cb', label: '断言 B→C', type: ASSERTION }
+        ],
+        outputs: [{ id: 'out', label: '断言 C', type: ASSERTION }]
+      },
+      config: {},
+      help: 'A∨B、A→C、B→C 得到 C。',
+      apply: function (inputs) {
+        var or = need(inputs, 'or', '断言 A∨B');
+        var ca = need(inputs, 'ca', '断言 A→C');
+        var cb = need(inputs, 'cb', '断言 B→C');
+        var t = T.read(wffOf(asBody(or)));
+        if (t.k !== 'or') fail('第一路输入必须是 A∨B');
+        var ta = T.read(wffOf(asBody(ca))), tb = T.read(wffOf(asBody(cb)));
+        if (ta.k !== 'imp' || tb.k !== 'imp') fail('后两路必须是蕴涵');
+        if (!T.eq(wffOf(T.treeToBody(ta.a)), wffOf(T.treeToBody(t.a)))) fail('A→C 的前件不匹配');
+        if (!T.eq(wffOf(T.treeToBody(tb.a)), wffOf(T.treeToBody(t.b)))) fail('B→C 的前件不匹配');
+        if (!T.eq(wffOf(T.treeToBody(ta.b)), wffOf(T.treeToBody(tb.b)))) fail('两个后件必须相同');
+        return { tokens: assertionOf(T.treeToBody(ta.b)), note: '∨E' };
+      }
+    },
+    'iff-intro': {
+      label: '等值引入', kindLabel: '↔I', group: 'rule', symbol: '↔I', construct: false,
+      ports: { inputs: [{ id: 'ab', label: '断言 A→B', type: ASSERTION }, { id: 'ba', label: '断言 B→A', type: ASSERTION }], outputs: [{ id: 'out', label: 'A↔B', type: ASSERTION }] },
+      config: {},
+      help: '两个方向都成立，就得到 A↔B。',
+      apply: function (inputs) {
+        var ab = need(inputs, 'ab', '断言 A→B'), ba = need(inputs, 'ba', '断言 B→A');
+        var x = T.read(wffOf(asBody(ab))), y = T.read(wffOf(asBody(ba)));
+        if (x.k !== 'imp' || y.k !== 'imp') fail('两路都必须是蕴涵');
+        return { tokens: assertionOf(['('].concat(T.treeToBody(x.a), ['<->'], T.treeToBody(x.b), [')'])), note: '↔I' };
+      }
+    },
+    'iff-elim': {
+      label: '等值消去', kindLabel: '↔E', group: 'rule', symbol: '↔E', construct: false,
+      ports: { inputs: [{ id: 'assertion', label: '断言 A↔B', type: ASSERTION }], outputs: [{ id: 'out', label: 'A→B / B→A', type: ASSERTION }] },
+      config: { dir: 'lr' },
+      help: '从 A↔B 取出一个方向的蕴涵。',
+      apply: function (inputs, cfg) {
+        var a = need(inputs, 'assertion', '断言 A↔B');
+        var t = T.read(wffOf(asBody(a)));
+        if (t.k !== 'iff') fail('输入必须是 A↔B');
+        var A = T.treeToBody(t.a), B = T.treeToBody(t.b);
+        var body = cfg.dir === 'rl' ? ['('].concat(B, ['->'], A, [')']) : ['('].concat(A, ['->'], B, [')']);
+        return { tokens: assertionOf(body), note: '↔E' };
+      }
+    },
     gen: {
       label: '全称推广', kindLabel: 'GEN', group: 'rule', symbol: '∀I', construct: false,
       ports: { inputs: [{ id: 'assertion', label: '断言 A', type: ASSERTION }], outputs: [{ id: 'out', label: '∀x A', type: ASSERTION }] },
@@ -458,6 +547,52 @@
           tokens: assertionOf(['('].concat([x, '=', y], ['->'], ['('].concat(left, ['->'], right, [')']), [')'])),
           note: '=L · ' + x + '→' + y + (mode === 'replace' ? '' : ' · 抽象')
         };
+      }
+    },
+    'set-ext': {
+      label: '外延公理', kindLabel: 'EXT', group: 'set', symbol: 'EXT', construct: false,
+      ports: { inputs: [{ id: 'a', label: '集合 a', type: TERM }, { id: 'b', label: '集合 b', type: TERM }], outputs: [{ id: 'out', label: '(∀x(x∈a↔x∈b))→a=b', type: ASSERTION }] },
+      config: {},
+      help: '两个集合元素完全相同则相等。',
+      apply: function (inputs) {
+        var a = termOf(inputs, 'a', 'x'), b = termOf(inputs, 'b', 'y');
+        var inner = ['('].concat(['x', 'e.', a], ['<->'], ['x', 'e.', b], [')']);
+        return { tokens: assertionOf(['('].concat(['A.', 'x'], inner, ['->'], [a, '=', b], [')'])), note: 'EXT' };
+      }
+    },
+    'set-empty': {
+      label: '空集公理', kindLabel: 'EMPTY', group: 'set', symbol: '∅', construct: false,
+      ports: { inputs: [], outputs: [{ id: 'out', label: '∃z∀x¬(x∈z)', type: ASSERTION }] },
+      config: {},
+      help: '存在一个不含任何元素的集合。',
+      apply: function () {
+        return { tokens: assertionOf(['E.', 'z', 'A.', 'x', '-.', 'x', 'e.', 'z']), note: 'EMPTY' };
+      }
+    },
+    'set-pair': {
+      label: '配对公理', kindLabel: 'PAIR', group: 'set', symbol: '{,}', construct: false,
+      ports: { inputs: [{ id: 'u', label: '集合 u', type: TERM }, { id: 'v', label: '集合 v', type: TERM }], outputs: [{ id: 'out', label: '∃z∀x((x=u∨x=v)↔x∈z)', type: ASSERTION }] },
+      config: {},
+      help: '任给两个集合，存在恰好以它们为元素的集合。',
+      apply: function (inputs) {
+        var u = termOf(inputs, 'u', 'x'), v = termOf(inputs, 'v', 'y');
+        var cond = ['('].concat([u, '='], [v], ['\\/'], [u, '=', v], [')']);
+        /* 直接用 u=v 作为占位：x=u ∨ x=v 的规范 token */
+        cond = ['('].concat(['x', '=', u], ['\\/'], ['x', '=', v], [')']);
+        var mem = ['x', 'e.', 'z'];
+        return { tokens: assertionOf(['E.', 'z'].concat(['A.', 'x'], ['('], cond, ['<->'], mem, [')'])), note: 'PAIR' };
+      }
+    },
+    'set-union': {
+      label: '并集公理', kindLabel: 'UNION', group: 'set', symbol: '∪', construct: false,
+      ports: { inputs: [{ id: 'a', label: '集合 a', type: TERM }], outputs: [{ id: 'out', label: '∃z∀x((∃y(x∈y∧y∈a))↔x∈z)', type: ASSERTION }] },
+      config: {},
+      help: '存在一个集合，恰好包含 a 的元素的元素。',
+      apply: function (inputs) {
+        var a = termOf(inputs, 'a', 'x');
+        var AND = '/' + String.fromCharCode(92);
+        var inner = ['E.', 'y', '('].concat(['x', 'e.', 'y'], [AND], ['y', 'e.', a], [')']);
+        return { tokens: assertionOf(['E.', 'z', 'A.', 'x', '('].concat(inner, ['<->'], ['x', 'e.', 'z'], [')'])), note: 'UNION' };
       }
     },
     'eq-refl': {
