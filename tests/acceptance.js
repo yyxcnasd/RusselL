@@ -402,6 +402,55 @@ runTest('acceptance', async ({ openPage }) => {
   equal(await page.js('window.RSL.APP.state.board.selectedNodes.length'), 0, 'Escape 清空多选集合');
 
   /* ------------------------------------------------------------------
+   * F1. 拖回下边栏删除模块 / 拖动已接线的输入端拆线
+   * ------------------------------------------------------------------ */
+  await page.js('window.RSL.APP.state.forceUnlock = true');
+  await page.js('window.RSL.APP.loadLevel(1)');
+  await page.waitFor('window.RSL.APP.state.level.id === "CH1-02"');
+  await page.js('document.querySelector(".tile").click()');
+  await page.waitFor('document.querySelectorAll(".node").length === 2');
+  const dragDelete = await page.js(`(function(){
+    var b=window.RSL.APP.state.board;
+    var n=b.items.find(function(x){return x.kind!=='target'});
+    var el=b.nodes.querySelector('[data-id="'+n.id+'"]');
+    var nr=el.getBoundingClientRect(), tr=document.getElementById('tray').getBoundingClientRect();
+    return {from:{x:nr.left+nr.width/2,y:nr.top+40}, to:{x:tr.left+tr.width/2,y:tr.top+tr.height/2}};
+  })()`);
+  await page.mouse.down(dragDelete.from.x, dragDelete.from.y);
+  await page.mouse.move(dragDelete.from.x, dragDelete.from.y + 40);
+  await page.mouse.move(dragDelete.to.x, dragDelete.to.y);
+  await page.sleep(120);
+  equal(await page.js('document.getElementById("tray").classList.contains("is-drop-target")'), true, '模块拖到下边栏时删除区高亮');
+  await page.mouse.up(dragDelete.to.x, dragDelete.to.y);
+  await page.sleep(350);
+  equal(await page.js('document.querySelectorAll(".node:not(.is-target)").length'), 0, '拖回下边栏的模块被删除');
+  equal(await page.js('document.getElementById("tray").classList.contains("is-drop-target")'), false, '松手后删除区高亮消失');
+
+  await page.js('window.RSL.APP.loadLevel(1)');
+  await page.waitFor('window.RSL.APP.state.level.id === "CH1-02"');
+  await page.js('document.querySelector(".tile").click()');
+  await page.waitFor('document.querySelectorAll(".node").length === 2');
+  const wirePorts = await page.js(`(function(){
+    var o=document.querySelector('.node:not(.is-target) .port-out');
+    var i=document.querySelector('.node.is-target .port-in');
+    var a=o.getBoundingClientRect(), b=i.getBoundingClientRect();
+    return {o:{x:a.left+a.width/2,y:a.top+a.height/2}, i:{x:b.left+b.width/2,y:b.top+b.height/2}};
+  })()`);
+  await page.mouse.drag(wirePorts.o, wirePorts.i, { steps: 6 });
+  await page.waitFor('document.querySelectorAll(".wire").length === 1');
+  const detachInfo = await page.js(`(function(){
+    var i=document.querySelector('.node.is-target .port-in');
+    var a=i.getBoundingClientRect();
+    var b=document.getElementById('board').getBoundingClientRect();
+    return {from:{x:a.left+a.width/2,y:a.top+a.height/2}, to:{x:b.left+90,y:b.top+90}};
+  })()`);
+  await page.mouse.drag(detachInfo.from, detachInfo.to, { steps: 8 });
+  await page.sleep(300);
+  equal(await page.js('document.querySelectorAll(".wire").length'), 0, '从已接线的输入端拖走会拆掉导线');
+  equal(await page.js('window.RSL.APP.state.board.edges.length'), 0, '拆线后电路不再保留该连接');
+  ok(await page.js('document.querySelector(".node.is-target").dataset.state !== "complete"'), '拆线后目标回到未完成状态');
+
+  /* ------------------------------------------------------------------
    * F2. S 元件：最多 4 组额外代换（共 5 组），每组橙原子 + 蓝公式
    * ------------------------------------------------------------------ */
   await page.js('window.RSL.APP.state.forceUnlock = true');
@@ -649,6 +698,19 @@ runTest('acceptance', async ({ openPage }) => {
   await tapAt(boardTap);
   const tapFitAfter = await page.js('window.RSL.APP.state.board.view.scale');
   ok(Math.abs(tapFitAfter - tapFitBefore) > 0.01, '双击空板把视图复位到适应视图（' + tapFitBefore.toFixed(2) + ' → ' + tapFitAfter.toFixed(2) + '）');
+  const touchDetach = await page.js(`(function(){
+    var i=document.querySelector('.node.is-target .port-in');
+    var a=i.getBoundingClientRect();
+    var b=document.getElementById('board').getBoundingClientRect();
+    return {from:{x:a.left+a.width/2,y:a.top+a.height/2}, to:{x:b.left+70,y:b.top+70}};
+  })()`);
+  await touch('touchStart', [touchDetach.from]);
+  await page.sleep(60);
+  await touch('touchMove', [{ x: touchDetach.to.x, y: touchDetach.to.y }]);
+  await page.sleep(120);
+  await touch('touchEnd', []);
+  await page.sleep(300);
+  equal(await page.js('window.RSL.APP.state.board.edges.length'), 0, '手指拖走已接线的输入端：线被拆下且未重接即删除');
   await page.send('Emulation.setTouchEmulationEnabled', { enabled: false });
   await page.shot('08-mobile-390');
 

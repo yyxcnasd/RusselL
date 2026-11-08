@@ -449,6 +449,10 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
   transition:transform .1s var(--ease),background .1s var(--ease),border-color .1s var(--ease);
 }
 .port::after{content:"";position:absolute;inset:-8px;border-radius:50%}
+.port{cursor:pointer}
+.port-in{cursor:grab}
+.port-in:active{cursor:grabbing}
+.port-out{cursor:crosshair}
 .port:hover{transform:translateY(-50%) scale(1.18)}
 /* 焦点环向内收，避免被棋盘 overflow:hidden 裁掉 */
 .port:focus-visible{outline:2px solid var(--accent);outline-offset:2px;z-index:calc(var(--z-port) + 1)}
@@ -536,6 +540,9 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
   overflow-x:auto;overflow-y:hidden;
   scrollbar-width:none;overscroll-behavior-x:contain;
 }
+.tray{transition:background .15s var(--ease),box-shadow .15s var(--ease)}
+.tray.is-drop-target{background:var(--danger-soft);box-shadow:inset 0 0 0 2px var(--red)}
+.tray.is-drop-target .tile{opacity:.45;filter:grayscale(.5)}
 .tray::-webkit-scrollbar{display:none}
 
 .tile{

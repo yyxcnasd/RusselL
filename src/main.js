@@ -741,6 +741,7 @@
       world: els.boardWorld,
       wires: els.wireLayer,
       nodes: els.nodeLayer,
+      tray: els.tray,
       onChange: function () { refresh(); },
       onSelect: function (node, edge) {
         state.selectedNode = node;

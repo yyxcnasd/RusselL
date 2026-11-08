@@ -57,6 +57,7 @@
     this.onToast = opts.onToast || function () {};
     this.onConnect = opts.onConnect || function () {};
     this.onRemove = opts.onRemove || function () {};
+    this.tray = opts.tray || null;
     this.items = [];
     this.edges = [];
     this.view = { x: 30, y: 30, scale: 0.85 };
@@ -73,6 +74,8 @@
     this._touches = Object.create(null);   // pointerId -> {x,y}，双指缩放用
     this._pinch = null;
     this._lastTap = null;                  // 双击空板 = 适应视图
+    this._pendingDetach = null;            // 按住已接线的输入端口，拖动即拆线
+    this._dropTarget = false;              // 模块是否悬停在下边栏删除区
     this._elById = Object.create(null);   // id -> node element, rebuilt by render()
     this._wireEls = Object.create(null);  // edge id -> { path, hit }, rebuilt by full _updateWires
     this._lastUsed = null;
@@ -211,6 +214,7 @@
       this._marquee.el.parentNode.removeChild(this._marquee.el);
     }
     this._marquee = null;
+    this._pendingDetach = null;
     this._cancelDraft();
     this.board.classList.remove('is-panning');
     var midX = (pair.a.x + pair.b.x) / 2, midY = (pair.a.y + pair.b.y) / 2;
@@ -254,6 +258,27 @@
     return this._elById[id] || null;
   };
 
+  Board.prototype._incomingEdge = function (nodeId, portId) {
+    for (var i = 0; i < this.edges.length; i += 1) {
+      var e = this.edges[i];
+      if (e.to && e.to.node === nodeId && e.to.port === portId) return e;
+    }
+    return null;
+  };
+
+  /* 模块悬停在下边栏：高亮删除区，松手即删。 */
+  Board.prototype._overTray = function (cx, cy) {
+    if (!this.tray) return false;
+    var r = this.tray.getBoundingClientRect();
+    return cx >= r.left - 6 && cx <= r.right + 6 && cy >= r.top - 6 && cy <= r.bottom + 6;
+  };
+
+  Board.prototype._setDropTarget = function (on) {
+    if (this._dropTarget === on) return;
+    this._dropTarget = on;
+    if (this.tray) this.tray.classList.toggle('is-drop-target', on);
+  };
+
   Board.prototype._down = function (e) {
     var self = this;
     /* 触屏双指缩放：第二根手指按下时接管，取消正在进行的拖拽/平移。 */
@@ -283,6 +308,12 @@
       } else if (this.draft) {
         this.connect(this.draft.from.node, this.draft.from.port, mod.dataset.id, port.dataset.port);
         this._cancelDraft();
+      } else {
+        var wired = this._incomingEdge(mod.dataset.id, port.dataset.port);
+        if (wired) {
+          this._pendingDetach = { edge: wired, sx: e.clientX, sy: e.clientY };
+          this.board.setPointerCapture && this.board.setPointerCapture(e.pointerId);
+        }
       }
       return;
     }
@@ -400,6 +431,19 @@
       this._movePinch();
       return;
     }
+    if (this._pendingDetach) {
+      var pending = this._pendingDetach;
+      if (Math.abs(e.clientX - pending.sx) + Math.abs(e.clientY - pending.sy) > 4) {
+        this._pendingDetach = null;
+        this.edges = this.edges.filter(function (edge) { return edge !== pending.edge; });
+        this.selectedEdge = null;
+        this.render();
+        this._startDraft(pending.edge.from.node, pending.edge.from.port, e.clientX, e.clientY);
+        if (this.draft) this.draft.detached = true;
+        this.onChange();
+      }
+      return;
+    }
     if (this._groupDrag) {
       var g = this._groupDrag;
       var gp = this._client(e.clientX, e.clientY);
@@ -430,6 +474,7 @@
       if (Math.abs(e.clientX - this._drag.sx) + Math.abs(e.clientY - this._drag.sy) > 3) this._drag.moved = true;
       var el = self._elById[node.id];
       if (el) { el.style.left = node.x + 'px'; el.style.top = node.y + 'px'; }
+      this._setDropTarget(this._drag.moved && this._overTray(e.clientX, e.clientY));
       this._updateWires('cheap', [node.id]);
       return;
     }
@@ -457,6 +502,12 @@
       }
     }
     this._cancelLong();
+    if (this._pendingDetach) {
+      var tapDetach = this._pendingDetach;
+      this._pendingDetach = null;
+      if (Math.abs(e.clientX - tapDetach.sx) + Math.abs(e.clientY - tapDetach.sy) <= 4) return;
+    }
+    this._setDropTarget(false);
     if (this._marquee) { this._endMarquee(); return; }
     if (this._groupDrag) {
       var g = this._groupDrag;
@@ -494,6 +545,10 @@
       var drag = this._drag;
       var staleDrag = this._cheapDirty;
       this._drag = null;
+      if (moved && this._overTray(e.clientX, e.clientY)) {
+        this.removeNode(dragId);
+        return;
+      }
       if (moved) {
         var dragged = this.node(dragId);
         if (dragged) {
@@ -528,7 +583,8 @@
       this._cancelDraft();
       return;
     }
-    if (e.pointerType !== 'touch') this._cancelDraft();
+    /* 触屏的普通起线要保留 floating draft（先点输出再点输入）；拆下来的线松手即弃。 */
+    if (e.pointerType !== 'touch' || this.draft.detached) this._cancelDraft();
   };
 
   /* 触屏端口命中容差：取离手指最近、且在 maxDist 内的端口。 */
@@ -618,6 +674,8 @@
     this._pan = null;
     this._touches = Object.create(null);
     this._pinch = null;
+    this._pendingDetach = null;
+    this._setDropTarget(false);
     this.board.classList.remove('is-pinching');
     this._cancelDraft();
     this.board.classList.remove('is-panning');
