@@ -34,6 +34,17 @@
   function uid(p) { return p + Math.random().toString(36).slice(2, 8); }
   function snap(v) { return Math.round(v / SNAP) * SNAP; }
   function nodeWidth(n) { return n.kind === 'target' ? TARGET_W : NODE_W; }
+  /* S 元件的额外代入组数（0–4）：总组数 = 1 + extras。兼容旧的 dual 配置。 */
+  function substExtras(config) {
+    if (!config) return 0;
+    var n = typeof config.groups === 'number' ? config.groups : (config.dual ? 1 : 0);
+    return Math.max(0, Math.min(4, n));
+  }
+  function substPortVisible(id, extras) {
+    var m = /^(atom|formula)(\d+)$/.exec(id);
+    if (!m) return true;
+    return Number(m[2]) <= 1 + extras;
+  }
   function portTop(n, i) { return (n.kind === 'target' ? TARGET_PORT_TOP : PORT_TOP) + i * PORT_STEP; }
 
   function Board(opts) {
@@ -759,8 +770,9 @@
   Board.prototype._nodeView = function (n, result) {
     var info = window.RSL.Engine.info(n.kind);
     var inputPorts = (info.ports.inputs || []);
-    if (n.kind === 'subst' && !(n.config && n.config.dual)) {
-      inputPorts = inputPorts.filter(function (p) { return p.id !== 'atom2' && p.id !== 'formula2'; });
+    if (n.kind === 'subst') {
+      var extras = substExtras(n.config);
+      inputPorts = inputPorts.filter(function (p) { return substPortVisible(p.id, extras); });
     }
     var outputs = info.ports.outputs || [];
     var isAssertion = outputs.some(function (p) { return p.type === 'assertion'; });
@@ -795,7 +807,7 @@
     el.style.width = view.width + 'px';
     el.style.minHeight = view.minHeight + 'px';
     var ins = view.inputPorts.map(function (p, i) {
-      var role = (n.kind === 'subst' && p.id === 'atom') ? 'atom' : p.type;
+      var role = (n.kind === 'subst' && /^atom/.test(p.id)) ? 'atom' : p.type;
       return '<button class="port port-in" data-port="' + esc(p.id) + '" data-role="' + esc(role) + '" style="top:' + portTop(n, i) + 'px" title="' + esc(p.label) + '" aria-label="' + esc(p.label) + '"></button>';
     }).join('');
     var outs = view.outputs.map(function (p) {

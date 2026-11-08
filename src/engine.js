@@ -58,14 +58,20 @@
       ports: {
         inputs: [
           { id: 'assertion', label: '断言 A', type: 'assertion' },
-          { id: 'atom', label: '原子 π', type: 'formula' },
-          { id: 'formula', label: '公式 B', type: 'formula' },
-          { id: 'atom2', label: '原子 ρ（可选）', type: 'formula' },
-          { id: 'formula2', label: '公式 C（可选）', type: 'formula' }
+          { id: 'atom', label: '原子 π₁', type: 'formula' },
+          { id: 'formula', label: '公式 B₁', type: 'formula' },
+          { id: 'atom2', label: '原子 π₂', type: 'formula' },
+          { id: 'formula2', label: '公式 B₂', type: 'formula' },
+          { id: 'atom3', label: '原子 π₃', type: 'formula' },
+          { id: 'formula3', label: '公式 B₃', type: 'formula' },
+          { id: 'atom4', label: '原子 π₄', type: 'formula' },
+          { id: 'formula4', label: '公式 B₄', type: 'formula' },
+          { id: 'atom5', label: '原子 π₅', type: 'formula' },
+          { id: 'formula5', label: '公式 B₅', type: 'formula' }
         ],
         outputs: [{ id: 'out', label: 'A[π/B]', type: 'assertion' }]
       },
-      help: '把断言 A 中出现的原子 π 全部替换为合式公式 B。'
+      help: '把断言 A 中出现的原子 π 全部替换为合式公式 B；最多同时 5 组代换。'
     },
     replace: {
       label: '定义置换', kindLabel: 'DEFINE', group: 'rule', symbol: 'D',
@@ -282,26 +288,32 @@
         }
         case 'subst': {
           if (!need('assertion') || !need('atom') || !need('formula')) return waiting();
-          if (!L.isAtom(vals.atom)) return makeResult(node, null, 'error', '第二路输入必须是单个原子命题');
-          var atomName = vals.atom.name;
-          var map = Object.create(null);
-          map[atomName] = vals.formula;
           var atoms = L.atomsOf(vals.assertion).map(function (a) { return typeof a === 'string' ? a : a.name; });
-          if (atoms.indexOf(atomName) === -1) return makeResult(node, null, 'error', '原子 ' + atomName + ' 没有出现在断言中');
-          var secondAtom = !!vals.atom2 || !!vals.formula2;
-          if (secondAtom && (!vals.atom2 || !vals.formula2)) {
-            return makeResult(node, null, 'error', '第二组代入需要同时接原子和公式');
-          }
-          if (secondAtom) {
-            if (!L.isAtom(vals.atom2)) return makeResult(node, null, 'error', '第二组原子必须是单个原子命题');
-            var atomName2 = vals.atom2.name;
-            if (atomName2 === atomName) return makeResult(node, null, 'error', '两组代入不能使用同一个原子');
-            if (atoms.indexOf(atomName2) === -1) return makeResult(node, null, 'error', '原子 ' + atomName2 + ' 没有出现在断言中');
-            map[atomName2] = vals.formula2;
+          var map = Object.create(null);
+          var groups = [];
+          /* 5 组代换：第 1 组固定 atom/formula，第 2–5 组用 atomN/formulaN。
+             未接线的组直接跳过；只接一半的组报错。 */
+          for (var g = 1; g <= 5; g += 1) {
+            var atomVal = vals[g === 1 ? 'atom' : 'atom' + g];
+            var formulaVal = vals[g === 1 ? 'formula' : 'formula' + g];
+            if (!atomVal && !formulaVal) continue;
+            if (!atomVal || !formulaVal) {
+              return makeResult(node, null, 'error', '第 ' + g + ' 组代入需要同时接原子和公式');
+            }
+            if (!L.isAtom(atomVal)) return makeResult(node, null, 'error', '第 ' + g + ' 组原子必须是单个原子命题');
+            var atomName = atomVal.name;
+            if (Object.prototype.hasOwnProperty.call(map, atomName)) {
+              return makeResult(node, null, 'error', '多组代入不能使用同一个原子');
+            }
+            if (atoms.indexOf(atomName) === -1) {
+              return makeResult(node, null, 'error', '原子 ' + atomName + ' 没有出现在断言中');
+            }
+            map[atomName] = formulaVal;
+            groups.push(atomName);
           }
           var out = L.instantiate(vals.assertion, map);
           var label = Object.keys(map).map(function (k) { return k + ' := ' + L.fmt(map[k]); }).join('，');
-          return makeResult(node, out, 'valid', null, label, { mapping: map });
+          return makeResult(node, out, 'valid', null, label, { mapping: map, groups: groups.length });
         }
         case 'replace': {
           if (!need('assertion')) return waiting();

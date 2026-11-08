@@ -409,11 +409,23 @@
     return true;
   }
 
+  function substExtras(config) {
+    if (!config) return 0;
+    var n = typeof config.groups === 'number' ? config.groups : (config.dual ? 1 : 0);
+    return Math.max(0, Math.min(4, n));
+  }
+  function substPortVisible(id, extras) {
+    var m = /^(atom|formula)(\d+)$/.exec(id);
+    if (!m) return true;
+    return Number(m[2]) <= 1 + extras;
+  }
+
   function makeModuleGhost(part) {
     var info = window.RSL.Engine.info(part.kind) || { ports: { inputs: [], outputs: [] } };
     var ins = (info.ports.inputs || []);
-    if (part.kind === 'subst' && !(part.config && part.config.dual)) {
-      ins = ins.filter(function (p) { return p.id !== 'atom2' && p.id !== 'formula2'; });
+    if (part.kind === 'subst') {
+      var ghostExtras = substExtras(part.config);
+      ins = ins.filter(function (p) { return substPortVisible(p.id, ghostExtras); });
     }
     var outs = (info.ports.outputs || []);
     var config = part.config || {};
@@ -437,7 +449,7 @@
       '<div class="node-top"><span class="node-code">' + UI.esc(code) + '</span></div>' +
       '<div class="node-formula formula">' + formula + '</div>' +
       ins.map(function (p, i) {
-        var role = (part.kind === 'subst' && p.id === 'atom') ? 'atom' : p.type;
+        var role = (part.kind === 'subst' && /^atom/.test(p.id)) ? 'atom' : p.type;
         return '<span class="port port-in" data-port="' + UI.esc(p.id) + '" data-role="' + UI.esc(role) + '" style="top:' + (47 + i * 32) + 'px"></span>';
       }).join('') +
       outs.map(function (p) {
@@ -492,7 +504,7 @@
       }).join('') + '<span class="opt-gap"></span>' + ['x', 'y', 'z'].map(function (v) {
         return '<button class="opt opt-var' + (config.arg === v ? ' is-on' : '') + '" data-config="arg" data-value="' + v + '">' + v + '</button>';
       }).join('');
-    } else if (node.kind === 'subst' && !config.dual) {
+    } else if (node.kind === 'subst' && substExtras(config) < 4) {
       html = '<button class="opt opt-plus" data-config="dual" data-value="1" aria-label="加一组代入" title="加一组代入">＋</button>';
     } else if (node.kind === 'all-elim') {
       html = ['a', 'b', 'c', 'x', 'y', 'z'].map(function (v) {
@@ -654,6 +666,16 @@
     els.popover.addEventListener('click', function (e) {
       var opt = e.target.closest('[data-config]');
       if (opt && state.selectedNode) {
+        if (opt.dataset.config === 'dual') {
+          var current = state.board.node(state.selectedNode);
+          if (current && current.kind === 'subst') {
+            var extras = substExtras(current.config || {});
+            if (extras < 4) state.board.updateConfig(state.selectedNode, { groups: extras + 1 });
+          }
+          state.selectedNode = state.board.selectedNode;
+          refresh();
+          return;
+        }
         var patch = {};
         patch[opt.dataset.config] = opt.dataset.value;
         state.board.updateConfig(state.selectedNode, patch);

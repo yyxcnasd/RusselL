@@ -5,7 +5,7 @@
  * 关卡切换/存档/提示等动作由 main.js 通过 init(ctx) 注入。
  *
  * 设计约定（见 docs/DESIGN.md）：
- *   - 每个面板有统一的 .sheet-head（标题 + 右对齐 meta），关闭按钮独立；
+ *   - 少字：面板不写标题/说明，只保留数字、公式、代号与必要图例；
  *   - 面板内部是可点的 flat row（soft 底、无描边）；白贴纸材质只留给棋盘上的模块；
  *   - 对象语言用 → / ↔，规则层面用 ⇒ / ⇄；变量与公式一律 STIX 斜体。
  */
@@ -26,11 +26,6 @@
 
   function closeButton() {
     return '<button class="sheet-x" data-close aria-label="关闭"><svg class="icon"><use href="#i-x-mark"></use></svg></button>';
-  }
-
-  function sheetHead(title, meta) {
-    return '<div class="sheet-head"><h2>' + esc(title) + '</h2>' +
-      (meta ? '<span class="sheet-meta">' + meta + '</span>' : '') + '</div>';
   }
 
   /* =========================================================================
@@ -60,11 +55,9 @@
     var solved = items.filter(function (x) { return ctx.state.solved[x.lv.id]; }).length;
     var firstLocked = !ctx.isUnlocked(items[0].i);
     var glyph = kind === 'challenge' ? 'i-star' : 'i-book-open';
-    var label = kind === 'challenge' ? '挑战' : '基础';
     return '<div class="band ' + kind + (firstLocked ? ' is-locked' : '') + '">' +
       '<div class="band-head">' +
         '<span class="band-glyph"><svg class="icon"><use href="#' + glyph + '"></use></svg></span>' +
-        '<span class="band-name">' + label + '</span>' +
         '<span class="band-progress" aria-hidden="true"><i style="width:' + (solved / items.length * 100) + '%"></i></span>' +
         '<span class="band-count">' + solved + ' / ' + items.length + '</span>' +
       '</div>' +
@@ -89,7 +82,6 @@
       return '<section class="chapter' + (isCurrent ? ' is-current' : '') + (chapterLocked ? ' is-locked' : '') + '">' +
         '<div class="chapter-head">' +
           '<span class="chapter-roman">' + c.id + '</span>' +
-          '<span class="chapter-title">' + c.title + '</span>' +
           '<span class="chapter-progress" aria-hidden="true"><i style="width:' + (solved / items.length * 100) + '%"></i></span>' +
           '<span class="chapter-count">' + solved + ' / ' + items.length + '</span>' +
         '</div>' +
@@ -101,11 +93,7 @@
 
   function openLevels() {
     host.RSL.Audio.sfx('click');
-    var total = ctx.state.levels.length;
-    var solved = ctx.state.levels.filter(function (lv) { return ctx.state.solved[lv.id]; }).length;
-    UI.openSheet(closeButton() +
-      sheetHead('选关', solved + ' / ' + total) +
-      '<div class="chapters">' + levelsHTML() + '</div>');
+    UI.openSheet(closeButton() + '<div class="chapters">' + levelsHTML() + '</div>');
   }
 
   /* =========================================================================
@@ -118,38 +106,32 @@
       UI.helpFormula(formula) + '</div>';
   }
 
-  function helpStep(icon, text) {
-    return '<span class="help-step"><span class="help-box"><svg class="icon"><use href="#' + icon + '"></use></svg></span>' +
-      '<b>' + text + '</b></span>';
+  function helpStep(icon) {
+    return '<span class="help-step"><span class="help-box"><svg class="icon"><use href="#' + icon + '"></use></svg></span></span>';
   }
 
   function openHelp() {
     host.RSL.Audio.sfx('click');
     UI.openSheet(closeButton() +
-      sheetHead('玩法', '三步接一块板') +
       '<div class="help">' +
         '<div class="help-steps">' +
-          helpStep('i-plus', '取模块') +
-          helpStep('i-arrow-right', '接线') +
-          helpStep('i-play', '校验') +
+          helpStep('i-plus') +
+          helpStep('i-arrow-right') +
+          helpStep('i-play') +
         '</div>' +
-        '<h3 class="help-group">命题规则</h3>' +
         '<div class="help-cards">' +
-          helpCard('S', 'subst', 'A[P↦B]', '把断言 A 里的原子 P 全部换成公式 B；可以再加第二组 Q↦C') +
-          helpCard('M', 'detach', 'A, A→B ⇒ B', '两路断言输入，按分离规则得到后件') +
-          helpCard('D', 'replace', 'A ⇄ A′', '按 df-or / df-an / dfbi2 / df-ex 对定义式做双向置换') +
-          helpCard('HS', 'syllogism', 'A→B, B→C ⇒ A→C', '假言三段论：中间命题相同即可串起来') +
-        '</div>' +
-        '<h3 class="help-group">谓词规则</h3>' +
-        '<div class="help-cards">' +
-          helpCard('∀I', 'all-intro', 'A ⇒ ∀x A', '全称推广：变元必须选 x / y / z') +
-          helpCard('∀E', 'all-elim', '∀x A ⇒ A[t/x]', '全称例化：把约束变元换成一个体词') +
-          helpCard('∃I', 'exists-intro', 'A[t/x] ⇒ ∃x A', '存在引入：用个体词例化出存在式') +
-          helpCard('∃E', 'exists-elim', '∃x A, A[y/x]→B ⇒ B', '存在消去：y 必须是新变元') +
+          helpCard('S', 'subst', 'A[P↦B]') +
+          helpCard('M', 'detach', 'A, A→B ⇒ B') +
+          helpCard('D', 'replace', 'A ⇄ A′') +
+          helpCard('HS', 'syllogism', 'A→B, B→C ⇒ A→C') +
+          helpCard('∀I', 'all-intro', 'A ⇒ ∀x A') +
+          helpCard('∀E', 'all-elim', '∀x A ⇒ A[t/x]') +
+          helpCard('∃I', 'exists-intro', 'A[t/x] ⇒ ∃x A') +
+          helpCard('∃E', 'exists-elim', '∃x A, A[y/x]→B ⇒ B') +
         '</div>' +
         '<div class="save-row">' +
-          '<button class="save-btn" data-save-export title="保存存档" aria-label="保存存档"><svg class="icon"><use href="#i-arrow-down-tray"></use></svg><span>保存</span></button>' +
-          '<button class="save-btn" data-save-import title="加载存档" aria-label="加载存档"><svg class="icon"><use href="#i-arrow-up-tray"></use></svg><span>加载</span></button>' +
+          '<button class="save-btn" data-save-export title="保存存档" aria-label="保存存档"><svg class="icon"><use href="#i-arrow-down-tray"></use></svg></button>' +
+          '<button class="save-btn" data-save-import title="加载存档" aria-label="加载存档"><svg class="icon"><use href="#i-arrow-up-tray"></use></svg></button>' +
         '</div>' +
       '</div>' +
       '<p class="credit">Design by yyxcnasd</p>');
@@ -170,11 +152,9 @@
         (on
           ? '<span class="achv-icon"><svg class="icon"><use href="#' + a.symbol + '"></use></svg></span>'
           : '<span class="achv-q"><svg class="icon"><use href="#i-question-mark-circle"></use></svg></span>') +
-        '<span class="achv-name">' + esc(a.name) + '</span>' +
       '</button>';
     }).join('');
-    return sheetHead('成就', '<span class="achv-count">' + got + ' / ' + list.length + '</span>') +
-      '<div class="achv-grid">' + cards + '</div>';
+    return '<div class="achv-grid">' + cards + '</div>';
   }
 
   function openAchievements() {

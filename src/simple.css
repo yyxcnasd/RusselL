@@ -495,17 +495,10 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
 .coach-pop{
   position:absolute;left:50%;top:50%;z-index:var(--z-coach-pop);
   transform:translate(-50%,-50%);max-width:calc(100vw - 32px);
-  padding:16px 22px 14px;border-radius:var(--radius-lg);background:var(--coach-bg);border:0;
+  padding:14px 18px;border-radius:var(--radius-lg);background:var(--coach-bg);border:0;
   box-shadow:var(--pop-shadow);cursor:default;
   backdrop-filter:blur(6px);
   text-align:center;
-}
-.coach-title{
-  font-family:var(--font);font-size:12px;font-weight:600;letter-spacing:.06em;
-  color:var(--muted);margin-bottom:10px;
-}
-.coach-hint{
-  font-family:var(--font);font-size:11px;color:var(--muted);opacity:.85;margin-top:10px;
 }
 .coach-flow{
   display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:12px;
@@ -671,18 +664,6 @@ body.is-holding *{cursor:grabbing!important}
 .sheet-bar i:hover{background:var(--muted)}
 .sheet-bar i:active{cursor:grabbing;background:var(--muted)}
 
-/* 面板 chrome：所有非通关面板共用 标题 + 右对齐 meta（计数/进度） */
-.sheet-head{
-  display:flex;align-items:center;gap:10px;
-  margin:0 0 14px;padding:0 2px;
-}
-.sheet-head h2{
-  margin:0;font-size:18px;font-weight:600;line-height:1.2;color:var(--ink);
-}
-.sheet-meta{
-  font-size:12px;font-weight:600;color:var(--muted);white-space:nowrap;
-  font-variant-numeric:tabular-nums;
-}
 
 /* =========================================================================
  * 17 选关面板 levels
@@ -690,32 +671,28 @@ body.is-holding *{cursor:grabbing!important}
 
 .chapters{display:flex;flex-direction:column;gap:26px;padding-top:8px}
 
-/* 章节头：罗马数字 + 章名 + 计数 + 进度线；不再叠一条分隔线 */
+/* 章节头：罗马数字 + 进度线 + 计数（不加章节名，保持少字） */
 .chapter-head{
   display:flex;align-items:center;gap:12px;padding:0 2px 10px;
 }
 .chapter-roman{font-family:var(--math);font-size:28px;line-height:1;color:var(--muted);min-width:40px}
-.chapter-title{font-size:15px;font-weight:600;color:var(--ink);white-space:nowrap}
 .chapter-count{font-size:12px;font-weight:600;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
 .chapter-progress{
   flex:1;height:3px;border-radius:3px;
   background:var(--line);overflow:hidden;
 }
 .chapter-progress i{display:block;height:100%;background:var(--accent);border-radius:3px}
-.chapter.is-current .chapter-roman,
-.chapter.is-current .chapter-title{color:var(--accent)}
+.chapter.is-current .chapter-roman{color:var(--accent)}
 .chapter.is-locked{opacity:.5}
 .chapter.is-locked .chapter-roman{color:var(--muted)}
 
-/* 基础段 / 挑战段：可见的段名 + 计数，挑战段用星形图标区分 */
+/* 基础段 / 挑战段：图标 + 进度 + 计数，挑战段用星形图标区分 */
 .band{margin-top:18px}
 .band-head{display:flex;align-items:center;gap:8px;padding:0 2px 9px}
 .band-glyph{display:grid;place-items:center;width:16px;height:16px;color:var(--muted)}
 .band-glyph .icon{width:16px;height:16px;stroke-width:var(--icon-stroke)}
 .band.challenge .band-glyph{color:var(--accent)}
-.band.is-locked .band-glyph,
-.band.is-locked .band-name{opacity:.45}
-.band-name{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.02em}
+.band.is-locked .band-glyph{opacity:.45}
 .band-count{font-size:11px;color:var(--muted);opacity:.8;font-variant-numeric:tabular-nums}
 .band-progress{flex:1;height:2px;border-radius:2px;background:var(--line);overflow:hidden;margin-left:4px}
 .band-progress i{display:block;height:100%;background:var(--accent);opacity:.5;border-radius:2px}
@@ -758,12 +735,11 @@ body.is-holding *{cursor:grabbing!important}
  * 18 成就面板 achievements
  * ========================================================================= */
 
-.achv-count{font-size:12px;font-weight:600;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
 
 .achv-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;padding:2px 2px 12px}
 .achv{
   display:flex;flex-direction:column;align-items:center;gap:6px;
-  padding:12px 5px 10px;border-radius:var(--radius);background:var(--soft);
+  padding:14px 5px;border-radius:var(--radius);background:var(--soft);
   opacity:.68;filter:grayscale(1);cursor:pointer;
   transition:opacity .12s var(--ease),transform .12s var(--ease),background .12s var(--ease),box-shadow .12s var(--ease);
 }
@@ -777,11 +753,6 @@ body.is-holding *{cursor:grabbing!important}
 .achv.is-on .achv-icon{color:var(--accent)}
 .achv-q{display:grid;place-items:center;width:24px;height:24px;color:var(--muted)}
 .achv-q .icon{width:24px;height:24px}
-.achv-name{
-  max-width:100%;font-size:11px;line-height:1.3;color:var(--muted);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
-.achv.is-on .achv-name{color:var(--ink);font-weight:600}
 
 
 /* 成就详情 */
@@ -819,25 +790,17 @@ body.is-holding *{cursor:grabbing!important}
   gap:4px;padding:4px 4px 8px;width:100%;
 }
 .help-steps{
-  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:10px;padding:4px 0 14px;width:100%;max-width:520px;
+  display:flex;align-items:center;justify-content:center;
+  gap:14px;padding:2px 0 16px;width:100%;
 }
-.help-step{
-  display:flex;flex-direction:column;align-items:center;gap:6px;
-  padding:11px 8px;border-radius:var(--radius-sm);background:var(--soft);
-}
-.help-step b{font-size:12px;font-weight:600;color:var(--ink);letter-spacing:.02em}
+.help-step{display:flex;align-items:center;justify-content:center}
 .help-box{
-  display:grid;place-items:center;width:34px;height:34px;
-  border-radius:var(--radius-sm);background:var(--card);border:1px solid var(--line);
+  display:grid;place-items:center;width:46px;height:46px;
+  border-radius:var(--radius);background:var(--soft);border:1.5px solid var(--line);
   color:var(--ink);
 }
 .help-box .icon{width:18px;height:18px}
 
-.help-group{
-  width:100%;max-width:520px;margin:10px 0 0;
-  font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--muted);
-}
 .help-cards{
   display:grid;grid-template-columns:1fr 1fr;gap:10px;
   padding:8px 0 2px;width:100%;max-width:520px;min-width:0;
@@ -859,8 +822,8 @@ body.is-holding *{cursor:grabbing!important}
 
 .save-row{display:flex;flex-direction:row;justify-content:center;gap:10px;padding:14px 0 0}
 .save-btn{
-  display:flex;align-items:center;gap:6px;height:40px;padding:0 14px;
-  border-radius:var(--radius-sm);background:var(--soft);color:var(--muted);font-size:12px;font-weight:500;
+  display:flex;align-items:center;justify-content:center;width:40px;height:40px;padding:0;
+  border-radius:var(--radius-sm);background:var(--soft);color:var(--muted);
   transition:background .12s var(--ease),color .12s var(--ease);
 }
 .save-btn:hover{color:var(--ink);background:var(--soft-hover)}
@@ -1046,10 +1009,8 @@ body.is-holding *{cursor:grabbing!important}
   .chapters{gap:20px;padding-top:4px}
   .chapter-head{gap:9px;padding-bottom:8px}
   .chapter-roman{font-size:23px;min-width:32px}
-  .chapter-title{font-size:13px}
   .chapter-count{font-size:11px}
   .chapter-progress{min-width:56px}
-  .sheet-head h2{font-size:17px}
   .band .levels{padding-top:9px}
 
   .achv-grid{grid-template-columns:repeat(3,minmax(0,1fr))}

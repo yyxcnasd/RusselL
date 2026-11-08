@@ -284,16 +284,20 @@ runTest('acceptance', async ({ openPage }) => {
   ok(await page.js('document.querySelectorAll(".help-card").length === 8'), '帮助面板有 8 张规则卡片');
   const helpDesign = await page.js(`(function(){
     return {
-      head: (document.querySelector('.sheet-head h2')||{}).textContent || '',
-      steps: Array.prototype.map.call(document.querySelectorAll('.help-step b'), function(b){ return b.textContent; }),
-      groups: Array.prototype.map.call(document.querySelectorAll('.help-group'), function(h){ return h.textContent; }),
-      cards: document.querySelectorAll('.help-card').length
+      heads: document.querySelectorAll('.sheet-head').length,
+      steps: document.querySelectorAll('.help-step').length,
+      stepText: Array.prototype.map.call(document.querySelectorAll('.help-step b'), function(b){ return b.textContent; }),
+      groups: document.querySelectorAll('.help-group').length,
+      cards: document.querySelectorAll('.help-card').length,
+      save: document.querySelectorAll('.save-btn').length
     };
   })()`);
-  equal(helpDesign.head, '玩法', '帮助面板有统一 sheet-head 标题');
-  equal(helpDesign.steps, ['取模块', '接线', '校验'], '帮助三步有文字标签');
-  equal(helpDesign.groups, ['命题规则', '谓词规则'], '帮助规则按命题/谓词分组');
-  equal(helpDesign.cards, 8, '两步分组共 8 张规则卡');
+  equal(helpDesign.heads, 0, '帮助面板不再有标题文字');
+  equal(helpDesign.steps, 3, '帮助三步只保留图标');
+  equal(helpDesign.stepText.length, 0, '帮助步骤没有文字标签');
+  equal(helpDesign.groups, 0, '帮助面板不再有分组标题文字');
+  equal(helpDesign.cards, 8, '帮助面板保留 8 张规则卡');
+  equal(helpDesign.save, 2, '帮助面板保留两个图标式存档按钮');
   await page.js('document.querySelector(".help-card").focus()');
   await page.key('Enter');
   await page.waitFor('!document.getElementById("coachPop").hidden');
@@ -320,14 +324,14 @@ runTest('acceptance', async ({ openPage }) => {
     return {total:document.querySelectorAll('.achv').length,
             on:document.querySelectorAll('.achv.is-on').length,
             names:document.querySelectorAll('.achv-name').length,
-            head:(document.querySelector('.sheet-head h2')||{}).textContent||'',
+            heads:document.querySelectorAll('.sheet-head').length,
             countText:(document.querySelector('.achv-count')||{}).textContent||''};
   })()`);
   equal(achvList.total, 20, '成就面板 20 项');
   ok(achvList.on >= 1, '首关通关后至少 1 个成就点亮（实际 ' + achvList.on + '）');
-  matches(achvList.countText, /\/\s*20/, '成就计数显示总数 20');
-  equal(achvList.head, '成就', '成就面板有统一 sheet-head 标题');
-  equal(achvList.names, 20, '每个成就都显示名称（未解锁也可见）');
+  equal(achvList.heads, 0, '成就面板不再有标题文字');
+  equal(achvList.names, 0, '成就卡片不写名称（只保留图标）');
+  equal(achvList.countText, '', '成就面板不再显示计数文字');
   await page.js('document.querySelector(".achv.is-on").click()');
   await page.waitFor('!!document.querySelector(".achv-detail")');
   equal(await page.js('(document.querySelector(".achv-detail h2")||{}).textContent'), '通电', '首个成就详情标题为“通电”');
@@ -359,16 +363,19 @@ runTest('acceptance', async ({ openPage }) => {
   await page.waitFor('!document.getElementById("overlay").hidden');
   const levelsDesign = await page.js(`(function(){
     return {
-      head: (document.querySelector('.sheet-head h2')||{}).textContent || '',
-      bands: Array.prototype.map.call(document.querySelectorAll('.band-name'), function(b){ return b.textContent; }),
+      heads: document.querySelectorAll('.sheet-head').length,
+      glyphs: document.querySelectorAll('.band-glyph').length,
+      names: document.querySelectorAll('.band-name').length,
+      titles: document.querySelectorAll('.chapter-title').length,
       counts: Array.prototype.map.call(document.querySelectorAll('.chapter-count'), function(c){ return c.textContent; }),
       stars: document.querySelectorAll('.level-cell.is-challenge').length
     };
   })()`);
-  equal(levelsDesign.head, '选关', '选关面板有统一 sheet-head 标题');
-  equal(levelsDesign.bands.length, 8, '四章各两个可见的段名（基础/挑战）');
-  equal(levelsDesign.bands[0] + '/' + levelsDesign.bands[1], '基础/挑战', '分带标签顺序为基础、挑战');
-  ok(levelsDesign.counts.every(function (c) { return /^\d+\s*\/\s*60$/.test(c); }), '章节头计数统一为 已通/总数');
+  equal(levelsDesign.heads, 0, '选关面板不再有标题文字');
+  equal(levelsDesign.glyphs, 8, '四章各两个分带图标（基础/挑战）');
+  equal(levelsDesign.names, 0, '分带不再写“基础/挑战”文字');
+  equal(levelsDesign.titles, 0, '章节不再写中文标题（只留罗马数字）');
+  ok(levelsDesign.counts.every(function (c) { return /^\d+\s*\/\s*60$/.test(c); }), '章节计数保留为数字');
   equal(levelsDesign.stars, 0, '关卡格不再重复星标（挑战段由分带表达）');
   equal(await page.js('!!document.querySelector(".module-ghost")'), true, '程序打开面板时 sticky ghost 仍在');
   await page.key('Escape');
@@ -393,6 +400,73 @@ runTest('acceptance', async ({ openPage }) => {
   await page.waitFor('!document.querySelector(".node[data-selected=\\"true\\"]")');
   equal(await page.js('window.RSL.APP.state.board.selectedNode'), null, 'Escape 清空节点选择');
   equal(await page.js('window.RSL.APP.state.board.selectedNodes.length'), 0, 'Escape 清空多选集合');
+
+  /* ------------------------------------------------------------------
+   * F2. S 元件：最多 4 组额外代换（共 5 组），每组橙原子 + 蓝公式
+   * ------------------------------------------------------------------ */
+  await page.js('window.RSL.APP.state.forceUnlock = true');
+  await page.js(`(function(){
+    var st=window.RSL.APP.state;
+    var i=st.levels.findIndex(function(l){return l.id==='CH1-04';});
+    window.RSL.APP.loadLevel(i);
+  })()`);
+  await page.waitFor('window.RSL.APP.state.level.id === "CH1-04"');
+  await page.js('try{window.RSL.UI.els.coachPop.click();}catch(e){}');
+  await page.js('document.querySelector(".tile[data-key=\\"subst\\"]").click()');
+  await page.waitFor('!!document.querySelector(".node[data-kind=\\"subst\\"]")');
+  await page.js(`(function(){
+    var b=window.RSL.APP.state.board;
+    var n=b.items.find(function(x){return x.kind==='subst';});
+    b.select(n.id);
+  })()`);
+  const substGroups = await page.js(`(function(){
+    for (var i=0;i<4;i++) {
+      var plus=document.querySelector('.opt[data-config="dual"]');
+      if (plus) plus.click();
+    }
+    var ports=Array.prototype.map.call(document.querySelectorAll('.node[data-kind="subst"] .port-in'), function(p){
+      return {id:p.dataset.port, role:p.dataset.role};
+    });
+    return {
+      count: ports.length,
+      atoms: ports.filter(function(p){return p.role==='atom';}).length,
+      formulas: ports.filter(function(p){return p.role==='formula';}).length,
+      assertion: ports.filter(function(p){return p.role==='assertion';}).length,
+      hidden: document.getElementById('popover').hidden,
+      last: ports.map(function(p){return p.id;}).slice(-2)
+    };
+  })()`);
+  equal(substGroups.count, 11, 'S 元件最多 1+4 组：共 11 个输入端口');
+  equal(substGroups.atoms, 5, '5 组原子端口都是橙色角色');
+  equal(substGroups.formulas, 5, '5 组公式端口都是蓝色角色');
+  equal(substGroups.assertion, 1, '断言端口仍为墨色角色');
+  equal(substGroups.last, ['atom5', 'formula5'], '第 5 组端口是 atom5/formula5');
+  equal(substGroups.hidden, true, '加满 4 组后加号浮条自动收起');
+
+  const multiSubst = await page.js(`(function(){
+    var Engine=window.RSL.Engine, L=window.RSL.Logic;
+    var nodes=[
+      {id:'ax',kind:'axiom',config:{axiomId:'ax-2'}},
+      {id:'p',kind:'atom',config:{name:'P'}},
+      {id:'q',kind:'atom',config:{name:'Q'}},
+      {id:'r',kind:'atom',config:{name:'R'}},
+      {id:'s',kind:'subst',config:{groups:2}}
+    ];
+    var edges=[
+      {from:{node:'ax',port:'out'},to:{node:'s',port:'assertion'}},
+      {from:{node:'p',port:'out'},to:{node:'s',port:'atom'}},
+      {from:{node:'q',port:'out'},to:{node:'s',port:'formula'}},
+      {from:{node:'q',port:'out'},to:{node:'s',port:'atom2'}},
+      {from:{node:'r',port:'out'},to:{node:'s',port:'formula2'}},
+      {from:{node:'r',port:'out'},to:{node:'s',port:'atom3'}},
+      {from:{node:'p',port:'out'},to:{node:'s',port:'formula3'}}
+    ];
+    var r=Engine.evaluate({}, nodes, edges);
+    var res=r.results['s'];
+    return {state:res.state, eq:res.ast ? L.eq(res.ast, L.parse('(Q→(R→P))→((Q→R)→(Q→P))')) : false};
+  })()`);
+  equal(multiSubst.state, 'valid', '引擎可以一次应用 3 组代入');
+  equal(multiSubst.eq, true, '多组代入结果与逐组替换一致');
 
   /* ------------------------------------------------------------------
    * G. 暗色主题

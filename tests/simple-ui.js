@@ -40,13 +40,14 @@ runTest('simple-ui', async ({ openPage }) => {
   const chapters = await page.js(`(function(){
     return Array.from(document.querySelectorAll('.chapter')).map(function(c){
       return {roman:c.querySelector('.chapter-roman').textContent,
-              title:c.querySelector('.chapter-title').textContent,
+              progress:!!c.querySelector('.chapter-progress'),
               levels:c.querySelectorAll('.level-cell').length};
     });
   })()`);
   equal(chapters.map((c) => c.roman), ['Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ'], '四章罗马数字为 Ⅰ/Ⅱ/Ⅲ/Ⅳ');
-  equal(chapters.map((c) => c.title), ['命题', '谓词', '等词', '集合'], '四章标题为 命题/谓词/等词/集合');
+  ok(chapters.every((c) => c.progress), '每章标题行保留进度线');
   equal(chapters.map((c) => c.levels), [60, 60, 60, 60], '每章 60 关');
+  equal(await page.js('document.querySelectorAll(".chapter-title").length'), 0, '选关界面不再使用章节名文字');
 
   const close = await page.js(`(function(){
     var x=document.querySelector('.sheet-x');
