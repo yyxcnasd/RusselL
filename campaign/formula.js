@@ -10,7 +10,12 @@ function pred(name, t1, t2) {
 function not(a) { return ['-.'].concat(a); }
 function imp(a, b) { return ['('].concat(a, ['->'], b, [')']); }
 function all(v, a) { return ['A.', String(v)].concat(a); }
+function exists(v, a) { return ['E.', String(v)].concat(a); }
+function mem(a, b) { return [a[0], 'e.', b[0]]; }
+function and(a, b) { return ['('].concat(a, ['/\\'], b, [')']); }
+function or(a, b) { return ['('].concat(a, ['\\/'], b, [')']); }
+function iff(a, b) { return ['('].concat(a, ['<->'], b, [')']); }
 function notNot(a) { return not(not(a)); }
 function iff(a, b) { return imp(imp(a, b), imp(b, a)); }
 
-module.exports = { atom, term, pred, not, imp, all, notNot, iff };
+module.exports = { atom, term, pred, not, imp, all, exists, mem, and, or, iff, notNot };

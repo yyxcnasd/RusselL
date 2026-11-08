@@ -202,6 +202,73 @@ function compileProof(proof, builder, ctx) {
         builder.connect(resolve(pt.of), 'out', id, 'assertion');
         break;
       }
+      case 'existsI': {
+        id = builder.addNode('exists-intro', { v: pt.v });
+        builder.connect(resolve(pt.of), 'out', id, 'assertion');
+        break;
+      }
+      case 'existsE': {
+        id = builder.addNode('exists-elim', {});
+        builder.connect(resolve(pt.ex), 'out', id, 'exists');
+        builder.connect(resolve(pt.imp), 'out', id, 'implication');
+        break;
+      }
+      case 'andI': {
+        id = builder.addNode('and-intro', {});
+        builder.connect(resolve(pt.a), 'out', id, 'a');
+        builder.connect(resolve(pt.b), 'out', id, 'b');
+        break;
+      }
+      case 'andE': {
+        id = builder.addNode('and-elim', { side: pt.side || 'l' });
+        builder.connect(resolve(pt.of), 'out', id, 'assertion');
+        break;
+      }
+      case 'orI': {
+        id = builder.addNode('or-intro', { side: pt.side || 'r' });
+        builder.connect(resolve(pt.of), 'out', id, 'assertion');
+        builder.connect(builder.formula(pt.formula), 'out', id, 'formula');
+        break;
+      }
+      case 'orE': {
+        id = builder.addNode('or-elim', {});
+        builder.connect(resolve(pt.or), 'out', id, 'or');
+        builder.connect(resolve(pt.ca), 'out', id, 'ca');
+        builder.connect(resolve(pt.cb), 'out', id, 'cb');
+        break;
+      }
+      case 'iffI': {
+        id = builder.addNode('iff-intro', {});
+        builder.connect(resolve(pt.ab), 'out', id, 'ab');
+        builder.connect(resolve(pt.ba), 'out', id, 'ba');
+        break;
+      }
+      case 'iffE': {
+        id = builder.addNode('iff-elim', { dir: pt.dir || 'lr' });
+        builder.connect(resolve(pt.of), 'out', id, 'assertion');
+        break;
+      }
+      case 'setExt': {
+        id = builder.addNode('set-ext', {});
+        builder.connect(builder.termNode(pt.a), 'out', id, 'a');
+        builder.connect(builder.termNode(pt.b), 'out', id, 'b');
+        break;
+      }
+      case 'setEmpty': {
+        id = builder.addNode('set-empty', {});
+        break;
+      }
+      case 'setPair': {
+        id = builder.addNode('set-pair', {});
+        builder.connect(builder.termNode(pt.u), 'out', id, 'u');
+        builder.connect(builder.termNode(pt.v), 'out', id, 'v');
+        break;
+      }
+      case 'setUnion': {
+        id = builder.addNode('set-union', {});
+        builder.connect(builder.termNode(pt.a), 'out', id, 'a');
+        break;
+      }
       case 'shift': {
         id = builder.addNode('shift', { v: pt.v });
         builder.connect(builder.formula(pt.formula), 'out', id, 'formula');

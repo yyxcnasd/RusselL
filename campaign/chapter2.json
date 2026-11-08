@@ -3,24 +3,22 @@
     "no": 25,
     "chapter": 1,
     "label": null,
-    "title": "全称封闭",
-    "teaches": "把 *01 放在全称量词下：∀x(P→P)。",
-    "hint": "连上 *01，再用全称推广。",
+    "title": "存在自反",
+    "teaches": "存在一个自身相等的个体：∃x(x=x)。",
+    "hint": "先证 x=x，再做存在推广。",
     "targetTokens": [
       "|-",
-      "A.",
+      "E.",
       "x",
-      "(",
-      "P",
-      "->",
-      "P",
-      ")"
+      "x",
+      "=",
+      "x"
     ],
     "proof": {
-      "op": "gen",
+      "op": "existsI",
       "of": {
-        "op": "lemma",
-        "n": 1
+        "op": "eqRefl",
+        "t": "x"
       },
       "v": "x"
     },
@@ -30,15 +28,13 @@
     "no": 26,
     "chapter": 1,
     "label": null,
-    "title": "双层全称封闭",
-    "teaches": "∀x∀y(P→P)：连续两次全称推广。",
-    "hint": "先推广 y，再推广 x。",
+    "title": "存在的同一律",
+    "teaches": "∃x(P→P)：把同一律放进存在量词。",
+    "hint": "对 *01 做存在推广。",
     "targetTokens": [
       "|-",
-      "A.",
+      "E.",
       "x",
-      "A.",
-      "y",
       "(",
       "P",
       "->",
@@ -46,14 +42,10 @@
       ")"
     ],
     "proof": {
-      "op": "gen",
+      "op": "existsI",
       "of": {
-        "op": "gen",
-        "of": {
-          "op": "lemma",
-          "n": 1
-        },
-        "v": "y"
+        "op": "lemma",
+        "n": 1
       },
       "v": "x"
     },
@@ -63,35 +55,30 @@
     "no": 27,
     "chapter": 1,
     "label": null,
-    "title": "替换后封闭",
-    "teaches": "把 *01 的 P 换成 Q 再全称封闭：∀x(Q→Q)。",
-    "hint": "连接 *01 并代入 P:=Q，再全称推广。",
+    "title": "全称下的存在",
+    "teaches": "∀y∃x(x=x)：任意 y 下都存在自反个体。",
+    "hint": "先存在推广，再全称推广。",
     "targetTokens": [
       "|-",
       "A.",
+      "y",
+      "E.",
       "x",
-      "(",
-      "Q",
-      "->",
-      "Q",
-      ")"
+      "x",
+      "=",
+      "x"
     ],
     "proof": {
       "op": "gen",
       "of": {
-        "op": "subst",
+        "op": "existsI",
         "of": {
-          "op": "lemma",
-          "n": 1
+          "op": "eqRefl",
+          "t": "x"
         },
-        "atoms": {
-          "P": [
-            "Q"
-          ]
-        },
-        "vars": null
+        "v": "x"
       },
-      "v": "x"
+      "v": "y"
     },
     "stats": {}
   },
@@ -99,32 +86,28 @@
     "no": 28,
     "chapter": 1,
     "label": null,
-    "title": "皮尔士全称闭包",
-    "teaches": "把 *24 皮尔士律放在全称量词下。",
-    "hint": "连上 *24，再用全称推广。",
+    "title": "存在的全称",
+    "teaches": "∃x∀y(y=y)：存在一个个体，使任意 y 都自反。",
+    "hint": "先全称推广 y=y，再做存在推广。",
     "targetTokens": [
       "|-",
-      "A.",
+      "E.",
       "x",
-      "(",
-      "(",
-      "(",
-      "P",
-      "->",
-      "Q",
-      ")",
-      "->",
-      "P",
-      ")",
-      "->",
-      "P",
-      ")"
+      "A.",
+      "y",
+      "y",
+      "=",
+      "y"
     ],
     "proof": {
-      "op": "gen",
+      "op": "existsI",
       "of": {
-        "op": "lemma",
-        "n": 24
+        "op": "gen",
+        "of": {
+          "op": "eqRefl",
+          "t": "y"
+        },
+        "v": "y"
       },
       "v": "x"
     },
