@@ -651,24 +651,7 @@
         return { tokens: assertionOf([t, '=', t]), note: '=I · ' + t };
       }
     },
-    'eq-subst': {
-      label: '等词替换', kindLabel: '=E', group: 'rule', symbol: '=E', construct: false,
-      ports: {
-        inputs: [{ id: 'eq', label: '断言 x = y', type: ASSERTION }, { id: 'formula', label: '断言 A', type: ASSERTION }],
-        outputs: [{ id: 'out', label: 'A[y/x]', type: ASSERTION }]
-      },
-      config: { dir: 'l2r' },
-      help: 'x = y 与 A 得出把 A 里 x 换成 y 的结论（l2r）；r2l 则把 y 换成 x。',
-      apply: function (inputs, cfg) {
-        var eqBody = assertionBody(inputs, 'eq', '等词断言');
-        var body = assertionBody(inputs, 'formula', '断言 A');
-        var p = equalityParts(eqBody);
-        var from = cfg.dir === 'r2l' ? p.b : p.a;
-        var to = cfg.dir === 'r2l' ? p.a : p.b;
-        var out = substVarAssertion(body, from, to);
-        return { tokens: assertionOf(out), note: '=E · ' + from + '→' + to };
-      }
-    },
+
 
     /* ---- 定理：*NN，只引用更早关卡 ---- */
     theorem: {
