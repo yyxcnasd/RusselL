@@ -58,7 +58,7 @@
     if (!ax) fail('未知公理 ' + schema);
     if (ax.needsVar) {
       var b = v || 'x';
-      if (!/^[xyz]$/.test(b)) b = 'x';
+      if (!/^[xyzuvw]$/.test(b)) b = 'x';
       if (schema === 'A4') return ['(', 'A.', b, 'P', '->', 'P', ')'];
       if (schema === 'A5') {
         return ['(', 'A.', b, '(', 'P', '->', 'Q', ')', '->',
@@ -99,6 +99,17 @@
   }
 
   function inputsGuard() { return null; }
+
+  var VAR_POOL = ['x', 'y', 'z', 'u', 'v', 'w'];
+  /** 取 n 个不在 used 中的变元名（集合公理需要避开输入集合名）。 */
+  function freshVars(used, n) {
+    var out = [];
+    for (var i = 0; i < VAR_POOL.length && out.length < n; i += 1) {
+      if (used.indexOf(VAR_POOL[i]) < 0) out.push(VAR_POOL[i]);
+    }
+    if (out.length < n) fail('没有足够的变元名可用');
+    return out;
+  }
 
   /* 等词式解析：x = y */
   function equalityParts(bodyTokens) {
@@ -164,7 +175,7 @@
       help: '个体变元 x/y/z；谓词和等词靠它组装。',
       apply: function (inputs, cfg) {
         var name = (cfg.name || 'x').toLowerCase().slice(0, 1);
-        if (!/^[xyz]$/.test(name)) name = 'x';
+        if (!/^[xyzuvw]$/.test(name)) name = 'x';
         return { tokens: ['setvar', name], note: '变元 ' + name };
       }
     },
@@ -195,7 +206,7 @@
       apply: function (inputs, cfg) {
         var a = need(inputs, 'a', '公式 A');
         var v = (cfg.v || 'x').toLowerCase().slice(0, 1);
-        if (!/^[xyz]$/.test(v)) v = 'x';
+        if (!/^[xyzuvw]$/.test(v)) v = 'x';
         return { tokens: wffOf(['E.', v].concat(asBody(a))), note: '∃' + v };
       }
     },
@@ -260,7 +271,7 @@
       apply: function (inputs, cfg) {
         var a = need(inputs, 'a', '公式 A');
         var v = (cfg.v || 'x').toLowerCase().slice(0, 1);
-        if (!/^[xyz]$/.test(v)) v = 'x';
+        if (!/^[xyzuvw]$/.test(v)) v = 'x';
         return { tokens: wffOf(['A.', v].concat(asBody(a))), note: '∀' + v };
       }
     },
@@ -342,7 +353,7 @@
         var a = need(inputs, 'formula', '公式 A');
         var body = asBody(a);
         var v = (cfg.v || 'x').toLowerCase().slice(0, 1);
-        if (!/^[xyz]$/.test(v)) v = 'x';
+        if (!/^[xyzuvw]$/.test(v)) v = 'x';
         if (T.freeVars(wffOf(body)).indexOf(v) >= 0) fail('变元 ' + v + ' 在公式中自由出现，不能做全称引入');
         return { tokens: assertionOf(['('].concat(body, ['->', 'A.', v], body, [')'])), note: '∀I* · ' + v };
       }
@@ -356,7 +367,7 @@
         var a = need(inputs, 'assertion', '断言 A');
         if (T.typeOf(a) !== '|-') fail('输入必须是 ⊢ 断言');
         var v = (cfg.v || 'x').toLowerCase().slice(0, 1);
-        if (!/^[xyz]$/.test(v)) v = 'x';
+        if (!/^[xyzuvw]$/.test(v)) v = 'x';
         return { tokens: assertionOf(['E.', v].concat(asBody(a))), note: '∃I · ' + v };
       }
     },
@@ -482,7 +493,7 @@
       apply: function (inputs, cfg) {
         var a = assertionBody(inputs, 'assertion', '断言 A');
         var v = (cfg.v || 'x').toLowerCase().slice(0, 1);
-        if (!/^[xyz]$/.test(v)) v = 'x';
+        if (!/^[xyzuvw]$/.test(v)) v = 'x';
         return { tokens: assertionOf(['A.', v].concat(a)), note: '∀I · ' + v };
       }
     },
@@ -495,7 +506,7 @@
         var a = assertionBody(inputs, 'assertion', '断言 ∀x A');
         var got = forallParts(a, '输入');
         var t = (cfg.t || 'x').toLowerCase().slice(0, 1);
-        if (!/^[xyz]$/.test(t)) t = 'x';
+        if (!/^[xyzuvw]$/.test(t)) t = 'x';
         return { tokens: assertionOf(substVarAssertion(got.body, got.v, t)), note: '∀E · ' + t };
       }
     },
@@ -539,7 +550,7 @@
           right = asBody(T.substituteVar(wffOf(bodyA), x, y));
         } else {
           var v = (cfg && cfg.v) || 'z';
-          if (!/^[xyz]$/.test(v)) v = 'z';
+          if (!/^[xyzuvw]$/.test(v)) v = 'z';
           left = asBody(T.substituteVar(wffOf(bodyA), v, x));
           right = asBody(T.substituteVar(wffOf(bodyA), v, y));
         }
@@ -556,8 +567,9 @@
       help: '两个集合元素完全相同则相等。',
       apply: function (inputs) {
         var a = termOf(inputs, 'a', 'x'), b = termOf(inputs, 'b', 'y');
-        var inner = ['('].concat(['x', 'e.', a], ['<->'], ['x', 'e.', b], [')']);
-        return { tokens: assertionOf(['('].concat(['A.', 'x'], inner, ['->'], [a, '=', b], [')'])), note: 'EXT' };
+        var v = freshVars([a, b], 1)[0];
+        var inner = ['('].concat([v, 'e.', a], ['<->'], [v, 'e.', b], [')']);
+        return { tokens: assertionOf(['('].concat(['A.', v], inner, ['->'], [a, '=', b], [')'])), note: 'EXT' };
       }
     },
     'set-empty': {
@@ -576,11 +588,10 @@
       help: '任给两个集合，存在恰好以它们为元素的集合。',
       apply: function (inputs) {
         var u = termOf(inputs, 'u', 'x'), v = termOf(inputs, 'v', 'y');
-        var cond = ['('].concat([u, '='], [v], ['\\/'], [u, '=', v], [')']);
-        /* 直接用 u=v 作为占位：x=u ∨ x=v 的规范 token */
-        cond = ['('].concat(['x', '=', u], ['\\/'], ['x', '=', v], [')']);
-        var mem = ['x', 'e.', 'z'];
-        return { tokens: assertionOf(['E.', 'z'].concat(['A.', 'x'], ['('], cond, ['<->'], mem, [')'])), note: 'PAIR' };
+        var fresh = freshVars([u, v], 2);
+        var w = fresh[0], e = fresh[1];
+        var cond = ['('].concat([w, '=', u], ['\\/'], [w, '=', v], [')']);
+        return { tokens: assertionOf(['E.', e].concat(['A.', w], ['('], cond, ['<->'], [w, 'e.', e], [')'])), note: 'PAIR' };
       }
     },
     'set-union': {
@@ -591,8 +602,10 @@
       apply: function (inputs) {
         var a = termOf(inputs, 'a', 'x');
         var AND = '/' + String.fromCharCode(92);
-        var inner = ['E.', 'y', '('].concat(['x', 'e.', 'y'], [AND], ['y', 'e.', a], [')']);
-        return { tokens: assertionOf(['E.', 'z', 'A.', 'x', '('].concat(inner, ['<->'], ['x', 'e.', 'z'], [')'])), note: 'UNION' };
+        var fresh = freshVars([a], 3);
+        var e = fresh[0], w = fresh[1], y = fresh[2];
+        var inner = ['E.', y, '('].concat([w, 'e.', y], [AND], [y, 'e.', a], [')']);
+        return { tokens: assertionOf(['E.', e].concat(['A.', w], ['('], inner, ['<->'], [w, 'e.', e], [')'])), note: 'UNION' };
       }
     },
     'eq-refl': {
@@ -602,7 +615,7 @@
       help: '任何个体自己等于自己：x=x / y=y / z=z。',
       apply: function (inputs, cfg) {
         var t = (cfg.t || 'x').toLowerCase().slice(0, 1);
-        if (!/^[xyz]$/.test(t)) t = 'x';
+        if (!/^[xyzuvw]$/.test(t)) t = 'x';
         return { tokens: assertionOf([t, '=', t]), note: '=I · ' + t };
       }
     },
