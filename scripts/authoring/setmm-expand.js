@@ -139,14 +139,14 @@ function expand(label, sub, hypTerms, levelMap) {
       if (keyOf(P) !== keyOf(Term.treeToBody(tree.b))) throw new Error('sp 实例不匹配');
       out = { op: 'axiom', schema: 'A4', v, atoms: { P } };
     } else if (s.label === 'ax-5') {
-      /* ax-5: φ → ∀xφ（x 不在 φ 中自由出现），对应本作 A6。 */
+      /* ax-5: φ → ∀xφ（x 不在 φ 中自由出现），对应本作 shift 规则。 */
       const body = conv(actual(s));
       const tree = Term.read(['wff'].concat(body));
       if (tree.k !== 'imp' || tree.b.k !== 'all') throw new Error('ax-5 形状不符');
       const v = tree.b.v;
       const P = Term.treeToBody(tree.a);
       if (keyOf(P) !== keyOf(Term.treeToBody(tree.b.a))) throw new Error('ax-5 实例不匹配');
-      out = { op: 'axiom', schema: 'A6', v, atoms: { P } };
+      out = { op: 'shift', v, formula: P };
     } else if (AXIOM_SCHEMA[s.label]) {
       const ax = AXIOM_SCHEMA[s.label];
       const binds = matchSchema(ax.body, conv(actual(s)));

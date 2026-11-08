@@ -202,6 +202,11 @@ function compileProof(proof, builder, ctx) {
         builder.connect(resolve(pt.of), 'out', id, 'assertion');
         break;
       }
+      case 'shift': {
+        id = builder.addNode('shift', { v: pt.v });
+        builder.connect(builder.formula(pt.formula), 'out', id, 'formula');
+        break;
+      }
       case 'allE': {
         id = builder.addNode('all-elim', { t: pt.t });
         builder.connect(resolve(pt.of), 'out', id, 'assertion');
@@ -295,6 +300,7 @@ function compileLevel(def, prevLevels) {
     mergedPalette.push(entry);
   });
   builder.used().forEach((entry) => {
+    if (entry.kind === 'target') return;
     const k = entry.kind + ':' + JSON.stringify(entry.config || {});
     if (seenPalette.has(k)) return;
     seenPalette.add(k);

@@ -49,9 +49,6 @@
     },
     A5: {
       label: '公理 A5', formula: '∀x(P→Q)→(∀xP→∀xQ)', why: '全称分配：∀ 可以分配到蕴涵两侧。', needsVar: true
-    },
-    A6: {
-      label: '公理 A6', formula: 'P→∀xP', why: '全称引入：若 x 不在 P 中自由出现，则 P 推出 ∀xP。', needsVar: true
     }
   };
 
@@ -67,7 +64,6 @@
         return ['(', 'A.', b, '(', 'P', '->', 'Q', ')', '->',
           '(', 'A.', b, 'P', '->', 'A.', b, 'Q', ')', ')'];
       }
-      if (schema === 'A6') return ['(', 'P', '->', 'A.', b, 'P', ')'];
     }
     if (!cache.axiom[schema]) cache.axiom[schema] = asBody(T.parse(ax.formula));
     return cache.axiom[schema];
@@ -283,6 +279,20 @@
         var r = T.detach(assertionOf(a), assertionOf(b));
         if (!r.ok) fail(r.reason || '两路断言不能分离');
         return { tokens: r.out, note: r.form || '分离' };
+      }
+    },
+    shift: {
+      label: '全称引入', kindLabel: '∀I*', group: 'rule', symbol: '∀*', construct: false,
+      ports: { inputs: [{ id: 'formula', label: '公式 A', type: FORMULA }], outputs: [{ id: 'out', label: 'A→∀x A', type: ASSERTION }] },
+      config: { v: 'x' },
+      help: '若 x 不在 A 中自由出现，则从 A 得到 A→∀x A（重言式上的全称引入）。',
+      apply: function (inputs, cfg) {
+        var a = need(inputs, 'formula', '公式 A');
+        var body = asBody(a);
+        var v = (cfg.v || 'x').toLowerCase().slice(0, 1);
+        if (!/^[xyz]$/.test(v)) v = 'x';
+        if (T.freeVars(wffOf(body)).indexOf(v) >= 0) fail('变元 ' + v + ' 在公式中自由出现，不能做全称引入');
+        return { tokens: assertionOf(['('].concat(body, ['->', 'A.', v], body, [')'])), note: '∀I* · ' + v };
       }
     },
     gen: {
