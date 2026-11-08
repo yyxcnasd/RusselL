@@ -82,21 +82,25 @@
   --port-atom:#e66f3f;
   --port-assert:#2b2721;
 
-  /* 状态型按钮（校验 / 下一关 / 当前关卡）：浅色是深底白字，暗色反相为橙底深字 */
-  --btn-strong-bg:var(--ink);
-  --btn-strong-fg:var(--card);
-  --btn-strong-shadow:#171410;
-  --ready-fg:#102016;
-  --ready-shadow:#2b6c4b;
+  /* 反相印章：主操作 / 当前关卡 / 选中芯片共用一个角色（浅色墨底纸字，
+     暗色纸底墨字）。accent 不再兼任主操作，只做注意力与状态标记。 */
+  --stamp-bg:var(--ink);
+  --stamp-fg:var(--card);
+  --stamp-shadow:#171410;
+  --ok-shadow:#2b6c4b;
 
-  /* 投影 */
-  --node-shadow:0 3px 0 rgba(63,52,39,.08);
+  /* 投影：唯一贴纸语言（3px 实色硬投影），hover/press 只改偏移 */
   --key:var(--line);
-  --actions-shadow:0 3px 0 rgba(63,52,39,.06);
+  --sticker:0 3px 0 var(--key);
+  --sticker-hover:0 4px 0 var(--key);
+  --sticker-press:0 1px 0 var(--key);
+  --node-shadow:var(--sticker);
+  --actions-shadow:var(--sticker);
   --pop-shadow:0 14px 34px rgba(45,36,25,.18);
   --sheet-shadow:0 30px 80px rgba(45,36,25,.25);
   --toast-shadow:0 10px 26px rgba(45,36,25,.20);
   --scrim:rgba(45,36,25,.38);
+  --ghost-shadow:0 18px 44px rgba(45,36,25,.22);
 
   /* 棋盘上的半透明容器 */
   --coach-bg:var(--glass);
@@ -105,18 +109,19 @@
   --toast-bg:var(--ink);
   --toast-fg:var(--card);
 
-  /* 形状与尺寸 */
+  /* 形状：四档圆角 + 胶囊；移动端不引入新值 */
   --shell-w:1180px;
   --gap:28px;
-  --radius-sm:13px;
-  --radius:18px;
-  --radius-lg:24px;
+  --radius-sm:12px;
+  --radius:16px;
+  --radius-lg:22px;
   --radius-sheet:26px;
   --radius-pill:999px;
 
-  /* 字体 */
-  --font:"IBM Plex Sans",sans-serif;
+  /* 字体：公式用 STIX，界面用 Plex + 系统中文，避免中文落到不可控的默认字体 */
+  --font:"IBM Plex Sans","PingFang SC","Hiragino Sans GB","Source Han Sans SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif;
   --math:"STIX Two Text",serif;
+  --icon-stroke:1.75;
 
   /* 动效 */
   --ease:cubic-bezier(.2,.7,.3,1);
@@ -138,18 +143,19 @@ html[data-theme="dark"]{
 
   --bg:#151311;
   --board:#201c17;
-  --card:#29241e;
-  --soft:#332d25;
-  --soft-hover:#3d362d;
-  --hover:#3a332b;
+  /* 比旧值提亮：让节点/卡片与板面之间有可读的层级差 */
+  --card:#302a23;
+  --soft:#3a332b;
+  --soft-hover:#443c32;
+  --hover:#423a31;
   --glass:rgba(32,28,23,.72);
   --board-inset:inset 0 0 0 1px rgba(255,255,255,.03);
 
   --ink:#f1ece2;
   --muted:#a79f91;
 
-  --line:#413a30;
-  --line-strong:#5b5144;
+  --line:#4a4136;
+  --line-strong:#6a5e4e;
 
   --accent:#f08a5d;
   --accent-soft:#5a3828;
@@ -162,19 +168,20 @@ html[data-theme="dark"]{
   --port-atom:#f08a5d;
   --port-assert:#f1ece2;
 
-  --btn-strong-bg:var(--accent);
-  --btn-strong-fg:#1a1611;
-  --btn-strong-shadow:#7a3e24;
-  --ready-fg:#111111;
-  --ready-shadow:#2b6c4b;
+  /* 暗色反相印章：纸底墨字，与浅色墨底纸字同一角色 */
+  --stamp-bg:var(--ink);
+  --stamp-fg:#171410;
+  --stamp-shadow:#000000;
+  --ok-shadow:#2b6c4b;
 
-  --node-shadow:0 3px 0 rgba(0,0,0,.28);
-  --key:rgba(0,0,0,.28);
-  --actions-shadow:0 3px 0 rgba(0,0,0,.25);
+  --key:rgba(0,0,0,.38);
+  --node-shadow:var(--sticker);
+  --actions-shadow:var(--sticker);
   --pop-shadow:0 14px 34px rgba(0,0,0,.5);
   --sheet-shadow:0 30px 80px rgba(0,0,0,.55);
   --toast-shadow:0 10px 26px rgba(0,0,0,.45);
   --scrim:rgba(0,0,0,.62);
+  --ghost-shadow:0 18px 44px rgba(0,0,0,.55);
 
   --coach-bg:rgba(241,236,226,.055);
   --target-bg:rgba(241,236,226,.045);
@@ -251,14 +258,14 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
 }
 
 .level-num{
-  width:50px;height:50px;border-radius:16px;
+  width:50px;height:50px;border-radius:var(--radius);
   background:var(--card);border:1.5px solid var(--line);
   font-size:17px;font-weight:600;
-  box-shadow:0 3px 0 var(--key);
+  box-shadow:var(--sticker);
   transition:transform .12s var(--ease),box-shadow .12s var(--ease),border-color .12s var(--ease);
 }
-.level-num:hover{transform:translateY(-1px);box-shadow:0 4px 0 var(--key);border-color:var(--line-strong)}
-.level-num:active{transform:translateY(2px);box-shadow:0 1px 0 var(--key)}
+.level-num:hover{transform:translateY(-1px);box-shadow:var(--sticker-hover);border-color:var(--line-strong)}
+.level-num:active{transform:translateY(2px);box-shadow:var(--sticker-press)}
 .level-num:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 
 .goal{
@@ -275,24 +282,24 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
 /* 工具组：一块「迷你托盘」材质，按钮自己在内部摊平 */
 .actions{
   display:flex;align-items:center;gap:4px;padding:4px;
-  background:var(--card);border:1.5px solid var(--line);border-radius:16px;
+  background:var(--card);border:1.5px solid var(--line);border-radius:var(--radius);
   box-shadow:var(--actions-shadow);
 }
 
 .round-btn{
-  width:44px;height:44px;border-radius:14px;
+  width:44px;height:44px;border-radius:var(--radius-sm);
   background:var(--card);border:1.5px solid var(--line);
   font-size:18px;font-weight:500;
-  box-shadow:0 3px 0 var(--key);
+  box-shadow:var(--sticker);
   transition:transform .12s var(--ease),box-shadow .12s var(--ease),background .12s var(--ease),color .12s var(--ease);
 }
-.round-btn:hover{transform:translateY(-1px);box-shadow:0 4px 0 var(--key)}
-.round-btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--key)}
+.round-btn:hover{transform:translateY(-1px);box-shadow:var(--sticker-hover)}
+.round-btn:active{transform:translateY(2px);box-shadow:var(--sticker-press)}
 .round-btn:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 .sound-btn.is-muted{color:var(--muted);opacity:.75}
 
 .actions .round-btn{
-  width:38px;height:38px;border:0;border-radius:11px;background:transparent;
+  width:38px;height:38px;border:0;border-radius:var(--radius-sm);background:transparent;
   box-shadow:none;font-size:18px;color:var(--ink);
 }
 .actions .round-btn:hover{background:var(--soft);transform:none;box-shadow:none}
@@ -300,30 +307,30 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
 .actions .round-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
 .check-btn{
-  height:46px;padding:0 22px;border-radius:14px;
-  background:var(--btn-strong-bg);color:var(--btn-strong-fg);
+  height:46px;padding:0 22px;border-radius:var(--radius-sm);
+  background:var(--stamp-bg);color:var(--stamp-fg);
   font-size:15px;font-weight:600;
-  box-shadow:0 3px 0 var(--btn-strong-shadow);
+  box-shadow:var(--sticker);
   transition:transform .12s var(--ease),box-shadow .12s var(--ease),background .12s var(--ease),color .12s var(--ease);
 }
-.check-btn:hover{transform:translateY(-1px);box-shadow:0 4px 0 var(--btn-strong-shadow)}
-.check-btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--btn-strong-shadow)}
+.check-btn:hover{transform:translateY(-1px);box-shadow:var(--sticker-hover)}
+.check-btn:active{transform:translateY(2px);box-shadow:var(--sticker-press)}
 .check-btn:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 .check-btn.is-ready{
   background:var(--green);color:var(--on-green);
-  box-shadow:0 3px 0 var(--ready-shadow);
+  box-shadow:0 3px 0 var(--ok-shadow);
   animation:ready-pulse 1.1s ease-in-out infinite;
 }
 
 .actions .check-btn{
-  width:38px;height:38px;padding:0;border-radius:11px;
-  background:var(--btn-strong-bg);color:var(--btn-strong-fg);
+  width:38px;height:38px;padding:0;border-radius:var(--radius-sm);
+  background:var(--stamp-bg);color:var(--stamp-fg);
   font-size:21px;font-weight:600;box-shadow:none;
 }
-.actions .check-btn:hover{transform:none;box-shadow:none;background:var(--btn-strong-bg);color:var(--btn-strong-fg)}
+.actions .check-btn:hover{transform:none;box-shadow:none;background:var(--stamp-bg);color:var(--stamp-fg)}
 .actions .check-btn:active{transform:translateY(1px);box-shadow:none}
 .actions .check-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.actions .check-btn.is-ready{background:var(--green);color:var(--ready-fg)}
+.actions .check-btn.is-ready{background:var(--green);color:var(--on-green)}
 
 /* =========================================================================
  * 07 进度条
@@ -353,6 +360,7 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
   touch-action:none;cursor:default;
 }
 .board.is-panning{cursor:grabbing}
+.board.is-pinching{cursor:zoom-in}
 .board.is-wiring{cursor:crosshair}
 .board-world{position:absolute;inset:0;transform-origin:0 0}
 .nodes{position:absolute;inset:0}
@@ -389,7 +397,7 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
 
 .node{
   position:absolute;width:232px;min-height:100px;padding:11px 15px 12px;
-  background:var(--card);border:1.5px solid var(--line);border-radius:16px;
+  background:var(--card);border:1.5px solid var(--line);border-radius:var(--radius);
   box-shadow:var(--node-shadow);
   transition:border-color .12s var(--ease),box-shadow .12s var(--ease),transform .12s var(--ease);
 }
@@ -452,9 +460,8 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
 .port-out[data-role="formula"]{background:var(--port-formula);border-color:var(--port-formula)}
 .port-out[data-role="assertion"]{background:var(--port-assert);border-color:var(--port-assert)}
 
-/* 双代入的第二组端口：虚线 + 半透明，和主端口区分 */
-.port-in[data-port="atom2"],
-.port-in[data-port="formula2"]{opacity:.55;border-style:dashed}
+/* 双代入的第二组端口与主端口同一视觉，不再用虚线/半透明区分。 */
+
 
 /* 目标槽的输入端口：全体按 assertion 色，略大一点，向左多探出一点 */
 .node.is-target .port-in{
@@ -472,45 +479,52 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
   position:absolute;left:50%;top:46%;z-index:var(--z-coach);
   transform:translate(-50%,-50%);
   display:flex;align-items:center;gap:14px;padding:16px 22px;
-  border-radius:22px;background:var(--coach-bg);pointer-events:none;
+  border-radius:var(--radius-lg);background:var(--coach-bg);pointer-events:none;
   animation:coach 2.2s ease-in-out infinite;
 }
 .coach-tile{
-  display:grid;place-items:center;width:62px;height:62px;border-radius:16px;
+  display:grid;place-items:center;width:62px;height:62px;border-radius:var(--radius);
   background:var(--card);border:1.5px solid var(--line);
   font-family:var(--font);font-size:22px;font-weight:600;
-  box-shadow:0 3px 0 var(--key);
+  box-shadow:var(--sticker);
 }
 .coach-arrow{font-family:var(--math);font-size:30px;color:var(--accent)}
 .coach-goal{font-family:var(--math);font-size:40px;color:var(--accent)}
 
-/* 规则提示窗（点帮助卡片后出现） */
+/* 规则提示窗（点帮助卡片 / 首次进入教程关时出现） */
 .coach-pop{
   position:absolute;left:50%;top:50%;z-index:var(--z-coach-pop);
   transform:translate(-50%,-50%);max-width:calc(100vw - 32px);
-  padding:16px 22px;border-radius:22px;background:var(--coach-bg);border:0;
-  box-shadow:none;cursor:default;
+  padding:16px 22px 14px;border-radius:var(--radius-lg);background:var(--coach-bg);border:0;
+  box-shadow:var(--pop-shadow);cursor:default;
   backdrop-filter:blur(6px);
-  animation:coach 2.2s ease-in-out infinite;
+  text-align:center;
+}
+.coach-title{
+  font-family:var(--font);font-size:12px;font-weight:600;letter-spacing:.06em;
+  color:var(--muted);margin-bottom:10px;
+}
+.coach-hint{
+  font-family:var(--font);font-size:11px;color:var(--muted);opacity:.85;margin-top:10px;
 }
 .coach-flow{
-  display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:14px;
+  display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:12px;
   font-family:var(--font);font-size:20px;color:var(--ink);
 }
 .coach-flow .chip{
   display:grid;place-items:center;min-width:62px;height:62px;padding:0 12px;
-  border-radius:16px;background:var(--card);border:1.5px solid var(--line);
-  box-shadow:0 3px 0 var(--key);
-  font-family:var(--math);font-size:17px;white-space:nowrap;
+  border-radius:var(--radius);background:var(--card);border:1.5px solid var(--line);
+  box-shadow:var(--sticker);
+  font-family:var(--math);font-size:18px;white-space:nowrap;
 }
-.coach-flow .chip .formula{font-size:17px;color:inherit}
+.coach-flow .chip .formula{font-size:18px;color:inherit}
 .coach-flow .plus{font-family:var(--math);color:var(--muted);font-size:30px}
-.coach-flow .arrow{font-family:var(--math);color:var(--accent);font-size:30px}
+.coach-flow .arrow{font-family:var(--math);color:var(--accent);font-size:26px}
 .coach-flow .coach-mod{
   display:grid;place-items:center;min-width:62px;height:62px;padding:0 10px;
-  border-radius:16px;background:var(--accent-soft);color:var(--ink);
-  font-family:var(--font);font-weight:600;font-size:20px;
-  border:1.5px solid var(--line);box-shadow:0 3px 0 var(--key);
+  border-radius:var(--radius);background:var(--accent-soft);color:var(--ink);
+  font-family:var(--font);font-weight:600;font-size:19px;
+  border:1.5px solid var(--line);box-shadow:var(--sticker);
 }
 
 /* =========================================================================
@@ -531,13 +545,17 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
   flex:none;display:grid;place-items:center;width:70px;height:70px;border-radius:var(--radius);
   background:var(--card);border:1.5px solid var(--line);color:var(--ink);
   font-family:var(--font);font-size:22px;font-weight:600;
-  box-shadow:0 3px 0 var(--key);
+  box-shadow:var(--sticker);
   cursor:grab;touch-action:none;
   transition:transform .12s var(--ease),box-shadow .12s var(--ease),background .12s var(--ease),border-color .12s var(--ease);
 }
-.tile.is-long{font-size:16px;letter-spacing:.01em}
-.tile:hover{transform:translateY(-2px);box-shadow:0 5px 0 var(--key);background:var(--hover);border-color:var(--line-strong)}
-.tile:active{transform:translateY(2px);box-shadow:0 1px 0 var(--key)}
+/* 三种模块身份：变量（数学斜体）/ 连接词（大字重）/ 代号徽标（无衬线小字） */
+.tile.is-var{font-family:var(--math);font-style:italic;font-weight:400;font-size:27px}
+.tile.is-symbol{font-family:var(--font);font-weight:500;font-size:26px}
+.tile.is-code{font-family:var(--font);font-weight:600;font-size:16px;letter-spacing:.02em}
+.tile.is-code.is-long{font-size:11.5px;letter-spacing:0}
+.tile:hover{transform:translateY(-1px);box-shadow:var(--sticker-hover);background:var(--hover);border-color:var(--line-strong)}
+.tile:active{transform:translateY(2px);box-shadow:var(--sticker-press)}
 .tile:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 
 /* 拖拽时跟随指针的模块残影（fixed 定位，坐标系是视口） */
@@ -545,7 +563,7 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
   position:fixed;z-index:var(--z-ghost);pointer-events:none;opacity:.94;
   transform:translate(-50%,-50%) scale(var(--ghost-scale,1));
   border-color:var(--accent);
-  box-shadow:0 18px 44px rgba(45,36,25,.22);
+  box-shadow:var(--ghost-shadow);
 }
 .module-ghost .port{pointer-events:none}
 .module-ghost .node-formula{min-height:42px}
@@ -561,7 +579,7 @@ body.is-holding *{cursor:grabbing!important}
   position:fixed;left:50%;bottom:112px;z-index:var(--z-popover);
   transform:translateX(-50%);
   display:flex;align-items:center;gap:8px;max-width:calc(100vw - 28px);
-  padding:10px 12px;border-radius:20px;
+  padding:10px 12px;border-radius:var(--radius-lg);
   background:var(--card);border:1.5px solid var(--line);box-shadow:var(--pop-shadow);
   overflow-x:auto;scrollbar-width:none;overscroll-behavior-x:contain;
 }
@@ -577,9 +595,14 @@ body.is-holding *{cursor:grabbing!important}
 .opt:hover{background:var(--soft-hover);border-color:var(--line)}
 .opt:active{background:var(--line)}
 .opt:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.opt.is-on{background:var(--ink);color:var(--card);border-color:var(--ink)}
-.opt.is-on:hover{background:var(--ink)}
+.opt.is-on{background:var(--stamp-bg);color:var(--stamp-fg);border-color:var(--stamp-bg)}
+.opt.is-on:hover{background:var(--stamp-bg)}
+/* 浮条里代表公式/变元的芯片用数学体，代表代号/量词的按语义区分 */
+.opt-var{font-family:var(--math);font-style:italic;font-weight:400;font-size:20px}
+.opt-sym{font-family:var(--math);font-size:19px}
+.opt-code{font-family:var(--font);font-size:15px;font-weight:600}
 .formula-opt{font-family:var(--math);font-size:19px;font-weight:400;white-space:nowrap;padding:0 14px}
+.opt-plus{font-family:var(--font);font-size:24px;line-height:1;font-weight:400;padding:0}
 .opt-gap{flex:none;width:1px;height:30px;background:var(--line);margin:0 3px}
 
 /* =========================================================================
@@ -648,20 +671,34 @@ body.is-holding *{cursor:grabbing!important}
 .sheet-bar i:hover{background:var(--muted)}
 .sheet-bar i:active{cursor:grabbing;background:var(--muted)}
 
+/* 面板 chrome：所有非通关面板共用 标题 + 右对齐 meta（计数/进度） */
+.sheet-head{
+  display:flex;align-items:center;gap:10px;
+  margin:0 0 14px;padding:0 2px;
+}
+.sheet-head h2{
+  margin:0;font-size:18px;font-weight:600;line-height:1.2;color:var(--ink);
+}
+.sheet-meta{
+  font-size:12px;font-weight:600;color:var(--muted);white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+}
+
 /* =========================================================================
  * 17 选关面板 levels
  * ========================================================================= */
 
-.chapters{display:flex;flex-direction:column;gap:26px;padding-top:10px}
+.chapters{display:flex;flex-direction:column;gap:26px;padding-top:8px}
 
+/* 章节头：罗马数字 + 章名 + 计数 + 进度线；不再叠一条分隔线 */
 .chapter-head{
   display:flex;align-items:center;gap:12px;padding:0 2px 10px;
-  border-bottom:1px solid var(--line);
 }
 .chapter-roman{font-family:var(--math);font-size:28px;line-height:1;color:var(--muted);min-width:40px}
 .chapter-title{font-size:15px;font-weight:600;color:var(--ink);white-space:nowrap}
+.chapter-count{font-size:12px;font-weight:600;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
 .chapter-progress{
-  flex:1;height:3px;margin-left:6px;border-radius:3px;
+  flex:1;height:3px;border-radius:3px;
   background:var(--line);overflow:hidden;
 }
 .chapter-progress i{display:block;height:100%;background:var(--accent);border-radius:3px}
@@ -670,23 +707,28 @@ body.is-holding *{cursor:grabbing!important}
 .chapter.is-locked{opacity:.5}
 .chapter.is-locked .chapter-roman{color:var(--muted)}
 
-/* 基础段 / 挑战段 */
-.band{margin-top:16px}
-.band-head{display:flex;align-items:center;gap:10px;padding:0 2px 8px}
-.band-glyph{display:grid;place-items:center;width:18px;height:14px;color:var(--muted)}
-.band-glyph .icon{width:13px;height:13px;stroke-width:2}
+/* 基础段 / 挑战段：可见的段名 + 计数，挑战段用星形图标区分 */
+.band{margin-top:18px}
+.band-head{display:flex;align-items:center;gap:8px;padding:0 2px 9px}
+.band-glyph{display:grid;place-items:center;width:16px;height:16px;color:var(--muted)}
+.band-glyph .icon{width:16px;height:16px;stroke-width:var(--icon-stroke)}
 .band.challenge .band-glyph{color:var(--accent)}
-.band.is-locked .band-glyph{opacity:.35}
-.band-progress{flex:1;height:2px;border-radius:2px;background:var(--line);overflow:hidden}
+.band.is-locked .band-glyph,
+.band.is-locked .band-name{opacity:.45}
+.band-name{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.02em}
+.band-count{font-size:11px;color:var(--muted);opacity:.8;font-variant-numeric:tabular-nums}
+.band-progress{flex:1;height:2px;border-radius:2px;background:var(--line);overflow:hidden;margin-left:4px}
 .band-progress i{display:block;height:100%;background:var(--accent);opacity:.5;border-radius:2px}
 
 .levels{display:grid;grid-template-columns:repeat(9,48px);gap:10px;justify-content:center}
 .band .levels{padding-top:8px}
 
+/* 关卡格只保留四种语义：默认 / 已通关 / 当前 / 锁定。
+   挑战段由分带标题与图标表达，不再在格子上重复星标。 */
 .level-cell{
   position:relative;width:48px;height:48px;border-radius:var(--radius-sm);
   background:var(--soft);color:var(--muted);
-  font-size:14px;font-weight:500;
+  font-size:14px;font-weight:600;
   transition:background .12s var(--ease),color .12s var(--ease),transform .12s var(--ease),box-shadow .12s var(--ease);
 }
 /* hover/active 写在状态类之前：同一权重下状态颜色优先 */
@@ -694,21 +736,15 @@ body.is-holding *{cursor:grabbing!important}
 .level-cell:active{transform:translateY(1px)}
 .level-cell:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .level-cell.is-solved{background:var(--accent-soft);color:var(--ink)}
-.level-cell.is-current{background:var(--btn-strong-bg);color:var(--btn-strong-fg)}
-.level-cell.is-challenge-band.is-solved:not(.is-current){background:var(--soft)}
-.level-cell.is-challenge-band:not(.is-solved):not(.is-current){box-shadow:inset 0 0 0 1px var(--line)}
-.level-cell.is-challenge::after{
-  content:"★";position:absolute;right:5px;top:3px;
-  font-size:9px;line-height:1;color:var(--accent);opacity:.9;
-}
-.level-cell.is-challenge.is-solved::after{color:var(--green)}
+.level-cell.is-current{background:var(--stamp-bg);color:var(--stamp-fg)}
 
 /* 锁定态放最后：盖住 hover / solved / current 的底色 */
 .level-cell.is-locked{
-  background:transparent;color:var(--muted);opacity:.38;
-  cursor:not-allowed;box-shadow:inset 0 0 0 1px var(--line);
+  background:transparent;color:var(--muted);opacity:.45;
+  cursor:not-allowed;border:1px dashed var(--line);
 }
 .level-cell.is-locked:hover{transform:none;color:var(--muted);background:transparent}
+
 
 /* 效率条：宽度由 --effpx 内联变量给出 */
 .level-cell .eff{
@@ -722,28 +758,31 @@ body.is-holding *{cursor:grabbing!important}
  * 18 成就面板 achievements
  * ========================================================================= */
 
-.achv-head{display:flex;align-items:center;gap:12px;padding:8px 4px 16px}
-.achv-count{font-size:13px;color:var(--muted);font-weight:600;white-space:nowrap}
-.achv-bar{flex:1;height:3px;border-radius:3px;background:var(--line);overflow:hidden}
-.achv-bar i{display:block;height:100%;background:var(--accent);border-radius:3px}
+.achv-count{font-size:12px;font-weight:600;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
 
-.achv-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;padding:0 2px 12px}
+.achv-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;padding:2px 2px 12px}
 .achv{
-  display:flex;flex-direction:column;align-items:center;gap:7px;
-  padding:14px 6px 12px;border-radius:16px;background:var(--soft);
-  opacity:.55;filter:grayscale(1);cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  padding:12px 5px 10px;border-radius:var(--radius);background:var(--soft);
+  opacity:.68;filter:grayscale(1);cursor:pointer;
   transition:opacity .12s var(--ease),transform .12s var(--ease),background .12s var(--ease),box-shadow .12s var(--ease);
 }
-.achv:not([disabled]):hover{transform:translateY(-2px);box-shadow:0 2px 0 var(--key)}
+.achv:not([disabled]):hover{transform:translateY(-1px);background:var(--soft-hover)}
 .achv:not([disabled]):active{transform:translateY(1px)}
 .achv:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .achv[disabled]{cursor:default}
 .achv.is-on{opacity:1;filter:none;background:var(--accent-soft)}
 .achv-icon{display:grid;place-items:center;width:24px;height:24px;color:var(--ink)}
-.achv-icon .icon{width:24px;height:24px;stroke-width:1.7}
+.achv-icon .icon{width:24px;height:24px}
 .achv.is-on .achv-icon{color:var(--accent)}
 .achv-q{display:grid;place-items:center;width:24px;height:24px;color:var(--muted)}
-.achv-q .icon{width:24px;height:24px;stroke-width:1.7}
+.achv-q .icon{width:24px;height:24px}
+.achv-name{
+  max-width:100%;font-size:11px;line-height:1.3;color:var(--muted);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.achv.is-on .achv-name{color:var(--ink);font-weight:600}
+
 
 /* 成就详情 */
 .achv-detail{
@@ -762,7 +801,7 @@ body.is-holding *{cursor:grabbing!important}
 .achv-back:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .achv-back .icon{width:17px;height:17px}
 .achv-detail-icon{
-  display:grid;place-items:center;width:72px;height:72px;border-radius:22px;
+  display:grid;place-items:center;width:72px;height:72px;border-radius:var(--radius-lg);
   background:var(--soft);color:var(--muted);margin-top:12px;
 }
 .achv-detail-icon.is-on{background:var(--accent-soft);color:var(--accent)}
@@ -772,42 +811,56 @@ body.is-holding *{cursor:grabbing!important}
 
 /* =========================================================================
  * 19 帮助面板 help
+ * 面板内部统一是 flat row（soft 底、无贴纸投影）；白贴纸只属于棋盘模块。
  * ========================================================================= */
 
 .help{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:8px;padding:18px 8px 10px;width:100%;
+  display:flex;flex-direction:column;align-items:center;
+  gap:4px;padding:4px 4px 8px;width:100%;
 }
-.help-steps{display:flex;flex-direction:row;align-items:center;gap:12px;padding:12px 0 20px}
+.help-steps{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;padding:4px 0 14px;width:100%;max-width:520px;
+}
+.help-step{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  padding:11px 8px;border-radius:var(--radius-sm);background:var(--soft);
+}
+.help-step b{font-size:12px;font-weight:600;color:var(--ink);letter-spacing:.02em}
 .help-box{
-  display:grid;place-items:center;width:58px;height:58px;border-radius:16px;
-  background:var(--soft);font-size:26px;color:var(--ink);
+  display:grid;place-items:center;width:34px;height:34px;
+  border-radius:var(--radius-sm);background:var(--card);border:1px solid var(--line);
+  color:var(--ink);
 }
-.help-box .icon{width:24px;height:24px;stroke-width:2}
+.help-box .icon{width:18px;height:18px}
 
+.help-group{
+  width:100%;max-width:520px;margin:10px 0 0;
+  font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--muted);
+}
 .help-cards{
   display:grid;grid-template-columns:1fr 1fr;gap:10px;
-  padding:12px 0 2px;width:100%;max-width:520px;min-width:0;
+  padding:8px 0 2px;width:100%;max-width:520px;min-width:0;
 }
 .help-card{
-  display:flex;flex-direction:row;align-items:center;gap:10px;
-  padding:10px 12px;border-radius:14px;background:var(--soft);
+  display:flex;flex-direction:row;align-items:center;gap:9px;
+  padding:9px 11px;border-radius:var(--radius-sm);background:var(--soft);
   min-width:0;cursor:pointer;font-family:var(--font);text-align:left;
-  transition:background .12s var(--ease),box-shadow .12s var(--ease),transform .12s var(--ease);
+  transition:background .12s var(--ease),transform .12s var(--ease);
 }
-.help-card:hover{background:var(--soft-hover);transform:translateY(-1px);box-shadow:0 2px 0 var(--key)}
-.help-card:active{transform:translateY(1px);box-shadow:none}
+.help-card:hover{background:var(--soft-hover);transform:translateY(-1px)}
+.help-card:active{transform:translateY(1px)}
 .help-card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .help-card b{
-  font-family:var(--font);font-size:15px;font-weight:600;color:var(--ink);
-  min-width:22px;text-align:center;flex:none;
+  font-family:var(--font);font-size:14px;font-weight:600;color:var(--ink);
+  min-width:26px;text-align:center;flex:none;
 }
 .help-formula{font-size:13px;line-height:1.4;color:var(--muted);min-width:0;overflow-wrap:anywhere}
 
-.save-row{display:flex;flex-direction:row;justify-content:center;gap:10px;padding:6px 0 0}
+.save-row{display:flex;flex-direction:row;justify-content:center;gap:10px;padding:14px 0 0}
 .save-btn{
-  display:flex;align-items:center;gap:6px;height:40px;padding:0 12px;
-  border-radius:12px;background:var(--soft);color:var(--muted);font-size:12px;
+  display:flex;align-items:center;gap:6px;height:40px;padding:0 14px;
+  border-radius:var(--radius-sm);background:var(--soft);color:var(--muted);font-size:12px;font-weight:500;
   transition:background .12s var(--ease),color .12s var(--ease);
 }
 .save-btn:hover{color:var(--ink);background:var(--soft-hover)}
@@ -850,14 +903,14 @@ body.is-holding *{cursor:grabbing!important}
 .metric-bar i{display:block;height:100%;background:var(--green);border-radius:3px}
 
 .primary{
-  height:50px;padding:0 28px;border-radius:15px;
-  background:var(--btn-strong-bg);color:var(--btn-strong-fg);
+  height:50px;padding:0 28px;border-radius:var(--radius-sm);
+  background:var(--stamp-bg);color:var(--stamp-fg);
   font-size:16px;font-weight:600;
-  box-shadow:0 3px 0 var(--btn-strong-shadow);
+  box-shadow:var(--sticker);
   transition:transform .12s var(--ease),box-shadow .12s var(--ease);
 }
-.primary:hover{transform:translateY(-1px);box-shadow:0 4px 0 var(--btn-strong-shadow)}
-.primary:active{transform:translateY(1px);box-shadow:0 1px 0 var(--btn-strong-shadow)}
+.primary:hover{transform:translateY(-1px);box-shadow:var(--sticker-hover)}
+.primary:active{transform:translateY(1px);box-shadow:var(--sticker-press)}
 .primary:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 .next-btn{min-width:160px}
 
@@ -868,10 +921,10 @@ body.is-holding *{cursor:grabbing!important}
 .icon-sprite{position:absolute;width:0;height:0;overflow:hidden}
 .icon{
   width:20px;height:20px;display:block;margin:auto;
-  fill:none;stroke:currentColor;stroke-width:1.7;
+  fill:none;stroke:currentColor;stroke-width:var(--icon-stroke);
   stroke-linecap:round;stroke-linejoin:round;
 }
-.check-btn .icon{width:22px;height:22px;stroke-width:2}
+.check-btn .icon{width:22px;height:22px}
 .sheet-x .icon{width:17px;height:17px}
 
 /* 逻辑引擎未加载时的兜底提示 */
@@ -927,34 +980,34 @@ body.is-holding *{cursor:grabbing!important}
   }
   .level-num{
     grid-area:level;
-    width:42px;height:42px;border-radius:13px;font-size:15px;
-    box-shadow:0 2px 0 var(--key);
+    width:42px;height:42px;border-radius:var(--radius-sm);font-size:15px;
+    box-shadow:var(--sticker);
   }
   .goal{grid-area:goal;justify-self:stretch;justify-content:center;gap:6px;padding:0 2px;
     font-size:19px;line-height:1.3}
   .goal.is-long{font-size:13px;line-height:1.25}
 
-  .actions{grid-area:actions;justify-self:end;gap:3px;padding:3px;border-radius:14px}
+  .actions{grid-area:actions;justify-self:end;gap:3px;padding:3px;border-radius:var(--radius-sm)}
   .actions .round-btn{width:34px;height:34px;font-size:16px}
   .actions .check-btn{width:34px;height:34px;font-size:19px}
 
   .progress{width:calc(100% - 24px);max-width:calc(100% - 24px);margin:0 auto 2px}
 
   .stage{max-width:100%;padding:4px 10px 0}
-  .board{border-radius:20px}
+  .board{border-radius:var(--radius-lg)}
 
-  .node{width:204px;padding:9px 13px 10px;min-height:90px;border-radius:14px}
+  .node{width:204px;padding:9px 13px 10px;min-height:90px;border-radius:var(--radius-sm)}
   .node-formula{font-size:18px;min-height:38px;padding-top:6px}
   .node-code{font-size:13px}
   .node.is-target{min-height:96px;padding:8px}
 
-  .coach{top:19%;gap:10px;padding:12px 16px;border-radius:18px}
-  .coach-tile{width:50px;height:50px;font-size:19px;border-radius:13px}
+  .coach{top:19%;gap:10px;padding:12px 16px;border-radius:var(--radius-lg)}
+  .coach-tile{width:50px;height:50px;font-size:19px;border-radius:var(--radius-sm)}
   .coach-goal{font-size:32px}
   .coach-arrow{font-size:24px}
   .coach-flow{gap:10px;font-size:17px}
   .coach-flow .chip,
-  .coach-flow .coach-mod{min-width:50px;height:50px;font-size:15px;border-radius:13px}
+  .coach-flow .coach-mod{min-width:50px;height:50px;font-size:15px;border-radius:var(--radius-sm)}
   .coach-flow .chip .formula{font-size:15px}
 
   .tray{
@@ -965,29 +1018,38 @@ body.is-holding *{cursor:grabbing!important}
     -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 12px,#000 calc(100% - 12px),transparent 100%);
     mask-image:linear-gradient(90deg,transparent 0,#000 12px,#000 calc(100% - 12px),transparent 100%);
   }
-  .tile{width:59px;height:59px;border-radius:15px;font-size:19px;box-shadow:0 2px 0 var(--key)}
-  .tile.is-long{font-size:13px}
+  .tile{width:59px;height:59px;border-radius:var(--radius-sm);font-size:19px;box-shadow:var(--sticker)}
+  .tile.is-var{font-size:23px}
+  .tile.is-symbol{font-size:22px}
+  .tile.is-code{font-size:14px}
+  .tile.is-code.is-long{font-size:10.5px}
 
-  .popover{bottom:96px;gap:6px;padding:8px 10px;border-radius:18px}
-  .opt{min-width:42px;height:42px;border-radius:12px;font-size:16px}
+  .popover{bottom:96px;gap:6px;padding:8px 10px;border-radius:var(--radius-lg)}
+  .opt{min-width:42px;height:42px;border-radius:var(--radius-sm);font-size:16px}
+  .opt-var{font-size:18px}
+  .opt-sym{font-size:17px}
+  .opt-code{font-size:13.5px}
   .formula-opt{font-size:17px;padding:0 11px}
 
   /* toast 跟随两行顶栏自动下移（grid 第 3 行顶部），只需收紧间距 */
   .toast{margin-top:8px;font-size:13px;padding:9px 15px}
 
-  .sheet{padding:52px 20px 20px;border-radius:22px}
+  .sheet{padding:52px 20px 20px;border-radius:var(--radius-lg)}
   /* 窄屏 sheet 内边距更小，滚动条滑块右移，别压住卡片右缘 */
   .sheet-bar i{left:8px}
   .sheet-x{top:12px;right:12px;width:34px;height:34px}
   .achv-back{top:12px;left:12px;width:34px;height:34px}
 
   .levels{grid-template-columns:repeat(5,46px);gap:9px}
-  .level-cell{width:46px;height:46px;border-radius:13px}
+  .level-cell{width:46px;height:46px;border-radius:var(--radius-sm)}
 
   .chapters{gap:20px;padding-top:4px}
   .chapter-head{gap:9px;padding-bottom:8px}
   .chapter-roman{font-size:23px;min-width:32px}
   .chapter-title{font-size:13px}
+  .chapter-count{font-size:11px}
+  .chapter-progress{min-width:56px}
+  .sheet-head h2{font-size:17px}
   .band .levels{padding-top:9px}
 
   .achv-grid{grid-template-columns:repeat(3,minmax(0,1fr))}

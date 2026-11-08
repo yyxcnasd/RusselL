@@ -74,6 +74,8 @@ research/setmm-data.json (+ setmm-set-extra.json)
 
 ## 5. 视觉与交互约定
 
+完整设计规范见 [DESIGN.md](DESIGN.md)（颜色角色、字体、圆角/投影/图标 token、组件状态与记法）。
+
 - 节点宽 232px（`CSS .node width` 与 `Board` 常量一致）、目标焊盘 160px；拖动吸附 16px 网格。
 - 端口类型 `formula` / `assertion` / `atom` 决定颜色与可否连接；CSS 与 `Board.connect` 共用类型名。
 - 所有面板内容通过 `RSL.UI.openSheet(html)` 注入 `#sheet`；点击 `[data-close]` 或遮罩关闭，`Tab` 焦点陷阱，关闭后焦点回到触发按钮。

@@ -282,6 +282,18 @@ runTest('acceptance', async ({ openPage }) => {
   await page.mouse.click(helpBtn.x, helpBtn.y);
   await page.waitFor('!document.getElementById("overlay").hidden');
   ok(await page.js('document.querySelectorAll(".help-card").length === 8'), '帮助面板有 8 张规则卡片');
+  const helpDesign = await page.js(`(function(){
+    return {
+      head: (document.querySelector('.sheet-head h2')||{}).textContent || '',
+      steps: Array.prototype.map.call(document.querySelectorAll('.help-step b'), function(b){ return b.textContent; }),
+      groups: Array.prototype.map.call(document.querySelectorAll('.help-group'), function(h){ return h.textContent; }),
+      cards: document.querySelectorAll('.help-card').length
+    };
+  })()`);
+  equal(helpDesign.head, '玩法', '帮助面板有统一 sheet-head 标题');
+  equal(helpDesign.steps, ['取模块', '接线', '校验'], '帮助三步有文字标签');
+  equal(helpDesign.groups, ['命题规则', '谓词规则'], '帮助规则按命题/谓词分组');
+  equal(helpDesign.cards, 8, '两步分组共 8 张规则卡');
   await page.js('document.querySelector(".help-card").focus()');
   await page.key('Enter');
   await page.waitFor('!document.getElementById("coachPop").hidden');
@@ -307,11 +319,15 @@ runTest('acceptance', async ({ openPage }) => {
   const achvList = await page.js(`(function(){
     return {total:document.querySelectorAll('.achv').length,
             on:document.querySelectorAll('.achv.is-on').length,
+            names:document.querySelectorAll('.achv-name').length,
+            head:(document.querySelector('.sheet-head h2')||{}).textContent||'',
             countText:(document.querySelector('.achv-count')||{}).textContent||''};
   })()`);
   equal(achvList.total, 20, '成就面板 20 项');
   ok(achvList.on >= 1, '首关通关后至少 1 个成就点亮（实际 ' + achvList.on + '）');
   matches(achvList.countText, /\/\s*20/, '成就计数显示总数 20');
+  equal(achvList.head, '成就', '成就面板有统一 sheet-head 标题');
+  equal(achvList.names, 20, '每个成就都显示名称（未解锁也可见）');
   await page.js('document.querySelector(".achv.is-on").click()');
   await page.waitFor('!!document.querySelector(".achv-detail")');
   equal(await page.js('(document.querySelector(".achv-detail h2")||{}).textContent'), '通电', '首个成就详情标题为“通电”');
@@ -341,6 +357,19 @@ runTest('acceptance', async ({ openPage }) => {
   await page.waitFor('!!document.querySelector(".module-ghost")');
   await page.js('window.RSL.APP.openLevels()');
   await page.waitFor('!document.getElementById("overlay").hidden');
+  const levelsDesign = await page.js(`(function(){
+    return {
+      head: (document.querySelector('.sheet-head h2')||{}).textContent || '',
+      bands: Array.prototype.map.call(document.querySelectorAll('.band-name'), function(b){ return b.textContent; }),
+      counts: Array.prototype.map.call(document.querySelectorAll('.chapter-count'), function(c){ return c.textContent; }),
+      stars: document.querySelectorAll('.level-cell.is-challenge').length
+    };
+  })()`);
+  equal(levelsDesign.head, '选关', '选关面板有统一 sheet-head 标题');
+  equal(levelsDesign.bands.length, 8, '四章各两个可见的段名（基础/挑战）');
+  equal(levelsDesign.bands[0] + '/' + levelsDesign.bands[1], '基础/挑战', '分带标签顺序为基础、挑战');
+  ok(levelsDesign.counts.every(function (c) { return /^\d+\s*\/\s*60$/.test(c); }), '章节头计数统一为 已通/总数');
+  equal(levelsDesign.stars, 0, '关卡格不再重复星标（挑战段由分带表达）');
   equal(await page.js('!!document.querySelector(".module-ghost")'), true, '程序打开面板时 sticky ghost 仍在');
   await page.key('Escape');
   await page.waitFor('!document.querySelector(".module-ghost")');
@@ -493,6 +522,29 @@ runTest('acceptance', async ({ openPage }) => {
   await reloadAt(390, 844, '390×844');
   equal((await measureTarget(page, 'CH1-01')).inside, true, '390×844：首关目标焊盘完整可见');
   equal((await measureTarget(page, 'CH4-23')).inside, true, '390×844：长目标载入即完整可见');
+
+  /* 移动端双指缩放：两根手指拉开后棋盘 scale 明显变大，松手结束 pinch 态 */
+  await page.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 2 });
+  const pinchBefore = await page.js('window.RSL.APP.state.board.view.scale');
+  const boardRect = await page.js('window.__qa.rect("#board")');
+  const cx = boardRect.left + boardRect.width / 2;
+  const cy = boardRect.top + boardRect.height / 2;
+  const touch = (type, points) => page.send('Input.dispatchTouchEvent', {
+    type: type,
+    touchPoints: points.map((p, i) => ({ x: p.x, y: p.y, id: i }))
+  });
+  await touch('touchStart', [{ x: cx - 40, y: cy }, { x: cx + 40, y: cy }]);
+  await page.sleep(60);
+  await touch('touchMove', [{ x: cx - 100, y: cy }, { x: cx + 100, y: cy }]);
+  await page.sleep(150);
+  const pinchMid = await page.js('({scale:window.RSL.APP.state.board.view.scale, active:!!window.RSL.APP.state.board._pinch})');
+  await touch('touchEnd', []);
+  await page.sleep(250);
+  const pinchAfter = await page.js('({scale:window.RSL.APP.state.board.view.scale, active:!!window.RSL.APP.state.board._pinch})');
+  await page.send('Emulation.setTouchEmulationEnabled', { enabled: false });
+  ok(pinchMid.active === true, '双指按下进入 pinch 态');
+  ok(pinchAfter.scale > pinchBefore * 1.3, '双指拉开后棋盘放大（' + pinchBefore.toFixed(2) + ' → ' + pinchAfter.scale.toFixed(2) + '）');
+  equal(pinchAfter.active, false, '松手后退出 pinch 态');
   await page.shot('08-mobile-390');
 
   await reloadAt(320, 640, '320×640');

@@ -131,7 +131,7 @@
   function applyTheme() {
     document.documentElement.dataset.theme = state.theme;
     var meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', state.theme === 'dark' ? '#151311' : '#f6f2e8');
+    if (meta) meta.setAttribute('content', state.theme === 'dark' ? '#151311' : '#f7f2e7');
     if (els.themeBtn) {
       els.themeBtn.innerHTML = '<svg class="icon"><use href="#i-' + (state.theme === 'dark' ? 'sun' : 'moon') + '"></use></svg>';
       els.themeBtn.setAttribute('aria-label', state.theme === 'dark' ? '切换浅色模式' : '切换深色模式');
@@ -211,15 +211,32 @@
     state.parts = Catalog.partsForLevel(state.level);
 
     var mobile = window.innerWidth <= 700;
-    var tx = mobile ? 250 : state.level.targetPos.x;
-    var ty = mobile ? 300 : state.level.targetPos.y;
-    var target = { id: 'target', kind: 'target', x: tx, y: ty, target: state.level.target, config: {} };
     var saved = state.circuits[state.level.id];
-    var nodes = [target], edges = [];
+    var savedNodes = [];
     if (saved && Array.isArray(saved.nodes) && Array.isArray(saved.edges)) {
       saved.nodes.forEach(function (n) {
-        if (n && n.kind && n.kind !== 'target') nodes.push(JSON.parse(JSON.stringify(n)));
+        if (n && n.kind && n.kind !== 'target') savedNodes.push(JSON.parse(JSON.stringify(n)));
       });
+    }
+    /* 重进已通关关卡：目标焊盘放到存档电路右侧，避免窄屏上与节点重叠。 */
+    var tx, ty;
+    if (savedNodes.length) {
+      var maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+      savedNodes.forEach(function (n) {
+        maxX = Math.max(maxX, n.x + 232);
+        minY = Math.min(minY, n.y);
+        maxY = Math.max(maxY, n.y + 140);
+      });
+      tx = maxX + 340;
+      ty = UI.clamp((minY + maxY) / 2 - 52, 120, 720);
+    } else {
+      tx = mobile ? 250 : state.level.targetPos.x;
+      ty = mobile ? 300 : state.level.targetPos.y;
+    }
+    var target = { id: 'target', kind: 'target', x: tx, y: ty, target: state.level.target, config: {} };
+    var nodes = [target], edges = [];
+    if (savedNodes.length) {
+      nodes = nodes.concat(savedNodes);
       edges = JSON.parse(JSON.stringify(saved.edges));
     }
     state.board.setData(nodes, edges);
@@ -236,12 +253,16 @@
 
     var width = state.board.board.clientWidth || 1000;
     var height = state.board.board.clientHeight || 600;
-    if (mobile) {
+    if (savedNodes.length) {
+      /* 存档电路：桌面先给全电路总览（可滚轮放大），移动端再保证目标焊盘可见。 */
+      state.board.fit({ minScale: 0.32 });
+      if (mobile) ensureTargetVisible(tx, ty, 160, 104);
+    } else if (mobile) {
       /* 目标焊盘在窄屏上也要完整可见：按“目标右缘 + 边距”反推可用缩放。 */
       var scale = UI.clamp((width - 34) / 410, 0.5, 0.72);
       state.board.setView(18, 26, scale);
     } else {
-      var desktopScale = UI.clamp((width - 120) / (tx + 280), 0.42, 1.0);
+      var desktopScale = UI.clamp((width - 120) / (tx + 280), 0.62, 1.0);
       var viewX = width - 60 - (tx + 232) * desktopScale;
       var viewY = Math.max(40, (height - 220) / 2 - ty * desktopScale * 0.15);
       /* 生成关的目标可能在 y=640 之类的远处，保证载入时焊盘完整落在可视区。 */
@@ -254,11 +275,30 @@
     maybeShowCoach(state.level);
   }
 
+  /* 把当前视图夹到“目标焊盘完整可见”的范围内，同时尽量保留 fit() 的取景。 */
+  function ensureTargetVisible(tx, ty, targetW, targetH) {
+    var board = state.board;
+    var width = board.board.clientWidth || 1000;
+    var height = board.board.clientHeight || 600;
+    var v = board.view, s = v.scale, margin = 16;
+    var minX = margin - tx * s;
+    var maxX = width - margin - (tx + targetW) * s;
+    var minY = margin - ty * s;
+    var maxY = height - margin - (ty + targetH) * s;
+    function between(value, lo, hi) { return lo > hi ? (lo + hi) / 2 : UI.clamp(value, lo, hi); }
+    var nextX = between(v.x, minX, maxX);
+    var nextY = between(v.y, minY, maxY);
+    if (nextX !== v.x || nextY !== v.y) board.setView(nextX, nextY, s);
+  }
+
   function buildTray() {
+    var VARIABLES = { atom: 1, pred: 1, term: 1 };
+    var SYMBOLS = { not: 1, imp: 1, or: 1, and: 1, iff: 1, quant: 1 };
     els.tray.innerHTML = state.parts.map(function (part) {
       var symbol = part.symbol || '·';
-      var small = symbol.length > 3 ? ' is-long' : '';
-      return '<button class="tile' + small + '" data-key="' + UI.esc(part.key) + '" title="' + UI.esc(part.name) +
+      var variant = VARIABLES[part.kind] ? ' is-var' : (SYMBOLS[part.kind] ? ' is-symbol' : ' is-code');
+      var long = variant === ' is-code' && symbol.length > 3 ? ' is-long' : '';
+      return '<button class="tile' + variant + long + '" data-key="' + UI.esc(part.key) + '" title="' + UI.esc(part.name) +
         '" aria-label="' + UI.esc(part.name) + '"><span>' + UI.esc(symbol) + '</span></button>';
     }).join('');
   }
@@ -434,37 +474,37 @@
     var html = '';
     if (node.kind === 'atom') {
       html = ['P', 'Q', 'R', 'S', 'T'].map(function (x) {
-        return '<button class="opt' + (config.name === x ? ' is-on' : '') + '" data-config="name" data-value="' + x + '">' + x + '</button>';
+        return '<button class="opt opt-var' + (config.name === x ? ' is-on' : '') + '" data-config="name" data-value="' + x + '">' + x + '</button>';
       }).join('');
     } else if (node.kind === 'replace' && result && result.meta && result.meta.options) {
       html = result.meta.options.slice(0, 8).map(function (o) {
         return '<button class="opt formula-opt' + (result.meta.optionId === o.id ? ' is-on' : '') + '" data-option="' + UI.esc(o.id) + '">' + UI.formulaHTML(o.result) + '</button>';
       }).join('');
     } else if (node.kind === 'quant') {
-      html = '<button class="opt' + (config.kind === 'all' ? ' is-on' : '') + '" data-config="kind" data-value="all">∀</button>' +
-        '<button class="opt' + (config.kind === 'exists' ? ' is-on' : '') + '" data-config="kind" data-value="exists">∃</button>' +
+      html = '<button class="opt opt-sym' + (config.kind === 'all' ? ' is-on' : '') + '" data-config="kind" data-value="all">∀</button>' +
+        '<button class="opt opt-sym' + (config.kind === 'exists' ? ' is-on' : '') + '" data-config="kind" data-value="exists">∃</button>' +
         '<span class="opt-gap"></span>' + ['x', 'y', 'z'].map(function (v) {
-          return '<button class="opt' + (config.v === v ? ' is-on' : '') + '" data-config="v" data-value="' + v + '">' + v + '</button>';
+          return '<button class="opt opt-var' + (config.v === v ? ' is-on' : '') + '" data-config="v" data-value="' + v + '">' + v + '</button>';
         }).join('');
     } else if (node.kind === 'pred') {
       html = ['F', 'G', 'H'].map(function (x) {
-        return '<button class="opt' + (config.name === x ? ' is-on' : '') + '" data-config="name" data-value="' + x + '">' + x + '</button>';
+        return '<button class="opt opt-code' + (config.name === x ? ' is-on' : '') + '" data-config="name" data-value="' + x + '">' + x + '</button>';
       }).join('') + '<span class="opt-gap"></span>' + ['x', 'y', 'z'].map(function (v) {
-        return '<button class="opt' + (config.arg === v ? ' is-on' : '') + '" data-config="arg" data-value="' + v + '">' + v + '</button>';
+        return '<button class="opt opt-var' + (config.arg === v ? ' is-on' : '') + '" data-config="arg" data-value="' + v + '">' + v + '</button>';
       }).join('');
     } else if (node.kind === 'subst' && !config.dual) {
-      html = '<button class="opt" data-config="dual" data-value="1">加一组代入</button>';
+      html = '<button class="opt opt-plus" data-config="dual" data-value="1" aria-label="加一组代入" title="加一组代入">＋</button>';
     } else if (node.kind === 'all-elim') {
       html = ['a', 'b', 'c', 'x', 'y', 'z'].map(function (v) {
-        return '<button class="opt' + (config.term === v ? ' is-on' : '') + '" data-config="term" data-value="' + v + '">' + v + '</button>';
+        return '<button class="opt opt-var' + (config.term === v ? ' is-on' : '') + '" data-config="term" data-value="' + v + '">' + v + '</button>';
       }).join('');
     } else if (node.kind === 'all-intro' || node.kind === 'exists-intro') {
       html = ['x', 'y', 'z'].map(function (v) {
-        return '<button class="opt' + (config.v === v ? ' is-on' : '') + '" data-config="v" data-value="' + v + '">' + v + '</button>';
+        return '<button class="opt opt-var' + (config.v === v ? ' is-on' : '') + '" data-config="v" data-value="' + v + '">' + v + '</button>';
       }).join('');
     } else if (node.kind === 'exists-elim') {
       html = ['y', 'z'].map(function (v) {
-        return '<button class="opt' + (config.y === v ? ' is-on' : '') + '" data-config="y" data-value="' + v + '">' + v + '</button>';
+        return '<button class="opt opt-var' + (config.y === v ? ' is-on' : '') + '" data-config="y" data-value="' + v + '">' + v + '</button>';
       }).join('');
     }
     if (!html) { els.popover.hidden = true; return; }

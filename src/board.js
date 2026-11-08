@@ -59,6 +59,8 @@
     this._marquee = null;
     this._pan = null;
     this._long = null;
+    this._touches = Object.create(null);   // pointerId -> {x,y}，双指缩放用
+    this._pinch = null;
     this._elById = Object.create(null);   // id -> node element, rebuilt by render()
     this._wireEls = Object.create(null);  // edge id -> { path, hit }, rebuilt by full _updateWires
     this._lastUsed = null;
@@ -154,8 +156,9 @@
     else { this._viewAnim = null; this._updateWires(); }
   };
 
-  Board.prototype.fit = function () {
+  Board.prototype.fit = function (opts) {
     var self = this;
+    var minScale = opts && opts.minScale ? opts.minScale : VIEW_MIN;
     var r = this.board.getBoundingClientRect();
     var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     this.items.forEach(function (n) {
@@ -166,13 +169,66 @@
       maxY = Math.max(maxY, n.y + (el ? el.offsetHeight : DEFAULT_NODE_H));
     });
     if (!isFinite(minX)) { this.setView(30, 30, 0.9); return; }
-    var scale = clamp(Math.min((r.width - 100) / (maxX - minX), (r.height - 100) / (maxY - minY)), VIEW_MIN, 1.05);
+    var scale = clamp(Math.min((r.width - 100) / (maxX - minX), (r.height - 100) / (maxY - minY)), minScale, 1.05);
     this.setView((r.width - (maxX - minX) * scale) / 2 - minX * scale, (r.height - (maxY - minY) * scale) / 2 - minY * scale, scale);
   };
 
   Board.prototype._wheel = function (e) {
     e.preventDefault();
     this.zoom(e.deltaY > 0 ? -1 : 1, e.clientX, e.clientY);
+  };
+
+  /* ---- 触屏双指缩放 ---------------------------------------------------- */
+
+  Board.prototype._pinchPair = function () {
+    var ids = Object.keys(this._touches);
+    if (ids.length < 2) return null;
+    return { a: this._touches[ids[0]], b: this._touches[ids[1]] };
+  };
+
+  Board.prototype._startPinch = function () {
+    var pair = this._pinchPair();
+    if (!pair) return;
+    this._cancelLong();
+    this._drag = null;
+    this._groupDrag = null;
+    this._pan = null;
+    if (this._marquee && this._marquee.el && this._marquee.el.parentNode) {
+      this._marquee.el.parentNode.removeChild(this._marquee.el);
+    }
+    this._marquee = null;
+    this._cancelDraft();
+    this.board.classList.remove('is-panning');
+    var midX = (pair.a.x + pair.b.x) / 2, midY = (pair.a.y + pair.b.y) / 2;
+    this._pinch = {
+      dist: Math.hypot(pair.b.x - pair.a.x, pair.b.y - pair.a.y) || 1,
+      scale: this.view.scale,
+      world: this._client(midX, midY)
+    };
+    this.board.classList.add('is-pinching');
+    this._suppressClick = true;
+  };
+
+  Board.prototype._movePinch = function () {
+    var pair = this._pinchPair(), pinch = this._pinch;
+    if (!pair || !pinch) return;
+    var r = this.board.getBoundingClientRect();
+    var midX = (pair.a.x + pair.b.x) / 2, midY = (pair.a.y + pair.b.y) / 2;
+    var dist = Math.hypot(pair.b.x - pair.a.x, pair.b.y - pair.a.y) || 1;
+    var scale = clamp(pinch.scale * dist / pinch.dist, VIEW_MIN, VIEW_MAX);
+    this.view.scale = scale;
+    this.view.x = midX - r.left - pinch.world.x * scale;
+    this.view.y = midY - r.top - pinch.world.y * scale;
+    this._applyView();
+    this._updateWires('cheap');
+  };
+
+  Board.prototype._endPinch = function () {
+    this._pinch = null;
+    this.board.classList.remove('is-pinching');
+    this._updateWires();
+    var self = this;
+    setTimeout(function () { self._suppressClick = false; }, 80);
   };
 
   Board.prototype._client = function (cx, cy) {
@@ -186,6 +242,14 @@
 
   Board.prototype._down = function (e) {
     var self = this;
+    /* 触屏双指缩放：第二根手指按下时接管，取消正在进行的拖拽/平移。 */
+    if (e.pointerType === 'touch' && e.pointerId !== undefined) {
+      this._touches[e.pointerId] = { x: e.clientX, y: e.clientY };
+      if (Object.keys(this._touches).length >= 2) {
+        this._startPinch();
+        return;
+      }
+    }
     var port = e.target.closest && e.target.closest('.port');
     if (port) {
       e.preventDefault();
@@ -306,6 +370,13 @@
 
   Board.prototype._move = function (e) {
     var self = this;
+    if (e.pointerType === 'touch' && this._touches[e.pointerId]) {
+      this._touches[e.pointerId] = { x: e.clientX, y: e.clientY };
+    }
+    if (this._pinch) {
+      this._movePinch();
+      return;
+    }
     if (this._groupDrag) {
       var g = this._groupDrag;
       var gp = this._client(e.clientX, e.clientY);
@@ -354,6 +425,13 @@
   };
 
   Board.prototype._up = function (e) {
+    if (e.pointerType === 'touch' && e.pointerId !== undefined) {
+      delete this._touches[e.pointerId];
+      if (this._pinch) {
+        this._endPinch();
+        return;
+      }
+    }
     this._cancelLong();
     if (this._marquee) { this._endMarquee(); return; }
     if (this._groupDrag) {
@@ -472,6 +550,9 @@
     if (this._marquee && this._marquee.el && this._marquee.el.parentNode) this._marquee.el.parentNode.removeChild(this._marquee.el);
     this._marquee = null;
     this._pan = null;
+    this._touches = Object.create(null);
+    this._pinch = null;
+    this.board.classList.remove('is-pinching');
     this._cancelDraft();
     this.board.classList.remove('is-panning');
     if (this._cheapDirty) this._updateWires();

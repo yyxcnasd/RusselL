@@ -104,6 +104,21 @@
     return null;
   }
 
+  /* 调色板分组顺序：原子 → 构造/连接词 → 公理/已证/档案 → 规则。
+     关卡 allowed 里的顺序只作组内顺序；有 subst 的关卡自动补进来的构造模块
+     因此会排在原子右侧、公理与推理模块之前，而不是被追加到最末尾。 */
+  var PART_RANK = {
+    atom: 0,
+    not: 1, imp: 1, or: 1, and: 1, iff: 1, pred: 1, term: 1, quant: 1,
+    axiom: 2, theorem: 2, archive: 2,
+    subst: 3, replace: 3, detach: 3, syllogism: 3,
+    'all-intro': 3, 'all-elim': 3, 'exists-intro': 3, 'exists-elim': 3
+  };
+  function partRank(part) {
+    var rank = PART_RANK[part.kind];
+    return rank === undefined ? 9 : rank;
+  }
+
   /** 关卡调色板：把 allowed 里的 key 解析成可放置的模块条目。 */
   function partsForLevel(level) {
     var allowed = level.allowed || [];
@@ -146,6 +161,8 @@
       }
       if (part) out.push(part);
     });
+    /* Array.prototype.sort 在 ES2019+ 稳定：同组内保持 allowed 原顺序。 */
+    out.sort(function (a, b) { return partRank(a) - partRank(b); });
     return out;
   }
 

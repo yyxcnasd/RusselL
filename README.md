@@ -30,7 +30,7 @@
 1. **拿模块**：从下栏把模块拖到板上；也可以点一下，让模块粘在鼠标上，再点画布放下。下栏里 `*07` 表示已经通过的第 7 关。
 2. **接线**：从模块右侧圆点拖到另一个模块左侧圆点；也可以先点输出、再点输入。
 3. **校验**：把最终断言接到右侧的 `⊢`，点顶栏最右边的播放键。
-4. **修改**：右键删除模块或导线，触屏长按删除；点模块可以改参数。
+4. **修改**：右键删除模块或导线，触屏长按删除；点模块可以改参数。触屏可以双指缩放棋盘。
 
 进入关卡时会弹一次规则提示，只画“输入 → 模块 → 输出”；第一次左键操作后自动消失，不显示本关答案。S 代入可以同时接两组“原子 + 公式”，一次换两个变元。帮助页里还有 S/M/D/HS/∀I/∀E/∃I/∃E 的公式图示，点卡片可以重新看提示。
 
@@ -103,7 +103,7 @@ npm run test:acceptance  # 构建 dist/ 后做独立验收（含 dist 产物 fil
 npm run build:toy     # 只生成 bilibili Toy / Pages 用的 dist/
 ```
 
-模块划分、加载顺序与数据流见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)。
+模块划分、加载顺序与数据流见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)；颜色/字体/形状/组件状态与文案记法见 [docs/DESIGN.md](docs/DESIGN.md)。
 
 浏览器测试需要本机 Edge：
 
@@ -139,7 +139,7 @@ node scripts/gen-levels.js
 | `src/levels.js` | 四章手工关与教程关 |
 | `src/levels-generated.js` | 生成关卡（生成） |
 | `scripts/gen-levels.js` | 关卡/档案生成器 |
-| `docs/` | 数学、数据与架构说明 |
+| `docs/` | 数学、数据、架构与设计说明 |
 | `research/` | `set.mm` 提取数据和开发笔记 |
 
 页面是纯静态的，没有后端，也不在运行时请求网络。GitHub Pages 在每次推送 `main` 时运行 `node scripts/build-toy.js`，上传 `dist/`；bilibili Toy 也使用压缩后的 `dist/` 内容。

@@ -3,6 +3,11 @@
  *
  * 面板内容：选关、帮助、成就、通关。只负责生成 HTML 与面板内交互，
  * 关卡切换/存档/提示等动作由 main.js 通过 init(ctx) 注入。
+ *
+ * 设计约定（见 docs/DESIGN.md）：
+ *   - 每个面板有统一的 .sheet-head（标题 + 右对齐 meta），关闭按钮独立；
+ *   - 面板内部是可点的 flat row（soft 底、无描边）；白贴纸材质只留给棋盘上的模块；
+ *   - 对象语言用 → / ↔，规则层面用 ⇒ / ⇄；变量与公式一律 STIX 斜体。
  */
 (function (host) {
   'use strict';
@@ -19,6 +24,15 @@
     UI.onSheetClick(handleClick);
   }
 
+  function closeButton() {
+    return '<button class="sheet-x" data-close aria-label="关闭"><svg class="icon"><use href="#i-x-mark"></use></svg></button>';
+  }
+
+  function sheetHead(title, meta) {
+    return '<div class="sheet-head"><h2>' + esc(title) + '</h2>' +
+      (meta ? '<span class="sheet-meta">' + meta + '</span>' : '') + '</div>';
+  }
+
   /* =========================================================================
    * 1. 选关
    * ========================================================================= */
@@ -32,10 +46,9 @@
     var style = best ? ' style="--effpx:' + Math.round(34 * eff / 100) + 'px"' : '';
     var cls = 'level-cell' + (i === ctx.state.index ? ' is-current' : '') +
       (ctx.state.solved[lv.id] ? ' is-solved' : '') +
-      (lv.challenge ? ' is-challenge' : '') +
-      (lv.band === 'challenge' ? ' is-challenge-band' : '') +
       (unlocked ? '' : ' is-locked');
-    return '<button class="' + cls + '" data-level="' + i + '" aria-label="第 ' + (i + 1) + ' 关' + (unlocked ? '' : '，未解锁') + '"' +
+    var label = '第 ' + (i + 1) + ' 关' + (unlocked ? '' : '，未解锁') + (lv.challenge ? '，章末关' : '');
+    return '<button class="' + cls + '" data-level="' + i + '" aria-label="' + label + '"' +
       (unlocked ? '' : ' disabled') + style + '>' +
       String(i + 1).padStart(2, '0') +
       '<i class="eff" aria-hidden="true"></i>' +
@@ -47,10 +60,13 @@
     var solved = items.filter(function (x) { return ctx.state.solved[x.lv.id]; }).length;
     var firstLocked = !ctx.isUnlocked(items[0].i);
     var glyph = kind === 'challenge' ? 'i-star' : 'i-book-open';
+    var label = kind === 'challenge' ? '挑战' : '基础';
     return '<div class="band ' + kind + (firstLocked ? ' is-locked' : '') + '">' +
-      '<div class="band-head" title="' + (kind === 'challenge' ? '挑战' : '基础') + '">' +
+      '<div class="band-head">' +
         '<span class="band-glyph"><svg class="icon"><use href="#' + glyph + '"></use></svg></span>' +
+        '<span class="band-name">' + label + '</span>' +
         '<span class="band-progress" aria-hidden="true"><i style="width:' + (solved / items.length * 100) + '%"></i></span>' +
+        '<span class="band-count">' + solved + ' / ' + items.length + '</span>' +
       '</div>' +
       '<div class="levels">' + items.map(levelCell).join('') + '</div>' +
     '</div>';
@@ -75,6 +91,7 @@
           '<span class="chapter-roman">' + c.id + '</span>' +
           '<span class="chapter-title">' + c.title + '</span>' +
           '<span class="chapter-progress" aria-hidden="true"><i style="width:' + (solved / items.length * 100) + '%"></i></span>' +
+          '<span class="chapter-count">' + solved + ' / ' + items.length + '</span>' +
         '</div>' +
         bandHTML(base, 'base') +
         bandHTML(chal, 'challenge') +
@@ -84,7 +101,10 @@
 
   function openLevels() {
     host.RSL.Audio.sfx('click');
-    UI.openSheet('<button class="sheet-x" data-close aria-label="关闭"><svg class="icon"><use href="#i-x-mark"></use></svg></button>' +
+    var total = ctx.state.levels.length;
+    var solved = ctx.state.levels.filter(function (lv) { return ctx.state.solved[lv.id]; }).length;
+    UI.openSheet(closeButton() +
+      sheetHead('选关', solved + ' / ' + total) +
       '<div class="chapters">' + levelsHTML() + '</div>');
   }
 
@@ -92,30 +112,40 @@
    * 2. 帮助
    * ========================================================================= */
 
-  function helpCard(label, kind, formula) {
-    return '<div class="help-card" role="button" tabindex="0" data-coach="' + kind + '"><b>' + esc(label) + '</b>' +
+  function helpCard(label, kind, formula, hint) {
+    return '<div class="help-card" role="button" tabindex="0" data-coach="' + kind + '"' +
+      (hint ? ' title="' + esc(hint) + '"' : '') + '><b>' + esc(label) + '</b>' +
       UI.helpFormula(formula) + '</div>';
+  }
+
+  function helpStep(icon, text) {
+    return '<span class="help-step"><span class="help-box"><svg class="icon"><use href="#' + icon + '"></use></svg></span>' +
+      '<b>' + text + '</b></span>';
   }
 
   function openHelp() {
     host.RSL.Audio.sfx('click');
-    UI.openSheet(
-      '<button class="sheet-x" data-close aria-label="关闭"><svg class="icon"><use href="#i-x-mark"></use></svg></button>' +
+    UI.openSheet(closeButton() +
+      sheetHead('玩法', '三步接一块板') +
       '<div class="help">' +
         '<div class="help-steps">' +
-          '<span class="help-box"><svg class="icon"><use href="#i-plus"></use></svg></span>' +
-          '<span class="help-box"><svg class="icon"><use href="#i-arrow-right"></use></svg></span>' +
-          '<span class="help-box"><svg class="icon"><use href="#i-play"></use></svg></span>' +
+          helpStep('i-plus', '取模块') +
+          helpStep('i-arrow-right', '接线') +
+          helpStep('i-play', '校验') +
         '</div>' +
+        '<h3 class="help-group">命题规则</h3>' +
         '<div class="help-cards">' +
-          helpCard('S', 'subst', 'A · P+B · Q+C ⇒ A′') +
-          helpCard('M', 'detach', 'A · (A→B) ⇒ B') +
-          helpCard('D', 'replace', 'A→B ⇔ ¬A∨B') +
-          helpCard('HS', 'syllogism', '(A→B) · (B→C) ⇒ (A→C)') +
-          helpCard('∀I', 'all-intro', 'A ⇒ ∀x A') +
-          helpCard('∀E', 'all-elim', '∀x A ⇒ A[t/x]') +
-          helpCard('∃I', 'exists-intro', 'A[t/x] ⇒ ∃x A') +
-          helpCard('∃E', 'exists-elim', '∃x A · (A[y/x]→B) ⇒ B') +
+          helpCard('S', 'subst', 'A[P↦B]', '把断言 A 里的原子 P 全部换成公式 B；可以再加第二组 Q↦C') +
+          helpCard('M', 'detach', 'A, A→B ⇒ B', '两路断言输入，按分离规则得到后件') +
+          helpCard('D', 'replace', 'A ⇄ A′', '按 df-or / df-an / dfbi2 / df-ex 对定义式做双向置换') +
+          helpCard('HS', 'syllogism', 'A→B, B→C ⇒ A→C', '假言三段论：中间命题相同即可串起来') +
+        '</div>' +
+        '<h3 class="help-group">谓词规则</h3>' +
+        '<div class="help-cards">' +
+          helpCard('∀I', 'all-intro', 'A ⇒ ∀x A', '全称推广：变元必须选 x / y / z') +
+          helpCard('∀E', 'all-elim', '∀x A ⇒ A[t/x]', '全称例化：把约束变元换成一个体词') +
+          helpCard('∃I', 'exists-intro', 'A[t/x] ⇒ ∃x A', '存在引入：用个体词例化出存在式') +
+          helpCard('∃E', 'exists-elim', '∃x A, A[y/x]→B ⇒ B', '存在消去：y 必须是新变元') +
         '</div>' +
         '<div class="save-row">' +
           '<button class="save-btn" data-save-export title="保存存档" aria-label="保存存档"><svg class="icon"><use href="#i-arrow-down-tray"></use></svg><span>保存</span></button>' +
@@ -136,29 +166,27 @@
       var on = !!ctx.state.achievements[a.id];
       return '<button class="achv' + (on ? ' is-on' : '') + '"' +
         (on ? ' data-achv="' + a.id + '"' : ' disabled') +
-        ' title="' + esc(on ? a.name : '未解锁') + '" aria-label="' + esc(on ? a.name : '未解锁成就') + '">' +
+        ' title="' + esc(on ? a.name : '未解锁：' + a.name) + '" aria-label="' + esc(on ? a.name : '未解锁成就 ' + a.name) + '">' +
         (on
           ? '<span class="achv-icon"><svg class="icon"><use href="#' + a.symbol + '"></use></svg></span>'
           : '<span class="achv-q"><svg class="icon"><use href="#i-question-mark-circle"></use></svg></span>') +
+        '<span class="achv-name">' + esc(a.name) + '</span>' +
       '</button>';
     }).join('');
-    return '<div class="achv-head"><span class="achv-count">' + got + ' / ' + list.length + '</span>' +
-      '<span class="achv-bar"><i style="width:' + (got / list.length * 100) + '%"></i></span></div>' +
+    return sheetHead('成就', '<span class="achv-count">' + got + ' / ' + list.length + '</span>') +
       '<div class="achv-grid">' + cards + '</div>';
   }
 
   function openAchievements() {
     host.RSL.Audio.sfx('click');
-    UI.openSheet('<button class="sheet-x" data-close aria-label="关闭"><svg class="icon"><use href="#i-x-mark"></use></svg></button>' +
-      achievementsHTML());
+    UI.openSheet(closeButton() + achievementsHTML());
   }
 
   function openAchievement(id) {
     var a = ACH.byId[id];
     if (!a) return;
     var on = !!ctx.state.achievements[id];
-    UI.openSheet(
-      '<button class="sheet-x" data-close aria-label="关闭"><svg class="icon"><use href="#i-x-mark"></use></svg></button>' +
+    UI.openSheet(closeButton() +
       '<div class="achv-detail">' +
         '<button class="achv-back" data-back aria-label="返回成就列表"><svg class="icon"><use href="#i-arrow-left"></use></svg></button>' +
         '<div class="achv-detail-icon' + (on ? ' is-on' : '') + '">' +
@@ -178,8 +206,7 @@
   /** data: { target, len, ref, isLast } */
   function openWin(data) {
     var efficiency = Math.max(1, Math.min(100, Math.round(data.ref / Math.max(1, data.len) * 100)));
-    UI.openSheet(
-      '<button class="sheet-x" data-close aria-label="关闭"><svg class="icon"><use href="#i-x-mark"></use></svg></button>' +
+    UI.openSheet(closeButton() +
       '<div class="win">' +
         '<div class="win-check"><svg class="icon"><use href="#i-check"></use></svg></div>' +
         '<div class="win-formula formula">' + UI.goalHTML(data.target) + '</div>' +
