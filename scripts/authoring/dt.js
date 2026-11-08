@@ -36,7 +36,7 @@ function dt(node, H) {
     const inner = dt(node.of, H);            // H → A
     const g = leaf(P.gen(inner.t, node.v), F.all(node.v, inner.f));
     const shift = leaf(P.subst(P.thm(64), { atoms: { P: H, Q: node.of.f } }),
-      F.imp(F.all(node.v, F.imp(H, inner.f)), F.imp(H, F.all(node.v, inner.f))));
+      F.imp(F.all(node.v, F.imp(H, node.of.f)), F.imp(H, F.all(node.v, node.of.f))));
     return mpp(g, shift);
   }
   if (node.t && node.t.op === 'mp' && node.a) {
