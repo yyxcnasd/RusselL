@@ -62,9 +62,12 @@
     if (ax.needsVar) {
       var b = v || 'x';
       if (!/^[xyz]$/.test(b)) b = 'x';
-      if (schema === 'A4') return ['A.', b, 'P', '->', 'P'];
-      if (schema === 'A5') return ['(', 'A.', b, '(', 'P', '->', 'Q', ')', ')', '->', '(', 'A.', b, 'P', '->', 'A.', b, 'Q', ')', ')'];
-      if (schema === 'A6') return ['P', '->', 'A.', b, 'P'];
+      if (schema === 'A4') return ['(', 'A.', b, 'P', '->', 'P', ')'];
+      if (schema === 'A5') {
+        return ['(', 'A.', b, '(', 'P', '->', 'Q', ')', '->',
+          '(', 'A.', b, 'P', '->', 'A.', b, 'Q', ')', ')'];
+      }
+      if (schema === 'A6') return ['(', 'P', '->', 'A.', b, 'P', ')'];
     }
     if (!cache.axiom[schema]) cache.axiom[schema] = asBody(T.parse(ax.formula));
     return cache.axiom[schema];
