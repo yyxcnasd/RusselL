@@ -571,11 +571,11 @@ runTest('acceptance', async ({ openPage }) => {
   })()`);
   const atomOptions = await page.js(`(function(){
     var opts=Array.prototype.map.call(document.querySelectorAll('.opt[data-config="name"]'),function(o){return o.dataset.value;});
-    return {count:opts.length, hasU:opts.indexOf('U')>=0, head:opts.slice(0,4), target:window.RSL.APP.state.level.target};
+    return {count:opts.length, hasU:opts.indexOf('U')>=0, head:opts.slice(0,5), target:window.RSL.APP.state.level.target};
   })()`);
   ok(atomOptions.count >= 26, '原子选项覆盖 A–Z（实际 ' + atomOptions.count + ' 个）');
   equal(atomOptions.hasU, true, '第 22 关的命题 U 能出现在原子选项里');
-  equal(atomOptions.head[0] === 'Q' && atomOptions.head[1] === 'U', true, '目标里出现的原子排在最前（Q、U）');
+  equal(atomOptions.head.slice(0, 5).join(''), 'PQRST', '原子选项固定以 P/Q/R/S/T 开头');
   await page.js('document.querySelector(".opt[data-value=\\"U\\"]").click()');
   await page.sleep(250);
   const atomU = await page.js(`(function(){

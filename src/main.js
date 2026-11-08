@@ -478,24 +478,10 @@
    * 6. 模块参数弹层
    * ========================================================================= */
 
-  /* 关卡目标里出现的原子排在最前，其次是常用 P–Z，最后补全 A–O。
-     有些 set.mm 条目用 U/V/W/…/Z 甚至 E/F 等字母，不能只给 P–T。 */
-  function atomChoices() {
-    var targetAtoms = [];
-    if (state.level) {
-      try { targetAtoms = L.atomsOf(L.parse(state.level.target)); } catch (e) { targetAtoms = []; }
-    }
-    var out = [], seen = {};
-    function add(letter) {
-      if (!/^[A-Z]$/.test(letter) || seen[letter]) return;
-      seen[letter] = true;
-      out.push(letter);
-    }
-    targetAtoms.forEach(add);
-    'PQRSTUVWXYZ'.split('').forEach(add);
-    'ABCDEFGHIJKLMNO'.split('').forEach(add);
-    return out;
-  }
+  /* 原子命题固定按 P–Z、A–O 排列：P/Q/R/S/T 在视觉最前，U…Z 紧随其后。
+     有些 set.mm 条目会用到 U/V/W/…/Z 甚至 A–O 的字母，不能只给 P–T。 */
+  var ATOM_CHOICES = 'PQRSTUVWXYZABCDEFGHIJKLMNO'.split('');
+  function atomChoices() { return ATOM_CHOICES; }
 
   function renderPopover() {
     var node = state.selectedNode ? state.board.node(state.selectedNode) : null;
