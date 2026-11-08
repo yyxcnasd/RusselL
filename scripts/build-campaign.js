@@ -239,6 +239,20 @@ function compileProof(proof, builder, ctx) {
         builder.connect(builder.termNode(pt.t), 'out', id, 'term');
         break;
       }
+      case 'exportAx': {
+        id = builder.addNode('export-ax', {});
+        builder.connect(builder.formula(pt.a), 'out', id, 'a');
+        builder.connect(builder.formula(pt.b), 'out', id, 'b');
+        builder.connect(builder.formula(pt.c), 'out', id, 'c');
+        break;
+      }
+      case 'importAx': {
+        id = builder.addNode('import-ax', {});
+        builder.connect(builder.formula(pt.a), 'out', id, 'a');
+        builder.connect(builder.formula(pt.b), 'out', id, 'b');
+        builder.connect(builder.formula(pt.c), 'out', id, 'c');
+        break;
+      }
       case 'andIntroAx': {
         id = builder.addNode('and-intro-ax', {});
         builder.connect(builder.formula(pt.a), 'out', id, 'a');

@@ -416,6 +416,32 @@
         };
       }
     },
+    'export-ax': {
+      label: '输出公理', kindLabel: 'EXP', group: 'rule', symbol: 'EXP', construct: false,
+      ports: { inputs: [{ id: 'a', label: '公式 A', type: FORMULA }, { id: 'b', label: '公式 B', type: FORMULA }, { id: 'c', label: '公式 C', type: FORMULA }], outputs: [{ id: 'out', label: '(A∧B→C)→(A→B→C)', type: ASSERTION }] },
+      config: {},
+      help: '((A∧B)→C)→(A→(B→C))：把合取前件拆成两个前件。',
+      apply: function (inputs) {
+        var a = asBody(need(inputs, 'a', '公式 A')), b = asBody(need(inputs, 'b', '公式 B')), c = asBody(need(inputs, 'c', '公式 C'));
+        var and = ['('].concat(a, ['/\\'], b, [')']);
+        var abc = ['('].concat(and, ['->'], c, [')']);
+        var bc = ['('].concat(a, ['->'], ['('].concat(b, ['->'], c, [')']), [')']);
+        return { tokens: assertionOf(['('].concat(abc, ['->'], bc, [')'])), note: 'EXP' };
+      }
+    },
+    'import-ax': {
+      label: '输入公理', kindLabel: 'IMP', group: 'rule', symbol: 'IMP', construct: false,
+      ports: { inputs: [{ id: 'a', label: '公式 A', type: FORMULA }, { id: 'b', label: '公式 B', type: FORMULA }, { id: 'c', label: '公式 C', type: FORMULA }], outputs: [{ id: 'out', label: '(A→B→C)→(A∧B→C)', type: ASSERTION }] },
+      config: {},
+      help: '(A→(B→C))→((A∧B)→C)：把两个前件合成合取前件。',
+      apply: function (inputs) {
+        var a = asBody(need(inputs, 'a', '公式 A')), b = asBody(need(inputs, 'b', '公式 B')), c = asBody(need(inputs, 'c', '公式 C'));
+        var and = ['('].concat(a, ['/\\'], b, [')']);
+        var abc = ['('].concat(and, ['->'], c, [')']);
+        var bc = ['('].concat(a, ['->'], ['('].concat(b, ['->'], c, [')']), [')']);
+        return { tokens: assertionOf(['('].concat(bc, ['->'], abc, [')'])), note: 'IMP' };
+      }
+    },
     'and-intro-ax': {
       label: '合取引入公理', kindLabel: '∧I*', group: 'rule', symbol: '∧I*', construct: false,
       ports: { inputs: [{ id: 'a', label: '公式 A', type: FORMULA }, { id: 'b', label: '公式 B', type: FORMULA }], outputs: [{ id: 'out', label: 'A→(B→A∧B)', type: ASSERTION }] },

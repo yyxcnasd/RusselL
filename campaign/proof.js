@@ -19,6 +19,8 @@ module.exports = {
     mode: (opts && opts.mode) || 'abstract', v: (opts && opts.v) || 'z' }),
   existsI: (of, v) => ({ op: 'existsI', of, v }),
   andIntroAx: (a, b) => ({ op: 'andIntroAx', a, b }),
+  exportAx: (a, b, c) => ({ op: 'exportAx', a, b, c }),
+  importAx: (a, b, c) => ({ op: 'importAx', a, b, c }),
   andElimAx: (a, b, side) => ({ op: 'andElimAx', a, b, side }),
   orIntroAx: (a, b, side) => ({ op: 'orIntroAx', a, b, side }),
   orElimAx: (a, b, c) => ({ op: 'orElimAx', a, b, c }),
