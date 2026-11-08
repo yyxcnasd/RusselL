@@ -101,16 +101,25 @@ function createBuilder() {
       connect(a, 'out', id, 'a');
     } else if (body[0] === '(') {
       const inner = body.slice(1, -1);
-      let depth = 0, split = -1;
-      for (let i = 0; i < inner.length; i += 1) {
+      const AND = '/'.concat(String.fromCharCode(92));
+      const OR = String.fromCharCode(92).concat('/');
+      const ops = { '->': 'imp', '<->': 'iff' };
+      ops[AND] = 'and';
+      ops[OR] = 'or';
+      let depth = 0, split = -1, opKind = null, opLen = 0;
+      for (let i = 0; i < inner.length && split < 0; i += 1) {
         if (inner[i] === '(') depth += 1;
         else if (inner[i] === ')') depth -= 1;
-        else if (depth === 0 && inner[i] === '->') { split = i; break; }
+        else if (depth === 0) {
+          const two = inner[i] + (inner[i + 1] || '');
+          if (ops[two]) { split = i; opKind = ops[two]; opLen = 2; }
+          else if (ops[inner[i]]) { split = i; opKind = ops[inner[i]]; opLen = 1; }
+        }
       }
-      if (split < 0) throw new Error('公式缺少顶层 ->：' + body.join(' '));
+      if (split < 0) throw new Error('公式缺少顶层运算符：' + body.join(' '));
       const a = formula(inner.slice(0, split));
-      const b = formula(inner.slice(split + 1));
-      id = addNode('imp', {});
+      const b = formula(inner.slice(split + opLen));
+      id = addNode(opKind, {});
       connect(a, 'out', id, 'a');
       connect(b, 'out', id, 'b');
     } else if (body[0] === 'E.') {
