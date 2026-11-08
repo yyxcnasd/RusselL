@@ -1,205 +1,63 @@
 # 架构与代码地图
 
-公理板是**纯静态**的单页游戏：没有后端、没有构建步骤（源码目录直接可玩）、运行时不发网络请求。
-本文件说明模块边界、加载顺序、数据流和测试方式，改代码前先看这里。
+纯静态单页游戏：经典 `<script>`、无构建步骤、运行时不发网络请求。本文件说明新关卡体系的边界、数据流和测试。
 
-## 1. 设计约束
+## 1. 核心约束
 
-| 约束 | 原因 | 影响 |
-| --- | --- | --- |
-| 经典 `<script>`，不用 ES module | 需要直接双击 `index.html`（`file://`）可玩；ES module 在 `file://` 下会被 CORS 拦截 | 模块用 IIFE + `window.RSL` 命名空间；加载顺序写在 `index.html` 与 `scripts/build-toy.js` |
-| 无运行时网络、无后端 | GitHub Pages / bilibili Toy 静态托管 | 数据在 `src/*.js`；字体、音频、图标都本地化 |
-| 源码目录 = 可玩版本 | 改完不用构建即可验证 | `dist/` 只是给 bilibili Toy 的拷贝产物，不参与开发 |
-| 关卡与档案由脚本生成 | 240 关 + 993 条 set.mm 条目不手写 | `scripts/gen-levels.js` 产出 `src/archive.js`、`src/levels-generated.js`，不要手改 |
+- `index.html` 直接可玩（`file://`）；模块是 IIFE + `window.RSL`。
+- 运行时只加载 15 个脚本（见下），没有 set.mm 重放/archive/logic 旧体系。
+- 关卡内容手写在 `campaign/`，`src/levels.js` 是编译器产物。
 
-## 2. 模块与加载顺序
+## 2. 加载顺序
 
-`index.html` 末尾按下列顺序加载（`scripts/build-toy.js` 的 `RUNTIME_JS` 必须同步）：
+`index.html` 与 `scripts/build-toy.js` 的 `RUNTIME_JS` 必须一致：
 
 ```
-term → archive → library → levels → levels-generated
-     → mm/flags → mm/proofs → mm/levels
-     → modules → engine → route → achievements → save → ui
-     → audio → coach → catalog → screens → board → main
+term → levels → campaign-meta → modules → engine → route → achievements → save
+     → ui → audio → coach → catalog → screens → board → main
 ```
 
-`src/term.js` 是**唯一表达式核心**（公式就是 set.mm token 数组），`src/modules.js` 是**唯一
-模块注册表**（21 个接线模块 + mmhyp/mmstep），`src/engine.js` 是**唯一求值器**。普通关与重放关
-共用这条管线，只在数据上不同（`track: 'wiring' | 'replay'`）。
-
-`logic.js` / `mm/expr.js` / `mm/verify.js` / `mm/graph.js` / `engine-legacy.js` 已**退出运行时**，
-只被生成器、测试与迁移门禁使用（见 §6）。
-
-| 文件 | 命名空间 | 职责 | 依赖 |
-| --- | --- | --- | --- |
-| `src/term.js` | `RSL.Term` | **唯一表达式核心**：canonical set.mm token、解析/格式化、定义展开 + α 等价、替换、定义置换、分离、MV 应用 | 无 |
-| `src/logic.js` | `RSL.Logic` | 旧 AST 实现，仅作者侧生成器与迁移门禁使用，**不进运行时** | 无 |
-| `src/archive.js` | `RSL.ARCHIVE` | set.mm 档案条目（生成） | 无 |
-| `src/library.js` | `RSL.AXIOMS` / `DEFINITIONS` / `PARTS` / `CHAPTERS` | 20 条公理、4 个定义、调色板条目、章节元数据 | 无 |
-| `src/levels.js` | `RSL.LEVELS` | 手工关（含参考电路） | 无 |
-| `src/levels-generated.js` | `RSL.LEVELS` | 生成关（生成） | 无 |
-| `src/mm/flags.js` | `RSL.MM.Flags` | 重放段特性开关（默认开启；`?mm=0` 回旧版 240 关） | 无 |
-| `src/mm/proofs.js` | `RSL.MM_PROOFS` | 48 个自包含证明 DAG（生成，约 440 KB） | 无 |
-| `src/mm/levels.js` | `RSL.MM_LEVELS` | 48 个 `mm-proof` 关卡（生成，每章 12 个） | 无 |
-| `src/mm/expr.js` | `RSL.MM.Expr` | token 公式：替换、$e 比对、断言应用、DV、显示。纯函数 | 无 |
-| `src/mm/verify.js` | `RSL.MM.Verify` | 压缩证明重放、DAG 构造与离线校验、Tier 3 交互会话 | Expr |
-| `src/mm/graph.js` | `RSL.MM.Graph` | 证明 → 棋盘图：前提/步骤节点求值、参考电路布局、元件栏、参考推进 | Expr、Verify |
-| `src/modules.js` | `RSL.Modules` | **唯一模块注册表**：端口元数据、token `apply`、错误消息 | Term |
-| `src/engine.js` | `RSL.Engine` | **唯一求值器**：拓扑、目标比较、反作弊 | Term、Modules |
-| `src/route.js` | `RSL.Route` | 纯几何：A* 走线、正交化、45° 倒角、线段避障。无 DOM | 无 |
-| `src/achievements.js` | `RSL.Achievements` | 20 个成就定义与纯条件判定 | 无 |
-| `src/save.js` | `RSL.Save` | 存档 schema（版本 3，自动升级 v2）：清洗、payload、localStorage 读写 | 无 |
-| `src/ui.js` | `RSL.UI` | 元素表、token 公式 HTML、toast、面板生命周期/滚动条/焦点陷阱、彩带 | Term |
-| `src/audio.js` | `RSL.Audio` | 首次交互后解锁的 BGM 与音效 | 无 |
-| `src/coach.js` | `RSL.Coach` | 规则提示窗（输入→模块→输出示意） | UI、Audio |
-| `src/catalog.js` | `RSL.Catalog` | 关卡目录派生：章节分组、统一难度、解锁链、palette 解析。纯函数 | Term |
-| `src/screens.js` | `RSL.Screens` | 选关/帮助/成就/通关面板（统一一个 win）的 HTML 与面板内交互 | UI、Catalog、Achievements、Audio |
-| `src/board.js` | `RSL.Board` | DOM 图编辑器：视图变换、节点/导线交互、框选、长按删除、渲染与走线调用 | Engine、Route、UI |
-| `src/main.js` | `RSL.APP` | 应用状态、存档、主题/声音、关卡流程、重放层挂载、调色板拖放、参数弹层、全局事件、启动 | 以上全部 |
-
-依赖只允许**向下**（右侧列出的依赖），UI 层不得反向读取 `RSL.APP`。
-需要跨层动作时由 `main.js` 通过 `Screens.init(ctx)` 注入回调（`loadLevel`、`isUnlocked`、`exportSave`…）。
+| 文件 | 职责 |
+| --- | --- |
+| `src/term.js` | **唯一表达式核心**：canonical set.mm token（首 token 类型码）；解析/格式化、key/eq、原子代入、捕获规避变元替换、read 派生结构 |
+| `src/modules.js` | **唯一模块注册表**：6 构造 + 公理 A1–A5 + 代入/分离/全称推广/全称引入/全称例化/等词自反/Leibniz/定理 `*NN` |
+| `src/engine.js` | **唯一求值器**：拓扑、逐节点 apply、目标精确比较、来源反作弊、定理引用越界校验 |
+| `src/catalog.js` | 关卡目录：章节、band、解锁链、`palette` → 元件栏条目 |
+| `src/screens.js` | 选关/帮助/成就/通关面板 |
+| `src/board.js` / `src/main.js` | 棋盘交互与关卡流程（一条 `loadLevel/refresh/check/win`） |
+| `src/levels.js` | 编译器产物：96 关 `targetTokens / palette / initialNodes / solution` |
+| `campaign/` | 手写内容源：目标、顺序、提示、允许模块、参考证明项 |
 
 ## 3. 数据流
 
 ```
-关卡数据（levels* + library）
-  └─ Catalog.build() → state.levels（排序、解锁链、subst 关自动补构造模块）
-       └─ loadLevel(i) → Board.setData(目标 + 存档电路) → Engine.evaluate()
-            ├─ Board.paint(results)  节点状态/公式
-            ├─ Route._route(...)     A* 走线 → SVG path
-            └─ 通关 → Save.payload → localStorage；Screens.openWin
+campaign/*.json + scripts/build-campaign.js
+  └─ 证明项 → 棋盘电路（公式用构造模块搭、自动布局、Engine 验证）
+       └─ src/levels.js
+            └─ loadLevel(i) → Board.setData(initialNodes/存档) → Engine.evaluate
+                 → check → win
 ```
 
-- 公式比较用 `Logic.eq`（定义展开 + α 等价），显示用两条路径：
-  `Logic.fmt` = 最小括号（存档/测试/日志）；`UI.formulaHTML` = 全括号（界面）。
-- 过关条件：目标焊盘 `complete`，且目标上游真的包含公理/规则/档案/已证结论（见 `Engine.evaluate` 反作弊段）。
-- 存档只存解出的关卡、最佳长度、通关电路等；电路在 `save.clean` 里按白名单清洗。
+- 目标比较用 `Term.eq`（canonical token；没有定义展开，因为不再有定义式模块）。
+- 定理模块按关卡号查找，且引擎拒绝 `n >= 当前关卡`。
+- 存档在 localStorage（版本 3 key 保留），重进关卡可恢复自己的电路。
 
-### 3.0 关卡进程与统一管线
+## 4. 作者链路
 
-`Catalog.build()` 负责进程：每章 `12 引导 + 48 接线 + 12 重放 = 72`，引导关固定在 1–12，
-其余 60 个按统一难度 D 升序交错；位置 1–36 为基础段、37–72 为挑战段。
+- `campaign/chapter1..4.json` 由 `scripts/authoring/make-chapter1..4.js` 生成；目标/顺序/标题/提示是手写的。
+- 命题章参考证明来自 set.mm 真实证明：`scripts/authoring/setmm-expand.js` 把 `ax-1/ax-2/ax-3/ax-4/ax-5/sp/ax-gen/ax-mp`
+  和推理式引理（a1i/mpd/com12…）递归展开/翻译成新演算，并用更早关卡作 `*NN`。
+- 谓词章同理映射 `ax-4 → A5`、`sp → A4`、`ax-5 → 全称引入规则`、`ax-gen → 全称推广`。
+- 等词章用 Leibniz 规则（抽象/直接替换两种模式）+ 等词自反，与第Ⅰ/Ⅱ章定理组合。
 
-```
-D(接线) = 参考电路模块数 + 0.1 × target 的 token 结构节点数
-D(重放) = 1.4 + 2.2417 × log2(1 + 证明步骤数)
-```
+## 5. 测试
 
-普通关与重放关走**同一条路径**，区别只在关卡数据：
-
-```
-level.track === 'wiring' | 'replay'
-  └─ loadLevel(i)
-       ├─ Board.setData(level.initialNodes 或 存档电路；重放关含目标 + 前提 mmhyp)
-       ├─ 元件栏 = Catalog.partsForLevel(level)（level.palette；重放关是 mmstep 断言）
-       ├─ 顶栏目标 = Term.toHTML(level.targetTokens)，节点公式 = Term.toNodeHTML
-       └─ refresh() → Engine.evaluate(level, nodes, edges, { proof })
-            ├─ 模块 apply 统一走 RSL.Modules（mmstep 用 ctx.proof 的 frame）
-            └─ 结论接到 ⊢ → win() → Screens.openWin
-  「参考」按钮（level.reference 存在时显示）：按数据里的参考动作摆节点/接线，最后接 ⊢
-```
-
-- 目录：`RSL.MM_LEVELS` 默认并入章节（`MM.Flags.enabled()` 默认 true，`?mm=0` 关闭）；
-  关闭时 `Catalog.build()` 回到旧版 240 关布局（逐字段等于旧基线）。
-- 重放关的导线按图规模用简单正交折线（`board.simpleWires = 预计节点数 > 60`），普通关默认 A* 避障。
-- 重放关**不计入** 240 关的成就体系（按 `track === 'replay'` 过滤），但与接线关一样登记
-  `solved` / `bestLen` / `circuits`，重进关卡可继续自己的解。
-
-### 3.1 走线算法
-
-- 12px 网格 A*：每步 1，拐弯 +8，反向 +4；不同输出网络复用同一段 +64（同源端口可以共享 trunk）。
-- 占用表使用**全局网格坐标**（旧实现按每条走线自己的局部 origin 记录，跨走线对不上，等于没有避让）。
-- 每条走线按「先短后长」顺序路由；A* 完成后先做正交 shortcut，**shortcut 会拒绝压到其它
-  网络已占用的共线区间**；最终渲染路径（而不是 A* 原始阶梯）再登记进占用表，供后续网络避让。
-- 节点自动放置用真实端口数估算高度（S 元件最多 11 个输入端口），渲染后再做一次重叠检查，
-  加组变高时也会重新让位。
-- 这是可增量协作的最小版本，不是全局最优布线；参考思路是迷宫路由（Lee / A*）、协商拥塞
-  （negotiated congestion / rip-up & reroute）与正交连接器布线中的 nudging，但本作只实现
-  了适合即时交互的简化版本。
-
-## 4. 关卡与内容生成
-
-```
-research/setmm-data.json (+ setmm-set-extra.json)
-  └─ scripts/gen-levels.js → src/archive.js（993 条）
-                           → src/levels-generated.js（每章 48 关）
-       └─ tests/levels.test.js 逐关用真实引擎求值参考电路
-```
-
-改生成器后：`node scripts/gen-levels.js`，然后 `git diff src/archive.js src/levels-generated.js` 应为你预期的变化（纯重构应为空）。
-`src/levels.js` 是手工关，可直接改；四章各 12 关手工 + 48 关生成。
-生成关的前若干关是**推理关**：把 set.mm 的难证定理/公理当作已证引理，用代入/全称闭包/定义置换推出新目标，不使用 archive 直连；难证定理仍会作为引理出现在关卡里。
-档案公式的命题变元统一归一化到 `PQRSTUVWXYZABC`；每关的 `allowed` 由参考电路收敛而来（只含真正用到的模块 + 目标），命题章不再出现谓词/量词元件。
-
-### 4.1 set.mm 证明重放数据（mm-replay）
-
-```
-assets/data/set.mm（仓库外，51 MB）
-  └─ scripts/mm-targets.js      ← 48 个重放目标（label/章节/中文名/说明，唯一来源）
-  └─ scripts/mm-build-frames.js → research/mm-frames.json（重放闭包）
-       └─ scripts/mm-verify.js   → research/mm-proofs/<label>.json × 48
-                                → research/mm-report.json（成功/失败与步骤统计）
-            └─ scripts/mm-to-levels.js → src/mm/proofs.js   （RSL.MM_PROOFS）
-                                       → src/mm/levels.js   （RSL.MM_LEVELS，48 关）
-                 └─ tests/mm-replay.test.js / tests/mm-ui.js 逐关校验与真浏览器重放
-```
-
-一条命令重建全部产物：`npm run build:mm`（需要 `assets/data/set.mm`）。
-`src/mm/*` 的接口契约、压缩证明语义、DV 覆盖范围都写在 [MM-REPLAY.md](MM-REPLAY.md)，
-数学来源与提取器细节见 [metamath.md](metamath.md)。
-
-## 5. 视觉与交互约定
-
-完整设计规范见 [DESIGN.md](DESIGN.md)（颜色角色、字体、圆角/投影/图标 token、组件状态与记法）。
-
-- 节点宽 232px（`CSS .node width` 与 `Board` 常量一致）、目标焊盘 160px；拖动吸附 16px 网格。
-- 端口类型 `formula` / `assertion` / `atom` 决定颜色与可否连接；CSS 与 `Board.connect` 共用类型名。
-- 所有面板内容通过 `RSL.UI.openSheet(html)` 注入 `#sheet`；点击 `[data-close]` 或遮罩关闭，`Tab` 焦点陷阱，关闭后焦点回到触发按钮。
-- 规则提示窗只画规则形态，不显示本关答案；`level.coach` 字段决定弹一次。
-- 重放关复用普通节点/端口/导线样式（`mmstep` / `mmhyp` 只是两种新模块），公式用 token 串；
-  `src/mm/mm.css` 只剩重放卡片、元件栏与 token 公式排版。
-- 主题：`html[data-theme="dark"]` + `localStorage` 的 `axiom-simple:settings`。
-
-## 6. 测试
-
-| 命令 | 覆盖 |
+| 命令 | 内容 |
 | --- | --- |
-| `npm test` | 77 项单测：逻辑 17、成就 4、存档 2、走线 11、目录/重放 schema、mm flags、mm 重放/图；加上 240 关参考电路与 48 关参考证明 |
-| `npm run test:ui` | Edge headless 真浏览器（238 checks）：放置/连线/通关/拆线/拖回删除/拖放/暗色/移动端/多选 + 重放关同棋盘拖线与参考推进端到端 |
-| `npm run test:acceptance` | 先构建 `dist/`，再跑独立验收（251 checks：脚本/样式清单按 index.html 顺序逐项核对 + dist 产物 file:// 冒烟） |
-| `npm run capture:screens` | 重新采集 `screenshots/` 的文档图（`--repo`） |
-| `node .research/perf.js` | 大电路（18 节点 20 边）走线与渲染耗时（开发用，`.research/` 不进仓库） |
-| `node scripts/mm-verify.js` | 重放 48 个目标，失败给出可定位原因（CLI 报告） |
+| `npm test` | 96 关 schema、模块表、参考证明逐关真实 Engine 求值、`*NN` 越界拒绝 |
+| `npm run test:ui` | Edge headless：加载 96 关、*01/*96、选关 96 格、帮助/成就面板、无 JS 错误 |
+| `npm run test:acceptance` | dist 清单与源码一致；正式模式 dist 加载 96 关；维护模式只发布维护页 |
 
-浏览器测试走 CDP；Edge 路径固定在 `tests/lib/browser.js`。无 Edge 的机器只能跑 `npm test`。
-测试与脚本统一用 `scripts/lib/load-runtime.js` 在 Node 里按 `index.html` 的顺序加载经典脚本。
+## 6. 维护模式
 
-## 7. 已知边界
-
-- 主游戏没有完整 set.mm 证明器，也不重证 set.mm 定理；游戏目标是 set.mm 公式。
-- mm-replay 子系统**只重放 48 个目标的局部证明**：引用是断言级的（不展开被引定理
-  自己的证明），所以它是「按 set.mm 规则重放并校验这 48 个证明」，不是完整 set.mm 验证器
-  （不校验全部 40k+ 定理，也不做完整的 DV 全量证明）。
-- DV 覆盖：只检查「两个变元都在该断言 mandatory 假设里」的 $d 对，且比对的是替换后表达式
-  共享变量；涉及假元变量（dummy variable）的 $d 对按 Metamath 语义忽略。
-- 现有 240 关的公式比较仍用 `Logic` 的定义展开 + α 等价；`ax-rep` 的 φ 用原子 P 占位，属于简化。
-- 集合论章只用 `∈` / `=` 原始语言，没有类抽象；重放关的公式是原始 token，不走 `Logic`。
-- 存档版本 2；改 schema 时要同时改 `save.js` 的 `clean` 与 `README` 的说明。重放关只登记
-  `solved`/`bestLen`，不写 `circuits`。
-- 关卡顺序由 `Catalog.build()` 的难度公式决定，不再是 `CHx-NN` 的生成顺序；`id` 只作为
-  稳定存档键，显示编号用章内位置（`chapterOrder`）。
-
-## 7. 发布与维护模式
-
-- GitHub Pages 由 `.github/workflows/pages.yml` 在每次 push `main` 时运行 `node scripts/build-toy.js` 并发布 `dist/`。
-- 仓库根存在 `.maintenance` 时，构建只产出维护页（`scripts/maintenance.html`，不含任何游戏脚本），
-  用于升级期间关闭公开试玩；本地开发与测试仍直接打开源码 `index.html`。
-- 删除 `.maintenance` 后重新推送，Pages 自动恢复游戏。
-
-## 8. 迁移门禁（重构完成后保留）
-
-- `scripts/golden.js`：P0 行为基线（240+48 关逐节点 state/key/fmt），`--check` 必须 0 diff。
-- `scripts/term-diff.js`：旧 `RSL.Logic` 与 `RSL.Term` 在 2769 条公式 / 13845 对 eq 上 0 差异。
-- `scripts/dual-run.js`：`engine-legacy.js`（AST）与新 `engine.js`（token）在 240 关参考电路上 0 差异。
-- 这三个脚本 + `engine-legacy.js` / `logic.js` 只在测试/生成器里使用，不参与运行时。
+仓库根有 `.maintenance` 时 `build-toy.js` 只产出维护页（9 个文件，不含游戏脚本）；删除标记重新构建即恢复。
