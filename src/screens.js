@@ -42,10 +42,11 @@
     var cls = 'level-cell' + (i === ctx.state.index ? ' is-current' : '') +
       (ctx.state.solved[lv.id] ? ' is-solved' : '') +
       (unlocked ? '' : ' is-locked');
-    var label = '第 ' + (i + 1) + ' 关' + (unlocked ? '' : '，未解锁') + (lv.challenge ? '，章末关' : '');
+    var no = Number(lv.no) || (i + 1);
+    var label = '第 ' + no + ' 关（*' + String(no).padStart(2, '0') + '）' + (unlocked ? '' : '，未解锁');
     return '<button class="' + cls + '" data-level="' + i + '" aria-label="' + label + '"' +
       (unlocked ? '' : ' disabled') + style + '>' +
-      String(i + 1).padStart(2, '0') +
+      String(no).padStart(2, '0') +
       '<i class="eff" aria-hidden="true"></i>' +
       '</button>';
   }
@@ -127,7 +128,8 @@
    * ========================================================================= */
 
   function helpCard(label, kind, formula, hint) {
-    return '<div class="help-card" role="button" tabindex="0" data-coach="' + kind + '"' +
+    var attr = kind ? ' data-coach="' + kind + '"' : '';
+    return '<div class="help-card"' + attr + ' role="button" tabindex="0"' +
       (hint ? ' title="' + esc(hint) + '"' : '') + '><b>' + esc(label) + '</b>' +
       UI.helpFormula(formula) + '</div>';
   }
@@ -146,14 +148,22 @@
           helpStep('i-play') +
         '</div>' +
         '<div class="help-cards">' +
-          helpCard('S', 'subst', 'A[P↦B]') +
-          helpCard('M', 'detach', 'A, A→B ⇒ B') +
-          helpCard('D', 'replace', 'A ⇄ A′') +
-          helpCard('HS', 'syllogism', 'A→B, B→C ⇒ A→C') +
-          helpCard('∀I', 'all-intro', 'A ⇒ ∀x A') +
-          helpCard('∀E', 'all-elim', '∀x A ⇒ A[t/x]') +
-          helpCard('∃I', 'exists-intro', 'A[t/x] ⇒ ∃x A') +
-          helpCard('∃E', 'exists-elim', '∃x A, A[y/x]→B ⇒ B') +
+          helpCard('P', '', 'P / Q / R / S / T') +
+          helpCard('x', '', 'x / y / z') +
+          helpCard('F', '', 'F(x) / G(x) / H(x)') +
+          helpCard('=', '', 'x = y') +
+          helpCard('¬', '', '¬A') +
+          helpCard('→', '', 'A→B') +
+          helpCard('∀', '', '∀x A') +
+          helpCard('Ax', '', '公理 A1–A5') +
+          helpCard('S', '', 'A[P↦B]') +
+          helpCard('M', '', 'A, A→B ⇒ B') +
+          helpCard('∀I', '', 'A ⇒ ∀x A') +
+          helpCard('∀*', '', 'A ⇒ A→∀x A') +
+          helpCard('∀E', '', '∀x A ⇒ A[t/x]') +
+          helpCard('=I', '', 't = t') +
+          helpCard('=L', '', 'x=y, A(x) ⇒ A(y)') +
+          helpCard('*NN', '', '已证定理') +
         '</div>' +
         '<div class="save-row">' +
           '<button class="save-btn" data-save-export title="保存存档" aria-label="保存存档"><svg class="icon"><use href="#i-arrow-down-tray"></use></svg></button>' +

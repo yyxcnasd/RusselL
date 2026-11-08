@@ -15,7 +15,7 @@ const Hx = F.pred('H', X), Hy = F.pred('H', Y);
 const ab = { mode: 'abstract', v: 'z' };
 const rep = { mode: 'replace' };
 const L = (x, y, f, opts) => P.leibniz(x, y, f, opts || ab);
-const genN = (proof, vars) => vars.reduce((acc, v) => P.gen(acc, v), proof);
+const genN = (proof, vars) => vars.slice().reverse().reduce((acc, v) => P.gen(acc, v), proof);
 
 const levels = [];
 function add(no, title, teaches, hint, target, proof) {
@@ -35,8 +35,8 @@ add(75, '传递性的全称闭包', '∀x∀y∀z(x=y→(y=z→x=z))。', '对 *
 add(76, '等词进入全称公式', '∀z(x=y→(z=x→z=y))。', '先替换再全称推广。',
   F.all('z', F.imp(eq(X, Y), F.imp(eq(Z, X), eq(Z, Y)))), P.gen(L('x', 'y', eq(Z, X), rep), 'z'));
 
-add(77, '等词进入全称（反向）', '∀z(x=y→(z=y→z=x))。', '用反向替换再推广。',
-  F.all('z', F.imp(eq(X, Y), F.imp(eq(Z, Y), eq(Z, X)))), P.gen(L('y', 'x', eq(Z, Y), rep), 'z'));
+add(77, '等词进入全称（反向）', '∀z(y=x→(z=y→z=x))。', '用反向替换再推广。',
+  F.all('z', F.imp(eq(Y, X), F.imp(eq(Z, Y), eq(Z, X)))), P.gen(L('y', 'x', eq(Z, Y), rep), 'z'));
 
 add(78, '三层全称等词', '∀x∀y∀z(x=y→(z=x→z=y))。', '对 *76 再推广 x、y。',
   F.all('x', F.all('y', F.all('z', F.imp(eq(X, Y), F.imp(eq(Z, X), eq(Z, Y)))))),
@@ -78,7 +78,8 @@ add(88, '谓词后件不变', 'x=y→((F(x)→G(z))→(F(y)→G(z)))。', '替�
   F.imp(eq(X, Y), F.imp(F.imp(Fx, Gz), F.imp(Fy, Gz))), L('x', 'y', F.imp(Fx, Gz), rep));
 
 add(89, '自反式的全称实例', '∀x(x=x→x=x)。', '对同一律实例推广。',
-  F.all('x', F.imp(eq(X, X), eq(X, X))), P.gen(P.thm(1), 'x'));
+  F.all('x', F.imp(eq(X, X), eq(X, X))),
+  P.gen(P.subst(P.thm(1), { atoms: { P: eq(X, X) } }), 'x'));
 
 add(90, '等词否定替换', 'x=y→(¬(z=x)→¬(z=y))。', '直接替换。',
   F.imp(eq(X, Y), F.imp(F.not(eq(Z, X)), F.not(eq(Z, Y)))), L('x', 'y', F.not(eq(Z, X)), rep));
@@ -99,16 +100,17 @@ add(93, '全称等词双向替换', 'x=y→(∀z(z=x→F(z))→∀z(z=y→F(z)))
     return P.mp(L('y', 'x', F.all('z', F.imp(eq(Z, Y), Fz)), rep), P.mp(P.thm(51), chain));
   })());
 
-add(94, '等词传递的全称闭包', '∀x∀y∀z(x=z→(x=y→y=z))。', '对 *52 的变形做全称闭包。',
-  F.all('x', F.all('y', F.all('z', F.imp(eq(X, Z), F.imp(eq(X, Y), eq(Y, Z)))))),
-  genN(P.thm(52), ['x', 'y', 'z']));
+add(94, '等词传递（前件形态）', 'x=z→(x=y→y=z)。', '用替换得到 x=y→(x=z→y=z)，再置换前件。',
+  F.imp(eq(X, Z), F.imp(eq(X, Y), eq(Y, Z))),
+  P.mp(L('x', 'y', eq(X, Z), rep),
+    P.subst(P.thm(8), { atoms: { P: eq(X, Y), Q: eq(X, Z), R: eq(Y, Z) } })));
 
 add(95, '全称等词的恒等替换', 'x=y→(∀z(z=z)→∀z(z=z)) 的深层形式。', '取不含占位变元 z 的公式。',
   F.imp(eq(X, Y), F.imp(F.all('z', F.imp(eq(Z, Z), eq(Z, Z))), F.all('z', F.imp(eq(Z, Z), eq(Z, Z))))),
   L('x', 'y', F.all('z', F.imp(eq(Z, Z), eq(Z, Z)))));
 
-add(96, '综合：等词与量化', 'x=y→(F(x)→F(y)) 的全称闭包（四章综合）。', '直接对 *53 推广 x、y。',
-  F.all('x', F.all('y', F.imp(eq(X, Y), F.imp(Fx, Fy)))), genN(P.thm(53), ['x', 'y']));
+add(96, '综合：G 的等词替换', '∀x∀y(x=y→(G(x)→G(y)))。', '用 G(z) 的抽象替换再全称推广。',
+  F.all('x', F.all('y', F.imp(eq(X, Y), F.imp(Gx, Gy)))), genN(L('x', 'y', Gz), ['x', 'y']));
 
 fs.writeFileSync(path.join(ROOT, 'campaign', 'chapter4.json'), JSON.stringify(levels, null, 2) + '\n', 'utf8');
 console.log('written campaign/chapter4.json', levels.length, 'levels');

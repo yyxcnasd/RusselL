@@ -9,6 +9,7 @@
 const chapter1 = require('./chapter1.json');
 const chapter2 = require('./chapter2.json');
 const chapter3 = require('./chapter3.json');
+const chapter4 = require('./chapter4.json');
 
 const chapters = [
   { key: 'prop', id: 'Ⅰ', title: '命题演算' },
@@ -34,6 +35,7 @@ function fromJson(lv, chapter) {
 
 const levels = chapter1.map((lv) => fromJson(lv, 0))
   .concat(chapter2.map((lv) => fromJson(lv, 1)))
-  .concat(chapter3.map((lv) => fromJson(lv, 2)));
+  .concat(chapter3.map((lv) => fromJson(lv, 2)))
+  .concat(chapter4.map((lv) => fromJson(lv, 3)));
 
 module.exports = { chapters, levels };
