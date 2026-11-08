@@ -43,6 +43,13 @@ function nodesOf(t) {
   return 1;
 }
 const target = F.imp(H, F.imp(K, F.all('z', F.iff(A, C))));
+(function check(t, p) {
+  if (!t) throw new Error('null proof node at ' + p);
+  if (!t.op) throw new Error('missing op at ' + p + ' formula=' + (t.f || t).toString().slice(0, 80));
+  if (t.a) check(t.a, p + '.a');
+  if (t.b) check(t.b, p + '.b');
+  if (t.of) check(t.of, p + '.of');
+})(proof, 'proof');
 console.log('nodes', nodesOf(proof));
 
 const file = path.join(ROOT, 'campaign', 'chapter4.json');
