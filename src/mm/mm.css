@@ -1,0 +1,309 @@
+/*!
+ * 公理板 / AXIOM BOARD — MM 证明重放面板
+ *
+ * 只作用于 .mm-panel 内部；颜色/圆角/投影/字体全部复用 src/simple.css 的 token，
+ * 因此浅色与深色主题自动成立。公式排版沿用 .formula / .f-var / .f-op / .f-paren。
+ *
+ * 布局：桌面 = 左步骤列表 / 右当前步骤详情；≤700px = 详情在上、列表在下（§8）。
+ * 05 节是 screens.js 集成用的关卡目录行样式（面板本身不渲染这些 class）。
+ */
+
+/* =========================================================================
+ * 01 面板骨架
+ * ========================================================================= */
+
+.mm-panel{
+  display:flex;flex-direction:column;gap:14px;
+  height:100%;min-height:0;
+  padding:2px 2px calc(2px + env(safe-area-inset-bottom,0px));
+  color:var(--ink);font-family:var(--font);
+}
+.mm-panel [hidden]{display:none!important}
+
+/* 顶栏：label 芯片 | 目标公式 | 当前步骤 / 总步骤 */
+.mm-head{
+  display:grid;grid-template-columns:auto minmax(0,1fr) auto;
+  align-items:center;gap:12px;padding:0 2px;
+}
+.mm-code{
+  align-self:center;
+  padding:3px 9px;border-radius:var(--radius-pill);
+  background:var(--soft);color:var(--muted);
+  font-family:var(--font);font-size:12px;font-weight:600;
+  letter-spacing:.01em;white-space:nowrap;
+}
+.mm-target{
+  font-family:var(--math);font-size:clamp(18px,2.1vw,24px);
+  line-height:1.3;color:var(--ink);
+  min-width:0;overflow-wrap:anywhere;
+}
+.mm-progress{
+  align-self:center;white-space:nowrap;
+  font-size:12px;font-weight:600;color:var(--muted);
+  font-variant-numeric:tabular-nums;
+}
+
+/* =========================================================================
+ * 02 主体：列表 + 详情
+ * ========================================================================= */
+
+.mm-body{
+  flex:1;min-height:0;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(280px,340px);
+  grid-template-areas:"list detail";
+  gap:16px;
+  align-items:stretch;
+}
+
+.mm-list-col{
+  grid-area:list;
+  display:flex;flex-direction:column;gap:10px;
+  min-width:0;min-height:0;
+}
+
+/* 0 步（$a 公理）或数据缺口：没有步骤列表，详情区按内容收高，不撑出一大块空 soft 底色 */
+.mm-panel.is-empty .mm-body{grid-template-columns:minmax(0,1fr);grid-template-areas:"detail"}
+.mm-panel.is-empty .mm-list-col{display:none}
+.mm-panel.is-empty .mm-detail{align-self:start;justify-self:start;width:100%;max-width:560px}
+.mm-panel.is-empty .mm-detail-body{flex:0 0 auto;overflow:visible}
+/* 没有可重放步骤时控制条没有意义（钩子仍留在 DOM 里，只是不显示） */
+.mm-panel.is-empty .mm-controls{display:none}
+
+/* 分段（>80 步时才有内容；≤80 步时隐藏但保留钩子） */
+.mm-segments{display:flex;flex-wrap:wrap;gap:6px}
+.mm-seg{
+  height:26px;padding:0 10px;border-radius:var(--radius-pill);
+  background:var(--soft);color:var(--muted);
+  font-family:var(--font);font-size:11px;font-weight:600;
+  font-variant-numeric:tabular-nums;
+  transition:background .12s var(--ease),color .12s var(--ease);
+}
+.mm-seg:hover{background:var(--soft-hover);color:var(--ink)}
+.mm-seg:active{transform:translateY(1px)}
+.mm-seg.is-active{background:var(--stamp-bg);color:var(--stamp-fg)}
+.mm-seg:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* 步骤列表：平涂行，soft 底、无描边；当前行用反相印章 */
+.mm-list{
+  list-style:none;margin:0;padding:2px;
+  display:flex;flex-direction:column;gap:6px;
+  overflow:auto;min-height:0;
+  scrollbar-width:thin;overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+}
+.mm-step-item{list-style:none;margin:0;padding:0}
+.mm-step{
+  display:grid;grid-template-columns:auto 72px minmax(0,1fr);
+  align-items:center;gap:10px;
+  width:100%;min-height:40px;padding:8px 11px;
+  border-radius:var(--radius-sm);
+  background:var(--soft);color:var(--muted);
+  text-align:left;
+  transition:background .12s var(--ease),color .12s var(--ease),transform .12s var(--ease);
+}
+.mm-step:hover{background:var(--soft-hover)}
+.mm-step:active{transform:translateY(1px)}
+.mm-step:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mm-step-no{
+  min-width:20px;
+  font-size:11px;font-weight:600;color:var(--muted);
+  font-variant-numeric:tabular-nums;
+}
+.mm-step-label{
+  min-width:0;max-width:100%;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-family:var(--font);font-size:12px;font-weight:600;color:var(--muted);
+}
+.mm-step-out{
+  min-width:0;overflow-wrap:anywhere;
+  font-size:13px;line-height:1.35;color:var(--muted);
+}
+/* 未揭示的步骤只有编号 + label，结论处是一个占位点 */
+.mm-step.is-pending .mm-step-out{color:var(--line-strong)}
+/* 已到达的步骤：结论用正文色 */
+.mm-step.is-done{color:var(--ink)}
+.mm-step.is-done .mm-step-out{color:var(--ink)}
+.mm-step.is-done .mm-step-no,.mm-step.is-done .mm-step-label{color:var(--muted)}
+/* 当前位置：反相印章（与「当前关卡格」同一语义） */
+.mm-step.is-current,
+.mm-step.is-current:hover{background:var(--stamp-bg);color:var(--stamp-fg)}
+.mm-step.is-current .mm-step-no,
+.mm-step.is-current .mm-step-label,
+.mm-step.is-current .mm-step-out{color:var(--stamp-fg)}
+
+/* =========================================================================
+ * 03 当前步骤详情
+ * ========================================================================= */
+
+.mm-detail{
+  grid-area:detail;
+  /* 撑满右列：换步时内容多少变化都不会让控制条上下跳 */
+  align-self:stretch;
+  display:flex;flex-direction:column;gap:12px;
+  min-width:0;min-height:0;
+  padding:16px;
+  border-radius:var(--radius);
+  background:var(--soft);
+  overflow:hidden;
+}
+/* 只有中间内容滚动；头（label）和底部控制条固定 */
+.mm-detail-body{
+  flex:1;min-height:0;
+  display:flex;flex-direction:column;gap:12px;
+  overflow:auto;scrollbar-width:thin;overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+}
+.mm-detail-head{display:flex;align-items:center;gap:8px;min-width:0}
+.mm-label{
+  min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-family:var(--font);font-size:14px;font-weight:600;color:var(--ink);
+}
+.mm-kind{
+  flex:none;
+  padding:2px 8px;border-radius:var(--radius-pill);
+  background:var(--soft-hover);color:var(--muted);
+  font-size:11px;font-weight:600;
+}
+.mm-note{
+  margin:0;
+  font-size:13px;line-height:1.5;color:var(--muted);
+}
+
+/* 替换 map：变量 ↦ token 串 */
+.mm-subst{display:flex;flex-direction:column;gap:6px;min-width:0}
+.mm-subst-row{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;min-width:0}
+.mm-subst-var{font-size:15px;color:var(--ink);min-width:0;overflow-wrap:anywhere}
+.mm-subst-val{font-size:14px;color:var(--muted);min-width:0;overflow-wrap:anywhere}
+.mm-map{font-family:var(--math);font-size:13px;color:var(--muted);flex:none}
+.mm-empty{font-family:var(--math);color:var(--line-strong)}
+
+/* 结论公式 */
+.mm-conclusion{
+  font-size:16px;line-height:1.5;color:var(--ink);
+  min-width:0;overflow-wrap:anywhere;
+}
+
+/* =========================================================================
+ * 04 控制条（首 / 上 / 下 / 末）
+ * ========================================================================= */
+
+.mm-controls{
+  display:flex;align-items:center;gap:6px;
+  margin-top:auto;padding-top:8px;
+}
+.mm-ctl{
+  position:relative;display:grid;place-items:center;
+  width:38px;height:38px;border-radius:var(--radius-sm);
+  background:var(--soft-hover);color:var(--muted);
+  transition:background .12s var(--ease),color .12s var(--ease),transform .12s var(--ease);
+}
+/* 触控命中区扩到 44px，视觉仍 38px（DESIGN §6） */
+.mm-ctl::after{content:"";position:absolute;inset:-3px;border-radius:inherit}
+.mm-ctl:hover{background:var(--hover);color:var(--ink)}
+.mm-ctl:active{transform:translateY(1px)}
+.mm-ctl:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mm-ctl .icon{width:18px;height:18px}
+.mm-ctl:disabled{
+  opacity:.34;cursor:not-allowed;transform:none;
+  background:var(--soft);color:var(--muted);
+}
+/* 「下一步」是面板唯一的主操作：反相印章 */
+.mm-ctl-next{margin-left:auto;background:var(--stamp-bg);color:var(--stamp-fg)}
+.mm-ctl-next:hover{background:var(--stamp-bg);color:var(--stamp-fg)}
+.mm-ctl-next:disabled{background:var(--soft);color:var(--muted);opacity:.34}
+
+/* =========================================================================
+ * 05 关卡目录行（由 screens.js 输出，面板只提供样式）
+ *
+ * 选关面板里的 MM 重放关：平涂行、无描边、soft 底，高 ≥44px；
+ * 只有「当前」用反相印章，「已通关」用 accent-soft（与 240 关的关卡格同一语义）。
+ * ========================================================================= */
+
+.mm-levels{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+  gap:8px;
+}
+.mm-level{
+  display:flex;align-items:center;gap:10px;
+  width:100%;min-height:44px;padding:8px 12px;
+  border-radius:var(--radius-sm);
+  background:var(--soft);color:var(--ink);
+  text-align:left;font-family:var(--font);
+  transition:background .12s var(--ease),transform .12s var(--ease),color .12s var(--ease);
+}
+.mm-level:hover{background:var(--soft-hover);transform:translateY(-1px)}
+.mm-level:active{transform:translateY(1px)}
+.mm-level:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mm-level-no{
+  flex:none;min-width:24px;
+  font-size:12px;font-weight:600;color:var(--muted);
+  font-variant-numeric:tabular-nums;
+}
+.mm-level-title{
+  flex:1;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-size:14px;font-weight:600;color:var(--ink);
+}
+.mm-level-code{
+  flex:none;
+  font-family:var(--font);font-size:12px;font-weight:500;color:var(--muted);
+  font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+.mm-level-steps{
+  flex:none;margin-left:auto;
+  font-size:11px;color:var(--muted);
+  font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+/* 状态：已通关 → accent-soft；当前 → 反相印章（放最后，盖住已通关底色） */
+.mm-level.is-solved{background:var(--accent-soft)}
+.mm-level.is-current,
+.mm-level.is-current:hover{background:var(--stamp-bg);color:var(--stamp-fg)}
+.mm-level.is-current .mm-level-no,
+.mm-level.is-current .mm-level-code,
+.mm-level.is-current .mm-level-steps{color:var(--stamp-fg);opacity:.7}
+.mm-level.is-current .mm-level-title{color:var(--stamp-fg)}
+
+/* MM 章号是两个拉丁字母，不用 STIX 数学体 */
+.mm-chapter .chapter-roman{
+  font-family:var(--font);font-style:normal;font-weight:600;
+  font-size:22px;letter-spacing:.04em;
+}
+
+/* =========================================================================
+ * 06 响应式：≤700px 详情在上、列表在下；≤380px 收紧字号
+ * ========================================================================= */
+
+@media (max-width:700px){
+  .mm-panel{gap:10px}
+  .mm-head{
+    grid-template-columns:auto minmax(0,1fr);
+    grid-template-areas:"code progress" "target target";
+    row-gap:6px;column-gap:10px;
+  }
+  .mm-code{grid-area:code;justify-self:start}
+  .mm-progress{grid-area:progress;justify-self:end}
+  .mm-target{grid-area:target;font-size:17px}
+  .mm-body{
+    grid-template-columns:minmax(0,1fr);
+    grid-template-areas:"detail" "list";
+    gap:12px;
+  }
+  .mm-panel.is-empty .mm-body{grid-template-areas:"detail"}
+  .mm-detail{padding:14px}
+  .mm-list{max-height:40vh}
+  .mm-step{min-height:44px}
+  .mm-conclusion{font-size:15px}
+}
+
+@media (max-width:380px){
+  .mm-target{font-size:15px}
+  .mm-step-out{font-size:12px}
+  .mm-controls{gap:4px}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .mm-step,.mm-seg,.mm-ctl{transition:none}
+  .mm-step:active,.mm-seg:active,.mm-ctl:active{transform:none}
+}

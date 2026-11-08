@@ -39,7 +39,10 @@
     hintDismissed: false,
     sound: true,
     theme: 'light',
-    parts: []
+    parts: [],
+    mmPanel: null,
+    mmRoot: null,
+    mmProgress: null
   };
   var els = null;
   var paletteHold = null;
@@ -208,6 +211,9 @@
     state.level = state.levels[index];
     state.selectedNode = null;
     state.selectedEdge = null;
+    if (mmMode(state.level)) { loadMmLevel(index); return; }
+    destroyMmPanel();
+    setMmLayer(false);
     state.parts = Catalog.partsForLevel(state.level);
 
     var mobile = window.innerWidth <= 700;
@@ -305,6 +311,7 @@
 
   function refresh() {
     if (!state.level) return;
+    if (mmMode(state.level)) return; /* 重放关没有电路可求值 */
     var data = state.board.getData();
     var result = window.RSL.Engine.evaluate(state.level, data.nodes, data.edges);
     state.results = result;
@@ -549,6 +556,7 @@
    * ========================================================================= */
 
   function check() {
+    if (state.level && mmMode(state.level)) { mmAdvance(); return; }
     var result = state.results;
     if (!result) return;
     if (result.complete) { win(); return; }
@@ -603,6 +611,146 @@
     var next = state.index + 1;
     if (next >= state.levels.length || !isUnlocked(next)) { Screens.openLevels(); return; }
     loadLevel(next);
+  }
+
+  /* =========================================================================
+   * 7b. set.mm 证明重放（mm-proof 关卡）
+   *
+   * 与棋盘完全并行：进入重放关时隐藏棋盘与元件栏，把 RSL.MM.Panel 挂到
+   * #mmRoot。面板只通过 mount 参数与三个回调通信（不读 RSL.APP），这里
+   * 只负责关卡流程、存档与通关面板。
+   * ========================================================================= */
+
+  function mmMode(level) {
+    return !!(level && level.mode === 'mm-proof');
+  }
+
+  function mmProof(level) {
+    var proofs = window.RSL.MM_PROOFS || {};
+    return (level && proofs[level.proofId]) || null;
+  }
+
+  /** 懒创建重放容器：与 .board 同级（.stage 的 flex 子项），样式对齐棋盘。 */
+  function mmRoot() {
+    if (state.mmRoot && state.mmRoot.parentNode) return state.mmRoot;
+    var stage = document.querySelector('.stage');
+    if (!stage) return null;
+    var el = document.createElement('div');
+    el.id = 'mmRoot';
+    el.className = 'mm-root';
+    el.style.cssText = [
+      'flex:1', 'min-width:0', 'min-height:0',
+      /* 必须是 column：面板要横向拉满，row 方向会把它压成 fit-content */
+      'display:none', 'flex-direction:column',
+      'box-sizing:border-box', 'padding:16px 18px',
+      'background:var(--board)', 'border:1.5px solid var(--line)',
+      'border-radius:var(--radius-lg)', 'box-shadow:var(--board-inset)'
+    ].join(';');
+    stage.appendChild(el);
+    state.mmRoot = el;
+    return el;
+  }
+
+  function destroyMmPanel() {
+    if (!state.mmPanel) return;
+    try { state.mmPanel.destroy(); } catch (e) { /* 面板已移除 */ }
+    state.mmPanel = null;
+  }
+
+  /** 棋盘层 ↔ 重放层切换。 */
+  function setMmLayer(on) {
+    if (els.board) els.board.style.display = on ? 'none' : '';
+    if (els.tray) {
+      els.tray.style.display = on ? 'none' : '';
+      els.tray.setAttribute('aria-hidden', on ? 'true' : 'false');
+    }
+    /* 进入重放关时按需创建容器；离开时只隐藏，保留 DOM 以便快速再进。 */
+    var root = on ? mmRoot() : state.mmRoot;
+    if (root) root.style.display = on ? 'flex' : 'none';
+    els.checkBtn.setAttribute('aria-label', on ? '下一步' : '校验');
+    els.checkBtn.setAttribute('title', on ? '下一步（→）' : '校验');
+    els.checkBtn.classList.toggle('is-mm-next', on);
+  }
+
+  /** 顶栏「校验」按钮在重放关里就是「下一步」。 */
+  function mmAdvance() {
+    var root = state.mmRoot;
+    if (!root) return;
+    var btn = root.querySelector('[data-mm-next]:not([disabled])');
+    if (btn) { btn.click(); return; }
+    var level = state.level;
+    if (level && mmMode(level) && !state.solved[level.id]) {
+      var proof = mmProof(level);
+      var steps = proof && proof.stats ? proof.stats.steps : 0;
+      if (steps === 0) { mmWin(level); return; } /* 公理图式：确认即完成 */
+    }
+    UI.toast('已经是最后一步');
+  }
+
+  function loadMmLevel(index) {
+    var level = state.level;
+    var proof = mmProof(level);
+    var Expr = (window.RSL.MM && window.RSL.MM.Expr) || null;
+    destroyMmPanel();
+    setMmLayer(true);
+    state.results = null;
+    state.parts = [];
+    if (els.popover) els.popover.hidden = true;
+    if (els.coach) els.coach.hidden = true;
+    if (els.tray) els.tray.innerHTML = '';
+
+    /* 顶栏目标：去掉 |- 类型码（.turnstile 已经画了 ⊢） */
+    var toks = level.targetTokens || [];
+    var body = toks.length && toks[0] === '|-' ? toks.slice(1) : toks;
+    var vars = (proof && proof.vars) || {};
+    els.goalFormula.innerHTML = Expr ? Expr.toHTML(body, vars) : UI.esc(level.targetUnicode || toks.join(' '));
+    var plain = level.targetUnicode || els.goalFormula.textContent || '';
+    els.goal.classList.toggle('is-long', String(plain).length > 52);
+    els.levelBtn.textContent = 'M' + String(level.order || 0).padStart(2, '0');
+    els.levelBtn.setAttribute('aria-label', '第 ' + (level.order || 0) + ' 个重放目标，选择关卡');
+
+    var Panel = window.RSL.MM && window.RSL.MM.Panel;
+    if (!Panel) { UI.toast('重放面板未加载'); return; }
+    var root = mmRoot();
+    if (!root) return;
+    var steps = proof && proof.stats ? proof.stats.steps : 0;
+    state.mmPanel = Panel.mount(root, {
+      level: level,
+      proof: proof,
+      mode: 'replay',
+      sfx: function (name) { Audio.sfx(name); },
+      onProgress: function (info) { state.mmProgress = info; },
+      /* 公理图式（0 步）不自动通关：由顶栏「下一步/完成」确认 */
+      onSolved: steps > 0 ? function () {
+        if (state.solved[level.id]) return;
+        mmWin(level);
+      } : null
+    });
+    saveProgress();
+  }
+
+  function mmWin(level) {
+    if (!level) return;
+    var proof = mmProof(level);
+    var steps = proof && proof.stats ? proof.stats.steps : 0;
+    state.solved[level.id] = true;
+    if (!state.bestLen[level.id] || (steps && steps < state.bestLen[level.id])) {
+      state.bestLen[level.id] = steps || 1;
+    }
+    saveProgress();
+    /* 重放关不参与 240 关的成就体系（见 src/achievements.js 的 mm-proof 过滤） */
+    Audio.sfx('win');
+    updateProgress();
+    els.levelBtn.classList.remove('just-solved');
+    void els.levelBtn.offsetWidth;
+    els.levelBtn.classList.add('just-solved');
+    setTimeout(function () { els.levelBtn.classList.remove('just-solved'); }, 520);
+    Screens.openMmWin({
+      level: level,
+      proof: proof,
+      steps: steps,
+      isLast: state.index >= state.levels.length - 1
+    });
   }
 
   /* =========================================================================

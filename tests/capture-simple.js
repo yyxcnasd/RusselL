@@ -11,7 +11,7 @@
  */
 const fs = require('fs');
 const path = require('path');
-const { runTest, ROOT, SHOTS } = require('./lib/browser');
+const { runTest, fileUrl, ROOT, SHOTS } = require('./lib/browser');
 const { ok, equal, includes } = require('./lib/expect');
 
 const args = process.argv.slice(2);
@@ -143,6 +143,20 @@ runTest('capture-simple', async ({ openPage }) => {
   includes((await page.js('document.getElementById("goalFormula").textContent')).replace(/\s+/g, ''), '=', 'CH3-01 目标含等词');
   shots.push(await page.shot('08-equality.png'));
 
+  /* 15 set.mm 证明重放关（mm-replay，默认关闭，用 ?mm=1 打开） */
+  const mmPage = await openPage({ width: 1440, height: 900, url: fileUrl('index.html?mm=1'), shotDir });
+  await mmPage.ready();
+  equal(await mmPage.js('window.RSL.MM.Flags.enabled()'), true, '?mm=1 打开重放子系统');
+  const mmIndex = await mmPage.js('window.RSL.APP.state.levels.findIndex(function(l){return l.id==="MM-01"})');
+  ok(mmIndex >= 240, '重放关排在 240 关之后');
+  await mmPage.js('window.RSL.APP.loadLevel(' + mmIndex + ')');
+  await mmPage.waitFor('!!document.querySelector("#mmRoot [data-mm-panel]")');
+  for (let step = 0; step < 2; step++) await mmPage.js('document.querySelector("#checkBtn").click()');
+  await mmPage.waitFor('window.RSL.APP.state.mmProgress.step === 3');
+  await mmPage.sleep(150);
+  shots.push(await mmPage.shot('15-replay.png'));
+  await mmPage.close();
+
   /* 05 移动端 */
   await page.viewport(390, 844, { deviceScaleFactor: 2, mobile: true });
   await page.send('Page.navigate', { url: page.url });
@@ -153,7 +167,7 @@ runTest('capture-simple', async ({ openPage }) => {
   shots.push(await page.shot('05-mobile.png'));
 
   /* 所有截图确实落盘且非空 */
-  equal(shots.length, 12, '需要的 12 张截图全部采集');
+  equal(shots.length, 13, '需要的 13 张截图全部采集');
   for (const file of shots) {
     ok(fs.existsSync(file), '截图已写入 ' + path.relative(ROOT, file));
     ok(fs.statSync(file).size > 1000, '截图非空：' + path.basename(file));

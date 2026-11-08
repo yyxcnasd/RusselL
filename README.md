@@ -6,8 +6,9 @@
 
   <p>
     <a href="https://yyxcnasd.github.io/RusselL/"><img alt="在线试玩" src="https://img.shields.io/badge/PLAY-ONLINE-e66f3f?style=for-the-badge"></a>
-    <img alt="版本" src="https://img.shields.io/badge/VERSION-v1.0.0-3f8e65?style=for-the-badge">
+    <img alt="版本" src="https://img.shields.io/badge/VERSION-v1.1.0-3f8e65?style=for-the-badge">
     <img alt="关卡" src="https://img.shields.io/badge/LEVELS-240-4f7fb5?style=for-the-badge">
+    <img alt="重放" src="https://img.shields.io/badge/REPLAY-31-6b5bd2?style=for-the-badge">
     <img alt="档案" src="https://img.shields.io/badge/SET.MM-993-d3ad68?style=for-the-badge">
   </p>
 
@@ -49,6 +50,26 @@
 - **挑战段**在基础段完成后开放，不挡下一章，内容以分离、双代入、闭包后例化等组合操作为主。
 - 命题章第 4–6 关是 S 代入、M 分离、D 定义置换教程；谓词章第 11–12 关是 ∀I、∀E 教程。
 
+### 31 个 set.mm 证明重放关（默认关闭）
+
+除了 240 个接线关，仓库里还有一层**真正的 set.mm 证明重放器**：把 set.mm 的完整压缩证明
+按 Metamath 规则重放成证明 DAG，再校验结论，让 31 个“难证档案定理”以**精确的 set.mm 目标
+公式**出现。打开方式是 URL 加 `?mm=1`，或控制台执行
+`localStorage.setItem('axiom-simple:mm','on')` 后刷新：
+
+- 选关面板末尾会多出 `MM` 分组，共 31 关（最大的一关 `axacnd` 有 304 步）。
+- 每关是**只读重放**：左边步骤列表，右边当前步骤的 label、替换 map 与结论；顶栏最右按钮
+  变成「下一步」，键盘 `←` `→` `Home` `End` 也能走。
+- `ax-11`、`ax-pr` 是公理，没有可重放的证明，作为公理图式展示并由你确认。
+- 默认关闭，所以 240 关的目录、解锁链、进度、界面**完全不变**。
+
+<p align="center">
+  <img src="screenshots/15-replay.png" width="880" alt="set.mm 证明重放关：步骤列表与当前步骤">
+</p>
+
+实现与口径（含 DV 覆盖范围、不声称是完整验证器）见 [docs/MM-REPLAY.md](docs/MM-REPLAY.md)，
+数学说明见 [docs/metamath.md](docs/metamath.md#证明重放mm-replay)。
+
 <p align="center">
   <img src="screenshots/04-levels.png" width="760" alt="选关界面">
 </p>
@@ -60,7 +81,8 @@
 - 20 条公理，加 4 条定义。
 - `df-or`、`df-an`、`df-ex`、`dfbi2` 只是缩写，不能当断言模块接进目标；它们只参与“定义等价”判定和 `replace` 模块。
 - 993 条 `set.mm` 条目收进档案模块，用 `archive:<label>` 接入。
-- 关卡目标是 `set.mm` 的公式；游戏没有实现完整的 `set.mm` 证明器，也不声称重新证明了这些定理。
+- 关卡目标是 `set.mm` 的公式；主游戏没有实现完整的 `set.mm` 证明器，也不声称重新证明了这些定理。
+- 另有 31 个**证明重放关**（默认关闭，`?mm=1` 打开）：按 Metamath 规则重放 set.mm 的压缩证明并校验结论；它只覆盖这 31 个目标的局部证明，不是完整验证器。
 
 细节、DV 条件和数据来源见 [docs/metamath.md](docs/metamath.md)；谓词、等词、集合论部分分别见 [docs/predicate.md](docs/predicate.md)、[docs/equality.md](docs/equality.md)、[docs/set-theory.md](docs/set-theory.md)。
 
@@ -97,11 +119,16 @@ python -m http.server 8000
 ## 开发
 
 ```bash
-npm test              # 43 项单测（逻辑/成就/存档/走线/关卡目录）+ 240 关参考电路
-npm run test:ui       # Edge headless 真浏览器回归（放置、连线、通关、暗色、移动端）
-npm run test:acceptance  # 构建 dist/ 后做独立验收（含 dist 产物 file:// 冒烟）
+npm test              # 65 项单测（逻辑/成就/存档/走线/关卡目录/mm flags/mm 重放）+ 240 关参考电路
+npm run test:ui       # Edge headless 真浏览器回归（放置、连线、通关、暗色、移动端、重放关端到端）
+npm run test:acceptance  # 构建 dist/ 后做独立验收（脚本/样式清单按 index.html 顺序核对 + dist file:// 冒烟）
 npm run build:toy     # 只生成 bilibili Toy / Pages 用的 dist/
+npm run build:mm      # 从 assets/data/set.mm 重建 31 个证明 DAG 与重放关（开发用）
 ```
+
+`npm run build:mm` 依次跑 `scripts/mm-build-frames.js` → `mm-verify.js` → `mm-to-levels.js`，
+需要仓库外的 `assets/data/set.mm`（见 `docs/metamath.md`）。重放子系统的接口契约在
+[docs/MM-REPLAY.md](docs/MM-REPLAY.md)。
 
 模块划分、加载顺序与数据流见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)；颜色/字体/形状/组件状态与文案记法见 [docs/DESIGN.md](docs/DESIGN.md)。
 
@@ -130,6 +157,12 @@ node scripts/gen-levels.js
 | `src/ui.js` | DOM 基础件、公式显示、toast、面板与焦点管理 |
 | `src/screens.js` | 选关、帮助、成就、通关面板 |
 | `src/catalog.js` | 章节分组、解锁链、调色板条目（纯函数） |
+| `src/mm/flags.js` | 证明重放子系统特性开关（默认关闭） |
+| `src/mm/expr.js` | set.mm token 公式：替换、$e 比对、断言应用、DV、显示 |
+| `src/mm/verify.js` | 压缩证明重放、证明 DAG 构造与离线校验 |
+| `src/mm/panel.js` | 只读重放面板（步骤列表 / 当前步骤 / 前后导航） |
+| `src/mm/proofs.js` | 31 个自包含证明 DAG（生成） |
+| `src/mm/levels.js` | 31 个 `mm-proof` 重放关（生成） |
 | `src/coach.js` | 规则提示窗 |
 | `src/audio.js` | 背景音乐与音效 |
 | `src/achievements.js` | 成就定义与条件判定 |
@@ -139,6 +172,9 @@ node scripts/gen-levels.js
 | `src/levels.js` | 四章手工关与教程关 |
 | `src/levels-generated.js` | 生成关卡（生成） |
 | `scripts/gen-levels.js` | 关卡/档案生成器 |
+| `scripts/mm-build-frames.js` | 从 set.mm 提取完整 frame（math / $f / $e / $d / 证明 token） |
+| `scripts/mm-verify.js` | 重放 31 个目标，产出证明 DAG 与报告 |
+| `scripts/mm-to-levels.js` | 打包 `src/mm/proofs.js` 与 `src/mm/levels.js` |
 | `docs/` | 数学、数据、架构与设计说明 |
 | `research/` | `set.mm` 提取数据和开发笔记 |
 

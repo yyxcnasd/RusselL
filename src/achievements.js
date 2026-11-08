@@ -31,12 +31,17 @@
 
   function evaluate(state) {
     var out = [];
-    var solved = Object.keys(state.solved || {}).length;
+    /* mm-replay 重放关（mode:'mm-proof'）不计入 240 关的成就体系：它们默认关闭，
+       且“通关”含义是重放而不是接线。这里统一过滤，保证开关开关不影响成就语义。 */
+    var boardLevels = (state.levels || []).filter(function (lv) { return lv.mode !== 'mm-proof'; });
+    var boardIds = Object.create(null);
+    boardLevels.forEach(function (lv) { boardIds[lv.id] = true; });
+    var solved = Object.keys(state.solved || {}).filter(function (id) { return boardIds[id]; }).length;
     function add(id) { out.push(id); }
     if (solved >= 1) add('first');
 
     ['prop', 'pred', 'eq', 'set'].forEach(function (key) {
-      var group = (state.levels || []).filter(function (lv) { return lv.chapter === key; });
+      var group = boardLevels.filter(function (lv) { return lv.chapter === key; });
       var base = group.filter(function (lv) { return lv.band !== 'challenge'; });
       var chal = group.filter(function (lv) { return lv.band === 'challenge'; });
       if (base.length && base.every(function (lv) { return state.solved[lv.id]; })) add('base-' + key);
@@ -49,7 +54,7 @@
     if (kinds.detach) add('rule-detach');
     if (kinds['all-intro'] || kinds['all-elim'] || kinds.syllogism) add('rule-quant');
 
-    var efficient = (state.levels || []).some(function (lv) {
+    var efficient = boardLevels.some(function (lv) {
       if (lv.band !== 'challenge') return false;
       var ref = lv.solution && lv.solution.nodes ? lv.solution.nodes.length : 0;
       return ref && state.bestLen[lv.id] && state.bestLen[lv.id] <= ref;
@@ -64,7 +69,7 @@
       if (best && best <= a.metric.max) add(a.id);
     });
 
-    if ((state.levels || []).length && state.levels.every(function (lv) { return state.solved[lv.id]; })) add('all');
+    if (boardLevels.length && boardLevels.every(function (lv) { return state.solved[lv.id]; })) add('all');
     return out.filter(function (id, i) { return out.indexOf(id) === i; });
   }
 

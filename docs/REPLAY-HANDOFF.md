@@ -2,8 +2,51 @@
 
 > 交接对象：另一个实现 agent  
 > 仓库：`D:\Random Things\RusselL`  
-> 基线：`main` @ `284d1db`，工作树干净  
-> 当前测试：`npm test` 43 项 + 240 关、`npm run test:ui` 143 checks、`npm run test:acceptance` 193 checks
+> 基线（实施前）：`main` @ `284d1db`，工作树干净  
+> 基线测试：`npm test` 43 项 + 240 关、`npm run test:ui` 143 checks、`npm run test:acceptance` 193 checks
+
+## 状态：已落地 Tier 1 + Tier 2（2026-11-08）
+
+本大纲的 WP0–WP6 已经实现，分支 `feat/mm-replay`。落地后的接口、语义与口径以
+[MM-REPLAY.md](MM-REPLAY.md) 为准（那份是冻结的实现契约）；本文件保留原始计划，
+下面只记录**计划 vs 实际**的差异与剩余工作。
+
+| 工作包 | 状态 | 实际结果 |
+| --- | --- | --- |
+| WP0 基线 + feature flag | 完成 | `src/mm/flags.js`，`?mm=1` / `localStorage['axiom-simple:mm']='on'`，默认关闭；关闭时目录 240 关逐字段不变（tests/mm-flags.test.js 校验） |
+| WP1 frame 提取 | 完成 | `scripts/mm-build-frames.js` → `research/mm-frames.json`；31/31 目标存在。**只输出重放闭包 241 个 frame**（`--full` 才输出四模块 10 793 个，11 MB） |
+| WP2 证明重放 | 完成 | `src/mm/expr.js` + `src/mm/verify.js` + `scripts/mm-verify.js`；31/31 重放通过，`research/mm-report.json` 记录每目标步骤数与失败原因 |
+| WP3 DAG 剪枝与产物 | 完成 | 剪掉 finalStep 不可达步骤；`src/mm/proofs.js` 386 KB（< 2 MB），31 个 DAG 共 1 299 步，可离线 `Verify.verifyProof` 复验 |
+| WP4 关卡接入 | 完成（方案 A，只读） | 31 个 `mode:"mm-proof"` 关卡（`src/mm/levels.js`），目标 = set.mm 原始结论 token 串；**没有**做 `mmstep` 棋盘模块 |
+| WP5 UI | 完成 | `src/mm/panel.js` + `src/mm/mm.css`：步骤列表 / 当前步骤详情（label、替换 map、结论）/ 前后导航 / 键盘 ←→ Home End / >80 步分段 / 移动端堆叠 / 0 步公理分支 |
+| WP6 回归与文档 | 完成 | `npm test` 65 项、`npm run test:ui`（含 mm-ui 47 checks）、`npm run test:acceptance` 251 checks 全绿；文档 ARCHITECTURE / metamath / 本文件 / MM-REPLAY 已更新 |
+| Tier 3 交互 | **未做** | 玩家仍只能逐步重放，不能自己选下一条断言/替换 |
+
+### 计划里被证伪的一条（重要）
+
+原 §3.1 写“弹出哪个数量？只按 `$e` 数量弹；`$f` 是变量声明，不是栈操作数”——**这是错的**。
+Metamath 压缩证明里 `$f` 假设**也占一个栈位**：应用断言时弹 `mandatory.length` 个公式
+（`$f` + `$e` 全算），`H = mandatory.length` 也正是编码里的边界。repo 里
+`research/parse-setmm.cjs` 的栈高校验一直用 `mandatory.length`，也印证了这一点。
+
+### 计划里补充的一条（DV）
+
+DV 不能直接拿 frame 里的全部 `$d` 对去比对替换式：**只有两个变元都出现在该断言
+mandatory 假设里的 `$d` 对**才是套用该定理时必须满足的条件；涉及假元变量（dummy
+variable，如 `isfin4-2` 的 `$d x A` 里的 x）的 `$d` 对必须忽略，否则 set.mm 里合法
+证明会被误判失败（实测 fin41 / axunnd / axacnd 会被卡住）。
+
+### 剩余工作（Tier 3，按优先级）
+
+1. **交互式重放**：面板给出候选断言集合，玩家选 label + 替换，`MM.Verify` 逐步校验并给
+   「applyAssertion 失败在第几号假设」这类可定位错误。引擎已经具备全部能力（`replay` 的
+   `apply`/`applyLabel` 拆开即可），缺的是候选生成与提示 UI。
+2. **DAG 展开/折叠**：现在列表按 40 步分段；可以再按「前提子树」折叠。
+3. **目标公式和 `Logic` 的互操作**：只在目标恰好能映射回 AST 时做（`tokenToGame`），
+   当前不做，避免把两套公式语言混在一起。
+4. **完整 DV / 全库重放**：需要把闭包扩到 10 793 个 frame 并递归展开引用，属于另一个量级
+   的工作；现在明确不做，也不声称。
+
 
 ## 0. 一句话目标
 
