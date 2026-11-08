@@ -14,8 +14,8 @@
  *      Save.clean 导入清洗、非法存档导入只提示不崩；
  *   8) 目标焊盘在 1440×900 / 390×844 / 320×640 完整可见（含 y=640 远目标、105 字长目标）；
  *   9) 320×640 两行 topbar：目标整行、无横向溢出、工具组与关卡号/目标不重叠、移动端帮助按钮可见；
- *  10) dist 构建产物：脚本清单与源码一致、16 个运行时 js + simple.css，file:// 打开
- *      首关能放置→连线→通关（与源码行为一致）。
+ *  10) dist 构建产物：脚本/样式表清单（含顺序）与源码一致、递归覆盖 mm/ 子目录，
+ *      所有引用文件与源码同尺寸，file:// 打开首关能放置→连线→通关（与源码行为一致）。
  *
  * 截图全部写入 .research/shots-qa/。
  * 运行前先 `npm run build:toy`（dist 检查需要）。
@@ -133,24 +133,61 @@ runTest('acceptance', async ({ openPage }) => {
   const distIndexPath = path.join(distDir, 'index.html');
   ok(fs.existsSync(distIndexPath), 'dist/index.html 存在（先运行 npm run build:toy）');
 
+  /* 从 index.html 提取运行时引用；脚本与样式表各自保持文档顺序。 */
   const scriptsOf = (html) => Array.from(html.matchAll(/<script src="src\/([^"]+)"><\/script>/g)).map((m) => m[1]);
-  const srcScripts = scriptsOf(fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8'));
-  const distScripts = scriptsOf(fs.readFileSync(distIndexPath, 'utf8'));
-  equal(distScripts, srcScripts, 'dist/index.html 的脚本列表与源码 index.html 完全一致');
-  equal(srcScripts.length, 16, '运行时脚本共 16 个（logic…main）');
+  const stylesOf = (html) => Array.from(html.matchAll(/<link rel="stylesheet" href="src\/([^"]+)">/g)).map((m) => m[1]);
 
+  const srcIndex = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  const distIndex = fs.readFileSync(distIndexPath, 'utf8');
+  const srcScripts = scriptsOf(srcIndex);
+  const distScripts = scriptsOf(distIndex);
+  const srcStyles = stylesOf(srcIndex);
+  const distStyles = stylesOf(distIndex);
+
+  equal(distScripts, srcScripts, 'dist/index.html 的脚本列表（含顺序）与源码 index.html 完全一致');
+  equal(distStyles, srcStyles, 'dist/index.html 的样式表列表（含顺序）与源码 index.html 完全一致');
+  equal(new Set(srcScripts).size, srcScripts.length, 'index.html 不应重复引用同一脚本');
+  equal(new Set(srcStyles).size, srcStyles.length, 'index.html 不应重复引用同一样式表');
+
+  /* 递归收集目录下的运行时 js/css：mm/ 是子目录，只读顶层会漏掉 6 个脚本与 mm.css。 */
+  const runtimeFilesOf = (dir, base) => {
+    const out = [];
+    for (const name of fs.readdirSync(dir)) {
+      const full = path.join(dir, name);
+      const rel = base ? base + '/' + name : name;
+      if (fs.statSync(full).isDirectory()) out.push(...runtimeFilesOf(full, rel));
+      else if (/\.(js|css)$/i.test(name)) out.push(rel);
+    }
+    return out.sort();
+  };
+
+  const srcDir = path.join(ROOT, 'src');
   const distSrcDir = path.join(distDir, 'src');
-  const distSrcAll = fs.readdirSync(distSrcDir).sort();
-  const distJs = distSrcAll.filter((f) => f.endsWith('.js')).sort();
-  equal(distJs, srcScripts.slice().sort(), 'dist/src 的 js 与 index.html 引用一一对应');
-  equal(distJs.length, 16, 'dist/src 含 16 个运行时 js');
-  equal(distSrcAll.length, 17, 'dist/src 共 17 个运行时文件（16 js + simple.css）');
-  ok(distSrcAll.includes('simple.css'), 'dist/src 含 simple.css');
-  for (const file of srcScripts) {
-    const a = fs.statSync(path.join(distSrcDir, file)).size;
-    const b = fs.statSync(path.join(ROOT, 'src', file)).size;
-    equal(a, b, 'dist/src/' + file + ' 与源码同尺寸（拷贝完整）');
+  const srcRuntime = runtimeFilesOf(srcDir);
+  const distRuntime = runtimeFilesOf(distSrcDir);
+  const referenced = srcScripts.concat(srcStyles).sort();
+
+  equal(distRuntime, referenced, 'dist/src 的运行时 js/css 与 index.html 引用一一对应（含 mm/ 子目录）');
+  for (const rel of distRuntime) {
+    ok(srcRuntime.includes(rel), 'dist/src/' + rel + ' 应存在于源码 src/（dist 是源码的完整拷贝）');
   }
+  equal(
+    referenced.filter((rel) => !distRuntime.includes(rel)),
+    [],
+    'index.html 引用的运行时文件必须全部出现在 dist/src 中'
+  );
+  for (const rel of referenced) {
+    ok(srcRuntime.includes(rel), 'index.html 引用的 src/' + rel + ' 必须存在于源码目录');
+    const a = fs.statSync(path.join(distSrcDir, rel)).size;
+    const b = fs.statSync(path.join(srcDir, rel)).size;
+    equal(a, b, 'dist/src/' + rel + ' 与源码同尺寸（拷贝完整）');
+  }
+  equal(
+    distRuntime.filter((f) => f.endsWith('.js')).length,
+    srcScripts.length,
+    'dist/src 的 js 数量与 index.html 的脚本引用数一致'
+  );
+  equal(distRuntime.length, referenced.length, 'dist/src 的运行时文件总数与 index.html 引用总数一致');
 
   const page = await openPage({
     width: 1440,
