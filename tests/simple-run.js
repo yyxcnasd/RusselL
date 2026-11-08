@@ -1,47 +1,75 @@
-/* Simplified UI: 引用已证结论的关卡 + config popover。 */
-const { spawn } = require('child_process');
-const fs = require('fs');
-const path = require('path');
-const root = path.resolve(__dirname, '..');
-const edge = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
-const port = 9352;
-const profile = path.join(root, '.research', 'simple-run');
-const url = 'file:///' + path.join(root, 'index.html').replace(/\\/g, '/');
-let proc;
-const sleep = ms => new Promise(r => setTimeout(r, ms));
-try { fs.rmSync(profile, { recursive: true, force: true }); } catch (e) {}
-async function main() {
-  proc = spawn(edge, ['--headless=new', '--disable-gpu', '--remote-debugging-port=' + port, '--user-data-dir=' + profile, '--window-size=1440,900', url], { stdio: 'ignore' });
-  let list;
-  for (let i = 0; i < 40; i++) { await sleep(250); try { list = await (await fetch('http://127.0.0.1:' + port + '/json/list')).json(); if (list.length) break; } catch (e) {} }
-  const page = list.find(x => x.type === 'page') || list[0];
-  const ws = new WebSocket(page.webSocketDebuggerUrl);
-  await new Promise((res, rej) => { ws.onopen = res; ws.onerror = rej; });
-  let seq = 0; const pend = new Map();
-  ws.onmessage = e => { const m = JSON.parse(e.data); if (m.id && pend.has(m.id)) { pend.get(m.id)(m); pend.delete(m.id); } };
-  const send = (method, params) => new Promise((res, rej) => { const id = ++seq; pend.set(id, m => m.error ? rej(new Error(JSON.stringify(m.error))) : res(m.result)); ws.send(JSON.stringify({ id, method, params: params || {} })); });
-  const js = async exp => { const r = await send('Runtime.evaluate', { expression: exp, returnByValue: true, awaitPromise: true }); if (r.exceptionDetails) throw new Error(r.exceptionDetails.text); return r.result.value; };
-  const shot = async name => { const r = await send('Page.captureScreenshot', { format: 'png' }); fs.writeFileSync(path.join(root, 'screenshots', name), Buffer.from(r.data, 'base64')); };
-  await send('Runtime.enable'); await sleep(1300);
-  await js('window.RSL.APP.state.forceUnlock=true');
-  const idx = await js('window.RSL.APP.state.levels.findIndex(function(l){return l.id==="CH1-08"})');
-  console.log('load', await js('(function(){try{window.RSL.APP.loadLevel(' + idx + ');return "ok"}catch(e){return (e&&e.stack)||String(e)}})()')); await sleep(300);
-  console.log('goal', await js('document.getElementById("goalFormula").textContent'), await js('document.querySelectorAll(".tile").length'));
-  await js('document.querySelector(".tile[data-key^=\\"theorem:\\"]").click()'); await sleep(300);
-  const ports = await js(`(function(){var out=document.querySelector('.node[data-kind="theorem"] .port-out'),inp=document.querySelector('.node.is-target .port-in');var a=out.getBoundingClientRect(),b=inp.getBoundingClientRect();return {ox:a.left+a.width/2,oy:a.top+a.height/2,ix:b.left+b.width/2,iy:b.top+b.height/2};})()`);
-  await send('Input.dispatchMouseEvent', { type: 'mousePressed', x: ports.ox, y: ports.oy, button: 'left', clickCount: 1 });
-  await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: (ports.ox + ports.ix) / 2, y: (ports.oy + ports.iy) / 2, button: 'left' });
-  await send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: ports.ix, y: ports.iy, button: 'left', clickCount: 1 });
-  await sleep(400);
-  console.log('target after theorem only', await js('document.querySelector(".node.is-target").dataset.state'));
-  await shot('simple-pm-wired.png');
-  await js('window.RSL.APP.loadLevel(7)'); await sleep(300);
-  console.log('L08 tiles', await js('document.querySelectorAll(".tile").length'));
-  await js('document.querySelector("[data-key=\\"atom\\"]").click()'); await sleep(300);
-  console.log('popover opts', await js('document.querySelectorAll("#popover .opt").length'), 'visible', await js('!document.getElementById("popover").hidden'));
-  await shot('simple-popover.png');
-  ws.close();
-}
-main().catch(e => { console.error('FAIL', e); process.exitCode = 1; }).finally(async () => { await sleep(200); try { proc && proc.kill(); } catch (e) {} setTimeout(() => process.exit(process.exitCode || 0), 500); });
+'use strict';
+/*
+ * 引用“已证结论”的关卡（theorem 模块）+ config popover。
+ *
+ * 覆盖点：
+ *   - CH1-08 能加载，目标 P→(Q→Q)，调色板 6 个元件；
+ *   - 把 theorem:CH1-07（结论 P→P）接到目标：导线生成，但目标断言不匹配 → error；
+ *   - 切到另一关后 atom 元件弹出 5 个实例选项（P/Q/R/S/T）。
+ */
+const { runTest } = require('./lib/browser');
+const { ok, equal, includes } = require('./lib/expect');
 
+runTest('simple-run', async ({ openPage }) => {
+  const page = await openPage({ width: 1440, height: 900 });
+  await page.ready();
 
+  await page.js('window.RSL.APP.state.forceUnlock=true');
+  const idx = await page.js('window.RSL.APP.state.levels.findIndex(function(l){return l.id==="CH1-08"})');
+  ok(idx >= 0, '关卡表里能找到 CH1-08');
+  await page.js('window.RSL.APP.loadLevel(' + idx + ')');
+  await page.waitFor('window.RSL.APP.state.level.id === "CH1-08"');
+
+  equal(
+    (await page.js('document.getElementById("goalFormula").textContent')).replace(/\s+/g, ''),
+    'P→(Q→Q)',
+    'CH1-08 目标是 P→(Q→Q)'
+  );
+  equal(await page.js('document.querySelectorAll(".tile").length'), 6, 'CH1-08 调色板有 6 个元件');
+
+  await page.js('document.querySelector(".tile[data-key^=\\"theorem:\\"]").click()');
+  await page.waitFor('document.querySelectorAll(".node[data-kind=\\"theorem\\"]").length === 1');
+  await page.sleep(350); /* 等待入场动画，保证端口 rect 稳定 */
+  equal(await page.js('document.querySelectorAll(".node[data-kind=\\"theorem\\"]").length'), 1, '放置了 1 个 theorem 模块');
+
+  const ports = await page.js(`(function(){
+    var out=document.querySelector('.node[data-kind="theorem"] .port-out'),
+        inp=document.querySelector('.node.is-target .port-in');
+    if(!out||!inp) return null;
+    var a=out.getBoundingClientRect(), b=inp.getBoundingClientRect();
+    return {ox:a.left+a.width/2, oy:a.top+a.height/2, ix:b.left+b.width/2, iy:b.top+b.height/2};
+  })()`);
+  ok(ports, 'theorem 出端口与目标入端口都存在');
+  await page.mouse.drag({ x: ports.ox, y: ports.oy }, { x: ports.ix, y: ports.iy }, { steps: 4 });
+  await page.waitFor('document.querySelectorAll(".wire").length === 1');
+  equal(await page.js('document.querySelectorAll(".wire").length'), 1, 'theorem 到目标生成 1 条导线');
+
+  const wired = await page.js(`(function(){
+    var app=window.RSL.APP;
+    return {state:document.querySelector('.node.is-target').dataset.state,
+            complete:app.state.results.complete,
+            errors:app.state.results.errors.map(function(e){return e.message})};
+  })()`);
+  equal(wired.complete, false, '只接 theorem 不能通关');
+  equal(wired.state, 'error', '结论 P→P 与目标 P→(Q→Q) 不匹配，目标进入 error 态');
+  ok(wired.errors.length >= 1, '引擎报告至少 1 条断言错误');
+  includes(wired.errors.join(' | '), '不一致', '错误信息说明输出与目标断言不一致');
+  await page.shot('simple-pm-wired');
+
+  /* ---- 另一关的 atom 实例 popover ---- */
+  await page.js('window.RSL.APP.loadLevel(7)');
+  await page.waitFor('window.RSL.APP.state.level.id === "CH1-08"');
+  equal(await page.js('document.querySelectorAll(".tile").length'), 6, '重新载入 CH1-08 仍有 6 个元件');
+
+  await page.js('document.querySelector("[data-key=\\"atom\\"]").click()');
+  await page.waitFor('document.querySelectorAll("#popover .opt").length === 5');
+  const pop = await page.js(`(function(){
+    return {opts:document.querySelectorAll('#popover .opt').length,
+            visible:!document.getElementById('popover').hidden,
+            texts:Array.from(document.querySelectorAll('#popover .opt')).map(function(e){return e.textContent})};
+  })()`);
+  equal(pop.visible, true, 'atom 元件弹出实例选择 popover');
+  equal(pop.opts, 5, 'popover 提供 5 个实例选项');
+  equal(pop.texts, ['P', 'Q', 'R', 'S', 'T'], '实例选项为 P/Q/R/S/T');
+  await page.shot('simple-popover');
+});

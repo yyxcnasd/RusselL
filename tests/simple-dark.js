@@ -1,34 +1,53 @@
-﻿/* Dark mode + audio smoke and screenshot. */
-const { spawn } = require('child_process');
-const fs = require('fs');
-const path = require('path');
-const root = path.resolve(__dirname, '..');
-const edge = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
-const port = 9355;
-const profile = path.join(root, '.research', 'simple-dark');
-const url = 'file:///' + path.join(root, 'index.html').replace(/\\/g, '/');
-let proc;
-const sleep = ms => new Promise(r => setTimeout(r, ms));
-try { fs.rmSync(profile, { recursive: true, force: true }); } catch (e) {}
-async function main() {
-  proc = spawn(edge, ['--headless=new', '--disable-gpu', '--autoplay-policy=no-user-gesture-required', '--remote-debugging-port=' + port, '--user-data-dir=' + profile, '--window-size=1440,900', url], { stdio: 'ignore' });
-  let list;
-  for (let i = 0; i < 40; i++) { await sleep(250); try { list = await (await fetch('http://127.0.0.1:' + port + '/json/list')).json(); if (list.length) break; } catch (e) {} }
-  const page = list.find(x => x.type === 'page') || list[0];
-  const ws = new WebSocket(page.webSocketDebuggerUrl);
-  await new Promise((res, rej) => { ws.onopen = res; ws.onerror = rej; });
-  let seq = 0; const pend = new Map();
-  ws.onmessage = e => { const m = JSON.parse(e.data); if (m.id && pend.has(m.id)) { pend.get(m.id)(m); pend.delete(m.id); } };
-  const send = (method, params) => new Promise((res, rej) => { const id = ++seq; pend.set(id, m => m.error ? rej(new Error(JSON.stringify(m.error))) : res(m.result)); ws.send(JSON.stringify({ id, method, params: params || {} })); });
-  const js = async exp => { const r = await send('Runtime.evaluate', { expression: exp, returnByValue: true, awaitPromise: true }); if (r.exceptionDetails) throw new Error(r.exceptionDetails.text); return r.result.value; };
-  const shot = async name => { const r = await send('Page.captureScreenshot', { format: 'png' }); fs.writeFileSync(path.join(root, 'screenshots', name), Buffer.from(r.data, 'base64')); };
-  await send('Runtime.enable'); await sleep(1300);
-  await js('document.getElementById("themeBtn").click()'); await sleep(350);
-  await js('document.querySelector("#tray .tile").click()'); await sleep(350);
-  console.log('theme', await js('document.documentElement.dataset.theme'));
-  console.log('audio', await js('(function(){var a=document.getElementById("bgm");return {paused:a.paused,time:a.currentTime,volume:a.volume,ready:a.readyState};})()'));
-  await shot('dark-final.png');
-  ws.close();
-}
-main().catch(e => { console.error('FAIL', e); process.exitCode = 1; }).finally(async () => { await sleep(200); try { proc && proc.kill(); } catch (e) {} setTimeout(() => process.exit(process.exitCode || 0), 500); });
+'use strict';
+/*
+ * 深色主题 + 背景音乐。
+ *
+ * 覆盖点：
+ *   - 主题按钮切到 dark，页面底色变暗；
+ *   - 放置模块（首次交互）后 #bgm 真正开始播放：paused=false、
+ *     readyState≥2、音量在合理范围、currentTime 随时间推进。
+ */
+const { runTest } = require('./lib/browser');
+const { ok, equal, between } = require('./lib/expect');
 
+function rgb(css) {
+  const m = /rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(String(css));
+  return m ? { r: Number(m[1]), g: Number(m[2]), b: Number(m[3]) } : null;
+}
+
+runTest('simple-dark', async ({ openPage }) => {
+  const page = await openPage({
+    width: 1440,
+    height: 900,
+    args: ['--autoplay-policy=no-user-gesture-required']
+  });
+  await page.ready();
+
+  await page.js('document.getElementById("themeBtn").click()');
+  await page.waitFor('document.documentElement.dataset.theme === "dark"');
+  await page.sleep(300);
+  equal(await page.js('document.documentElement.dataset.theme'), 'dark', '主题按钮切到 dark');
+  const bg = await page.js('getComputedStyle(document.body).backgroundColor');
+  const color = rgb(bg);
+  ok(color && (color.r + color.g + color.b) / 3 < 90, '深色主题下页面底色足够暗（实际 ' + bg + '）');
+
+  await page.js('document.querySelector("#tray .tile").click()');
+  await page.waitFor('document.querySelectorAll(".node").length === 2');
+  await page.waitFor('(function(){var a=document.getElementById("bgm");return a && !a.paused;})()');
+  /* 并行跑多个浏览器实例时音频解码可能稍慢，等真正开始推进时间轴再断言。 */
+  await page.waitFor('document.getElementById("bgm").currentTime > 0', { timeout: 8000 });
+  const audio = await page.js(`(function(){
+    var a=document.getElementById('bgm');
+    return {paused:a.paused, time:a.currentTime, volume:a.volume, ready:a.readyState, muted:a.muted, src:a.currentSrc};
+  })()`);
+  equal(audio.paused, false, '首次交互后背景音乐开始播放');
+  ok(audio.ready >= 2, '音频已加载到可播放状态（readyState=' + audio.ready + '）');
+  between(audio.volume, 0.1, 0.4, '背景音乐音量在 0.1–0.4 之间（实际 ' + audio.volume + '）');
+  ok(audio.time > 0, '播放进度已推进（currentTime=' + audio.time + '）');
+  ok(/grassland\.mp3/.test(audio.src), '播放的是 assets/audio/grassland.mp3');
+
+  await page.sleep(500);
+  const time2 = await page.js('document.getElementById("bgm").currentTime');
+  ok(time2 > audio.time, '背景音乐持续播放（' + audio.time.toFixed(2) + 's → ' + time2.toFixed(2) + 's）');
+  await page.shot('dark-final');
+});

@@ -46,7 +46,7 @@
 
 1. `research/parse-setmm.cjs` 解析 `assets/data/set.mm`，产出 `research/setmm-data.json`。
 2. `scripts/gen-levels.js` 生成 `src/archive.js` 和 `src/levels-generated.js`。
-3. 浏览器按 `logic → archive → library → levels → levels-generated → engine → achievements → save → board → main` 的顺序加载。
+3. 浏览器按 `logic → archive → library → levels → levels-generated → engine → route → achievements → save → ui → audio → coach → catalog → screens → board → main` 的顺序加载（详见 docs/ARCHITECTURE.md）。
 4. `target` 的目标相等由 `Logic.eq`（定义展开 + α-等价）判定；目标上游必须含有公理、规则、档案或已证结论，不能只用构造门拼公式。
 
 ## 已知边界

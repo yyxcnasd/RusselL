@@ -1,49 +1,78 @@
-/* Simplified UI: all levels load, chapters, mobile overflow. */
-const { spawn } = require('child_process');
-const fs = require('fs');
-const path = require('path');
-const root = path.resolve(__dirname, '..');
-const edge = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
-const port = 9351;
-const profile = path.join(root, '.research', 'simple-ui');
-const url = 'file:///' + path.join(root, 'index.html').replace(/\\/g, '/');
-let proc;
-const sleep = ms => new Promise(r => setTimeout(r, ms));
-try { fs.rmSync(profile, { recursive: true, force: true }); } catch (e) {}
-async function main() {
-  proc = spawn(edge, ['--headless=new', '--disable-gpu', '--remote-debugging-port=' + port, '--user-data-dir=' + profile, '--window-size=1440,900', url], { stdio: 'ignore' });
-  let list;
-  for (let i = 0; i < 40; i++) { await sleep(250); try { list = await (await fetch('http://127.0.0.1:' + port + '/json/list')).json(); if (list.length) break; } catch (e) {} }
-  const page = list.find(x => x.type === 'page') || list[0];
-  const ws = new WebSocket(page.webSocketDebuggerUrl);
-  await new Promise((res, rej) => { ws.onopen = res; ws.onerror = rej; });
-  let seq = 0; const pend = new Map();
-  ws.onmessage = e => { const m = JSON.parse(e.data); if (m.id && pend.has(m.id)) { pend.get(m.id)(m); pend.delete(m.id); } };
-  const send = (method, params) => new Promise((res, rej) => { const id = ++seq; pend.set(id, m => m.error ? rej(new Error(JSON.stringify(m.error))) : res(m.result)); ws.send(JSON.stringify({ id, method, params: params || {} })); });
-  const js = async exp => { const r = await send('Runtime.evaluate', { expression: exp, returnByValue: true, awaitPromise: true }); if (r.exceptionDetails) throw new Error(r.exceptionDetails.text); return r.result.value; };
-  const shot = async name => { const r = await send('Page.captureScreenshot', { format: 'png' }); fs.writeFileSync(path.join(root, 'screenshots', name), Buffer.from(r.data, 'base64')); };
-  await send('Runtime.enable'); await sleep(1400);
-  const info = await js(`(function(){
+'use strict';
+/*
+ * 关卡目录与移动端布局。
+ *
+ * 覆盖点：
+ *   - 240 关逐关加载：目标公式与调色板都非空；
+ *   - 关卡表 240 格，四章各 60 关，章名与罗马数字正确；
+ *   - 关卡表关闭按钮可见、正方形、在视口内；
+ *   - 点遮罩关闭面板；
+ *   - 390×844 移动端无横向溢出。
+ */
+const { runTest, fileUrl } = require('./lib/browser');
+const { ok, equal, between } = require('./lib/expect');
+
+runTest('simple-ui', async ({ openPage }) => {
+  const page = await openPage({ width: 1440, height: 900 });
+  await page.ready();
+
+  const info = await page.js(`(function(){
     var app=window.RSL.APP; app.state.forceUnlock=true; var list=[];
     for(var i=0;i<app.state.levels.length;i++){
       app.loadLevel(i);
-      list.push({i:i,code:app.state.level.id,goal:document.getElementById('goalFormula').textContent,tiles:document.querySelectorAll('.tile').length});
+      list.push({i:i, code:app.state.level.id,
+                 goal:document.getElementById('goalFormula').textContent,
+                 tiles:document.querySelectorAll('.tile').length});
     }
     return {count:app.state.levels.length, list:list};
   })()`);
-  console.log('levels', info.count);
-  console.log('bad', info.list.filter(x => !x.goal || !x.tiles));
-  await js('document.getElementById("levelBtn").click()'); await sleep(300);
-  console.log('level cells', await js('document.querySelectorAll(".level-cell").length'));
-  console.log('chapters', await js('Array.from(document.querySelectorAll(".chapter")).map(function(c){return {roman:c.querySelector(".chapter-roman").textContent,title:c.querySelector(".chapter-title").textContent,levels:c.querySelectorAll(".level-cell").length};})'));
-  console.log('close', await js('(function(){var x=document.querySelector(".sheet-x");var r=x.getBoundingClientRect();return [r.x,r.y,r.width,r.height];})()'));
-  await shot('simple-levels.png');
-  await js('document.getElementById("overlay").click()'); await sleep(200);
-  await js('window.RSL.APP.loadLevel(0)'); await sleep(300);
-  await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
-  await send('Page.navigate', { url }); await sleep(1200);
-  await shot('simple-mobile.png');
-  console.log('overflow', await js('document.documentElement.scrollWidth + "/" + innerWidth'));
-  ws.close();
-}
-main().catch(e => { console.error('FAIL', e); process.exitCode = 1; }).finally(async () => { await sleep(200); try { proc && proc.kill(); } catch (e) {} setTimeout(() => process.exit(process.exitCode || 0), 500); });
+  equal(info.count, 240, '关卡总数为 240');
+  const bad = info.list.filter((x) => !x.code || !x.goal || !x.tiles);
+  equal(bad, [], '240 关逐关加载后都有代码、目标与调色板元件');
+  equal(info.list[0].code, 'CH1-01', '第一关是 CH1-01');
+  equal(info.list[239].code, 'CH4-60', '最后一关是 CH4-60');
+
+  /* ---- 关卡表 ---- */
+  await page.js('document.getElementById("levelBtn").click()');
+  await page.waitFor('document.querySelectorAll(".level-cell").length === 240');
+  equal(await page.js('document.querySelectorAll(".level-cell").length'), 240, '关卡表有 240 个关卡格');
+
+  const chapters = await page.js(`(function(){
+    return Array.from(document.querySelectorAll('.chapter')).map(function(c){
+      return {roman:c.querySelector('.chapter-roman').textContent,
+              title:c.querySelector('.chapter-title').textContent,
+              levels:c.querySelectorAll('.level-cell').length};
+    });
+  })()`);
+  equal(chapters.map((c) => c.roman), ['Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ'], '四章罗马数字为 Ⅰ/Ⅱ/Ⅲ/Ⅳ');
+  equal(chapters.map((c) => c.title), ['命题', '谓词', '等词', '集合'], '四章标题为 命题/谓词/等词/集合');
+  equal(chapters.map((c) => c.levels), [60, 60, 60, 60], '每章 60 关');
+
+  const close = await page.js(`(function(){
+    var x=document.querySelector('.sheet-x');
+    if(!x) return null;
+    var r=x.getBoundingClientRect();
+    return {x:r.x, y:r.y, w:r.width, h:r.height, vw:innerWidth, vh:innerHeight};
+  })()`);
+  ok(close, '关卡表有关闭按钮 .sheet-x');
+  between(close.w, 24, 56, '关闭按钮宽度合理');
+  equal(close.w, close.h, '关闭按钮是正方形');
+  ok(close.x >= 0 && close.y >= 0 && close.x + close.w <= close.vw && close.y + close.h <= close.vh, '关闭按钮完整位于视口内');
+  await page.shot('simple-levels');
+
+  /* ---- 点遮罩关闭 ---- */
+  await page.js('document.getElementById("overlay").click()');
+  await page.waitFor('document.getElementById("overlay").hidden');
+  equal(await page.js('document.getElementById("overlay").hidden'), true, '点遮罩关闭关卡表');
+
+  /* ---- 移动端：真实重载后无横向溢出 ---- */
+  await page.js('window.RSL.APP.loadLevel(0)');
+  await page.waitFor('window.RSL.APP.state.level.id === "CH1-01"');
+  await page.viewport(390, 844, { deviceScaleFactor: 2, mobile: true });
+  await page.send('Page.navigate', { url: fileUrl() });
+  await page.ready();
+  const mobile = await page.js('(function(){return {w:innerWidth, scroll:document.documentElement.scrollWidth};})()');
+  equal(mobile.w, 390, '移动端视口宽 390');
+  equal(mobile.scroll, mobile.w, '移动端无横向溢出（scrollWidth === innerWidth）');
+  await page.shot('simple-mobile');
+});

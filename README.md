@@ -97,9 +97,13 @@ python -m http.server 8000
 ## 开发
 
 ```bash
-npm test        # 17 个逻辑测试 + 成就/存档测试 + 240 个参考电路校验
-node scripts/build-toy.js
+npm test              # 41 项单测（逻辑/成就/存档/走线/关卡目录）+ 240 关参考电路
+npm run test:ui       # Edge headless 真浏览器回归（放置、连线、通关、暗色、移动端）
+npm run test:acceptance  # 构建 dist/ 后做独立验收（含 dist 产物 file:// 冒烟）
+npm run build:toy     # 只生成 bilibili Toy / Pages 用的 dist/
 ```
+
+模块划分、加载顺序与数据流见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)。
 
 浏览器测试需要本机 Edge：
 
@@ -118,17 +122,24 @@ node scripts/gen-levels.js
 
 | 文件 | 作用 |
 | --- | --- |
-| `src/logic.js` | 公式 AST、解析、展开、代入、置换、分离 |
-| `src/engine.js` | 模块求值器 |
-| `src/main.js` | 关卡流程、选关、规则提示、界面交互 |
+| `src/logic.js` | 公式 AST、解析、展开、代入、置换、分离（纯函数） |
+| `src/engine.js` | 模块元数据与电路求值器 |
+| `src/route.js` | 纯几何走线（A*、正交化、45° 倒角），无 DOM |
+| `src/board.js` | 底板编辑器：缩放平移、节点/导线交互、渲染 |
+| `src/main.js` | 应用状态、存档、关卡流程、调色板拖放与全局事件 |
+| `src/ui.js` | DOM 基础件、公式显示、toast、面板与焦点管理 |
+| `src/screens.js` | 选关、帮助、成就、通关面板 |
+| `src/catalog.js` | 章节分组、解锁链、调色板条目（纯函数） |
+| `src/coach.js` | 规则提示窗 |
+| `src/audio.js` | 背景音乐与音效 |
 | `src/achievements.js` | 成就定义与条件判定 |
 | `src/save.js` | 存档结构、校验与本地读写 |
-| `src/library.js` | `set.mm` 公理、定义、调色板 |
+| `src/library.js` | `set.mm` 公理、定义、调色板与章节元数据 |
 | `src/archive.js` | `set.mm` 档案模块（生成） |
 | `src/levels.js` | 四章手工关与教程关 |
 | `src/levels-generated.js` | 生成关卡（生成） |
 | `scripts/gen-levels.js` | 关卡/档案生成器 |
-| `docs/` | 数学与数据说明 |
+| `docs/` | 数学、数据与架构说明 |
 | `research/` | `set.mm` 提取数据和开发笔记 |
 
 页面是纯静态的，没有后端，也不在运行时请求网络。GitHub Pages 在每次推送 `main` 时运行 `node scripts/build-toy.js`，上传 `dist/`；bilibili Toy 也使用压缩后的 `dist/` 内容。

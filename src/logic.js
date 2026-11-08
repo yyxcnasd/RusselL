@@ -295,12 +295,23 @@
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
-  function htmlChild(child, parentKind, side) {
-    return wrapHTML(htmlNode(child), needsParens(child, parentKind, side));
+  /* “全括号”模式：每个二元/量化子式都加括号，用来显示给玩家看；
+     默认（最小括号）用于 fmt/测试。 */
+  function groupedForDisplay(child) {
+    return child.k === 'or' || child.k === 'and' || child.k === 'imp' || child.k === 'iff' ||
+      child.k === 'all' || child.k === 'exists';
   }
-  function htmlPrefix(child) { return wrapHTML(htmlNode(child), PREC[child.k] < 5); }
-  function htmlBinary(kind, op, a, b) {
-    return htmlChild(a, kind, 'left') + ' <span class="f-op">' + op + '</span> ' + htmlChild(b, kind, 'right');
+  function htmlChild(child, parentKind, side, full) {
+    var paren = full ? groupedForDisplay(child) : needsParens(child, parentKind, side);
+    return wrapHTML(htmlNode(child, full), paren);
+  }
+  function htmlPrefix(child, full) {
+    var paren = full ? groupedForDisplay(child) : PREC[child.k] < 5;
+    return wrapHTML(htmlNode(child, full), paren);
+  }
+  function htmlBinary(kind, op, a, b, full) {
+    return htmlChild(a, kind, 'left', full) + ' <span class="f-op">' + op + '</span> ' +
+      htmlChild(b, kind, 'right', full);
   }
   function htmlTerm(term) {
     need(term, '谓词参数');
@@ -308,7 +319,7 @@
     return '<span class="f-var">' + escapeHTML(requireName(term, '变元')) + '</span>';
   }
 
-  function htmlNode(n) {
+  function htmlNode(n, full) {
     need(n, '公式');
     switch (n.k) {
       /* 命题变元按变量显示（数学字体斜体）。 */
@@ -321,23 +332,29 @@
         }
         return '<span class="f-name">' + escapeHTML(requireName(n, '谓词')) + '</span>' +
           '<span class="f-paren">(</span>' + n.args.map(htmlTerm).join(', ') + '<span class="f-paren">)</span>';
-      case 'not': return '<span class="f-op">¬</span>' + htmlPrefix(n.a);
-      case 'or': return htmlBinary('or', '∨', n.a, n.b);
-      case 'and': return htmlBinary('and', '∧', n.a, n.b);
-      case 'imp': return htmlBinary('imp', '→', n.a, n.b);
-      case 'iff': return htmlBinary('iff', '↔', n.a, n.b);
+      case 'not': return '<span class="f-op">¬</span>' + htmlPrefix(n.a, full);
+      case 'or': return htmlBinary('or', '∨', n.a, n.b, full);
+      case 'and': return htmlBinary('and', '∧', n.a, n.b, full);
+      case 'imp': return htmlBinary('imp', '→', n.a, n.b, full);
+      case 'iff': return htmlBinary('iff', '↔', n.a, n.b, full);
       case 'all':
         return '<span class="f-quant">∀</span><span class="f-var">' +
-          escapeHTML(requireBinder(n)) + '</span> ' + htmlPrefix(n.a);
+          escapeHTML(requireBinder(n)) + '</span> ' + htmlPrefix(n.a, full);
       case 'exists':
         return '<span class="f-quant">∃</span><span class="f-var">' +
-          escapeHTML(requireBinder(n)) + '</span> ' + htmlPrefix(n.a);
+          escapeHTML(requireBinder(n)) + '</span> ' + htmlPrefix(n.a, full);
       default: throw new LogicError('未知节点类型：' + n.k);
     }
   }
 
-  /** 转义后的 HTML 片段：变量 .f-var、谓词名 .f-name、运算符 .f-op、括号 .f-paren、量词 .f-quant。 */
-  function toHTML(n) { need(n, '公式'); return htmlNode(n); }
+  /**
+   * 转义后的 HTML 片段：变量 .f-var、谓词名 .f-name、运算符 .f-op、括号 .f-paren、量词 .f-quant。
+   * options.full = true（或传 'full'）时使用全括号显示。
+   */
+  function toHTML(n, options) {
+    need(n, '公式');
+    return htmlNode(n, !!(options === 'full' || (options && options.full)));
+  }
 
   /* =========================================================================
    * 3. 遍历：自由变元 / 原子 / 谓词 / 变元名
@@ -557,37 +574,6 @@
         return { k: body.k, v: body.v, a: renameFreeVar(body.a, from, to) };
       default: throw new LogicError('未知节点类型：' + body.k);
     }
-  }
-
-  function atomInBody(body, lookup) {
-    switch (body.k) {
-      case 'atom': return hasOwn(lookup, body.name);
-      case 'not': return atomInBody(body.a, lookup);
-      case 'or': case 'imp': case 'and': case 'iff':
-        return atomInBody(body.a, lookup) || atomInBody(body.b, lookup);
-      case 'all': case 'exists': return atomInBody(body.a, lookup);
-      default: return false;
-    }
-  }
-
-  /* 子树中所有“将被替换”的原子，其替换式的自由个体变元并集。 */
-  function replacementsFreeIn(body, freeSets) {
-    var out = Object.create(null);
-    (function walk(n) {
-      switch (n.k) {
-        case 'atom':
-          if (hasOwn(freeSets, n.name)) {
-            var list = freeSets[n.name];
-            for (var i = 0; i < list.length; i += 1) out[list[i]] = true;
-          }
-          return;
-        case 'not': walk(n.a); return;
-        case 'or': case 'imp': case 'and': case 'iff': walk(n.a); walk(n.b); return;
-        case 'all': case 'exists': walk(n.a); return;
-        default: return;
-      }
-    })(body);
-    return out;
   }
 
   /* instantiate 的核心：把 schema 中的命题原子直接换成 map 里的公式。

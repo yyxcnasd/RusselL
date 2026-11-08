@@ -1,17 +1,18 @@
 /* 逐关校验：240 关、四章各 60 关、目标可解析、参考电路可被真实引擎求值。
  * 同时检查 theorem:<id> 只引用更早的关卡、axiom:<id> / archive:<label> 存在。 */
-const fs = require('fs');
-const vm = require('vm');
-const path = require('path');
+const { loadRuntime } = require('../scripts/lib/load-runtime');
 
-const root = path.resolve(__dirname, '..');
-const ctx = { window: {}, console, JSON, Math, Date, URLSearchParams };
-ctx.globalThis = ctx;
-vm.createContext(ctx);
-for (const f of ['src/logic.js', 'src/archive.js', 'src/library.js', 'src/levels.js', 'src/levels-generated.js', 'src/engine.js']) {
-  vm.runInContext(fs.readFileSync(path.join(root, f), 'utf8'), ctx, { filename: f });
-}
-const RSL = ctx.window.RSL;
+/* 加载顺序与 index.html 一致：数据 → 关卡 → 引擎。 */
+const RSL = loadRuntime({
+  files: [
+    'src/logic.js',
+    'src/archive.js',
+    'src/library.js',
+    'src/levels.js',
+    'src/levels-generated.js',
+    'src/engine.js'
+  ]
+});
 const L = RSL.Logic;
 const levels = RSL.LEVELS;
 const archiveIds = new Set(Object.keys(RSL.ARCHIVE || {}));

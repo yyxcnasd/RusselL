@@ -24,10 +24,8 @@
 'use strict';
 
 const fs = require('fs');
-const vm = require('vm');
 const path = require('path');
-
-const ROOT = path.resolve(__dirname, '..');
+const { loadRuntime } = require('./lib/load-runtime');
 
 /* =========================================================================
  * 0. CLI
@@ -72,20 +70,11 @@ function parseArgs(argv) {
 
 /* =========================================================================
  * 1. 以经典脚本方式加载 src/logic.js（以及 --verify 用的 src/engine.js）
+ *    vm 样板见 scripts/lib/load-runtime.js。
  * ========================================================================= */
 
-function loadRuntime(withEngine) {
-  const ctx = { window: {}, console, JSON, Math, Date, Set, Map };
-  ctx.globalThis = ctx;
-  vm.createContext(ctx);
-
-  function run(rel) {
-    const full = path.join(ROOT, rel);
-    vm.runInContext(fs.readFileSync(full, 'utf8'), ctx, { filename: rel });
-  }
-  run('src/logic.js');
-  if (withEngine) run('src/engine.js');
-  return ctx.window.RSL;
+function loadLogic(withEngine) {
+  return loadRuntime({ files: ['src/logic.js'], withEngine: withEngine });
 }
 
 /* =========================================================================
@@ -813,7 +802,7 @@ function buildCircuit(tree, goalText, Logic, axiomById, lemmaById) {
  * ========================================================================= */
 
 function verifyCircuit(circuit, goalText, lemmaDefs) {
-  const RSL = loadRuntime(true);
+  const RSL = loadLogic(true);
   const Logic = RSL.Logic;
   /* 关键：engine 的 axiom 节点会对 schema 调用 Logic.parse，因此必须注入字符串 */
   RSL.AXIOMS = AXIOM_DEFS.map(a => ({
@@ -851,7 +840,7 @@ function main() {
     process.exit(opts.help ? 0 : 2);
   }
 
-  const RSL = loadRuntime(false);
+  const RSL = loadLogic(false);
   const Logic = RSL.Logic;
 
   let goalAst;

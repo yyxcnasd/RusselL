@@ -207,37 +207,29 @@
 
   function fail(msg) { return { ok: false, error: msg }; }
 
-  function getInputs(node, edges, results) {
-    var ins = incomingMap(edges);
+  /* 每条输入端口取上游结果；未接线或上游没有公式时给 null。 */
+  function getInputs(node, incoming, results) {
     var def = MODULES[node.kind] || { ports: { inputs: [] } };
     var out = {};
-    var missing = [];
     def.ports.inputs.forEach(function (p) {
-      var e = ins[node.id + ':' + p.id];
-      if (!e) { missing.push(p.id); return; }
-      var upstream = results[e.from.node];
-      if (!upstream || !upstream.ast) {
-        out[p.id] = null;
-        missing.push(p.id);
-      } else {
-        out[p.id] = upstream.ast;
-      }
+      var edge = incoming[node.id + ':' + p.id];
+      var upstream = edge && results[edge.from.node];
+      out[p.id] = upstream && upstream.ast ? upstream.ast : null;
     });
-    return { values: out, missing: missing, edges: ins };
+    return out;
   }
 
   function makeResult(node, ast, state, error, note, meta) {
     return { nodeId: node.id, ast: ast || null, state: state, error: error || null, note: note || '', meta: meta || {} };
   }
 
-  function evaluateNode(node, edges, results) {
+  function evaluateNode(node, incoming, results) {
     var L = window.RSL.Logic;
     if (!L) return makeResult(node, null, 'error', '逻辑引擎未加载');
     var info = MODULES[node.kind];
     if (!info) return makeResult(node, null, 'error', '未知模块类型：' + node.kind);
     var cfg = node.config || {};
-    var inp = getInputs(node, edges, results);
-    var vals = inp.values;
+    var vals = getInputs(node, incoming, results);
 
     function need(port) {
       if (!vals[port]) return false;
@@ -390,9 +382,11 @@
   }
 
   function evaluate(level, nodes, edges) {
-    var L = window.RSL.Logic;
     nodes = nodes || [];
     edges = edges || [];
+    var byId = {};
+    nodes.forEach(function (n) { byId[n.id] = n; });
+    var incoming = incomingMap(edges);
     var t = topo(nodes, edges);
     var results = {};
     var errors = [];
@@ -400,9 +394,9 @@
       results[id] = makeResult({ id: id, kind: 'unknown' }, null, 'error', '检测到回路：电路不能闭环');
     });
     t.order.forEach(function (id) {
-      var node = nodes.filter(function (n) { return n.id === id; })[0];
+      var node = byId[id];
       if (!node) return;
-      var r = evaluateNode(node, edges, results);
+      var r = evaluateNode(node, incoming, results);
       results[id] = r;
       if (r.state === 'error') errors.push({ nodeId: id, message: r.error });
     });
@@ -415,12 +409,15 @@
        构造门（atom/not/imp/or/and/iff/pred/term/quant）本身不产生断言。 */
     if (target && target.state === 'complete') {
       var CONSTRUCT = { atom: 1, not: 1, imp: 1, or: 1, and: 1, iff: 1, pred: 1, term: 1, quant: 1, target: 1 };
-      var byId = {};
-      nodes.forEach(function (n) { byId[n.id] = n; });
       var seen = {};
       var queue = [targetNode.id];
       var hasSource = false;
       var usedKinds = {};
+      var incomingList = {};
+      edges.forEach(function (e) {
+        if (!e.to || !e.from) return;
+        (incomingList[e.to.node] = incomingList[e.to.node] || []).push(e);
+      });
       while (queue.length) {
         var id = queue.shift();
         if (seen[id]) continue;
@@ -430,8 +427,8 @@
           usedKinds[nd.kind] = true;
           if (!CONSTRUCT[nd.kind]) hasSource = true;
         }
-        edges.forEach(function (e) {
-          if (e.to && e.to.node === id && !seen[e.from.node]) queue.push(e.from.node);
+        (incomingList[id] || []).forEach(function (e) {
+          if (!seen[e.from.node]) queue.push(e.from.node);
         });
       }
       if (!hasSource) {

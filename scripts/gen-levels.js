@@ -12,7 +12,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const vm = require('vm');
+const { loadRuntime } = require('./lib/load-runtime');
 
 const root = path.resolve(__dirname, '..');
 const DATA = path.join(root, 'research', 'setmm-data.json');
@@ -22,13 +22,10 @@ const OUT_LEVELS = path.join(root, 'src', 'levels-generated.js');
 
 /* ---------- 装载逻辑/现有工程 ---------- */
 function load() {
-  const ctx = { window: {}, console, JSON, Math, Date };
-  ctx.globalThis = ctx;
-  vm.createContext(ctx);
-  for (const f of ['src/logic.js', 'src/library.js', 'src/levels.js', 'src/engine.js']) {
-    vm.runInContext(fs.readFileSync(path.join(root, f), 'utf8'), ctx, { filename: f });
-  }
-  return ctx.window.RSL;
+  return loadRuntime({
+    files: ['src/logic.js', 'src/library.js', 'src/levels.js'],
+    withEngine: true
+  });
 }
 const RSL = load();
 const L = RSL.Logic;
@@ -776,21 +773,20 @@ function buildChapter(chapter, list, all) {
 }
 
 /* ---------- 求值校验 ---------- */
-let VCTX = null;
+let VRSL = null;
 function validate(spec) {
-  if (!VCTX) {
-    VCTX = { window: {}, console, JSON, Math, Date };
-    VCTX.globalThis = VCTX;
-    vm.createContext(VCTX);
-    for (const f of ['src/logic.js', 'src/library.js', 'src/levels.js', 'src/engine.js']) {
-      vm.runInContext(fs.readFileSync(path.join(root, f), 'utf8'), VCTX, { filename: f });
-    }
-    VCTX.window.RSL.ARCHIVE = ARCHIVE;
+  if (!VRSL) {
+    VRSL = loadRuntime({
+      files: ['src/logic.js', 'src/library.js', 'src/levels.js'],
+      withEngine: true
+    });
+    /* 生成器在内存里构造 ARCHIVE，校验时直接挂到同一 RSL 上。 */
+    VRSL.ARCHIVE = ARCHIVE;
   }
   const target = { id: 'target', kind: 'target', x: 900, y: 300, target: spec.target, config: {} };
   const nodes = [target].concat(JSON.parse(JSON.stringify(spec.solution.nodes)));
   const edges = spec.solution.edges.map((e, i) => ({ id: 'e' + i, from: { ...e.from }, to: { ...e.to } }));
-  const r = VCTX.window.RSL.Engine.evaluate(spec, nodes, edges);
+  const r = VRSL.Engine.evaluate(spec, nodes, edges);
   if (!r.complete) {
     console.error('validate fail', spec.id, spec.target, r.errors.map((e) => e.message).join('|'));
     return false;
@@ -847,13 +843,16 @@ const levelsJs = `/* 公理板 — 由 scripts/gen-levels.js 从 set.mm 数据�
 fs.writeFileSync(OUT_LEVELS, levelsJs, 'utf8');
 
 /* 生成后再从磁盘读回、逐关求值（最终验收） */
-const finalCtx = { window: {}, console, JSON, Math, Date };
-finalCtx.globalThis = finalCtx;
-vm.createContext(finalCtx);
-for (const f of ['src/logic.js', 'src/archive.js', 'src/library.js', 'src/levels.js', 'src/levels-generated.js', 'src/engine.js']) {
-  vm.runInContext(fs.readFileSync(path.join(root, f), 'utf8'), finalCtx, { filename: f });
-}
-const R = finalCtx.window.RSL;
+const R = loadRuntime({
+  files: [
+    'src/logic.js',
+    'src/archive.js',
+    'src/library.js',
+    'src/levels.js',
+    'src/levels-generated.js'
+  ],
+  withEngine: true
+});
 let failures = 0;
 for (const lv of R.LEVELS) {
   const target = { id: 'target', kind: 'target', x: 900, y: 300, target: lv.target, config: {} };

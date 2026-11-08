@@ -7,6 +7,9 @@ node_modules/
 # Metamath raw database (development reference; not shipped)
 assets/data/
 
+# unrelated promo film project (local only)
+promo/
+
 # OS noise
 .DS_Store
 Thumbs.db

@@ -1,18 +1,28 @@
-/* 公理板 — minimal graph board. */
+/* 公理板 — minimal graph board: DOM, interaction and state only.
+ * Pure geometry / wire routing lives in src/route.js (window.RSL.Route).
+ * Classic script, no modules; keep the DOM class names and the Board API stable.
+ */
 (function () {
   'use strict';
   window.RSL = window.RSL || {};
-  var W = 241;
-  var ROUTE = {
-    cell: 12,
-    clearance: 20,
-    bound: 28,
-    stub: 26,
-    bend: 8,
-    reverse: 4,
-    networkPenalty: 64,
-    segmentPad: 18
-  };
+  var Route = window.RSL.Route;
+  if (!Route) throw new Error('RSL.Route missing: load src/route.js before src/board.js');
+  var ROUTE = Route.ROUTE;
+
+  /* Geometry shared by layout, routing rects and port markers. */
+  var NODE_W = 232;          // .node width in simple.css (border-box)
+  var TARGET_W = 160;
+  var SNAP = 16;             // board snapping grid
+  var PORT_TOP = 47;         // first input/output port top offset in the node
+  var PORT_STEP = 32;
+  var PORT_TAIL = 29;        // reserved space below the last input port
+  var NODE_MIN_H = 96;
+  var TARGET_PORT_TOP = 46;
+  var TARGET_MIN_H = 104;
+  var DEFAULT_NODE_H = 112;
+  var DEFAULT_TARGET_H = 104;
+  var OVERLAP_GAP = 18;
+  var VIEW_MIN = 0.35, VIEW_MAX = 1.35;
 
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
   function esc(s) {
@@ -22,7 +32,9 @@
   }
   function clone(o) { return JSON.parse(JSON.stringify(o)); }
   function uid(p) { return p + Math.random().toString(36).slice(2, 8); }
-  function snap(v) { return Math.round(v / 16) * 16; }
+  function snap(v) { return Math.round(v / SNAP) * SNAP; }
+  function nodeWidth(n) { return n.kind === 'target' ? TARGET_W : NODE_W; }
+  function portTop(n, i) { return (n.kind === 'target' ? TARGET_PORT_TOP : PORT_TOP) + i * PORT_STEP; }
 
   function Board(opts) {
     this.board = opts.board;
@@ -47,6 +59,10 @@
     this._marquee = null;
     this._pan = null;
     this._long = null;
+    this._elById = Object.create(null);   // id -> node element, rebuilt by render()
+    this._wireEls = Object.create(null);  // edge id -> { path, hit }, rebuilt by full _updateWires
+    this._lastUsed = null;
+    this._cheapDirty = false;             // cheap drag preview needs a full pass before settling
     this._bind();
     this._applyView();
   }
@@ -74,6 +90,7 @@
       var wire = e.target.closest && e.target.closest('.wire-hit');
       if (!wire) return;
       self.selectedNode = null;
+      self.selectedNodes = [];
       self.selectedEdge = wire.dataset.edge;
       self.render();
       self.onSelect(null, self.selectedEdge);
@@ -99,7 +116,7 @@
 
   Board.prototype.setView = function (x, y, scale) {
     this._viewAnim = null;
-    this.view = { x: x, y: y, scale: clamp(scale, 0.35, 1.35) };
+    this.view = { x: x, y: y, scale: clamp(scale, VIEW_MIN, VIEW_MAX) };
     this._applyView();
     this._updateWires();
   };
@@ -113,7 +130,7 @@
     var px = cx == null ? r.width / 2 : cx - r.left;
     var py = cy == null ? r.height / 2 : cy - r.top;
     var old = this.view.scale;
-    var next = clamp(old * Math.pow(1.12, dir), 0.35, 1.35);
+    var next = clamp(old * Math.pow(1.12, dir), VIEW_MIN, VIEW_MAX);
     var wx = (px - this.view.x) / old;
     var wy = (py - this.view.y) / old;
     this._viewAnim = {
@@ -138,19 +155,18 @@
   };
 
   Board.prototype.fit = function () {
-    var els = this.nodes.querySelectorAll('.node');
+    var self = this;
     var r = this.board.getBoundingClientRect();
     var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    els.forEach(function (el) {
-      var n = this.node(el.dataset.id);
-      if (!n) return;
+    this.items.forEach(function (n) {
+      var el = self._elById[n.id];
       minX = Math.min(minX, n.x);
       minY = Math.min(minY, n.y);
-      maxX = Math.max(maxX, n.x + W);
-      maxY = Math.max(maxY, n.y + el.offsetHeight);
-    }, this);
+      maxX = Math.max(maxX, n.x + nodeWidth(n));
+      maxY = Math.max(maxY, n.y + (el ? el.offsetHeight : DEFAULT_NODE_H));
+    });
     if (!isFinite(minX)) { this.setView(30, 30, 0.9); return; }
-    var scale = clamp(Math.min((r.width - 100) / (maxX - minX), (r.height - 100) / (maxY - minY)), 0.35, 1.05);
+    var scale = clamp(Math.min((r.width - 100) / (maxX - minX), (r.height - 100) / (maxY - minY)), VIEW_MIN, 1.05);
     this.setView((r.width - (maxX - minX) * scale) / 2 - minX * scale, (r.height - (maxY - minY) * scale) / 2 - minY * scale, scale);
   };
 
@@ -162,6 +178,10 @@
   Board.prototype._client = function (cx, cy) {
     var r = this.board.getBoundingClientRect();
     return { x: (cx - r.left - this.view.x) / this.view.scale, y: (cy - r.top - this.view.y) / this.view.scale };
+  };
+
+  Board.prototype._nodeEl = function (id) {
+    return this._elById[id] || null;
   };
 
   Board.prototype._down = function (e) {
@@ -183,6 +203,7 @@
     if (wireHit) {
       e.preventDefault();
       this.selectedNode = null;
+      this.selectedNodes = [];
       this.selectedEdge = wireHit.dataset.edge;
       this.render();
       this.onSelect(null, this.selectedEdge);
@@ -258,19 +279,20 @@
   Board.prototype._endMarquee = function () {
     var m = this._marquee;
     if (!m) return;
+    var self = this;
     if (m.rect) {
       var rr = m.rect;
+      var r = this.board.getBoundingClientRect();
       this.selectedNodes = this.items.filter(function (n) {
         if (n.kind === 'target') return false;
-        var el = this.nodes.querySelector('[data-id="' + n.id + '"]');
-        var w = n.kind === 'target' ? 160 : W;
-        var h = el ? el.offsetHeight : 112;
-        var r = this.board.getBoundingClientRect();
-        var nx = r.left + this.view.x + n.x * this.view.scale;
-        var ny = r.top + this.view.y + n.y * this.view.scale;
-        var nw = w * this.view.scale, nh = h * this.view.scale;
+        var el = self._elById[n.id];
+        var w = nodeWidth(n);
+        var h = el ? el.offsetHeight : DEFAULT_NODE_H;
+        var nx = r.left + self.view.x + n.x * self.view.scale;
+        var ny = r.top + self.view.y + n.y * self.view.scale;
+        var nw = w * self.view.scale, nh = h * self.view.scale;
         return !(nx > rr.x + rr.w || nx + nw < rr.x || ny > rr.y + rr.h || ny + nh < rr.y);
-      }, this).map(function (n) { return n.id; });
+      }).map(function (n) { return n.id; });
     }
     if (m.el && m.el.parentNode) m.el.parentNode.removeChild(m.el);
     this._marquee = null;
@@ -279,7 +301,6 @@
     this._suppressClick = true;
     this.render();
     this.onSelect(this.selectedNode, null);
-    var self = this;
     setTimeout(function () { self._suppressClick = false; }, 80);
   };
 
@@ -295,10 +316,10 @@
         if (!n || n.kind === 'target') return;
         n.x = g.origin[id].x + dx;
         n.y = g.origin[id].y + dy;
-        var el = self.nodes.querySelector('[data-id="' + id + '"]');
+        var el = self._elById[id];
         if (el) { el.style.left = n.x + 'px'; el.style.top = n.y + 'px'; }
       });
-      this._updateWires();
+      this._updateWires('cheap', g.ids);
       return;
     }
     if (this._marquee) {
@@ -313,9 +334,9 @@
       node.x = p.x - this._drag.dx;
       node.y = p.y - this._drag.dy;
       if (Math.abs(e.clientX - this._drag.sx) + Math.abs(e.clientY - this._drag.sy) > 3) this._drag.moved = true;
-      var el = this.nodes.querySelector('[data-id="' + node.id + '"]');
+      var el = self._elById[node.id];
       if (el) { el.style.left = node.x + 'px'; el.style.top = node.y + 'px'; }
-      this._updateWires();
+      this._updateWires('cheap', [node.id]);
       return;
     }
     if (this._pan) {
@@ -328,7 +349,7 @@
       var q = this._client(e.clientX, e.clientY);
       this.draft.x = q.x; this.draft.y = q.y;
       var a = this._portPoint(this.draft.from.node, this.draft.from.port);
-      if (a) this._draftPath(a, q);
+      if (a) this._draftPath(a, q, this._draftRects);
     }
   };
 
@@ -338,7 +359,9 @@
     if (this._groupDrag) {
       var g = this._groupDrag;
       var moved = g.moved;
+      var staleGroup = this._cheapDirty;
       this._groupDrag = null;
+      if (!moved && staleGroup) this._updateWires();
       if (moved) {
         var self = this;
         var conflict = false;
@@ -367,6 +390,7 @@
       var moved = this._drag.moved;
       var dragId = this._drag.id;
       var drag = this._drag;
+      var staleDrag = this._cheapDirty;
       this._drag = null;
       if (moved) {
         var dragged = this.node(dragId);
@@ -378,7 +402,7 @@
         }
         this.render();
         this.onChange();
-      }
+      } else if (staleDrag) this._updateWires();
       return;
     }
     if (this._pan) { this._pan = null; this.board.classList.remove('is-panning'); return; }
@@ -450,10 +474,12 @@
     this._pan = null;
     this._cancelDraft();
     this.board.classList.remove('is-panning');
+    if (this._cheapDirty) this._updateWires();
   };
 
   Board.prototype._cancelDraft = function () {
     this.draft = null;
+    this._draftRects = null;
     this.board.classList.remove('is-wiring');
     var d = this.wires.querySelector('.wire-draft');
     if (d) d.remove();
@@ -464,11 +490,12 @@
     if (!a) return;
     var p = this._client(cx, cy);
     this.draft = { from: { node: id, port: port }, x: p.x, y: p.y };
+    this._draftRects = this._rects();
     this.board.classList.add('is-wiring');
-    this._draftPath(a, p);
+    this._draftPath(a, p, this._draftRects);
   };
 
-  Board.prototype._draftPath = function (a, b) {
+  Board.prototype._draftPath = function (a, b, rects) {
     var d = this.wires.querySelector('.wire-draft');
     if (!d) {
       d = document.createElementNS('http://www.w3.org/2000/svg', 'path');
@@ -478,339 +505,139 @@
     var fromId = this.draft && this.draft.from ? this.draft.from.node : null;
     var group = this.draft && this.draft.from ? (this.draft.from.node + '|' + this.draft.from.port) : '';
     var start = { x: a.x + ROUTE.stub, y: a.y };
-    var pts = this._route(start, b, this._rects(), this._lastUsed || {}, fromId, null, group);
+    var pts = Route.route(start, b, rects || this._rects(), this._lastUsed || {}, group, { fromId: fromId, toId: null });
     pts.unshift({ x: a.x, y: a.y });
-    d.setAttribute('d', this._pathPoints(pts));
+    d.setAttribute('d', Route.pathPoints(pts));
   };
 
-  Board.prototype._simplePoints = function (x1, y1, x2, y2) {
-    if (Math.abs(y2 - y1) < 2) return [{ x: x1, y: y1 }, { x: x2, y: y2 }];
-    if (x2 - x1 > 60) {
-      var mx = x1 + (x2 - x1) * 0.5;
-      return [{ x: x1, y: y1 }, { x: mx, y: y1 }, { x: mx, y: y2 }, { x: x2, y: y2 }];
-    }
-    var loop = 28;
-    var my = y1 + (y2 - y1) / 2;
-    return [{ x: x1, y: y1 }, { x: x1 + loop, y: y1 }, { x: x1 + loop, y: my }, { x: x2 - loop, y: my }, { x: x2 - loop, y: y2 }, { x: x2, y: y2 }];
-  };
-
-  Board.prototype._pathPoints = function (pts) {
-    if (!pts || !pts.length) return '';
-    /* PCB-style 45° chamfers at right-angle corners. */
-    var out = [pts[0]];
-    for (var i = 1; i < pts.length - 1; i++) {
-      var a = out[out.length - 1], b = pts[i], c = pts[i + 1];
-      var horizontal = Math.abs(a.y - b.y) < 1 && Math.abs(b.y - c.y) > 1;
-      var vertical = Math.abs(a.x - b.x) < 1 && Math.abs(b.x - c.x) > 1;
-      var cut = 9;
-      if ((horizontal || vertical) && Math.abs(a.x - b.x) + Math.abs(a.y - b.y) > cut * 2 && Math.abs(c.x - b.x) + Math.abs(c.y - b.y) > cut * 2) {
-        out.push({ x: b.x - Math.sign(b.x - a.x) * cut, y: b.y - Math.sign(b.y - a.y) * cut });
-        out.push({ x: b.x + Math.sign(c.x - b.x) * cut, y: b.y + Math.sign(c.y - b.y) * cut });
-      } else out.push(b);
-    }
-    out.push(pts[pts.length - 1]);
-    var d = 'M' + out[0].x + ' ' + out[0].y;
-    for (var j = 1; j < out.length; j++) d += 'L' + out[j].x + ' ' + out[j].y;
-    return d;
-  };
-
-  Board.prototype._simplify = function (pts) {
-    if (pts.length <= 2) return pts;
-    var out = [pts[0]];
-    for (var i = 1; i < pts.length - 1; i++) {
-      var a = out[out.length - 1], b = pts[i], c = pts[i + 1];
-      var abx = b.x - a.x, aby = b.y - a.y, bcx = c.x - b.x, bcy = c.y - b.y;
-      if ((abx === 0 && bcx === 0 && Math.sign(aby) === Math.sign(bcy)) ||
-          (aby === 0 && bcy === 0 && Math.sign(abx) === Math.sign(bcx))) continue;
-      if (abx === 0 && bcx === 0) continue;
-      if (aby === 0 && bcy === 0) continue;
-      out.push(b);
-    }
-    out.push(pts[pts.length - 1]);
-    return out;
-  };
-
+  /* Node rects: width from the shared constants, height measured from the
+   * rendered element (text can wrap differently per formula). */
   Board.prototype._nodeRect = function (n, el) {
-    var w = n.kind === 'target' ? 160 : W;
-    var h = el ? el.offsetHeight : (n.kind === 'target' ? 104 : 112);
-    return { x: n.x, y: n.y, w: w, h: h, id: n.id };
+    var h = el ? el.offsetHeight : (n.kind === 'target' ? DEFAULT_TARGET_H : DEFAULT_NODE_H);
+    return { x: n.x, y: n.y, w: nodeWidth(n), h: h, id: n.id };
   };
 
   Board.prototype._rects = function () {
     var self = this;
-    return this.items.map(function (n) {
-      var el = self.nodes.querySelector('[data-id="' + n.id + '"]');
-      return self._nodeRect(n, el);
-    });
+    return this.items.map(function (n) { return self._nodeRect(n, self._elById[n.id]); });
   };
 
-  /* A* on a 16px grid: bend penalty + reuse penalty, but only between different output networks. */
+  /* Compatibility shim for callers that still route through the board
+   * (tests/simple-routing.js). Pure implementation is Route.route. */
   Board.prototype._route = function (a, b, rects, used, fromId, toId, group) {
-    var CELL = ROUTE.cell;
-    var xs = [a.x, b.x], ys = [a.y, b.y];
-    rects.forEach(function (r) { xs.push(r.x - ROUTE.bound, r.x + r.w + ROUTE.bound); ys.push(r.y - ROUTE.bound, r.y + r.h + ROUTE.bound); });
-    var minX = Math.floor((Math.min.apply(null, xs) - 180) / CELL) * CELL;
-    var maxX = Math.ceil((Math.max.apply(null, xs) + 180) / CELL) * CELL;
-    var minY = Math.floor((Math.min.apply(null, ys) - 180) / CELL) * CELL;
-    var maxY = Math.ceil((Math.max.apply(null, ys) + 180) / CELL) * CELL;
-    var cols = Math.max(2, Math.round((maxX - minX) / CELL) + 1);
-    var rows = Math.max(2, Math.round((maxY - minY) / CELL) + 1);
-    var blocked = new Uint8Array(cols * rows);
-    var i, j, k;
-    for (i = 0; i < rects.length; i++) {
-      var r = rects[i];
-      var x0 = Math.floor((r.x - ROUTE.clearance - minX) / CELL), x1 = Math.ceil((r.x + r.w + ROUTE.clearance - minX) / CELL);
-      var y0 = Math.floor((r.y - ROUTE.clearance - minY) / CELL), y1 = Math.ceil((r.y + r.h + ROUTE.clearance - minY) / CELL);
-      for (var yy = Math.max(0, y0); yy <= Math.min(rows - 1, y1); yy++)
-        for (var xx = Math.max(0, x0); xx <= Math.min(cols - 1, x1); xx++) blocked[yy * cols + xx] = 1;
-    }
-    function snap(v, min) { return Math.max(1, Math.min(Math.round((v - min) / CELL), 100000)); }
-    var sx = Math.max(1, Math.min(cols - 2, Math.round((a.x - minX) / CELL)));
-    var sy = Math.max(1, Math.min(rows - 2, Math.round((a.y - minY) / CELL)));
-    var ex = Math.max(1, Math.min(cols - 2, Math.round((b.x - minX) / CELL)));
-    var ey = Math.max(1, Math.min(rows - 2, Math.round((b.y - minY) / CELL)));
-    function clear(cx, cy) {
-      for (var oy = -1; oy <= 1; oy++) for (var ox = -1; ox <= 1; ox++) {
-        var nx = cx + ox, ny = cy + oy;
-        if (nx >= 0 && nx < cols && ny >= 0 && ny < rows) blocked[ny * cols + nx] = 0;
-      }
-    }
-    clear(sx, sy); clear(ex, ey);
-    var DX = [1, 0, -1, 0], DY = [0, 1, 0, -1];
-    var total = cols * rows * 4;
-    var dist = new Float32Array(total); dist.fill(1e9);
-    var prev = new Int32Array(total); prev.fill(-1);
-    var startStates = [];
-    for (var d0 = 0; d0 < 4; d0++) {
-      var st = (sy * cols + sx) * 4 + d0;
-      dist[st] = 0;
-      startStates.push(st);
-    }
-    // binary heap
-    var heap = [], hDist = [];
-    function push(state, score) {
-      heap.push(state); hDist.push(score);
-      var n = heap.length - 1;
-      while (n > 0) {
-        var p = (n - 1) >> 1;
-        if (hDist[p] <= hDist[n]) break;
-        var ts = heap[p]; heap[p] = heap[n]; heap[n] = ts;
-        var td = hDist[p]; hDist[p] = hDist[n]; hDist[n] = td;
-        n = p;
-      }
-    }
-    function pop() {
-      var top = heap[0], lastS = heap.pop(), lastD = hDist.pop();
-      if (heap.length) {
-        heap[0] = lastS; hDist[0] = lastD;
-        var n = 0;
-        while (true) {
-          var l = n * 2 + 1, r = l + 1, m = n;
-          if (l < heap.length && hDist[l] < hDist[m]) m = l;
-          if (r < heap.length && hDist[r] < hDist[m]) m = r;
-          if (m === n) break;
-          var ts = heap[m]; heap[m] = heap[n]; heap[n] = ts;
-          var td = hDist[m]; hDist[m] = hDist[n]; hDist[n] = td;
-          n = m;
-        }
-      }
-      return top;
-    }
-    startStates.forEach(function (s) { push(s, 0); });
-    var found = -1;
-    var guard = 0;
-    while (heap.length && guard++ < 60000) {
-      var state = pop();
-      var dir = state & 3, cell = state >> 2;
-      var cx = cell % cols, cy = (cell / cols) | 0;
-      if (cx === ex && cy === ey) { found = state; break; }
-      for (var nd = 0; nd < 4; nd++) {
-        var nx = cx + DX[nd], ny = cy + DY[nd];
-        if (nx < 0 || ny < 0 || nx >= cols || ny >= rows) continue;
-        if (blocked[ny * cols + nx]) continue;
-        var ncell = ny * cols + nx;
-        var nstate = ncell * 4 + nd;
-        var sk = (cx < nx || (cx === nx && cy < ny)) ? (cx + ',' + cy + '|' + nx + ',' + ny) : (nx + ',' + ny + '|' + cx + ',' + cy);
-        var reuse = 0;
-        var groups = used[sk];
-        if (groups) {
-          for (var gk in groups) {
-            if (groups.hasOwnProperty(gk) && gk !== String(group || '')) { reuse = 1; break; }
-          }
-        }
-        var cost = 1 + (nd === (dir + 2) % 4 ? ROUTE.reverse : (nd !== dir ? ROUTE.bend : 0)) + reuse * ROUTE.networkPenalty;
-        var ndist = dist[state] + cost;
-        if (ndist < dist[nstate]) {
-          dist[nstate] = ndist;
-          prev[nstate] = state;
-          push(nstate, ndist + Math.abs(nx - ex) + Math.abs(ny - ey));
-        }
-      }
-    }
-    if (found < 0) return this._fallbackRoute(a, b, rects, fromId, toId);
-    var cells = [];
-    var cur = found;
-    while (cur >= 0) {
-      var cell2 = cur >> 2;
-      cells.push({ x: (cell2 % cols) * CELL + minX, y: ((cell2 / cols) | 0) * CELL + minY });
-      cur = prev[cur];
-    }
-    cells.reverse();
-    // mark used segments
-    for (var q = 1; q < cells.length; q++) {
-      var p0 = cells[q - 1], p1 = cells[q];
-      var gx0 = Math.round((p0.x - minX) / CELL), gy0 = Math.round((p0.y - minY) / CELL);
-      var gx1 = Math.round((p1.x - minX) / CELL), gy1 = Math.round((p1.y - minY) / CELL);
-      var key = (gx0 < gx1 || (gx0 === gx1 && gy0 < gy1)) ? (gx0 + ',' + gy0 + '|' + gx1 + ',' + gy1) : (gx1 + ',' + gy1 + '|' + gx0 + ',' + gy0);
-      if (!used[key]) used[key] = {};
-      used[key][String(group || '')] = true;
-    }
-    var pts = [{ x: a.x, y: a.y }];
-    cells.forEach(function (p) { if (p.x !== a.x || p.y !== a.y) pts.push(p); });
-    pts.push({ x: b.x, y: b.y });
-    return this._shortcut(this._simplify(pts), rects);
+    return Route.route(a, b, rects, used, group, { fromId: fromId, toId: toId });
   };
 
-  /* 用清晰的两段折线把 A* 的锯齿和多余拐点收掉。 */
-  Board.prototype._shortcut = function (pts, rects) {
-    if (!pts || pts.length < 3) return pts;
-    var self = this;
-    function clear(p, q) { return self._segmentClear(p, q, rects); }
-    function lpath(p, q) {
-      if (p.x === q.x || p.y === q.y) return clear(p, q) ? [p, q] : null;
-      var c1 = { x: q.x, y: p.y };
-      if (clear(p, c1) && clear(c1, q)) return [p, c1, q];
-      var c2 = { x: p.x, y: q.y };
-      if (clear(p, c2) && clear(c2, q)) return [p, c2, q];
-      return null;
-    }
-    var out = pts.slice();
-    for (var pass = 0; pass < 24; pass++) {
-      var changed = false;
-      for (var i = 0; i < out.length - 2; i++) {
-        var target = null;
-        for (var j = out.length - 1; j > i + 1; j--) {
-          var lp = lpath(out[i], out[j]);
-          if (lp) { target = { j: j, path: lp }; break; }
-        }
-        if (!target) continue;
-        out = out.slice(0, i + 1).concat(target.path.slice(1, -1), [out[target.j]], out.slice(target.j + 1));
-        changed = true;
-        break;
-      }
-      if (!changed) break;
-    }
-    return out;
+  Board.prototype._wireState = function (e) {
+    if (!this.result) return 'idle';
+    var from = this.result.results[e.from.node];
+    if (from && from.state === 'error') return 'error';
+    if (from && from.ast) return 'live';
+    return 'idle';
   };
 
-  Board.prototype._segmentClear = function (p, q, rects) {
-    var pad = ROUTE.segmentPad;
-    var steps = Math.max(1, Math.ceil((Math.abs(q.x - p.x) + Math.abs(q.y - p.y)) / 8));
-    for (var i = 1; i < steps; i++) {
-      var t = i / steps;
-      var x = p.x + (q.x - p.x) * t, y = p.y + (q.y - p.y) * t;
-      for (var r = 0; r < rects.length; r++) {
-        var rr = rects[r];
-        if (x > rr.x - pad && x < rr.x + rr.w + pad && y > rr.y - pad && y < rr.y + rr.h + pad) return false;
-      }
-    }
-    return true;
+  Board.prototype._wireRole = function (e) {
+    var fromNode = this.node(e.from.node);
+    if (!fromNode) return 'assertion';
+    if (fromNode.kind === 'atom') return 'atom';
+    var info = window.RSL.Engine.info(fromNode.kind);
+    var p = (info.ports.outputs || []).filter(function (x) { return x.id === e.from.port; })[0];
+    return p ? p.type : 'assertion';
   };
 
-  Board.prototype._pathClear = function (pts, rects) {
-    for (var i = 1; i < pts.length; i++) if (!this._segmentClear(pts[i - 1], pts[i], rects)) return false;
-    return true;
-  };
+  function makePath(ns, d, cls) {
+    var path = document.createElementNS(ns, 'path');
+    path.setAttribute('d', d);
+    if (cls) path.setAttribute('class', cls);
+    return path;
+  }
 
-  Board.prototype._fallbackRoute = function (a, b, rects, fromId, toId) {
-    var obstacles = rects.filter(function (r) { return r.id !== fromId && r.id !== toId; });
-    var minY = Math.min(a.y, b.y), maxY = Math.max(a.y, b.y);
-    obstacles.forEach(function (r) { minY = Math.min(minY, r.y); maxY = Math.max(maxY, r.y + r.h); });
-    var top = minY - 40, bottom = maxY + 40;
-    var candidates = [
-      this._simplePoints(a.x, a.y, b.x, b.y),
-      [{ x: a.x, y: a.y }, { x: a.x, y: top }, { x: b.x, y: top }, { x: b.x, y: b.y }],
-      [{ x: a.x, y: a.y }, { x: a.x, y: bottom }, { x: b.x, y: bottom }, { x: b.x, y: b.y }]
-    ];
-    for (var i = 0; i < candidates.length; i++) {
-      if (this._pathClear(candidates[i], obstacles)) return this._simplify(candidates[i]);
-    }
-    return this._simplePoints(a.x, a.y, b.x, b.y);
-  };
-
-  Board.prototype._updateWires = function () {
+  /* Full routing pass: A* for every edge, ordered by span so short wires lay
+   * down first. Rebuilds the SVG layer (wire elements are cheap and stable). */
+  Board.prototype._updateWires = function (mode, movedIds) {
+    if (mode === 'cheap') return this._updateWiresCheap(movedIds);
     var self = this;
     var ns = 'http://www.w3.org/2000/svg';
+    this._cheapDirty = false;
     while (this.wires.firstChild) this.wires.removeChild(this.wires.firstChild);
+    this._wireEls = Object.create(null);
     var rects = this._rects();
     var used = Object.create(null);
-    var routes = {};
-    var ordered = this.edges.slice().sort(function (e1, e2) {
-      var a1 = self._portPoint(e1.from.node, e1.from.port), b1 = self._portPoint(e1.to.node, e1.to.port);
-      var a2 = self._portPoint(e2.from.node, e2.from.port), b2 = self._portPoint(e2.to.node, e2.to.port);
-      var d1 = a1 && b1 ? Math.abs(a1.x - b1.x) + Math.abs(a1.y - b1.y) : 0;
-      var d2 = a2 && b2 ? Math.abs(a2.x - b2.x) + Math.abs(a2.y - b2.y) : 0;
-      return d1 - d2;
-    });
-    ordered.forEach(function (e) {
-      var a = self._portPoint(e.from.node, e.from.port);
-      var b = self._portPoint(e.to.node, e.to.port);
+    var routes = Object.create(null);
+    var worldRect = this.world.getBoundingClientRect();
+    var entries = [];
+    this.edges.forEach(function (e) {
+      var a = self._portPoint(e.from.node, e.from.port, worldRect);
+      var b = self._portPoint(e.to.node, e.to.port, worldRect);
       if (!a || !b) return;
-      var aStub = { x: a.x + ROUTE.stub, y: a.y };
-      var bStub = { x: b.x - ROUTE.stub, y: b.y };
+      entries.push({ e: e, a: a, b: b, dist: Math.abs(a.x - b.x) + Math.abs(a.y - b.y) });
+    });
+    entries.sort(function (e1, e2) { return e1.dist - e2.dist; });
+    entries.forEach(function (x) {
+      var e = x.e;
+      var aStub = { x: x.a.x + ROUTE.stub, y: x.a.y };
+      var bStub = { x: x.b.x - ROUTE.stub, y: x.b.y };
       var group = e.from.node + '|' + e.from.port;
-      var pts = self._route(aStub, bStub, rects, used, e.from.node, e.to.node, group);
-      pts.unshift({ x: a.x, y: a.y });
-      pts.push({ x: b.x, y: b.y });
+      var pts = Route.route(aStub, bStub, rects, used, group, { fromId: e.from.node, toId: e.to.node });
+      pts.unshift({ x: x.a.x, y: x.a.y });
+      pts.push({ x: x.b.x, y: x.b.y });
       routes[e.id] = pts;
     });
     this.edges.forEach(function (e) {
-      var a = self._portPoint(e.from.node, e.from.port);
-      var b = self._portPoint(e.to.node, e.to.port);
-      if (!a || !b) return;
-      var pts = routes[e.id] || self._simplePoints(a.x, a.y, b.x, b.y);
-      var d = self._pathPoints(pts);
-      var state = 'idle';
-      if (self.result) {
-        var from = self.result.results[e.from.node];
-        if (from && from.state === 'error') state = 'error';
-        else if (from && from.ast) state = 'live';
-      }
-      var fromNode = self.node(e.from.node);
-      var role = 'assertion';
-      if (fromNode) {
-        if (fromNode.kind === 'atom') role = 'atom';
-        else {
-          var info = window.RSL.Engine.info(fromNode.kind);
-          var p = (info.ports.outputs || []).filter(function (x) { return x.id === e.from.port; })[0];
-          if (p) role = p.type;
-        }
-      }
-      var path = document.createElementNS(ns, 'path');
-      path.setAttribute('d', d);
-      path.setAttribute('class', 'wire' + (self.selectedEdge === e.id ? ' is-selected' : '') + (e._new ? ' is-new' : ''));
-      path.setAttribute('data-state', state);
-      path.setAttribute('data-role', role);
+      if (!routes[e.id]) return;
+      var d = Route.pathPoints(routes[e.id]);
+      var path = makePath(ns, d, 'wire' + (self.selectedEdge === e.id ? ' is-selected' : '') + (e._new ? ' is-new' : ''));
+      path.setAttribute('data-state', self._wireState(e));
+      path.setAttribute('data-role', self._wireRole(e));
       self.wires.appendChild(path);
-      var hit = document.createElementNS(ns, 'path');
-      hit.setAttribute('d', d);
-      hit.setAttribute('class', 'wire-hit');
+      var hit = makePath(ns, d, 'wire-hit');
       hit.dataset.edge = e.id;
       self.wires.appendChild(hit);
+      self._wireEls[e.id] = { path: path, hit: hit };
     });
     this._lastUsed = used;
     if (this.draft) {
       var from = this._portPoint(this.draft.from.node, this.draft.from.port);
-      if (from) this._draftPath(from, { x: this.draft.x, y: this.draft.y });
+      if (from) this._draftPath(from, { x: this.draft.x, y: this.draft.y }, this._draftRects);
     }
   };
 
-  Board.prototype._portPoint = function (nodeId, portId) {
-    var nodeEl = this.nodes.querySelector('[data-id="' + nodeId + '"]');
+  /* Drag-time preview: cheap orthogonal polylines for the wires that touch the
+   * moved nodes, patched straight into the existing SVG paths (no A*, no DOM
+   * re-creation). pointerup runs render() -> full route again. */
+  Board.prototype._updateWiresCheap = function (movedIds) {
+    if (!this._lastUsed || !this._wireEls) return this._updateWires();
+    var self = this;
+    this._cheapDirty = true;
+    var moved = null;
+    if (movedIds && movedIds.length) {
+      moved = Object.create(null);
+      movedIds.forEach(function (id) { moved[id] = true; });
+    }
+    var worldRect = this.world.getBoundingClientRect();
+    this.edges.forEach(function (e) {
+      if (moved && !(moved[e.from.node] || moved[e.to.node])) return;
+      var els = self._wireEls[e.id];
+      if (!els) return;
+      var a = self._portPoint(e.from.node, e.from.port, worldRect);
+      var b = self._portPoint(e.to.node, e.to.port, worldRect);
+      if (!a || !b) return;
+      var pts = Route.simplePoints(a.x + ROUTE.stub, a.y, b.x - ROUTE.stub, b.y);
+      pts.unshift({ x: a.x, y: a.y });
+      pts.push({ x: b.x, y: b.y });
+      var d = Route.pathPoints(pts);
+      els.path.setAttribute('d', d);
+      els.hit.setAttribute('d', d);
+    });
+  };
+
+  Board.prototype._portPoint = function (nodeId, portId, worldRect) {
+    var nodeEl = this._elById[nodeId] || this.nodes.querySelector('[data-id="' + nodeId + '"]');
     if (!nodeEl) return null;
-    var p = nodeEl.querySelector('.port[data-port="' + portId + '"]');
+    var ports = nodeEl._rsl && nodeEl._rsl.ports;
+    var p = ports ? ports[portId] : nodeEl.querySelector('.port[data-port="' + portId + '"]');
     if (!p) return null;
-    var wr = this.world.getBoundingClientRect();
+    var wr = worldRect || this.world.getBoundingClientRect();
     var pr = p.getBoundingClientRect();
     return { x: (pr.left + pr.width / 2 - wr.left) / this.view.scale, y: (pr.top + pr.height / 2 - wr.top) / this.view.scale };
   };
@@ -846,53 +673,102 @@
     return '·';
   };
 
+  /* Single source of truth for the mutable parts of a node marker. render()
+   * uses it to build, paint() uses it to update; the two cannot drift. */
+  Board.prototype._nodeView = function (n, result) {
+    var info = window.RSL.Engine.info(n.kind);
+    var inputPorts = (info.ports.inputs || []);
+    if (n.kind === 'subst' && !(n.config && n.config.dual)) {
+      inputPorts = inputPorts.filter(function (p) { return p.id !== 'atom2' && p.id !== 'formula2'; });
+    }
+    var outputs = info.ports.outputs || [];
+    var isAssertion = outputs.some(function (p) { return p.type === 'assertion'; });
+    var r = result && result.results[n.id];
+    var ast = n.kind !== 'target' && r && r.ast ? r.ast : null;
+    var formula = '';
+    if (ast) {
+      var L = window.RSL.Logic;
+      formula = window.RSL.formatFormula ? window.RSL.formatFormula(ast) : L.toHTML(ast);
+    }
+    if (isAssertion) formula = '<span class="node-turnstile">⊢</span>' + formula;
+    var inCount = inputPorts.length;
+    return {
+      info: info,
+      code: this._code(n),
+      inputPorts: inputPorts,
+      outputs: outputs,
+      isTarget: n.kind === 'target',
+      width: nodeWidth(n),
+      minHeight: n.kind === 'target' ? TARGET_MIN_H : Math.max(NODE_MIN_H, PORT_TOP + Math.max(0, inCount - 1) * PORT_STEP + PORT_TAIL),
+      formula: formula || '<span class="blank">·</span>'
+    };
+  };
+
+  Board.prototype._buildNode = function (n, view) {
+    var el = document.createElement('article');
+    el.className = 'node' + (n.kind === 'target' ? ' is-target' : '') + (n._new ? ' is-new' : '');
+    el.dataset.id = n.id;
+    el.dataset.kind = n.kind;
+    el.style.left = n.x + 'px';
+    el.style.top = n.y + 'px';
+    el.style.width = view.width + 'px';
+    el.style.minHeight = view.minHeight + 'px';
+    var ins = view.inputPorts.map(function (p, i) {
+      var role = (n.kind === 'subst' && p.id === 'atom') ? 'atom' : p.type;
+      return '<button class="port port-in" data-port="' + esc(p.id) + '" data-role="' + esc(role) + '" style="top:' + portTop(n, i) + 'px" title="' + esc(p.label) + '" aria-label="' + esc(p.label) + '"></button>';
+    }).join('');
+    var outs = view.outputs.map(function (p) {
+      var role = n.kind === 'atom' ? 'atom' : p.type;
+      return '<button class="port port-out" data-port="' + esc(p.id) + '" data-role="' + esc(role) + '" style="top:' + PORT_TOP + 'px" title="' + esc(p.label) + '" aria-label="' + esc(p.label) + '"></button>';
+    }).join('');
+    if (view.isTarget) {
+      el.innerHTML = '<div class="target-mark">⊢</div>' + ins;
+    } else {
+      el.innerHTML =
+        '<div class="node-top"><span class="node-code"></span></div>' +
+        '<div class="node-formula formula"></div>' + ins + outs;
+    }
+    var portMap = Object.create(null);
+    var portEls = el.querySelectorAll('.port');
+    for (var i = 0; i < portEls.length; i++) portMap[portEls[i].dataset.port] = portEls[i];
+    el._rsl = {
+      code: el.querySelector('.node-code'),
+      formula: el.querySelector('.node-formula'),
+      ports: portMap
+    };
+    return el;
+  };
+
+  Board.prototype._applyNode = function (el, n, result, selectedMap, view) {
+    var v = view || this._nodeView(n, result);
+    var r = result && result.results[n.id];
+    el.dataset.state = r ? r.state : 'idle';
+    el.dataset.selected = selectedMap[n.id] ? 'true' : 'false';
+    el.setAttribute('aria-label', v.code);
+    var refs = el._rsl;
+    if (refs) {
+      if (refs.code) refs.code.textContent = v.code;
+      if (refs.formula) refs.formula.innerHTML = v.formula;
+    }
+  };
+
+  function selectionMap(ids) {
+    var map = Object.create(null);
+    (ids || []).forEach(function (id) { map[id] = true; });
+    return map;
+  }
+
   Board.prototype.render = function () {
     var self = this;
-    var L = window.RSL.Logic;
     this.nodes.innerHTML = '';
+    this._elById = Object.create(null);
+    var result = this.result;
+    var selectedMap = selectionMap(this.selectedNodes);
     this.items.forEach(function (n) {
-      var info = window.RSL.Engine.info(n.kind);
-      var r = self.result && self.result.results[n.id];
-      var inputPorts = (info.ports.inputs || []);
-      if (n.kind === 'subst' && !(n.config && n.config.dual)) {
-        inputPorts = inputPorts.filter(function (p) { return p.id !== 'atom2' && p.id !== 'formula2'; });
-      }
-      var el = document.createElement('article');
-      el.className = 'node' + (n.kind === 'target' ? ' is-target' : '') + (n._new ? ' is-new' : '');
-      el.dataset.id = n.id;
-      el.dataset.kind = n.kind;
-      el.dataset.state = r ? r.state : 'idle';
-      el.dataset.selected = self.selectedNodes.indexOf(n.id) >= 0 ? 'true' : 'false';
-      el.style.left = n.x + 'px';
-      el.style.top = n.y + 'px';
-      el.style.width = (n.kind === 'target' ? 160 : W) + 'px';
-      el.setAttribute('aria-label', self._code(n));
-      var code = self._code(n);
-      var formula = '';
-      var ast = null;
-      if (n.kind !== 'target' && r && r.ast) ast = r.ast;
-      if (ast) formula = window.RSL.formatFormula ? window.RSL.formatFormula(ast) : L.toHTML(ast);
-      var isAssertion = (info.ports.outputs || []).some(function (p) { return p.type === 'assertion'; });
-      if (isAssertion) formula = '<span class="node-turnstile">⊢</span>' + formula;
-      var ins = inputPorts.map(function (p, i, arr) {
-        var top = 47 + i * 32;
-        var role = (n.kind === 'subst' && p.id === 'atom') ? 'atom' : p.type;
-        return '<button class="port port-in" data-port="' + esc(p.id) + '" data-role="' + esc(role) + '" style="top:' + top + 'px" title="' + esc(p.label) + '" aria-label="' + esc(p.label) + '"></button>';
-      }).join('');
-      var outs = (info.ports.outputs || []).map(function (p) {
-        var role = n.kind === 'atom' ? 'atom' : p.type;
-        return '<button class="port port-out" data-port="' + esc(p.id) + '" data-role="' + esc(role) + '" style="top:47px" title="' + esc(p.label) + '" aria-label="' + esc(p.label) + '"></button>';
-      }).join('');
-      var inCount = inputPorts.length;
-      el.style.minHeight = (n.kind === 'target' ? 104 : Math.max(96, 47 + Math.max(0, inCount - 1) * 32 + 29)) + 'px';
-      if (n.kind === 'target') {
-        el.innerHTML = '<div class="target-mark">⊢</div>' + ins.replace('style="top:47px"', 'style="top:46px"');
-      } else {
-        el.innerHTML =
-          '<div class="node-top"><span class="node-code">' + esc(code) + '</span></div>' +
-          '<div class="node-formula formula">' + (formula || '<span class="blank">·</span>') + '</div>' +
-          ins + outs;
-      }
+      var view = self._nodeView(n, result);
+      var el = self._buildNode(n, view);
+      self._applyNode(el, n, result, selectedMap, view);
+      self._elById[n.id] = el;
       self.nodes.appendChild(el);
     });
     this._updateWires();
@@ -900,24 +776,13 @@
 
   Board.prototype.paint = function (result) {
     this.result = result;
-    var L = window.RSL.Logic;
     var self = this;
-    this.nodes.querySelectorAll('.node').forEach(function (el) {
-      var n = self.node(el.dataset.id);
-      if (!n) return;
-      var r = result && result.results[n.id];
-      el.dataset.state = r ? r.state : 'idle';
-      el.dataset.selected = self.selectedNodes.indexOf(n.id) >= 0 ? 'true' : 'false';
-      var code = el.querySelector('.node-code');
-      if (code) code.textContent = self._code(n);
-      var f = el.querySelector('.node-formula');
-      if (f) {
-        var ast = r && r.ast ? r.ast : null;
-        var info = window.RSL.Engine.info(n.kind);
-        var prefix = (info.ports.outputs || []).some(function (p) { return p.type === 'assertion'; }) ? '<span class="node-turnstile">⊢</span>' : '';
-        if (ast) f.innerHTML = prefix + (window.RSL.formatFormula ? window.RSL.formatFormula(ast) : L.toHTML(ast));
-        else f.innerHTML = '<span class="blank">·</span>';
-      }
+    var selectedMap = selectionMap(this.selectedNodes);
+    this.items.forEach(function (n) {
+      var el = self._elById[n.id] || self.nodes.querySelector('[data-id="' + n.id + '"]');
+      if (!el) return;
+      self._elById[n.id] = el;
+      self._applyNode(el, n, result, selectedMap);
     });
     this._updateWires();
   };
@@ -954,6 +819,7 @@
       return false;
     }
     this.selectedNode = null;
+    this.selectedNodes = [];
     this.selectedEdge = edge.id;
     this.render();
     setTimeout(function () { delete edge._new; }, 380);
@@ -964,16 +830,14 @@
   };
 
   Board.prototype._overlaps = function (n, x, y, skipIds) {
-    var el = this.nodes.querySelector('[data-id="' + n.id + '"]');
-    var own = this._nodeRect(n, el);
+    var own = this._nodeRect(n, this._elById[n.id]);
     var w = own.w, h = own.h;
     for (var i = 0; i < this.items.length; i++) {
       var m = this.items[i];
       if (m.id === n.id) continue;
       if (skipIds && skipIds.indexOf(m.id) >= 0) continue;
-      var mel = this.nodes.querySelector('[data-id="' + m.id + '"]');
-      var r = this._nodeRect(m, mel);
-      if (x < r.x + r.w + 18 && x + w + 18 > r.x && y < r.y + r.h + 18 && y + h + 18 > r.y) return true;
+      var r = this._nodeRect(m, this._elById[m.id]);
+      if (x < r.x + r.w + OVERLAP_GAP && x + w + OVERLAP_GAP > r.x && y < r.y + r.h + OVERLAP_GAP && y + h + OVERLAP_GAP > r.y) return true;
     }
     return false;
   };
@@ -985,7 +849,7 @@
       for (var oy = -ring; oy <= ring; oy++) {
         for (var ox = -ring; ox <= ring; ox++) {
           if (Math.max(Math.abs(ox), Math.abs(oy)) !== ring) continue;
-          var x = Math.max(0, snap(n.x + ox * 32)), y = Math.max(0, snap(n.y + oy * 32));
+          var x = Math.max(0, snap(n.x + ox * PORT_STEP)), y = Math.max(0, snap(n.y + oy * PORT_STEP));
           if (!this._overlaps(n, x, y)) { n.x = x; n.y = y; return; }
         }
       }
@@ -1010,6 +874,7 @@
     this.items = this.items.filter(function (x) { return x.id !== id; });
     this.edges = this.edges.filter(function (e) { return e.from.node !== id && e.to.node !== id; });
     this.selectedNode = null;
+    this.selectedNodes = [];
     this.render();
     this.onChange();
     this.onSelect(null, null);
@@ -1019,6 +884,8 @@
   Board.prototype.removeEdge = function (id) {
     this.edges = this.edges.filter(function (e) { return e.id !== id; });
     this.selectedEdge = null;
+    this.selectedNode = null;
+    this.selectedNodes = [];
     this.render();
     this.onChange();
     this.onSelect(null, null);
@@ -1045,13 +912,3 @@
 
   window.RSL.Board = Board;
 })();
-
-
-
-
-
-
-
-
-
-

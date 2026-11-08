@@ -1,10 +1,21 @@
-/* 公理板 — minimal one-screen game. */
+/*!
+ * 公理板 / AXIOM BOARD — 应用层（RSL.APP）
+ *
+ * 职责：游戏状态与存档、主题/声音设置、关卡流程、底板接线、调色板拖放、
+ * 参数弹层、全局事件与启动。界面面板块在 screens.js，DOM 基础件在 ui.js。
+ */
 (function () {
   'use strict';
   window.RSL = window.RSL || {};
   var L = window.RSL.Logic;
   var SAVE = window.RSL.Save;
   var ACH = window.RSL.Achievements;
+  var UI = window.RSL.UI;
+  var Audio = window.RSL.Audio;
+  var Coach = window.RSL.Coach;
+  var Catalog = window.RSL.Catalog;
+  var Screens = window.RSL.Screens;
+
   var state = {
     levels: [],
     level: null,
@@ -23,48 +34,48 @@
     results: null,
     selectedNode: null,
     selectedEdge: null,
-    overlay: false,
     lastId: null,
     forceUnlock: false,
     hintDismissed: false,
     sound: true,
-    theme: 'light'
+    theme: 'light',
+    parts: []
   };
-  var els = {};
-  var toastTimer = null;
+  var els = null;
   var paletteHold = null;
 
-  function $(id) { return document.getElementById(id); }
-  function esc(s) {
-    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
-      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
-    });
-  }
-  function parse(s) { try { return L.parse(s); } catch (e) { return null; } }
-  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  /* =========================================================================
+   * 1. 存档
+   * ========================================================================= */
 
   function loadProgress() {
-    try {
-      var p = SAVE.clean(SAVE.load());
-      state.solved = {};
-      (p.solved || []).forEach(function (id) { state.solved[id] = true; });
-      state.bestLen = p.bestLen || {};
-      state.usedKinds = {};
-      (p.usedKinds || []).forEach(function (k) { state.usedKinds[k] = true; });
-      state.usedArchive = {};
-      (p.usedArchive || []).forEach(function (k) { state.usedArchive[k] = true; });
-      state.usedTheorem = {};
-      (p.usedTheorem || []).forEach(function (k) { state.usedTheorem[k] = true; });
-      state.cleanWins = {};
-      (p.cleanWins || []).forEach(function (k) { state.cleanWins[k] = true; });
-      state.circuits = p.circuits || {};
-      state.achievements = {};
-      (p.achievements || []).forEach(function (k) { state.achievements[k] = true; });
-      state.coachSeen = {};
-      (p.coachSeen || []).forEach(function (k) { state.coachSeen[k] = true; });
-      state.lastId = p.lastId || null;
-    } catch (e) { state.solved = {}; state.bestLen = {}; state.usedKinds = {}; state.usedArchive = {}; state.usedTheorem = {}; state.cleanWins = {}; state.circuits = {}; state.achievements = {}; }
+    var empty = {
+      solved: {}, bestLen: {}, usedKinds: {}, usedArchive: {}, usedTheorem: {},
+      cleanWins: {}, circuits: {}, achievements: {}, coachSeen: {}, lastId: null
+    };
+    var p;
+    try { p = SAVE.clean(SAVE.load()); }
+    catch (e) {
+      Object.keys(empty).forEach(function (k) { state[k] = empty[k]; });
+      return;
+    }
+    function setOf(list) {
+      var map = {};
+      (list || []).forEach(function (k) { map[k] = true; });
+      return map;
+    }
+    state.solved = setOf(p.solved);
+    state.bestLen = p.bestLen || {};
+    state.usedKinds = setOf(p.usedKinds);
+    state.usedArchive = setOf(p.usedArchive);
+    state.usedTheorem = setOf(p.usedTheorem);
+    state.cleanWins = setOf(p.cleanWins);
+    state.circuits = p.circuits || {};
+    state.achievements = setOf(p.achievements);
+    state.coachSeen = setOf(p.coachSeen);
+    state.lastId = p.lastId || null;
   }
+
   function saveProgress() { SAVE.store(SAVE.payload(state)); }
 
   function exportSave() {
@@ -88,25 +99,35 @@
       try {
         var data = SAVE.clean(JSON.parse(String(reader.result || '')));
         SAVE.store(data);
-        toast('已导入');
+        UI.toast('已导入');
         setTimeout(function () { window.location.reload(); }, 650);
       } catch (e) {
-        toast('存档不对');
+        UI.toast('存档不对');
       }
     };
     reader.readAsText(file);
   }
+
+  /* =========================================================================
+   * 2. 设置与主题
+   * ========================================================================= */
 
   function loadSettings() {
     try {
       var s = JSON.parse(localStorage.getItem('axiom-simple:settings') || '{}');
       state.sound = s.sound !== false;
       state.theme = s.theme === 'dark' ? 'dark' : 'light';
-    } catch (e) { state.sound = true; state.theme = 'light'; }
+    } catch (e) {
+      state.sound = true;
+      state.theme = 'light';
+    }
   }
   function saveSettings() {
-    try { localStorage.setItem('axiom-simple:settings', JSON.stringify({ sound: state.sound, theme: state.theme })); } catch (e) {}
+    try {
+      localStorage.setItem('axiom-simple:settings', JSON.stringify({ sound: state.sound, theme: state.theme }));
+    } catch (e) {}
   }
+
   function applyTheme() {
     document.documentElement.dataset.theme = state.theme;
     var meta = document.querySelector('meta[name="theme-color"]');
@@ -114,374 +135,56 @@
     if (els.themeBtn) {
       els.themeBtn.innerHTML = '<svg class="icon"><use href="#i-' + (state.theme === 'dark' ? 'sun' : 'moon') + '"></use></svg>';
       els.themeBtn.setAttribute('aria-label', state.theme === 'dark' ? '切换浅色模式' : '切换深色模式');
+      els.themeBtn.setAttribute('aria-pressed', state.theme === 'dark' ? 'true' : 'false');
     }
   }
+
   function updateSoundBtn() {
     if (!els.soundBtn) return;
     els.soundBtn.classList.toggle('is-muted', !state.sound);
     els.soundBtn.innerHTML = '<svg class="icon"><use href="#i-' + (state.sound ? 'speaker-wave' : 'speaker-x-mark') + '"></use></svg>';
     els.soundBtn.setAttribute('aria-label', state.sound ? '关闭音乐' : '开启音乐');
+    els.soundBtn.setAttribute('aria-pressed', state.sound ? 'true' : 'false');
   }
 
-  var bgm = null, audioCtx = null;
-  function ensureAudio() {
-    if (!audioCtx) {
-      try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { audioCtx = null; }
-    }
-    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-    if (!bgm) {
-      bgm = document.getElementById('bgm');
-      if (bgm) bgm.volume = 0.23;
-    }
-    if (state.sound && bgm && bgm.paused) bgm.play().catch(function () {});
-  }
-  function tone(freq, dur, type, gain, delay) {
-    if (!state.sound) return;
-    ensureAudio();
-    if (!audioCtx) return;
-    var t0 = audioCtx.currentTime + (delay || 0);
-    var o = audioCtx.createOscillator(), g = audioCtx.createGain();
-    o.type = type || 'sine';
-    o.frequency.value = freq;
-    g.gain.setValueAtTime(0.0001, t0);
-    g.gain.exponentialRampToValueAtTime(gain || 0.03, t0 + 0.008);
-    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-    o.connect(g); g.connect(audioCtx.destination);
-    o.start(t0); o.stop(t0 + dur + 0.02);
-  }
-  function sfx(kind) {
-    if (kind === 'place') { tone(330, 0.06, 'triangle', 0.025); tone(495, 0.08, 'sine', 0.02, 0.04); }
-    else if (kind === 'connect') { tone(660, 0.04, 'sine', 0.035); tone(990, 0.06, 'sine', 0.025, 0.04); }
-    else if (kind === 'win') { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, 0.18, 'sine', 0.04, i * 0.085); }); }
-    else if (kind === 'fail') { tone(180, 0.13, 'triangle', 0.035); }
-    else { tone(520, 0.035, 'sine', 0.018); }
-  }
+  /* =========================================================================
+   * 3. 进度与成就
+   * ========================================================================= */
+
   function updateProgress() {
-    var n = state.levels.length || 1;
+    var total = state.levels.length || 1;
     var solved = state.levels.filter(function (lv) { return state.solved[lv.id]; }).length;
-    if (els.progressFill) els.progressFill.style.width = (solved / n * 100) + '%';
+    if (els.progressFill) els.progressFill.style.width = (solved / total * 100) + '%';
   }
-  function unlockAchv(id) {
+
+  function unlockAchievement(id) {
     if (state.achievements[id]) return false;
-    var a = ACHV_BY_ID[id];
-    if (!a) return false;
+    var achievement = ACH.byId[id];
+    if (!achievement) return false;
     state.achievements[id] = true;
-    sfx('win');
-    toast(a.name);
+    Audio.sfx('win');
+    UI.toast(achievement.name);
     saveProgress();
     return true;
   }
 
   function checkAchievements() {
-    ACH.evaluate(state).forEach(function (id) { unlockAchv(id); });
+    ACH.evaluate(state).forEach(function (id) { unlockAchievement(id); });
   }
 
-  function openAchievements() {
-    sfx('click');
-    els.overlay.hidden = false;
-    var got = ACHIEVEMENTS.filter(function (a) { return state.achievements[a.id]; }).length;
-    var cards = ACHIEVEMENTS.map(function (a) {
-      var on = !!state.achievements[a.id];
-      return '<button class="achv' + (on ? ' is-on' : '') + '"' +
-        (on ? ' data-achv="' + a.id + '"' : ' disabled') +
-        ' title="' + esc(on ? a.name : '未解锁') + '" aria-label="' + esc(on ? a.name : '未解锁成就') + '">' +
-        (on ? '<span class="achv-icon"><svg class="icon"><use href="#' + a.symbol + '"></use></svg></span>' : '<span class="achv-q"><svg class="icon"><use href="#i-question-mark-circle"></use></svg></span>') +
-      '</button>';
-    }).join('');
-    els.sheet.innerHTML =
-      '<button class="sheet-x" data-close aria-label="关闭"><svg class="icon"><use href="#i-x-mark"></use></svg></button>' +
-      '<div class="achv-head"><span class="achv-count">' + got + ' / ' + ACHIEVEMENTS.length + '</span><span class="achv-bar"><i style="width:' + (got / ACHIEVEMENTS.length * 100) + '%"></i></span></div>' +
-      '<div class="achv-grid">' + cards + '</div>';
-    els.sheet.scrollTop = 0;
-    showSheetBar();
-  }
+  /* =========================================================================
+   * 4. 关卡流程
+   * ========================================================================= */
 
-  function openAchievement(id) {
-    var a = ACHV_BY_ID[id];
-    if (!a) return;
-    var on = !!state.achievements[id];
-    els.overlay.hidden = false;
-    els.sheet.innerHTML =
-      '<button class="sheet-x" data-close aria-label="关闭"><svg class="icon"><use href="#i-x-mark"></use></svg></button>' +
-      '<div class="achv-detail">' +
-        '<button class="achv-back" data-back aria-label="返回成就列表"><svg class="icon"><use href="#i-arrow-left"></use></svg></button>' +
-        '<div class="achv-detail-icon' + (on ? ' is-on' : '') + '">' +
-          (on ? '<svg class="icon"><use href="#' + a.symbol + '"></use></svg>' : '<span class="achv-q"><svg class="icon"><use href="#i-question-mark-circle"></use></svg></span>') +
-        '</div>' +
-        '<h2>' + esc(a.name) + '</h2>' +
-        '<p>' + esc(a.desc) + '</p>' +
-      '</div>';
-    els.sheet.scrollTop = 0;
-    showSheetBar();
-  }
+  function buildLevels() { state.levels = Catalog.build(); }
 
-  /* 规则提示窗：只画“输入 → 模块 → 输出”，不显示本关答案。 */
-  var COACH = {
-    subst: '<span class="chip">P</span><span class="plus">+</span><span class="chip">B</span><span class="arrow">→</span><span class="coach-mod">S</span><span class="arrow">→</span><span class="chip">A</span>',
-    detach: '<span class="chip">A</span><span class="chip">A→B</span><span class="arrow">→</span><span class="coach-mod">M</span><span class="arrow">→</span><span class="chip">B</span>',
-    replace: '<span class="chip">A</span><span class="arrow">→</span><span class="coach-mod">D</span><span class="arrow">→</span><span class="chip">A′</span>',
-    'all-intro': '<span class="chip">A</span><span class="arrow">→</span><span class="coach-mod">∀I</span><span class="arrow">→</span><span class="chip">∀x A</span>',
-    'all-elim': '<span class="chip">∀x A</span><span class="arrow">→</span><span class="coach-mod">∀E</span><span class="arrow">→</span><span class="chip">A[t/x]</span>',
-    'exists-intro': '<span class="chip">A[t/x]</span><span class="arrow">→</span><span class="coach-mod">∃I</span><span class="arrow">→</span><span class="chip">∃x A</span>',
-    'exists-elim': '<span class="chip">∃x A</span><span class="chip">A[y/x]→B</span><span class="arrow">→</span><span class="coach-mod">∃E</span><span class="arrow">→</span><span class="chip">B</span>',
-    syllogism: '<span class="chip">A→B</span><span class="chip">B→C</span><span class="arrow">→</span><span class="coach-mod">HS</span><span class="arrow">→</span><span class="chip">A→C</span>'
-  };
-
-  function hideCoach() { els.coachPop.hidden = true; els.coachPop.innerHTML = ''; }
-
-  function showCoachKind(kind) {
-    if (!COACH[kind]) return;
-    els.coachPop.innerHTML = '<div class="coach-flow">' + COACH[kind] + '</div>';
-    els.coachPop.querySelectorAll('.chip').forEach(function (el) {
-      var html = esc(el.textContent).replace(/[A-Za-z]/g, '<span class="f-var">$&</span>');
-      el.innerHTML = '<span class="formula">' + html + '</span>';
-    });
-    els.coachPop.hidden = false;
-    sfx('click');
-  }
-
-  function showCoach(level) {
-    if (!level.coach || state.coachSeen[level.id] || !COACH[level.coach]) return;
-    state.coachSeen[level.id] = true;
-    saveProgress();
-    showCoachKind(level.coach);
-  }
-
-  function confetti() {
-    var host = els.sheet.querySelector('.win');
-    if (!host) return;
-    host.style.position = 'relative';
-    var box = document.createElement('div');
-    box.className = 'confetti';
-    var colors = ['#e66f3f', '#3f8e65', '#4f7fb5', '#2b2721', '#e8b04b'];
-    for (var i = 0; i < 28; i++) {
-      var s = document.createElement('i');
-      s.style.setProperty('--c', colors[i % colors.length]);
-      s.style.left = (i % 2 ? 4 + Math.random() * 20 : 76 + Math.random() * 20) + '%';
-      s.style.setProperty('--dx', (Math.random() * 120 - 60) + 'px');
-      s.style.setProperty('--d', (Math.random() * 0.45) + 's');
-      s.style.setProperty('--t', (1.1 + Math.random() * 0.8) + 's');
-      box.appendChild(s);
-    }
-    host.appendChild(box);
-    setTimeout(function () { if (box.parentNode) box.parentNode.removeChild(box); }, 2200);
-  }
-
-  var CHAPTERS = [
-    { id: 'Ⅰ', key: 'prop', title: '命题' },
-    { id: 'Ⅱ', key: 'pred', title: '谓词' },
-    { id: 'Ⅲ', key: 'eq', title: '等词' },
-    { id: 'Ⅳ', key: 'set', title: '集合' }
-  ];
-
-  /* 30 个成就：短名称 + 一句条件说明。 */
-  var ACHIEVEMENTS = ACH.list;
-  var ACHV_BY_ID = ACH.byId;
-  function chapterOf(lv) {
-    if (lv.chapter === 'pred') return 'Ⅱ';
-    if (lv.chapter === 'eq') return 'Ⅲ';
-    if (lv.chapter === 'set') return 'Ⅳ';
-    return 'Ⅰ';
-  }
-  var CHAPTER_RANK = {}; CHAPTERS.forEach(function (c, i) { CHAPTER_RANK[c.id] = i; });
-
-  function buildLevels() {
-    var list = (window.RSL.LEVELS || []).slice();
-    list.forEach(function (lv, i) {
-      lv.chapter = lv.chapter || 'prop';
-      lv.band = lv.band || 'base';
-      lv.targetPos = lv.targetPos || { x: 650, y: 300 };
-      lv.allowed = lv.allowed || [];
-      /* 有代入的关卡必须能构造目标里出现的连接词，否则玩家无法把公式当作代入项。 */
-      if (lv.allowed.indexOf('subst') >= 0) {
-        if (lv.allowed.indexOf('atom') < 0) lv.allowed.push('atom');
-        var ast = parse(lv.target);
-        (function walk(n) {
-          if (!n) return;
-          var kind = n.k;
-          if (kind === 'all' || kind === 'exists') kind = 'quant';
-          if (['not', 'imp', 'or', 'and', 'iff', 'pred', 'term', 'quant'].indexOf(kind) >= 0 &&
-              lv.allowed.indexOf(kind) < 0) lv.allowed.push(kind);
-          if (n.a) walk(n.a);
-          if (n.b) walk(n.b);
-          if (n.v) walk(n.v);
-          if (n.args) n.args.forEach(walk);
-        })(ast);
-      }
-      lv._ord = i;
-      lv.chapterGroup = chapterOf(lv);
-    });
-    function levelNo(lv) {
-      var m = /^CH\d+-(\d+)$/.exec(String(lv.id || ''));
-      return m ? parseInt(m[1], 10) : lv._ord;
-    }
-    list.sort(function (a, b) {
-      return (CHAPTER_RANK[a.chapterGroup] - CHAPTER_RANK[b.chapterGroup]) || (levelNo(a) - levelNo(b));
-    });
-    var prevBaseLast = null;
-    CHAPTERS.forEach(function (c) {
-      var group = list.filter(function (lv) { return lv.chapterGroup === c.id; });
-      var base = group.filter(function (lv) { return lv.band !== 'challenge'; });
-      var chal = group.filter(function (lv) { return lv.band === 'challenge'; });
-      base.forEach(function (lv, i) {
-        lv.requires = i === 0 ? (prevBaseLast ? [prevBaseLast] : []) : [base[i - 1].id];
-        lv.challenge = false;
-      });
-      chal.forEach(function (lv, i) {
-        lv.requires = i === 0 ? (base.length ? [base[base.length - 1].id] : (prevBaseLast ? [prevBaseLast] : [])) : [chal[i - 1].id];
-        lv.challenge = i === chal.length - 1;
-      });
-      if (base.length) prevBaseLast = base[base.length - 1].id;
-    });
-    /* 关卡数据里的 coach 字段决定是否弹规则提示；没有则安静开始。 */
-    state.levels = list;
-  }
-
-  function isUnlocked(index) {
-    if (state.forceUnlock) return true;
-    var lv = state.levels[index];
-    if (!lv) return false;
-    return (lv.requires || []).every(function (id) { return !!state.solved[id]; });
-  }
-
-  function partPool() {
-    return (window.RSL.PARTS || []).slice();
-  }
-
-  function levelById(id) {
-    var levels = window.RSL.LEVELS || [];
-    for (var i = 0; i < levels.length; i += 1) if (levels[i].id === id) return levels[i];
-    return null;
-  }
-
-  function partsForLevel() {
-    var allowed = state.level.allowed || [];
-    var pool = partPool();
-    var out = [];
-    allowed.forEach(function (key) {
-      if (key === 'target') return;
-      var p = pool.filter(function (x) { return x.key === key; })[0];
-      if (!p && key.indexOf('theorem:') === 0) {
-        var lv = levelById(key.slice(8));
-        if (lv) {
-          p = {
-            key: key, kind: 'theorem', symbol: '*' + (lv.code || lv.id).split('-').pop(),
-            name: '已证 ' + (lv.code || lv.id) + ' · ' + (lv.title || ''),
-            code: lv.id, config: { theoremCode: lv.id }
-          };
-        }
-      }
-      if (!p && key.indexOf('archive:') === 0) {
-        var label = key.slice(8);
-        var ar = window.RSL.ARCHIVE && window.RSL.ARCHIVE[label];
-        if (ar) {
-          p = {
-            key: key, kind: 'archive', symbol: label.slice(0, 6),
-            name: 'set.mm ' + label + ' · ' + (ar.name || ''),
-            code: label, config: { label: label }
-          };
-        }
-      }
-      if (!p && key.indexOf('axiom:') === 0) {
-        var id = key.slice(6);
-        var a = window.RSL.axiomById ? window.RSL.axiomById(id) : null;
-        if (a) p = {
-          key: key, kind: 'axiom', symbol: a.symbol || id,
-          name: (a.type === 'definition' ? '定义 ' : a.type === 'theorem' ? '定理 ' : '公理 ') + a.code + ' · ' + a.name,
-          code: a.code, config: { axiomId: id }
-        };
-      }
-      if (p) out.push(p);
-    });
-    return out;
-  }
-
-  function formulaHTML(ast) {
-    function sp(cls, text) { return '<span class="' + cls + '">' + esc(text) + '</span>'; }
-    function term(t) { return sp('f-var', t && t.name ? t.name : 'x'); }
-    function isBin(n) { return n.k === 'or' || n.k === 'and' || n.k === 'imp' || n.k === 'iff'; }
-    function operand(n) {
-      var body = go(n);
-      return (isBin(n) || n.k === 'all' || n.k === 'exists') ? sp('f-paren', '(') + body + sp('f-paren', ')') : body;
-    }
-    function go(n) {
-      if (!n) return '';
-      switch (n.k) {
-        case 'atom': return sp('f-var', n.name);
-        case 'var': return sp('f-var', n.name);
-        case 'pred':
-          if ((n.name === '=' || n.name === '∈') && (n.args || []).length === 2) return term(n.args[0]) + sp('f-op', ' ' + n.name + ' ') + term(n.args[1]);
-          return sp('f-name', n.name) + sp('f-paren', '(') + (n.args || []).map(term).join(sp('f-op', ', ')) + sp('f-paren', ')');
-        case 'not': {
-          var c = n.a;
-          return sp('f-op', '¬') + ((isBin(c) || c.k === 'all' || c.k === 'exists') ? sp('f-paren', '(') + go(c) + sp('f-paren', ')') : go(c));
-        }
-        case 'or': return operand(n.a) + sp('f-op', ' ∨ ') + operand(n.b);
-        case 'and': return operand(n.a) + sp('f-op', ' ∧ ') + operand(n.b);
-        case 'imp': return operand(n.a) + sp('f-op', ' → ') + operand(n.b);
-        case 'iff': return operand(n.a) + sp('f-op', ' ↔ ') + operand(n.b);
-        case 'all': return sp('f-quant', '∀') + sp('f-var', n.v) + sp('f-op', ' ') + operand(n.a);
-        case 'exists': return sp('f-quant', '∃') + sp('f-var', n.v) + sp('f-op', ' ') + operand(n.a);
-        default: return esc(L.fmt ? L.fmt(n) : '');
-      }
-    }
-    try { return go(ast); } catch (e) { return esc(L.fmt ? L.fmt(ast) : ''); }
-  }
-
-  function goalHTML(text) {
-    var ast = parse(text);
-    return ast ? formulaHTML(ast) : esc(text);
-  }
-
-  function helpFormula(text) {
-    var html = esc(text).replace(/[A-Za-z]/g, '<span class="f-var">$&</span>');
-    return '<span class="formula help-formula">' + html + '</span>';
-  }
-
-  function helpCard(label, kind, formula) {
-    return '<div class="help-card" role="button" tabindex="0" data-coach="' + kind + '"><b>' + esc(label) + '</b>' + helpFormula(formula) + '</div>';
-  }
-
-  function toast(msg) {
-    clearTimeout(toastTimer);
-    els.toast.textContent = msg;
-    els.toast.classList.add('is-on');
-    toastTimer = setTimeout(function () { els.toast.classList.remove('is-on'); }, 1800);
-  }
-
-  var sheetDrag = null;
-  function updateSheetBar() {
-    if (!els.sheetBar || els.overlay.hidden) return;
-    var sh = els.sheet;
-    var max = sh.scrollHeight - sh.clientHeight;
-    if (max <= 2) { els.sheetBar.hidden = true; return; }
-    var r = sh.getBoundingClientRect();
-    var top = r.top + 68;
-    var trackH = Math.max(36, r.height - 100);
-    els.sheetBar.hidden = false;
-    els.sheetBar.style.left = (r.right - 24) + 'px';
-    els.sheetBar.style.top = top + 'px';
-    els.sheetBar.style.height = trackH + 'px';
-    var thumb = els.sheetBar.querySelector('i');
-    var thumbH = Math.max(26, Math.min(trackH, trackH * sh.clientHeight / sh.scrollHeight));
-    var thumbY = (sh.scrollTop / max) * (trackH - thumbH);
-    thumb.style.height = thumbH + 'px';
-    thumb.style.top = Math.max(0, Math.min(trackH - thumbH, thumbY)) + 'px';
-  }
-  function showSheetBar() {
-    if (!els.sheetBar) return;
-    els.sheetBar.hidden = false;
-    requestAnimationFrame(updateSheetBar);
-  }
-  function hideSheetBar() {
-    if (els.sheetBar) els.sheetBar.hidden = true;
-  }
+  function isUnlocked(index) { return Catalog.isUnlocked(state, state.levels, index); }
 
   function freeSpot() {
     var nodes = state.board.items || [];
-    var v = state.board.view;
-    var left = Math.max(30, -v.x / v.scale + 30);
-    var top = Math.max(30, -v.y / v.scale + 30);
+    var view = state.board.view;
+    var left = Math.max(30, -view.x / view.scale + 30);
+    var top = Math.max(30, -view.y / view.scale + 30);
     var cols = [left, left + 270, left + 540, left + 810];
     var rows = [top, top + 170, top + 340, top + 510];
     for (var c = 0; c < cols.length; c++) {
@@ -495,24 +198,22 @@
   }
 
   function loadLevel(index) {
-    if (!isUnlocked(index)) { toast('先完成前一关'); return; }
-    closeOverlay();
+    if (!isUnlocked(index)) { UI.toast('先完成前一关'); return; }
+    UI.closeSheet();
     clearPaletteHold();
-    hideCoach();
+    Coach.hide();
     state.deletedThisLevel = false;
     state.hintDismissed = false;
     state.index = index;
     state.level = state.levels[index];
     state.selectedNode = null;
     state.selectedEdge = null;
+    state.parts = Catalog.partsForLevel(state.level);
+
     var mobile = window.innerWidth <= 700;
     var tx = mobile ? 250 : state.level.targetPos.x;
     var ty = mobile ? 300 : state.level.targetPos.y;
-    var target = {
-      id: 'target', kind: 'target',
-      x: tx, y: ty,
-      target: state.level.target, config: {}
-    };
+    var target = { id: 'target', kind: 'target', x: tx, y: ty, target: state.level.target, config: {} };
     var saved = state.circuits[state.level.id];
     var nodes = [target], edges = [];
     if (saved && Array.isArray(saved.nodes) && Array.isArray(saved.edges)) {
@@ -522,7 +223,8 @@
       edges = JSON.parse(JSON.stringify(saved.edges));
     }
     state.board.setData(nodes, edges);
-    els.goalFormula.innerHTML = goalHTML(state.level.target);
+
+    els.goalFormula.innerHTML = UI.goalHTML(state.level.target);
     var plain = els.goalFormula.textContent || state.level.target;
     els.goal.classList.toggle('is-long', plain.length > 52);
     els.levelBtn.textContent = String(index + 1).padStart(2, '0');
@@ -531,57 +233,76 @@
     buildTray();
     state.board.result = null;
     refresh();
-    var W = state.board.board.clientWidth || 1000;
-    var H = state.board.board.clientHeight || 600;
+
+    var width = state.board.board.clientWidth || 1000;
+    var height = state.board.board.clientHeight || 600;
     if (mobile) {
-      state.board.setView(18, 26, 0.72);
+      /* 目标焊盘在窄屏上也要完整可见：按“目标右缘 + 边距”反推可用缩放。 */
+      var scale = UI.clamp((width - 34) / 410, 0.5, 0.72);
+      state.board.setView(18, 26, scale);
     } else {
-      var scale = clamp((W - 120) / (tx + 280), 0.42, 1.0);
-      state.board.setView(W - 60 - (tx + 232) * scale, Math.max(40, (H - 220) / 2 - ty * scale * 0.15), scale);
+      var desktopScale = UI.clamp((width - 120) / (tx + 280), 0.42, 1.0);
+      var viewX = width - 60 - (tx + 232) * desktopScale;
+      var viewY = Math.max(40, (height - 220) / 2 - ty * desktopScale * 0.15);
+      /* 生成关的目标可能在 y=640 之类的远处，保证载入时焊盘完整落在可视区。 */
+      viewX = Math.min(viewX, width - 24 - (tx + 176) * desktopScale);
+      viewY = Math.min(viewY, height - 24 - (ty + 130) * desktopScale);
+      state.board.setView(viewX, viewY, desktopScale);
     }
     els.coach.hidden = !(index === 0 && state.board.items.length <= 1 && !state.hintDismissed);
     saveProgress();
-    showCoach(state.level);
+    maybeShowCoach(state.level);
   }
 
   function buildTray() {
-    var parts = partsForLevel();
-    els.tray.innerHTML = parts.map(function (p) {
-      var symbol = p.symbol || '·';
+    els.tray.innerHTML = state.parts.map(function (part) {
+      var symbol = part.symbol || '·';
       var small = symbol.length > 3 ? ' is-long' : '';
-      return '<button class="tile' + small + '" data-key="' + esc(p.key) + '" title="' + esc(p.name) + '" aria-label="' + esc(p.name) + '"><span>' + esc(symbol) + '</span></button>';
+      return '<button class="tile' + small + '" data-key="' + UI.esc(part.key) + '" title="' + UI.esc(part.name) +
+        '" aria-label="' + UI.esc(part.name) + '"><span>' + UI.esc(symbol) + '</span></button>';
     }).join('');
   }
 
   function refresh() {
     if (!state.level) return;
     var data = state.board.getData();
-    var r = window.RSL.Engine.evaluate(state.level, data.nodes, data.edges);
-    state.results = r;
-    state.board.paint(r);
+    var result = window.RSL.Engine.evaluate(state.level, data.nodes, data.edges);
+    state.results = result;
+    state.board.paint(result);
     els.coach.hidden = !(state.index === 0 && data.nodes.length <= 1 && !state.hintDismissed);
-    els.checkBtn.classList.toggle('is-ready', r.complete);
+    els.checkBtn.classList.toggle('is-ready', result.complete);
     renderPopover();
     saveProgress();
   }
 
+  function maybeShowCoach(level) {
+    if (!level.coach || state.coachSeen[level.id] || !Coach.has(level.coach)) return;
+    state.coachSeen[level.id] = true;
+    saveProgress();
+    Coach.showKind(level.coach);
+  }
+
+  /* =========================================================================
+   * 5. 调色板（点击放置 + 拖放）
+   * ========================================================================= */
+
+  function palettePart(key) {
+    return state.parts.filter(function (x) { return x.key === key; })[0] || null;
+  }
+
   function addPart(key) {
-    var p = partsForLevel().filter(function (x) { return x.key === key; })[0];
-    if (!p) return;
+    var part = palettePart(key);
+    if (!part) return;
     var pos = freeSpot();
-    sfx('place');
-    var n = state.board.addNode(p.kind, Object.assign({}, p.config || {}), pos);
-    state.board.select(n.id);
-    state.selectedNode = n.id;
+    Audio.sfx('place');
+    var node = state.board.addNode(part.kind, Object.assign({}, part.config || {}), pos);
+    state.board.select(node.id);
+    state.selectedNode = node.id;
     state.selectedEdge = null;
     refresh();
   }
 
-  function palettePart(key) {
-    return partsForLevel().filter(function (x) { return x.key === key; })[0] || null;
-  }
-
-  function ghostAt(part, x, y) {
+  function ghostAt(x, y) {
     if (!paletteHold) return;
     paletteHold.ghost.style.left = x + 'px';
     paletteHold.ghost.style.top = y + 'px';
@@ -600,14 +321,14 @@
   function paletteMove(e) {
     if (!paletteHold) return;
     if (Math.abs(e.clientX - paletteHold.sx) + Math.abs(e.clientY - paletteHold.sy) > 5) paletteHold.dragging = true;
-    ghostAt(paletteHold.part, e.clientX, e.clientY);
+    ghostAt(e.clientX, e.clientY);
   }
 
   function paletteUp(e) {
     if (!paletteHold) return;
     if (paletteHold.dragging) {
       if (!placePaletteAt(e.clientX, e.clientY)) {
-        toast('放不下');
+        UI.toast('放不下');
         clearPaletteHold();
       }
       return;
@@ -617,9 +338,9 @@
   }
 
   function palettePlacePos(cx, cy, part) {
-    var r = els.board.getBoundingClientRect();
+    var rect = els.board.getBoundingClientRect();
     var edge = 24;
-    if (cx < r.left - edge || cx > r.right + edge || cy < r.top - edge || cy > r.bottom + edge) return null;
+    if (cx < rect.left - edge || cx > rect.right + edge || cy < rect.top - edge || cy > rect.bottom + edge) return null;
     var p = state.board._client(cx, cy);
     var x = Math.max(0, Math.round((p.x - 116) / 16) * 16);
     var y = Math.max(0, Math.round((p.y - 50) / 16) * 16);
@@ -638,10 +359,10 @@
     var part = paletteHold.part;
     var pos = palettePlacePos(cx, cy, part);
     if (!pos) return false;
-    sfx('place');
-    var n = state.board.addNode(part.kind, Object.assign({}, part.config || {}), pos);
-    state.board.select(n.id);
-    state.selectedNode = n.id;
+    Audio.sfx('place');
+    var node = state.board.addNode(part.kind, Object.assign({}, part.config || {}), pos);
+    state.board.select(node.id);
+    state.selectedNode = node.id;
     state.selectedEdge = null;
     clearPaletteHold();
     refresh();
@@ -655,35 +376,33 @@
       ins = ins.filter(function (p) { return p.id !== 'atom2' && p.id !== 'formula2'; });
     }
     var outs = (info.ports.outputs || []);
-    var temp = { kind: part.kind, config: part.config || {} };
-    var code = state.board._code(temp) || part.symbol || '·';
+    var config = part.config || {};
+    var code = state.board._code({ kind: part.kind, config: config }) || part.symbol || '·';
     var formula = '<span class="blank">·</span>';
     try {
-      var preview = window.RSL.Engine.evaluate(state.level, [{
-        id: '__ghost', kind: part.kind, x: 0, y: 0, config: temp.config
-      }], []);
-      var pr = preview.results && preview.results.__ghost;
-      if (pr && pr.ast && window.RSL.formatFormula) {
-        var isAssert = outs.some(function (p) { return p.type === 'assertion'; });
-        formula = (isAssert ? '<span class="node-turnstile">⊢</span>' : '') + window.RSL.formatFormula(pr.ast);
+      var preview = window.RSL.Engine.evaluate(state.level, [{ id: '__ghost', kind: part.kind, x: 0, y: 0, config: config }], []);
+      var result = preview.results && preview.results.__ghost;
+      if (result && result.ast) {
+        var isAssertion = outs.some(function (p) { return p.type === 'assertion'; });
+        formula = (isAssertion ? '<span class="node-turnstile">⊢</span>' : '') + UI.formulaHTML(result.ast);
       }
     } catch (e) {}
-    var minH = Math.max(96, 47 + Math.max(0, ins.length - 1) * 32 + 29);
+    var minHeight = Math.max(96, 47 + Math.max(0, ins.length - 1) * 32 + 29);
     var el = document.createElement('article');
     el.className = 'node module-ghost';
     el.style.width = '232px';
-    el.style.minHeight = minH + 'px';
+    el.style.minHeight = minHeight + 'px';
     el.style.setProperty('--ghost-scale', state.board.view.scale);
     el.innerHTML =
-      '<div class="node-top"><span class="node-code">' + esc(code) + '</span></div>' +
+      '<div class="node-top"><span class="node-code">' + UI.esc(code) + '</span></div>' +
       '<div class="node-formula formula">' + formula + '</div>' +
       ins.map(function (p, i) {
         var role = (part.kind === 'subst' && p.id === 'atom') ? 'atom' : p.type;
-        return '<span class="port port-in" data-port="' + esc(p.id) + '" data-role="' + esc(role) + '" style="top:' + (47 + i * 32) + 'px"></span>';
+        return '<span class="port port-in" data-port="' + UI.esc(p.id) + '" data-role="' + UI.esc(role) + '" style="top:' + (47 + i * 32) + 'px"></span>';
       }).join('') +
       outs.map(function (p) {
         var role = part.kind === 'atom' ? 'atom' : p.type;
-        return '<span class="port port-out" data-port="' + esc(p.id) + '" data-role="' + esc(role) + '" style="top:47px"></span>';
+        return '<span class="port port-out" data-port="' + UI.esc(p.id) + '" data-role="' + UI.esc(role) + '" style="top:47px"></span>';
       }).join('');
     return el;
   }
@@ -698,54 +417,54 @@
     document.body.appendChild(ghost);
     paletteHold = { part: part, ghost: ghost, sx: e.clientX, sy: e.clientY, dragging: false, sticky: false };
     document.body.classList.add('is-holding');
-    ghostAt(part, e.clientX, e.clientY);
+    ghostAt(e.clientX, e.clientY);
     document.addEventListener('pointermove', paletteMove);
     document.addEventListener('pointerup', paletteUp, true);
   }
 
-  function optionButton(label, kind, patch, extra) {
-    return '<button class="option" data-' + kind + '="1"' + (extra || '') + '>' + label + '</button>';
-  }
+  /* =========================================================================
+   * 6. 模块参数弹层
+   * ========================================================================= */
 
   function renderPopover() {
-    var n = state.selectedNode ? state.board.node(state.selectedNode) : null;
-    if (!n || n.kind === 'target') { els.popover.hidden = true; return; }
-    var r = state.results && state.results.results[n.id];
-    var cfg = n.config || {};
+    var node = state.selectedNode ? state.board.node(state.selectedNode) : null;
+    if (!node || node.kind === 'target') { els.popover.hidden = true; return; }
+    var result = state.results && state.results.results[node.id];
+    var config = node.config || {};
     var html = '';
-    if (n.kind === 'atom') {
+    if (node.kind === 'atom') {
       html = ['P', 'Q', 'R', 'S', 'T'].map(function (x) {
-        return '<button class="opt' + (cfg.name === x ? ' is-on' : '') + '" data-config="name" data-value="' + x + '">' + x + '</button>';
+        return '<button class="opt' + (config.name === x ? ' is-on' : '') + '" data-config="name" data-value="' + x + '">' + x + '</button>';
       }).join('');
-    } else if (n.kind === 'replace' && r && r.meta && r.meta.options) {
-      html = r.meta.options.slice(0, 8).map(function (o) {
-        return '<button class="opt formula-opt' + (r.meta.optionId === o.id ? ' is-on' : '') + '" data-option="' + esc(o.id) + '">' + (window.RSL.formatFormula ? window.RSL.formatFormula(o.result) : esc(o.label)) + '</button>';
+    } else if (node.kind === 'replace' && result && result.meta && result.meta.options) {
+      html = result.meta.options.slice(0, 8).map(function (o) {
+        return '<button class="opt formula-opt' + (result.meta.optionId === o.id ? ' is-on' : '') + '" data-option="' + UI.esc(o.id) + '">' + UI.formulaHTML(o.result) + '</button>';
       }).join('');
-    } else if (n.kind === 'quant') {
-      html = '<button class="opt' + (cfg.kind === 'all' ? ' is-on' : '') + '" data-config="kind" data-value="all">∀</button>' +
-        '<button class="opt' + (cfg.kind === 'exists' ? ' is-on' : '') + '" data-config="kind" data-value="exists">∃</button>' +
+    } else if (node.kind === 'quant') {
+      html = '<button class="opt' + (config.kind === 'all' ? ' is-on' : '') + '" data-config="kind" data-value="all">∀</button>' +
+        '<button class="opt' + (config.kind === 'exists' ? ' is-on' : '') + '" data-config="kind" data-value="exists">∃</button>' +
         '<span class="opt-gap"></span>' + ['x', 'y', 'z'].map(function (v) {
-          return '<button class="opt' + (cfg.v === v ? ' is-on' : '') + '" data-config="v" data-value="' + v + '">' + v + '</button>';
+          return '<button class="opt' + (config.v === v ? ' is-on' : '') + '" data-config="v" data-value="' + v + '">' + v + '</button>';
         }).join('');
-    } else if (n.kind === 'pred') {
+    } else if (node.kind === 'pred') {
       html = ['F', 'G', 'H'].map(function (x) {
-        return '<button class="opt' + (cfg.name === x ? ' is-on' : '') + '" data-config="name" data-value="' + x + '">' + x + '</button>';
+        return '<button class="opt' + (config.name === x ? ' is-on' : '') + '" data-config="name" data-value="' + x + '">' + x + '</button>';
       }).join('') + '<span class="opt-gap"></span>' + ['x', 'y', 'z'].map(function (v) {
-        return '<button class="opt' + (cfg.arg === v ? ' is-on' : '') + '" data-config="arg" data-value="' + v + '">' + v + '</button>';
+        return '<button class="opt' + (config.arg === v ? ' is-on' : '') + '" data-config="arg" data-value="' + v + '">' + v + '</button>';
       }).join('');
-    } else if (n.kind === 'subst' && !cfg.dual) {
+    } else if (node.kind === 'subst' && !config.dual) {
       html = '<button class="opt" data-config="dual" data-value="1">加一组代入</button>';
-    } else if (n.kind === 'all-elim') {
+    } else if (node.kind === 'all-elim') {
       html = ['a', 'b', 'c', 'x', 'y', 'z'].map(function (v) {
-        return '<button class="opt' + (cfg.term === v ? ' is-on' : '') + '" data-config="term" data-value="' + v + '">' + v + '</button>';
+        return '<button class="opt' + (config.term === v ? ' is-on' : '') + '" data-config="term" data-value="' + v + '">' + v + '</button>';
       }).join('');
-    } else if (n.kind === 'all-intro' || n.kind === 'exists-intro') {
+    } else if (node.kind === 'all-intro' || node.kind === 'exists-intro') {
       html = ['x', 'y', 'z'].map(function (v) {
-        return '<button class="opt' + (cfg.v === v ? ' is-on' : '') + '" data-config="v" data-value="' + v + '">' + v + '</button>';
+        return '<button class="opt' + (config.v === v ? ' is-on' : '') + '" data-config="v" data-value="' + v + '">' + v + '</button>';
       }).join('');
-    } else if (n.kind === 'exists-elim') {
+    } else if (node.kind === 'exists-elim') {
       html = ['y', 'z'].map(function (v) {
-        return '<button class="opt' + (cfg.y === v ? ' is-on' : '') + '" data-config="y" data-value="' + v + '">' + v + '</button>';
+        return '<button class="opt' + (config.y === v ? ' is-on' : '') + '" data-config="y" data-value="' + v + '">' + v + '</button>';
       }).join('');
     }
     if (!html) { els.popover.hidden = true; return; }
@@ -761,35 +480,39 @@
     refresh();
   }
 
+  /* =========================================================================
+   * 7. 校验与通关
+   * ========================================================================= */
+
   function check() {
-    var r = state.results;
-    if (!r) return;
-    if (r.complete) { win(); return; }
-    sfx('fail');
-    if (r.errors.length) { toast('没接完'); return; }
-    if (r.target && r.target.state === 'error') { toast('不对'); return; }
-    toast('接到 ⊢');
+    var result = state.results;
+    if (!result) return;
+    if (result.complete) { win(); return; }
+    Audio.sfx('fail');
+    if (result.errors.length) { UI.toast('没接完'); return; }
+    if (result.target && result.target.state === 'error') { UI.toast('不对'); return; }
+    UI.toast('接到 ⊢');
   }
 
   function win() {
-    var lv = state.level;
-    var prevBest = state.bestLen[lv.id];
-    state.solved[lv.id] = true;
+    var level = state.level;
+    var previousBest = state.bestLen[level.id];
+    state.solved[level.id] = true;
     var items = (state.board.items || []).filter(function (n) { return n.kind !== 'target'; });
     var len = items.length;
     items.forEach(function (n) {
       state.usedKinds[n.kind] = true;
-      if (n.kind === 'archive') state.usedArchive[lv.id] = true;
-      if (n.kind === 'theorem') state.usedTheorem[lv.id] = true;
+      if (n.kind === 'archive') state.usedArchive[level.id] = true;
+      if (n.kind === 'theorem') state.usedTheorem[level.id] = true;
     });
-    if (!state.deletedThisLevel) state.cleanWins[lv.id] = true;
-    if (!state.circuits[lv.id] || !prevBest || len < prevBest) {
+    if (!state.deletedThisLevel) state.cleanWins[level.id] = true;
+    if (!state.circuits[level.id] || !previousBest || len < previousBest) {
       var data = state.board.getData();
-      state.circuits[lv.id] = {
+      state.circuits[level.id] = {
         nodes: data.nodes.filter(function (n) { return n.kind !== 'target'; }).map(function (n) {
-          var c = JSON.parse(JSON.stringify(n));
-          delete c._new;
-          return c;
+          var copy = JSON.parse(JSON.stringify(n));
+          delete copy._new;
+          return copy;
         }),
         edges: JSON.parse(JSON.stringify(data.edges)).map(function (e) {
           delete e._new;
@@ -797,233 +520,80 @@
         })
       };
     }
-    if (!state.bestLen[lv.id] || len < state.bestLen[lv.id]) state.bestLen[lv.id] = len;
+    if (!state.bestLen[level.id] || len < state.bestLen[level.id]) state.bestLen[level.id] = len;
     saveProgress();
     checkAchievements();
-    sfx('win');
+    Audio.sfx('win');
     updateProgress();
     els.levelBtn.classList.remove('just-solved');
     void els.levelBtn.offsetWidth;
     els.levelBtn.classList.add('just-solved');
     setTimeout(function () { els.levelBtn.classList.remove('just-solved'); }, 520);
+
     var isLast = state.index >= state.levels.length - 1;
-    var ref = (lv.solution && lv.solution.nodes.length) || len;
-    var eff = Math.max(1, Math.min(100, Math.round(ref / Math.max(1, len) * 100)));
-    els.overlay.hidden = false;
-    els.sheet.innerHTML =
-      '<button class="sheet-x" data-close aria-label="关闭"><svg class="icon"><use href="#i-x-mark"></use></svg></button>' +
-      '<div class="win">' +
-        '<div class="win-check"><svg class="icon"><use href="#i-check"></use></svg></div>' +
-        '<div class="win-formula formula">' + goalHTML(lv.target) + '</div>' +
-        '<div class="win-len" title="推理长度：模块数 / 参考电路模块数">' +
-          '<span class="metric-glyph"><svg class="icon"><use href="#i-squares-2x2"></use></svg></span><b>' + len + '</b><span class="metric-ref">/ ' + ref + '</span>' +
-          '<span class="metric-bar"><i style="width:' + eff + '%"></i></span>' +
-        '</div>' +
-        '<button class="primary next-btn" data-next="1">' + (isLast ? '选关' : '下一关') + '</button>' +
-      '</div>';
-    confetti();
-    showSheetBar();
-  }
-
-  function openLevels() {
-    sfx('click');
-    els.overlay.hidden = false;
-    var buckets = {};
-    CHAPTERS.forEach(function (c) { buckets[c.id] = []; });
-    state.levels.forEach(function (lv, i) {
-      (buckets[chapterOf(lv)] || buckets['Ⅰ']).push({ lv: lv, i: i });
-    });
-    function cellsFor(items) {
-      return items.map(function (x) {
-        var unlocked = isUnlocked(x.i);
-        var ref = x.lv.solution && x.lv.solution.nodes ? x.lv.solution.nodes.length : 1;
-        var best = state.bestLen[x.lv.id];
-        var eff = best ? Math.max(8, Math.min(100, Math.round(ref / best * 100))) : 0;
-        var style = best ? ' style="--eff:' + eff + '%;--effpx:' + Math.round(34 * eff / 100) + 'px"' : '';
-        var cls = 'level-cell' + (x.i === state.index ? ' is-current' : '') +
-          (state.solved[x.lv.id] ? ' is-solved' : '') +
-          (x.lv.challenge ? ' is-challenge' : '') +
-          (x.lv.band === 'challenge' ? ' is-challenge-band' : '') +
-          (unlocked ? '' : ' is-locked');
-        return '<button class="' + cls + '" data-level="' + x.i + '" aria-label="第 ' + (x.i + 1) + ' 关' + (unlocked ? '' : '，未解锁') + '"' + (unlocked ? '' : ' disabled') + style + '>' +
-          String(x.i + 1).padStart(2, '0') +
-          '<i class="eff" aria-hidden="true"></i>' +
-          '</button>';
-      }).join('');
-    }
-    function bandHTML(items, kind) {
-      if (!items.length) return '';
-      var solved = items.filter(function (x) { return state.solved[x.lv.id]; }).length;
-      var firstLocked = !isUnlocked(items[0].i);
-      var glyph = kind === 'challenge' ? 'i-star' : 'i-book-open';
-      return '<div class="band ' + kind + (firstLocked ? ' is-locked' : '') + '">' +
-        '<div class="band-head" title="' + (kind === 'challenge' ? '挑战' : '基础') + '">' +
-          '<span class="band-glyph"><svg class="icon"><use href="#' + glyph + '"></use></svg></span>' +
-          '<span class="band-progress" aria-hidden="true"><i style="width:' + (solved / items.length * 100) + '%"></i></span>' +
-        '</div>' +
-        '<div class="levels">' + cellsFor(items) + '</div>' +
-      '</div>';
-    }
-    var html = CHAPTERS.map(function (c) {
-      var items = buckets[c.id] || [];
-      if (!items.length) return '';
-      var solved = items.filter(function (x) { return state.solved[x.lv.id]; }).length;
-      var isCurrent = items.some(function (x) { return x.i === state.index; });
-      var base = items.filter(function (x) { return x.lv.band !== 'challenge'; });
-      var chal = items.filter(function (x) { return x.lv.band === 'challenge'; });
-      var chapterLocked = !isUnlocked(items[0].i);
-      return '<section class="chapter' + (isCurrent ? ' is-current' : '') + (chapterLocked ? ' is-locked' : '') + '">' +
-        '<div class="chapter-head">' +
-          '<span class="chapter-roman">' + c.id + '</span>' +
-          '<span class="chapter-title">' + c.title + '</span>' +
-          '<span class="chapter-progress" aria-hidden="true"><i style="width:' + (solved / items.length * 100) + '%"></i></span>' +
-        '</div>' +
-        bandHTML(base, 'base') +
-        bandHTML(chal, 'challenge') +
-      '</section>';
-    }).join('');
-    els.sheet.innerHTML = '<button class="sheet-x" data-close aria-label="关闭"><svg class="icon"><use href="#i-x-mark"></use></svg></button><div class="chapters">' + html + '</div>';
-    els.sheet.scrollTop = 0;
-    showSheetBar();
-  }
-
-  function openHelp() {
-    sfx('click');
-    els.overlay.hidden = false;
-    els.sheet.innerHTML =
-      '<button class="sheet-x" data-close aria-label="关闭"><svg class="icon"><use href="#i-x-mark"></use></svg></button>' +
-      '<div class="help">' +
-        '<div class="help-steps">' +
-          '<span class="help-box"><svg class="icon"><use href="#i-plus"></use></svg></span>' +
-          '<span class="help-box"><svg class="icon"><use href="#i-arrow-right"></use></svg></span>' +
-          '<span class="help-box"><svg class="icon"><use href="#i-play"></use></svg></span>' +
-        '</div>' +
-        '<div class="help-cards">' +
-          helpCard('S', 'subst', 'A · P+B · Q+C ⇒ A′') +
-          helpCard('M', 'detach', 'A · (A→B) ⇒ B') +
-          helpCard('D', 'replace', 'A→B ⇔ ¬A∨B') +
-          helpCard('HS', 'syllogism', '(A→B) · (B→C) ⇒ (A→C)') +
-          helpCard('∀I', 'all-intro', 'A ⇒ ∀x A') +
-          helpCard('∀E', 'all-elim', '∀x A ⇒ A[t/x]') +
-          helpCard('∃I', 'exists-intro', 'A[t/x] ⇒ ∃x A') +
-          helpCard('∃E', 'exists-elim', '∃x A · (A[y/x]→B) ⇒ B') +
-        '</div>' +
-        '<div class="save-row">' +
-          '<button class="save-btn" data-save-export title="保存存档" aria-label="保存存档"><svg class="icon"><use href="#i-arrow-down-tray"></use></svg><span>保存</span></button>' +
-          '<button class="save-btn" data-save-import title="加载存档" aria-label="加载存档"><svg class="icon"><use href="#i-arrow-up-tray"></use></svg><span>加载</span></button>' +
-        '</div>' +
-      '</div>' +
-      '<p class="credit">Design by yyxcnasd</p>';
-    showSheetBar();
-  }
-
-  function closeOverlay() {
-    els.overlay.hidden = true;
-    els.sheet.innerHTML = '';
-    hideSheetBar();
-    state.overlay = false;
+    var reference = (level.solution && level.solution.nodes.length) || len;
+    Screens.openWin({ target: level.target, len: len, ref: reference, isLast: isLast });
   }
 
   function nextLevel() {
     var next = state.index + 1;
-    if (next >= state.levels.length || !isUnlocked(next)) { openLevels(); return; }
+    if (next >= state.levels.length || !isUnlocked(next)) { Screens.openLevels(); return; }
     loadLevel(next);
   }
 
+  /* =========================================================================
+   * 8. 全局事件
+   * ========================================================================= */
+
   function bind() {
-    els.levelBtn.addEventListener('click', openLevels);
+    els.levelBtn.addEventListener('click', Screens.openLevels);
     els.checkBtn.addEventListener('click', check);
-    els.helpBtn.addEventListener('click', openHelp);
-    els.achvBtn.addEventListener('click', openAchievements);
-    els.coachPop.addEventListener('click', hideCoach);
-    els.coachPop.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
-    els.sheet.addEventListener('scroll', updateSheetBar);
-    els.sheetBar.addEventListener('pointerdown', function (e) {
-      if (els.sheetBar.hidden) return;
-      var sh = els.sheet;
-      var max = sh.scrollHeight - sh.clientHeight;
-      if (max <= 0) return;
-      var barRect = els.sheetBar.getBoundingClientRect();
-      var thumb = els.sheetBar.querySelector('i');
-      if (e.target !== thumb) {
-        sh.scrollTop = Math.max(0, Math.min(max, ((e.clientY - barRect.top) / barRect.height) * max));
-        updateSheetBar();
-        return;
-      }
-      e.preventDefault();
-      sheetDrag = {
-        y: e.clientY,
-        scroll: sh.scrollTop,
-        max: max,
-        track: Math.max(1, els.sheetBar.clientHeight - thumb.offsetHeight)
-      };
-      els.sheetBar.setPointerCapture && els.sheetBar.setPointerCapture(e.pointerId);
-    });
-    document.addEventListener('pointermove', function (e) {
-      if (!sheetDrag) return;
-      var sh = els.sheet;
-      sh.scrollTop = sheetDrag.scroll + (e.clientY - sheetDrag.y) * sheetDrag.max / sheetDrag.track;
-      updateSheetBar();
-    });
-    document.addEventListener('pointerup', function () { sheetDrag = null; });
-    window.addEventListener('resize', updateSheetBar);
-    els.sheet.addEventListener('keydown', function (e) {
-      if (e.key !== 'Enter' && e.key !== ' ') return;
-      var card = e.target.closest && e.target.closest('[data-coach]');
-      if (!card) return;
-      e.preventDefault();
-      card.click();
-    });
-    els.sheet.addEventListener('click', function (e) {
-      var card = e.target.closest && e.target.closest('[data-coach]');
-      if (card) { closeOverlay(); showCoachKind(card.dataset.coach); return; }
-      var achv = e.target.closest && e.target.closest('[data-achv]');
-      if (achv) { openAchievement(achv.dataset.achv); return; }
-      if (e.target.closest && e.target.closest('[data-back]')) { openAchievements(); return; }
-      if (e.target.closest && e.target.closest('[data-save-export]')) { exportSave(); return; }
-      if (e.target.closest && e.target.closest('[data-save-import]')) { els.saveFile.click(); return; }
-    });
+    els.helpBtn.addEventListener('click', Screens.openHelp);
+    els.achvBtn.addEventListener('click', Screens.openAchievements);
     els.saveFile.addEventListener('change', function () {
       importSave(els.saveFile.files && els.saveFile.files[0]);
       els.saveFile.value = '';
     });
+
     els.themeBtn.addEventListener('click', function () {
       state.theme = state.theme === 'dark' ? 'light' : 'dark';
       applyTheme();
       saveSettings();
-      sfx('click');
+      Audio.sfx('click');
     });
     els.soundBtn.addEventListener('click', function () {
       state.sound = !state.sound;
+      Audio.setSound(state.sound);
       updateSoundBtn();
       saveSettings();
-      if (state.sound) ensureAudio();
-      else if (bgm) bgm.pause();
-      sfx('click');
+      Audio.sfx('click');
     });
+
     document.addEventListener('pointerdown', function (e) {
-      ensureAudio();
-      hideCoach();
+      Audio.ensure();
+      Coach.hide();
       state.hintDismissed = true;
       if (els.coach) els.coach.hidden = true;
       var onSurface = e.target.closest && (e.target.closest('.tile') || e.target.closest('#board'));
       if (paletteHold && paletteHold.sticky && !onSurface) {
-        var br = els.board.getBoundingClientRect();
-        if (e.clientX >= br.left - 24 && e.clientX <= br.right + 24 && e.clientY >= br.top - 24 && e.clientY <= br.bottom + 24) {
+        var rect = els.board.getBoundingClientRect();
+        if (e.clientX >= rect.left - 24 && e.clientX <= rect.right + 24 && e.clientY >= rect.top - 24 && e.clientY <= rect.bottom + 24) {
           e.preventDefault();
           e.stopPropagation();
-          if (!placePaletteAt(e.clientX, e.clientY)) toast('放不下');
+          if (!placePaletteAt(e.clientX, e.clientY)) UI.toast('放不下');
           return;
         }
       }
       if (paletteHold && !onSurface) clearPaletteHold();
     }, true);
+
     document.addEventListener('contextmenu', function (e) {
       if (!paletteHold) return;
       e.preventDefault();
       e.stopPropagation();
       clearPaletteHold();
     }, true);
+
     els.tray.addEventListener('pointerdown', function (e) {
       var tile = e.target.closest('.tile');
       if (tile) startPaletteHold(e, tile);
@@ -1033,12 +603,14 @@
       var tile = e.target.closest('.tile');
       if (tile) addPart(tile.dataset.key);
     });
+
     els.board.addEventListener('pointerdown', function (e) {
       if (!paletteHold || !paletteHold.sticky || e.button !== 0) return;
       e.preventDefault();
       e.stopImmediatePropagation();
-      if (!placePaletteAt(e.clientX, e.clientY)) toast('放不下');
+      if (!placePaletteAt(e.clientX, e.clientY)) UI.toast('放不下');
     }, true);
+
     els.popover.addEventListener('click', function (e) {
       var opt = e.target.closest('[data-config]');
       if (opt && state.selectedNode) {
@@ -1056,41 +628,52 @@
         refresh();
       }
     });
-    els.overlay.addEventListener('click', function (e) {
-      if (e.target.closest('[data-close]')) { closeOverlay(); return; }
-      var lv = e.target.closest('[data-level]');
-      if (lv) {
-        var idx = parseInt(lv.dataset.level, 10);
-        if (!isUnlocked(idx)) return;
-        loadLevel(idx);
-        return;
-      }
-      if (e.target.closest('[data-next]')) { nextLevel(); return; }
-      if (e.target === els.overlay) closeOverlay();
-    });
+
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') {
         if (paletteHold) { clearPaletteHold(); return; }
-        if (!els.overlay.hidden) closeOverlay();
-        else { state.board.selectedNode = null; state.board.selectedNodes = []; state.board.selectedEdge = null; state.board.render(); state.selectedNode = null; state.selectedEdge = null; refresh(); }
+        if (UI.isSheetOpen()) closeSheet();
+        else {
+          state.board.selectedNode = null;
+          state.board.selectedNodes = [];
+          state.board.selectedEdge = null;
+          state.board.render();
+          state.selectedNode = null;
+          state.selectedEdge = null;
+          refresh();
+        }
         return;
       }
-      if ((e.key === 'Delete' || e.key === 'Backspace') && !e.target.closest('input,textarea')) {
-        if (state.selectedNode || state.selectedEdge || (state.board.selectedNodes && state.board.selectedNodes.length)) { e.preventDefault(); deleteSelection(); }
+      if ((e.key === 'Delete' || e.key === 'Backspace') && !(e.target.closest && e.target.closest('input,textarea'))) {
+        if (state.selectedNode || state.selectedEdge || (state.board.selectedNodes && state.board.selectedNodes.length)) {
+          e.preventDefault();
+          deleteSelection();
+        }
       }
     });
+
     window.addEventListener('resize', function () { if (state.board) state.board._updateWires(); });
   }
 
+  function closeSheet() {
+    UI.closeSheet();
+  }
+
+  /* =========================================================================
+   * 9. 启动
+   * ========================================================================= */
+
   function init() {
-    ['levelBtn', 'goal', 'goalFormula', 'themeBtn', 'soundBtn', 'helpBtn', 'achvBtn', 'checkBtn', 'progressFill', 'board', 'boardWorld', 'wireLayer', 'nodeLayer', 'tray', 'popover', 'toast', 'overlay', 'sheet', 'coach', 'coachPop', 'saveFile', 'sheetBar'].forEach(function (id) { els[id] = $(id); });
+    els = UI.init();
     if (!L) { document.body.innerHTML = '<div class="fatal">逻辑引擎未加载</div>'; return; }
-    window.RSL.formatFormula = function (ast) { return formulaHTML(ast); };
     loadProgress();
     loadSettings();
     applyTheme();
     updateSoundBtn();
+    if (!state.sound) Audio.setSound(false);
     buildLevels();
+    Coach.init();
+
     state.board = new window.RSL.Board({
       board: els.board,
       world: els.boardWorld,
@@ -1102,14 +685,28 @@
         state.selectedEdge = edge;
         refresh();
       },
-      onToast: function (msg) { toast(msg); },
-      onConnect: function () { sfx('connect'); },
-      onRemove: function (kind) { if (kind === 'node') state.deletedThisLevel = true; sfx('click'); }
+      onToast: function (msg) { UI.toast(msg); },
+      onConnect: function () { Audio.sfx('connect'); },
+      onRemove: function (kind) { if (kind === 'node') state.deletedThisLevel = true; Audio.sfx('click'); }
     });
+
+    Screens.init({
+      state: state,
+      loadLevel: loadLevel,
+      nextLevel: nextLevel,
+      isUnlocked: isUnlocked,
+      showCoachKind: Coach.showKind,
+      exportSave: exportSave,
+      requestImport: function () { els.saveFile.click(); }
+    });
+
     bind();
+
     var start = -1;
     if (state.lastId) {
-      for (var i = 0; i < state.levels.length; i++) if (state.levels[i].id === state.lastId) { start = i; break; }
+      for (var i = 0; i < state.levels.length; i++) {
+        if (state.levels[i].id === state.lastId) { start = i; break; }
+      }
     }
     if (start < 0 || state.solved[state.levels[start].id] || !isUnlocked(start)) {
       start = -1;
@@ -1120,25 +717,18 @@
     }
     loadLevel(start);
     updateProgress();
-    window.RSL.APP = { state: state, loadLevel: loadLevel, refresh: refresh, isUnlocked: isUnlocked, openAchievements: openAchievements };
+
+    window.RSL.APP = {
+      state: state,
+      loadLevel: loadLevel,
+      refresh: refresh,
+      isUnlocked: isUnlocked,
+      openAchievements: Screens.openAchievements,
+      openLevels: Screens.openLevels,
+      openHelp: Screens.openHelp
+    };
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
