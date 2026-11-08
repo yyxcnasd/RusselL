@@ -155,7 +155,13 @@
           helpCard('¬', '', '¬A') +
           helpCard('→', '', 'A→B') +
           helpCard('∀', '', '∀x A') +
+          helpCard('∃', '', '∃x A') +
+          helpCard('∈', '', 'x ∈ y') +
+          helpCard('∧∨↔', '', '连接词') +
           helpCard('Ax', '', '公理 A1–A5') +
+          helpCard('EXT', '', '外延公理') +
+          helpCard('∅{,}∪', '', '空集/配对/并集') +
+          helpCard('∧∨↔ 规则', '', '合取/析取/等值规则') +
           helpCard('S', '', 'A[P↦B]') +
           helpCard('M', '', 'A, A→B ⇒ B') +
           helpCard('∀I', '', 'A ⇒ ∀x A') +
