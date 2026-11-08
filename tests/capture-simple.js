@@ -143,18 +143,19 @@ runTest('capture-simple', async ({ openPage }) => {
   includes((await page.js('document.getElementById("goalFormula").textContent')).replace(/\s+/g, ''), '=', 'CH3-01 目标含等词');
   shots.push(await page.shot('08-equality.png'));
 
-  /* 15 set.mm 证明重放关（mm-replay，默认关闭，用 ?mm=1 打开） */
-  const mmPage = await openPage({ width: 1440, height: 900, url: fileUrl('index.html?mm=1'), shotDir });
+  /* 15 set.mm 证明重放关（mm-replay：和普通关同一块棋盘，拖线 + 参考推进） */
+  const mmPage = await openPage({ width: 1440, height: 900, url: fileUrl('index.html'), shotDir });
   await mmPage.ready();
   equal(await mmPage.js('window.RSL.MM.Flags.enabled()'), true, '重放段默认开启');
   await mmPage.js('window.RSL.APP.state.forceUnlock = true');
   const mmIndex = await mmPage.js('window.RSL.APP.state.levels.findIndex(function(l){return l.code==="pm3.24"&&l.mode==="mm-proof"})');
   ok(mmIndex >= 0, '目录里能找到 pm3.24 重放关');
   await mmPage.js('window.RSL.APP.loadLevel(' + mmIndex + ')');
-  await mmPage.waitFor('!!document.querySelector("#mmRoot [data-mm-panel]")');
-  for (let step = 0; step < 2; step++) await mmPage.js('document.querySelector("#checkBtn").click()');
-  await mmPage.waitFor('window.RSL.APP.state.mmProgress.step === 3');
-  await mmPage.sleep(150);
+  await mmPage.waitFor('window.RSL.APP.state.level.code === "pm3.24"');
+  /* 参考推进 3 次：棋盘上长出步骤节点与导线，再截图 */
+  for (let step = 0; step < 3; step++) await mmPage.js('document.getElementById("hintBtn").click()');
+  await mmPage.waitFor('document.querySelectorAll(".node[data-kind=\\"mmstep\\"]").length >= 3');
+  await mmPage.sleep(250);
   shots.push(await mmPage.shot('15-replay.png'));
   await mmPage.close();
 

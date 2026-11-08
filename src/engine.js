@@ -143,6 +143,34 @@
       },
       config: { y: 'y' },
       help: '从 ∃x A 与 A[y/x]→B 得到 B，y 须为新变元。'
+    },
+
+    /* ---- set.mm 证明重放（mm-replay）：节点公式是原始 token 串 ----
+       引擎本身不求值这两类节点（求值在 src/mm/graph.js），这里只提供端口/代号元数据，
+       供 Board 渲染节点与连线。mmstep 的输入端口按 config.arity 动态显示。 */
+    mmhyp: {
+      label: '前提', kindLabel: 'HYP', group: 'replay', symbol: 'H',
+      ports: { inputs: [], outputs: [{ id: 'out', label: '前提公式', type: 'assertion' }] },
+      config: { label: '' },
+      help: '本关自带的前提（$f 变量声明或 $e 假设），可以直接接到需要的输入上。'
+    },
+    mmstep: {
+      label: '证明步骤', kindLabel: 'STEP', group: 'replay', symbol: 'S',
+      ports: {
+        inputs: [
+          { id: 'e1', label: '前提 1', type: 'assertion' },
+          { id: 'e2', label: '前提 2', type: 'assertion' },
+          { id: 'e3', label: '前提 3', type: 'assertion' },
+          { id: 'e4', label: '前提 4', type: 'assertion' },
+          { id: 'e5', label: '前提 5', type: 'assertion' },
+          { id: 'e6', label: '前提 6', type: 'assertion' },
+          { id: 'e7', label: '前提 7', type: 'assertion' },
+          { id: 'e8', label: '前提 8', type: 'assertion' }
+        ],
+        outputs: [{ id: 'out', label: '步骤结论', type: 'assertion' }]
+      },
+      config: { label: '', arity: 0 },
+      help: '套用一条 set.mm 断言：把它的每个前提接到输入上，输出是代入后的结论。'
     }
   };
 

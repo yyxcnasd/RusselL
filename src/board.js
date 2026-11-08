@@ -770,6 +770,19 @@
 
   /* Full routing pass: A* for every edge, ordered by span so short wires lay
    * down first. Rebuilds the SVG layer (wire elements are cheap and stable). */
+  /* 简单正交折线：重放关的参考电路可能有几百条导线，不需要逐条 A* 避障。 */
+  function simpleWirePoints(a, b) {
+    var stub = 18;
+    var x1 = a.x + stub;
+    var x2 = b.x - stub;
+    if (x2 < x1) x2 = x1;
+    var mx = Math.round((x1 + x2) / 2);
+    return [
+      { x: a.x, y: a.y }, { x: x1, y: a.y }, { x: mx, y: a.y },
+      { x: mx, y: b.y }, { x: x2, y: b.y }, { x: b.x, y: b.y }
+    ];
+  }
+
   Board.prototype._updateWires = function (mode, movedIds) {
     if (mode === 'cheap') return this._updateWiresCheap(movedIds);
     var self = this;
@@ -777,6 +790,34 @@
     this._cheapDirty = false;
     while (this.wires.firstChild) this.wires.removeChild(this.wires.firstChild);
     this._wireEls = Object.create(null);
+    var worldRect = this.world.getBoundingClientRect();
+
+    /* 重放关（mm-proof）：导线用简单正交折线，避免几百条线各跑一次 A*。 */
+    if (this.simpleWires) {
+      var usedSimple = Object.create(null);
+      var simpleRoutes = Object.create(null);
+      this.edges.forEach(function (e) {
+        var a = self._portPoint(e.from.node, e.from.port, worldRect);
+        var b = self._portPoint(e.to.node, e.to.port, worldRect);
+        if (!a || !b) return;
+        simpleRoutes[e.id] = simpleWirePoints(a, b);
+      });
+      this.edges.forEach(function (e) {
+        if (!simpleRoutes[e.id]) return;
+        var d = Route.pathPoints(simpleRoutes[e.id]);
+        var path = makePath(ns, d, 'wire' + (self.selectedEdge === e.id ? ' is-selected' : '') + (e._new ? ' is-new' : ''));
+        path.setAttribute('data-state', self._wireState(e));
+        path.setAttribute('data-role', self._wireRole(e));
+        self.wires.appendChild(path);
+        var hit = makePath(ns, d, 'wire-hit');
+        hit.dataset.edge = e.id;
+        self.wires.appendChild(hit);
+        self._wireEls[e.id] = { path: path, hit: hit };
+      });
+      this._lastUsed = usedSimple;
+      return;
+    }
+
     var rects = this._rects();
     var used = Object.create(null);
     var routes = Object.create(null);
@@ -886,6 +927,8 @@
     if (n.kind === 'exists-intro') return '∃I';
     if (n.kind === 'exists-elim') return '∃E';
     if (n.kind === 'archive') return String(n.config.label || 'M').slice(0, 6);
+    if (n.kind === 'mmstep') return String(n.config.label || 'step').slice(0, 10);
+    if (n.kind === 'mmhyp') return String(n.config.label || 'hyp').slice(0, 10);
     return '·';
   };
 
@@ -898,19 +941,30 @@
       var extras = substExtras(n.config);
       inputPorts = inputPorts.filter(function (p) { return substPortVisible(p.id, extras); });
     }
+    if (n.kind === 'mmstep') {
+      var arity = Math.max(0, Math.min(inputPorts.length, (n.config && n.config.arity) || 0));
+      inputPorts = inputPorts.slice(0, arity);
+    }
     var outputs = info.ports.outputs || [];
     var isAssertion = outputs.some(function (p) { return p.type === 'assertion'; });
     var r = result && result.results[n.id];
     var ast = n.kind !== 'target' && r && r.ast ? r.ast : null;
+    var tokens = n.kind !== 'target' && r && r.tokens ? r.tokens : null;
     var formula = '';
-    if (ast) {
+    var plain = '';
+    if (tokens) {
+      plain = tokens.join(' ');
+      /* 重放关的公式是 set.mm token 串；渲染器由 main.js 注入（含 ⊢ 前缀与斜体变量）。 */
+      formula = window.RSL.formatTokens ? window.RSL.formatTokens(tokens) : tokens.join(' ');
+    } else if (ast) {
       var L = window.RSL.Logic;
       formula = window.RSL.formatFormula ? window.RSL.formatFormula(ast) : L.toHTML(ast);
     }
-    if (isAssertion) formula = '<span class="node-turnstile">⊢</span>' + formula;
+    if (isAssertion && !tokens) formula = '<span class="node-turnstile">⊢</span>' + formula;
     var inCount = inputPorts.length;
     return {
       info: info,
+      plain: plain,
       code: this._code(n),
       inputPorts: inputPorts,
       outputs: outputs,
@@ -962,6 +1016,8 @@
     el.dataset.state = r ? r.state : 'idle';
     el.dataset.selected = selectedMap[n.id] ? 'true' : 'false';
     el.setAttribute('aria-label', v.code);
+    if (v.plain) el.title = v.plain;
+    else el.removeAttribute('title');
     var refs = el._rsl;
     if (refs) {
       if (refs.code) refs.code.textContent = v.code;

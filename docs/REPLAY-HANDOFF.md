@@ -18,9 +18,9 @@
 | WP2 证明重放 | 完成 | `src/mm/expr.js` + `src/mm/verify.js` + `scripts/mm-verify.js`；31/31 重放通过，`research/mm-report.json` 记录每目标步骤数与失败原因 |
 | WP3 DAG 剪枝与产物 | 完成 | 剪掉 finalStep 不可达步骤；`src/mm/proofs.js` 386 KB（< 2 MB），31 个 DAG 共 1 299 步，可离线 `Verify.verifyProof` 复验 |
 | WP4 关卡接入 | 完成（方案 A）+ 二次设计 | **48 个** `mode:"mm-proof"` 关卡（每章 12 个，`src/mm/levels.js`），目标 = set.mm 原始结论 token 串；重放关不再独立成组，而是按统一难度交错进每章基础/挑战段（见 `docs/LEVEL-DESIGN-PROPOSAL.md`）；**没有**做 `mmstep` 棋盘模块 |
-| WP5 UI | 完成 | `src/mm/panel.js` + `src/mm/mm.css`：回放（步骤列表 / 当前步骤 / 前后导航 / 键盘 / >80 步分段 / 移动端）+ 自推（候选断言与假设 / 栈 / 提示 / 错误 / 撤销重来） |
+| WP5 UI | 完成（改为棋盘） | 重放关直接在普通棋盘上拼：`mmhyp` 前提节点 + 元件栏里的 `mmstep` 断言 + 拖线求值；`src/mm/graph.js` 负责图求值与参考布局，顶栏「参考」逐步摆放参考证明 |
 | WP6 回归与文档 | 完成 | `npm test` 70 项、`npm run test:ui` 238 checks、`npm run test:acceptance` 251 checks 全绿；文档 ARCHITECTURE / metamath / 本文件 / MM-REPLAY / LEVEL-DESIGN-PROPOSAL 已更新 |
-| Tier 3 交互 | 完成 | `Verify.session(proof)` + 面板 `mode:'interactive'`：玩家自己选断言/假设，引擎按同一套 Metamath 语义校验，有提示、错误反馈、撤销/重来 |
+| Tier 3 交互 | 完成（棋盘式） | 玩家在棋盘上自己放断言节点、拖线接线，`MM.Graph.evaluate` 按同一套 Metamath 语义即时校验；参考证明可一键逐步回放 |
 
 ### 计划里被证伪的一条（重要）
 
@@ -38,9 +38,10 @@ variable，如 `isfin4-2` 的 `$d x A` 里的 x）的 `$d` 对必须忽略，否
 
 ### 剩余工作（按优先级）
 
-1. **DAG 展开/折叠**：回放列表现在按 40 步分段，可以再按「前提子树」折叠。
-2. **自推的候选剪枝**：目前候选 = 参考证明用到的断言 + 本关假设，可用但数量偏多（axacnd
-   57 条）；可以按「哪个前件已就位」进一步排序/分组。
+1. **大证明的棋盘整理**：axacnd 304 步 / 139 个节点铺在棋盘上很密，可以按「当前窗口」
+   只显示最近几列，或按前提子树折叠。
+2. **候选剪枝**：元件栏现在 = 参考证明用到的断言（axacnd 53 条，可横向滚动），可以按
+   「哪个前件已就位」排序/高亮。
 3. **目标公式和 `Logic` 的互操作**：只在目标恰好能映射回 AST 时做（`tokenToGame`），
    当前不做，避免把两套公式语言混在一起。
 4. **完整 DV / 全库重放**：需要把闭包扩到 10 793 个 frame 并递归展开引用，属于另一个量级

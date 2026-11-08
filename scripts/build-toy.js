@@ -13,7 +13,7 @@ const RUNTIME_JS = [
   'logic.js', 'archive.js', 'library.js', 'levels.js', 'levels-generated.js',
   'mm/flags.js', 'mm/proofs.js', 'mm/levels.js', 'mm/expr.js', 'mm/verify.js',
   'engine.js', 'route.js', 'achievements.js', 'save.js',
-  'ui.js', 'mm/panel.js', 'audio.js', 'coach.js', 'catalog.js', 'screens.js',
+  'ui.js', 'mm/graph.js', 'audio.js', 'coach.js', 'catalog.js', 'screens.js',
   'board.js', 'main.js'
 ];
 

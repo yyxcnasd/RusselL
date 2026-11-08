@@ -11,7 +11,7 @@
   var L = host.RSL.Logic;
 
   var ELEMENT_IDS = [
-    'levelBtn', 'goal', 'goalFormula', 'themeBtn', 'soundBtn', 'helpBtn', 'achvBtn', 'checkBtn',
+    'levelBtn', 'goal', 'goalFormula', 'themeBtn', 'soundBtn', 'helpBtn', 'achvBtn', 'hintBtn', 'checkBtn',
     'progressFill', 'board', 'boardWorld', 'wireLayer', 'nodeLayer', 'tray', 'popover', 'toast',
     'overlay', 'sheet', 'coach', 'coachPop', 'saveFile', 'sheetBar'
   ];

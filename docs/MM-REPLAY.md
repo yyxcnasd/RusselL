@@ -16,8 +16,8 @@
 | `src/mm/levels.js` | `RSL.MM_LEVELS` | 生成：48 个 `mm-proof` 关卡（每章 12 个） | 生成器 |
 | `src/mm/expr.js` | `RSL.MM.Expr` | MM token 公式层（替换/匹配/应用/显示） | core |
 | `src/mm/verify.js` | `RSL.MM.Verify` | 压缩证明重放 + DAG 校验 | core |
-| `src/mm/panel.js` | `RSL.MM.Panel` | 只读重放面板（DOM） | panel |
-| `src/mm/mm.css` | — | 面板样式 | panel |
+| `src/mm/graph.js` | `RSL.MM.Graph` | 证明 → 棋盘图（节点求值 / 布局 / 元件栏 / 参考推进） | core |
+| `src/mm/mm.css` | — | 重放卡片、重放元件栏与 token 公式排版 | panel |
 
 `index.html` 与 `scripts/build-toy.js` 的 `RUNTIME_JS` 顺序（新增项插在标注位置）：
 
@@ -25,7 +25,7 @@
 logic → archive → library → levels → levels-generated
       → mm/flags → mm/proofs → mm/levels        ← 新增，必须在 catalog 之前
       → engine → route → achievements → save → ui
-      → mm/panel                                ← 新增，在 ui 之后、catalog 之前
+      → mm/graph                                ← 新增，在 ui 之后、catalog 之前
       → audio → coach → catalog → screens → board → main
 ```
 
@@ -198,47 +198,47 @@ Flags.source() -> 'query'|'storage'|'default'
 `Catalog.build()` 在关闭时回到**旧版 240 关布局**（基础 30 → 挑战 30，逐字段等于旧基线）；
 开启时把 48 个重放关并进对应章节参与统一难度排序（见 §10）。
 
-## 8. `RSL.MM.Panel` API（`src/mm/panel.js` + `src/mm/mm.css`）
+## 8. 棋盘式重放（`src/mm/graph.js` + `src/main.js`）
+
+重放关和普通关走**同一块棋盘**：同样的贴纸节点、端口、导线、拖动与缩放。区别只在公式是
+set.mm token 串，节点类型是 `mmhyp` / `mmstep`。
+
+### 8.1 图与求值（`RSL.MM.Graph`）
 
 ```js
-Panel.mount(container, opts) -> handle
-// opts = { level, proof, mode:'replay'|'interactive', onSolved(){}, onProgress(info){}, sfx(name){} }
-// handle = { destroy(), state(), mode(), setMode(mode), next(), prev(), goTo(i) }
+Graph.initial(level, proof) -> { nodes, edges, layout }
+Graph.palette(proof)        -> [{ key:'mmstep:<label>', kind:'mmstep', symbol, name, config:{label, arity} }]
+Graph.plan(proof)           -> [{ stepId, kind:'hyp'|'assert', label, inputs:[stepId] }]
+Graph.layout(proof)         -> { positions:{stepId:{x,y}}, hypPos:{hypLabel:{x,y}}, target:{x,y} }
+Graph.evaluate(level, proof, nodes, edges) -> Engine 同形结果（results/target/complete/errors）
 ```
 
-容器由 `main.js` 提供（`#mm-root`，与棋盘同级）。面板自己建根节点、加 class `mm-panel`。
+- `mmhyp` 节点：本关的 `$f` / `$e` 假设（以及证明里用到的假元假设），输出该假设的 token 公式。
+  载入关卡时预先摆放成「给定输入」。
+- `mmstep` 节点：按 `config.arity` 渲染输入端口 `e1..e8`；按 mandatory 顺序收集上游公式，
+  用 `Expr.applyAssertion` 求结论（`$f` 绑定、`$e` 逐 token 比对、basic DV）。缺输入是
+  `idle`（等待第 k 个前提），接错是 `error`（带 label 与第几号假设）。
+- `target` 焊盘：上游结论的 token 串必须与 `level.targetTokens` 完全一致才 `complete`。
+- `$a` 公理关（ax-11 / ax-pr）：没有 steps，`Graph` 用 `mandatory + conclusion` 合成它自己的
+  frame，元件栏只有它自己一条，接上全部前提即出公理图式。
 
-必须渲染并可被测试驱动的钩子（`data-*` 属性，DOM 里必须存在）：
+### 8.2 棋盘与顶栏
 
-| 钩子 | 含义 |
-| --- | --- |
-| `[data-mm-target]` | 目标公式（Unicode token 文本） |
-| `[data-mm-code]` | set.mm label |
-| `[data-mm-progress]` | `当前步骤 / 总步骤` 文本 |
-| `[data-mm-step-list]` | 步骤列表容器 |
-| `[data-mm-step="<stepId>"]` | 单个步骤行（可点击跳转） |
-| `[data-mm-prev]` / `[data-mm-next]` | 上一步 / 下一步按钮（第一步禁用 prev，最后一步禁用 next） |
-| `[data-mm-current]` | 当前步骤详情区 |
-| `[data-mm-label]` | 当前步骤 label |
-| `[data-mm-subst]` | 当前步骤替换 map（`var ↦ tokens`） |
-| `[data-mm-conclusion]` | 当前步骤结论 |
-| `[data-mm-state="pending|current|done"]` | 步骤行状态 |
+- 元件栏（`#tray`）进入 `is-mm` 样式：横向可滚动、代号等宽；点/拖走和普通模块一致。
+- 顶栏新增「参考」按钮 `#hintBtn`（仅重放关显示）：按参考证明摆放节点并接线；小证明一次
+  一步，大证明按批推进（≤48 步/次），304 步的 axacnd 约 13 次走完。
+- 顶栏「校验」：未完成时 toast 第一条可定位错误；完成时弹通关面板（显示「用了 N 个步骤节点 /
+  参考 M 个断言」）。
+- 重放关的导线使用简单正交折线（`board.simpleWires = true`），不做逐条 A* 避障；
+  普通关仍是 A* 走线。
+- 目标公式在顶栏用 `Expr.toHTML` 渲染（只显示公式体，⊢ 由 `.turnstile` 画）；节点公式
+  最多显示 3 行，完整 token 串在节点 `title` 里。
 
-行为：
-- 初始只显示第 1 步为 `current`，其余 `pending`；`next` 逐条揭示，`prev` 回退（回退后已揭示的步骤仍可见，状态按当前位置重算）。
-- 到 `finalStep` 时触发一次 `onSolved()`（同一次挂载不重复触发）。
-- 键盘：`←`/`→` 上一步/下一步，`Home`/`End` 首/末步；焦点在输入框时不拦截。
-- 步骤数 > 80 时分页/分段折叠（每段 40 步，可跳到段首），不一次性把上千行塞进 DOM。
-- 步骤数 = 0（`$a` 公理）：显示「公理图式 · 无可重放步骤」+ 断言本身，不提供模式切换，
-  由顶栏按钮确认完成（不自动通关）。
-- **交互式自推（Tier 3）**：头部有 `[data-mm-mode-toggle]`；切到 interactive 后，左列是
-  `[data-mm-hyp="<label>"]` / `[data-mm-assert="<label>"]` 候选（不可用的 `disabled` + `title`
-  写原因），右列是 `[data-mm-stack]`（底→顶）、`[data-mm-actions]`、`[data-mm-ref]`、
-  `[data-mm-hint]` / `[data-mm-hint-text]`、`[data-mm-error]`、`[data-mm-undo]`、
-  `[data-mm-reset]`，通关后才有 `[data-mm-solved]`。键盘 `Backspace` 撤销、`h` 提示。
-- 移动端（≤ 700px）：纵向堆叠，步骤列表在详情下方。
-- 文案与设计走 `docs/DESIGN.md`：少字、对象语言用 → / ↔、变量与公式用 STIX 斜体（`class="formula"`）。
-- 面板不得读取 `RSL.APP` / 全局状态；只通过参数与回调通信。
+### 8.3 验收
+
+`node tests/mm-ui.js`（真 Edge）：目录卡片进入、节点/端口/元件栏、拖线算出公式、
+「校验」反馈、pm3.24 参考走完、axacnd 304 步分批走完、$a 公理关、深色、移动端、
+切回普通关恢复 A* 走线与普通元件栏。
 
 ## 9. 版本
 
@@ -264,19 +264,18 @@ Panel.mount(container, opts) -> handle
    用 `Verify.verifyProof` 复验。
 5. **`proof.vars` 是额外字段**：`{ 'ph': 'wff', 'x': 'setvar', … }`，供显示时把变量
    排成斜体、以及 DV 判断区分变量与常量；契约 §5 的字段是必需项，不是全集。
-6. **加载顺序多了 `mm/expr.js` 与 `mm/verify.js`**：契约 §0 的顺序块只标了 data 与 panel；
-   实际在 `mm/levels` 之后、`engine` 之前插入 expr → verify（panel 依赖 Expr）。
-7. **`Panel.mount` 的 handle 是 `{ destroy(), state() }`**；`main.js` 不依赖
-   `next()`，顶栏按钮通过点击面板内的 `[data-mm-next]` 推进（`mmAdvance`）。
-   步骤数 0 的 `$a` 关卡传 `onSolved: null`，由顶栏按钮确认完成。
+6. **加载顺序多了 `mm/expr.js` / `mm/verify.js` / `mm/graph.js`**：在 `mm/levels` 之后、
+   `engine` 之前插入 expr → verify，`ui` 之后、`audio` 之前插入 graph（它依赖 Expr/Verify）。
+7. **重放关没有独立面板**：`mm-proof` 关卡直接复用 `Board` 与普通节点/导线；`mmhyp` /
+   `mmstep` 只是两种新模块（`engine.js` 提供端口元数据，求值在 `src/mm/graph.js`）。
 8. **关卡多了展示字段**：`group`（命题/谓词/等词/集合）、`note`（一句说明）、
    `axiom`（是否 `$a` 公理图式）、`stats`（steps/asserts/maxDepth/refs）、`order`。
    `chapter` 固定 `'mm'`、`band` 固定 `'mm'`、`requires` 固定 `[]`。
-9. **容器**：`main.js` 懒创建 `#mmRoot`（`.stage` 的 flex 子项，`flex-direction:column`），
-   与 `.board` 互斥显示；`mm.css` 只管 `.mm-panel` 内部与选关行样式。
+9. **棋盘与导线**：重放关把 `board.simpleWires` 设为 true（简单正交折线，不做逐条 A*），
+   初始图 = 目标焊盘 + 本关前提节点；元件栏 = 参考证明用到的断言（`is-mm` 横向滚动）。
 10. **验收命令**：`npm run build:mm` 重建数据；`node scripts/mm-verify.js` 出报告；
     `node --test tests/mm-replay.test.js` 数据层断言；`node tests/mm-ui.js` 真浏览器
-    端到端（88 checks，含回放 + 自推 + 移动端）。
+    端到端（59 checks，含拖线、参考推进、移动端）。
 11. **目标清单唯一来源是 `scripts/mm-targets.js`**：加目标只要往那里加一行
     `{label, chapter, title, note}`，再 `npm run build:mm`；每章 12 个、章内按步数升序是
     设计约束（`tests/mm-replay.test.js` 会检查）。

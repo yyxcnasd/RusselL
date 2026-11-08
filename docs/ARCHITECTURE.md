@@ -20,7 +20,7 @@
 logic → archive → library → levels → levels-generated
       → mm/flags → mm/proofs → mm/levels → mm/expr → mm/verify
       → engine → route → achievements → save → ui
-      → mm/panel → audio → coach → catalog → screens → board → main
+      → mm/graph → audio → coach → catalog → screens → board → main
 ```
 
 `mm/*` 是并行的 set.mm 证明重放子系统（见 [MM-REPLAY.md](MM-REPLAY.md)）：它有自己的
@@ -38,7 +38,7 @@ token 公式层与校验器，不进入 `Logic` 的 AST，也不改现有 240 �
 | `src/mm/levels.js` | `RSL.MM_LEVELS` | 48 个 `mm-proof` 关卡（生成，每章 12 个） | 无 |
 | `src/mm/expr.js` | `RSL.MM.Expr` | token 公式：替换、$e 比对、断言应用、DV、显示。纯函数 | 无 |
 | `src/mm/verify.js` | `RSL.MM.Verify` | 压缩证明重放、DAG 构造与离线校验、Tier 3 交互会话 | Expr |
-| `src/mm/panel.js` | `RSL.MM.Panel` | 只读重放面板（步骤列表 / 当前步骤 / 前后导航） | 无（DOM 由调用方给） |
+| `src/mm/graph.js` | `RSL.MM.Graph` | 证明 → 棋盘图：前提/步骤节点求值、参考电路布局、元件栏、参考推进 | Expr、Verify |
 | `src/engine.js` | `RSL.Engine` | 模块元数据 + 电路拓扑求值 + 反作弊（目标上游必须有来源） | Logic |
 | `src/route.js` | `RSL.Route` | 纯几何：A* 走线、正交化、45° 倒角、线段避障。无 DOM | 无 |
 | `src/achievements.js` | `RSL.Achievements` | 20 个成就定义与纯条件判定 | 无 |
@@ -80,25 +80,23 @@ D(接线) = 参考电路模块数 + 0.1 × target 的 AST 节点数
 D(重放) = 1.4 + 2.2417 × log2(1 + 证明步骤数)
 ```
 
-`mm-proof` 关卡不经过 `Engine`/`Board`，走独立的 token 公式与证明数据：
+`mm-proof` 关卡复用同一块棋盘，只是公式是 set.mm 的 token 串（`mmhyp` / `mmstep`）：
 
 ```
 selectedLevel.mode === 'mm-proof'
   └─ loadLevel() → main.js 的 loadMmLevel()
-       ├─ 隐藏 .board 与元件栏，懒挂 #mmRoot（.stage 里的兄弟节点）
+       ├─ Board.setData(目标焊盘 + 本关前提节点 mmhyp)，元件栏 = 参考证明用到的断言（mmstep）
        ├─ goal 用 MM.Expr.toHTML(token 公式) 渲染（不是 Logic AST）
-       └─ MM.Panel.mount(#mmRoot, { level, proof, mode })   // 'replay' | 'interactive'
-            ├─ 回放：步骤列表 + 当前步骤详情（label / 替换 map / 结论）
-            │        ←/→/Home/End、分页（>80 步）、0 步公理分支
-            └─ 自推：Verify.session(proof) 的候选断言/假设、栈、提示、撤销/重来
-                 到 finalStep 或自己走完 → onSolved → main.js mmWin() → Screens.openMmWin
+       └─ 玩家拖线：前提/上游步骤 → mmstep 输入
+            └─ refresh() → MM.Graph.evaluate(level, proof, nodes, edges) → Board.paint
+                 结论接到 ⊢ → mmCheck/mmWin → Screens.openMmWin
+       「参考」按钮：按 MM.Graph.plan(proof) 摆节点/接线（小证明逐步、大证明分批）
 ```
 
 - 目录：`RSL.MM_LEVELS` 默认并入章节（`MM.Flags.enabled()` 默认 true，`?mm=0` 关闭）；
   关闭时 `Catalog.build()` 回到旧版 240 关布局（基础 30 → 挑战 30，逐字段等于旧基线）。
-- 顶栏「校验」按钮在重放关里变成「下一步」（回放）或「提示」（自推），
-  见 `main.js` 的 `check()` / `mmAdvance()` 分支。
-- 面板不读 `RSL.APP`，只通过 mount 参数与 `onSolved/onProgress/sfx` 回调通信。
+- 重放关的顶栏多一个「参考」按钮（`#hintBtn`），「校验」仍是校验/通关；
+  导线在重放关用简单正交折线（`board.simpleWires`），普通关仍是 A* 避障。
 - 重放关**不计入** 240 关的成就体系（`achievements.evaluate` 过滤 `mode:'mm-proof'`），
   只登记 `solved` / `bestLen`，不写 `circuits`。
 
@@ -153,16 +151,16 @@ assets/data/set.mm（仓库外，51 MB）
 - 端口类型 `formula` / `assertion` / `atom` 决定颜色与可否连接；CSS 与 `Board.connect` 共用类型名。
 - 所有面板内容通过 `RSL.UI.openSheet(html)` 注入 `#sheet`；点击 `[data-close]` 或遮罩关闭，`Tab` 焦点陷阱，关闭后焦点回到触发按钮。
 - 规则提示窗只画规则形态，不显示本关答案；`level.coach` 字段决定弹一次。
-- 重放面板 `#mmRoot` 与 `.board` 同级（`.stage` 的 flex 子项），自带 `flex-direction:column`
-  才能横向拉满；样式全部在 `src/mm/mm.css`，只复用 `simple.css` 的 token。
+- 重放关复用普通节点/端口/导线样式（`mmstep` / `mmhyp` 只是两种新模块），公式用 token 串；
+  `src/mm/mm.css` 只剩重放卡片、元件栏与 token 公式排版。
 - 主题：`html[data-theme="dark"]` + `localStorage` 的 `axiom-simple:settings`。
 
 ## 6. 测试
 
 | 命令 | 覆盖 |
 | --- | --- |
-| `npm test` | 70 项单测：逻辑 17、成就 4、存档 2、走线 11、关卡目录 9、mm flags 15、mm 重放 12；加上 240 关参考电路 |
-| `npm run test:ui` | Edge headless 真浏览器（238 checks）：放置/连线/通关/拆线/拖回删除/拖放/暗色/移动端/多选 + 重放关回放与自推端到端 |
+| `npm test` | 71 项单测：逻辑 17、成就 4、存档 2、走线 11、关卡目录 9、mm flags 15、mm 重放/图 13；加上 240 关参考电路 |
+| `npm run test:ui` | Edge headless 真浏览器（238 checks）：放置/连线/通关/拆线/拖回删除/拖放/暗色/移动端/多选 + 重放关棋盘拖线与参考推进端到端 |
 | `npm run test:acceptance` | 先构建 `dist/`，再跑独立验收（251 checks：脚本/样式清单按 index.html 顺序逐项核对 + dist 产物 file:// 冒烟） |
 | `npm run capture:screens` | 重新采集 `screenshots/` 的文档图（`--repo`） |
 | `node .research/perf.js` | 大电路（18 节点 20 边）走线与渲染耗时（开发用，`.research/` 不进仓库） |

@@ -237,7 +237,10 @@
     var progress = (data && data.progress) || null;
     var metric;
     var caption;
-    if (progress && progress.mode === 'interactive') {
+    if (progress && progress.mode === 'build') {
+      metric = '<b>' + (progress.len || 0) + '</b><span class="metric-ref">步 / 参考 ' + (progress.ref || steps) + '</span>';
+      caption = '本关用了多少个证明步骤节点 / 参考证明的断言数';
+    } else if (progress && progress.mode === 'interactive') {
       metric = '<b>' + (progress.actions || 0) + '</b><span class="metric-ref">步 · 自推 / 参考 ' + steps + '</span>';
       caption = '不计提示的步骤数';
     } else if (progress && typeof progress.step === 'number' && progress.step > 0) {

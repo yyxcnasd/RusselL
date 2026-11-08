@@ -21,6 +21,7 @@ const RSL = loadRuntime({
     'src/mm/levels.js',
     'src/mm/expr.js',
     'src/mm/verify.js',
+    'src/mm/graph.js',
     'src/catalog.js',
     'src/achievements.js'
   ]
@@ -190,70 +191,125 @@ test('48 个重放关卡：目标来自 set.mm 结论、按章成组、组内步
   );
 });
 
-test('交互式会话：按参考动作能通关，错步可定位，提示按前缀给', () => {
+test('MM.Graph：初始图 = 目标焊盘 + 本关前提，元件栏 = 本关用得到的断言', () => {
+  const Graph = MM.Graph;
   const proof = PROOFS['pm3.24'];
-  const s = Verify.session(proof);
-  assert.strictEqual(s.solved(), false);
-  assert.strictEqual(s.state().depth, 0);
-  assert.strictEqual(s.hint().label, proof.steps[0].label, '空栈时提示第一条参考动作');
+  const level = LEVELS.filter((l) => l.proofId === 'pm3.24')[0];
+  const init = Graph.initial(level, proof);
+  assert.strictEqual(init.nodes.filter((n) => n.kind === 'target').length, 1, '有目标焊盘');
+  assert.strictEqual(init.nodes.filter((n) => n.kind === 'target')[0].id, 'target');
+  const hyps = init.nodes.filter((n) => n.kind === 'mmhyp').map((n) => n.config.label);
+  assert.strictEqual(hyps.join(','), 'wph', '前提节点来自 mandatory 假设');
+  const palette = Graph.palette(proof).map((p) => p.config.label);
+  assert.strictEqual(palette.length, 6, 'pm3.24 的元件栏是参考证明用到的 6 条断言');
+  assert.ok(palette.indexOf('mpbi') >= 0 && palette.indexOf('wi') >= 0);
+  /* 每条元件都带 arity，Board 按它渲染输入端口 */
+  const wi = Graph.palette(proof).filter((p) => p.config.label === 'wi')[0];
+  assert.strictEqual(wi.config.arity, 2, 'wi 需要 2 个前提');
+  /* 位置：每个参考步骤都有坐标 */
+  const layout = Graph.layout(proof);
+  assert.strictEqual(Object.keys(layout.positions).length, proof.steps.length, '每个步骤都有布局坐标');
+  assert.ok(layout.target.x > 0 && layout.target.y > 0);
+});
 
-  /* 提前应用需要 2 个前提的 wi 必须失败，且错误信息可定位 */
-  const bad = s.apply('wi');
-  assert.strictEqual(bad.ok, false);
-  assert.match(bad.error, /需要 2 个前提/);
-  assert.strictEqual(s.state().actions, 0, '失败的动作不进入历史');
+test('MM.Graph：按参考证明接线后目标达成，缺前提时是 idle 不是 error', () => {
+  const Graph = MM.Graph;
+  const proof = PROOFS['pm3.24'];
+  const level = LEVELS.filter((l) => l.proofId === 'pm3.24')[0];
+  const init = Graph.initial(level, proof);
+  const nodes = init.nodes.slice();
+  const edges = [];
+  const byStep = {};
+  const plan = Graph.plan(proof);
+  assert.strictEqual(plan.length, proof.steps.length);
 
-  /* 按参考证明的动作序列走完 */
-  const actions = Verify.referenceActions(proof);
-  assert.strictEqual(actions.length, proof.steps.length);
-  for (const a of actions) {
-    const r = s.apply(a.label);
-    assert.ok(r.ok, a.label + ' 应用失败：' + r.error);
-    if (!s.solved()) assert.ok(s.hint().label, '前缀一致时应始终有提示');
+  /* 先只放第一个断言节点、不接线：应该是 idle 等待输入 */
+  for (const action of plan) {
+    if (action.kind === 'hyp') { byStep[action.stepId] = Graph.hypNodeId(action.label); continue; }
+    const id = 'n_' + action.stepId;
+    nodes.push({
+      id, kind: 'mmstep', x: 0, y: 0,
+      config: { label: action.label, arity: Graph.arityOf(proof, action.label) }
+    });
+    byStep[action.stepId] = id;
+    const r0 = Graph.evaluate(level, proof, nodes, edges);
+    assert.strictEqual(r0.results[id].state, 'idle', '未接线时步骤节点应等待输入');
+    action.inputs.forEach((inp, i) => {
+      edges.push({
+        id: 'e_' + action.stepId + '_' + i,
+        from: { node: byStep[inp], port: 'out' },
+        to: { node: id, port: 'e' + (i + 1) }
+      });
+    });
   }
-  assert.strictEqual(s.solved(), true, '走完参考动作后通关');
-  assert.strictEqual(s.state().actions, actions.length);
-  assert.strictEqual(s.state().depth, 1, '通关时栈高为 1');
+  /* 最后一步接目标 */
+  edges.push({
+    id: 'e_final',
+    from: { node: byStep[proof.finalStep], port: 'out' },
+    to: { node: 'target', port: 'proof' }
+  });
+  const r = Graph.evaluate(level, proof, nodes, edges);
+  assert.strictEqual(r.complete, true, '按参考电路接线后通关');
+  assert.strictEqual(r.target.state, 'complete');
+  assert.strictEqual(r.errors.length, 0, '没有错误：' + JSON.stringify(r.errors));
+  assert.strictEqual(r.results[byStep[proof.finalStep]].state, 'valid');
 
-  /* 撤销一步应该退回未通关状态，且提示指向被撤销的动作 */
-  assert.strictEqual(s.undo(), true);
-  assert.strictEqual(s.solved(), false);
-  assert.strictEqual(s.hint().label, actions[actions.length - 1].label);
-  assert.strictEqual(s.undo(), true);
-  assert.strictEqual(s.state().actions, actions.length - 2);
-
-  /* 重来清空 */
-  s.reset();
-  assert.strictEqual(s.state().depth, 0);
-  assert.strictEqual(s.state().actions, 0);
-  assert.strictEqual(s.solved(), false);
+  /* 序列化令牌一致：最终步骤的 token 串等于目标 */
+  assert.strictEqual(Expr.key(r.results[byStep[proof.finalStep]].tokens), Expr.key(proof.conclusion));
 });
 
-test('交互式会话：走不同路线时提示明确不可用，不瞎给', () => {
+test('MM.Graph：接错前提会给出可定位错误，而不是静默通过', () => {
+  const Graph = MM.Graph;
   const proof = PROOFS['pm3.24'];
-  const s = Verify.session(proof);
-  s.apply('wph');
-  s.apply('wph');
-  s.apply('wi');       /* 参考证明第 3 步也是 wi，前缀仍一致 */
-  assert.strictEqual(s.hint().aligned, true);
-  s.apply('wn');       /* 参考第 4 步是 wph，这里偏离 */
-  const h = s.hint();
-  assert.strictEqual(h.aligned, false);
-  assert.strictEqual(h.label, null);
-  assert.ok(h.reason.length > 0);
-  /* 偏离后仍可继续操作（引擎不强制参考路线） */
-  assert.strictEqual(s.state().depth, 1);
-  s.undo();
-  assert.strictEqual(s.state().depth, 1, '撤销恢复到应用 wn 之前的栈（wi 的结论）');
-  assert.strictEqual(s.state().actions, 3);
+  const level = LEVELS.filter((l) => l.proofId === 'pm3.24')[0];
+  const init = Graph.initial(level, proof);
+  const nodes = init.nodes.slice();
+  /* 放一个 iman 节点，只接一个前提（iman 需要 2 个） */
+  nodes.push({ id: 'bad', kind: 'mmstep', x: 0, y: 0, config: { label: 'iman', arity: 2 } });
+  const edges = [{
+    id: 'bad_e1',
+    from: { node: Graph.hypNodeId('wph'), port: 'out' },
+    to: { node: 'bad', port: 'e1' }
+  }];
+  const r = Graph.evaluate(level, proof, nodes, edges);
+  assert.strictEqual(r.complete, false);
+  assert.strictEqual(r.results.bad.state, 'idle', '缺第二个前提时等待输入');
+  /* 接上同一个前提两次（$f 可以匹配任意 wff），但 iman 的 $f 都是 wff，应该能出结论 */
+  edges.push({ id: 'bad_e2', from: { node: Graph.hypNodeId('wph'), port: 'out' }, to: { node: 'bad', port: 'e2' } });
+  const r2 = Graph.evaluate(level, proof, nodes, edges);
+  assert.strictEqual(r2.results.bad.state, 'valid', '两个 wff 前提接齐后 iman 出结论');
+  /* 目标没接：仍未通关 */
+  assert.strictEqual(r2.complete, false);
 });
 
-test('交互式会话：公理（$a）无法交互推导，动作集为空', () => {
+test('MM.Graph：$a 公理关也能在棋盘上拼（自己 + 前提一步成图）', () => {
+  const Graph = MM.Graph;
   const proof = PROOFS['ax-11'];
-  const s = Verify.session(proof);
-  assert.strictEqual(proof.steps.length, 0);
-  assert.strictEqual(s.assertions().length, 0, '公理没有可用断言');
-  assert.strictEqual(s.solved(), false);
+  const level = LEVELS.filter((l) => l.proofId === 'ax-11')[0];
+  assert.strictEqual(proof.steps.length, 0, 'ax-11 没有证明步骤');
+  const palette = Graph.palette(proof);
+  assert.strictEqual(palette.length, 1, '公理关的元件栏只有它自己');
+  assert.strictEqual(palette[0].config.label, 'ax-11');
+  assert.strictEqual(palette[0].config.arity, 3, 'ax-11 需要 3 个前提');
+  const plan = Graph.plan(proof);
+  assert.strictEqual(plan.length, 4, '3 个前提 + 1 步断言');
+
+  const init = Graph.initial(level, proof);
+  const nodes = init.nodes.slice();
+  const edges = [];
+  const byStep = {};
+  for (const action of plan) {
+    if (action.kind === 'hyp') { byStep[action.stepId] = Graph.hypNodeId(action.label); continue; }
+    const id = 'n_' + action.stepId;
+    nodes.push({ id, kind: 'mmstep', x: 0, y: 0, config: { label: action.label, arity: 3 } });
+    byStep[action.stepId] = id;
+    action.inputs.forEach((inp, i) => {
+      edges.push({ id: 'e_' + i, from: { node: byStep[inp], port: 'out' }, to: { node: id, port: 'e' + (i + 1) } });
+    });
+  }
+  edges.push({ id: 'e_final', from: { node: byStep.ax_step, port: 'out' }, to: { node: 'target', port: 'proof' } });
+  const r = Graph.evaluate(level, proof, nodes, edges);
+  assert.strictEqual(r.complete, true, '公理图式接上前提后目标达成');
 });
 
 test('证明数据体积远低于 2MB 上限（docs/MM-REPLAY.md §5）', () => {

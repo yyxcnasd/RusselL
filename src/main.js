@@ -40,9 +40,10 @@
     sound: true,
     theme: 'light',
     parts: [],
-    mmPanel: null,
-    mmRoot: null,
-    mmProgress: null
+    mmProof: null,
+    mmHintIndex: 0,
+    mmStepNode: null,
+    mmLayout: null
   };
   var els = null;
   var paletteHold = null;
@@ -212,8 +213,12 @@
     state.selectedNode = null;
     state.selectedEdge = null;
     if (mmMode(state.level)) { loadMmLevel(index); return; }
-    destroyMmPanel();
-    setMmLayer(false);
+    state.mmProof = null;
+    state.mmStepNode = {};
+    state.mmLayout = null;
+    state.board.simpleWires = false;
+    if (els.hintBtn) els.hintBtn.style.display = 'none';
+    if (els.tray) els.tray.classList.remove('is-mm');
     state.parts = Catalog.partsForLevel(state.level);
 
     var mobile = window.innerWidth <= 700;
@@ -311,7 +316,17 @@
 
   function refresh() {
     if (!state.level) return;
-    if (mmMode(state.level)) return; /* 重放关没有电路可求值 */
+    var Graph = mmGraph();
+    if (mmMode(state.level) && Graph && state.mmProof) {
+      var mmData = state.board.getData();
+      var mmResult = Graph.evaluate(state.level, state.mmProof, mmData.nodes, mmData.edges);
+      state.results = mmResult;
+      state.board.paint(mmResult);
+      els.checkBtn.classList.toggle('is-ready', mmResult.complete);
+      renderPopover();
+      saveProgress();
+      return;
+    }
     var data = state.board.getData();
     var result = window.RSL.Engine.evaluate(state.level, data.nodes, data.edges);
     state.results = result;
@@ -433,6 +448,9 @@
     if (part.kind === 'subst') {
       var ghostExtras = substExtras(part.config);
       ins = ins.filter(function (p) { return substPortVisible(p.id, ghostExtras); });
+    }
+    if (part.kind === 'mmstep') {
+      ins = ins.slice(0, Math.max(0, Math.min(ins.length, (part.config && part.config.arity) || 0)));
     }
     var outs = (info.ports.outputs || []);
     var config = part.config || {};
@@ -556,7 +574,7 @@
    * ========================================================================= */
 
   function check() {
-    if (state.level && mmMode(state.level)) { mmAdvance(); return; }
+    if (state.level && mmMode(state.level)) { mmCheck(); return; }
     var result = state.results;
     if (!result) return;
     if (result.complete) { win(); return; }
@@ -614,11 +632,12 @@
   }
 
   /* =========================================================================
-   * 7b. set.mm 证明重放（mm-proof 关卡）
+   * 7b. set.mm 证明重放（mm-proof 关卡）：走和普通关一样的棋盘
    *
-   * 与棋盘完全并行：进入重放关时隐藏棋盘与元件栏，把 RSL.MM.Panel 挂到
-   * #mmRoot。面板只通过 mount 参数与三个回调通信（不读 RSL.APP），这里
-   * 只负责关卡流程、存档与通关面板。
+   * 载入后棋盘上有：目标焊盘、本关自带的前提节点（mmhyp，给定输入），元件栏是
+   * 本关用得到的 set.mm 断言（mmstep，输入端口数 = 断言的前提数）。把前提/上游
+   * 步骤接到 mmstep 的输入端口上，它就输出代入后的结论；把最终结论接到 ⊢ 即通关。
+   * 「参考」按钮按参考证明一步一步摆节点并接线，用来演示与兜底。
    * ========================================================================= */
 
   function mmMode(level) {
@@ -630,81 +649,51 @@
     return (level && proofs[level.proofId]) || null;
   }
 
-  /** 懒创建重放容器：与 .board 同级（.stage 的 flex 子项），样式对齐棋盘。 */
-  function mmRoot() {
-    if (state.mmRoot && state.mmRoot.parentNode) return state.mmRoot;
-    var stage = document.querySelector('.stage');
-    if (!stage) return null;
-    var el = document.createElement('div');
-    el.id = 'mmRoot';
-    el.className = 'mm-root';
-    el.style.cssText = [
-      'flex:1', 'min-width:0', 'min-height:0',
-      /* 必须是 column：面板要横向拉满，row 方向会把它压成 fit-content */
-      'display:none', 'flex-direction:column',
-      'box-sizing:border-box', 'padding:16px 18px',
-      'background:var(--board)', 'border:1.5px solid var(--line)',
-      'border-radius:var(--radius-lg)', 'box-shadow:var(--board-inset)'
-    ].join(';');
-    stage.appendChild(el);
-    state.mmRoot = el;
-    return el;
+  function mmGraph() {
+    return (window.RSL.MM && window.RSL.MM.Graph) || null;
   }
 
-  function destroyMmPanel() {
-    if (!state.mmPanel) return;
-    try { state.mmPanel.destroy(); } catch (e) { /* 面板已移除 */ }
-    state.mmPanel = null;
+  function mmPalette(proof) {
+    var Graph = mmGraph();
+    return Graph && proof ? Graph.palette(proof) : [];
   }
 
-  /** 棋盘层 ↔ 重放层切换。 */
-  function setMmLayer(on) {
-    if (els.board) els.board.style.display = on ? 'none' : '';
-    if (els.tray) {
-      els.tray.style.display = on ? 'none' : '';
-      els.tray.setAttribute('aria-hidden', on ? 'true' : 'false');
-    }
-    /* 进入重放关时按需创建容器；离开时只隐藏，保留 DOM 以便快速再进。 */
-    var root = on ? mmRoot() : state.mmRoot;
-    if (root) root.style.display = on ? 'flex' : 'none';
-    els.checkBtn.setAttribute('aria-label', on ? '下一步' : '校验');
-    els.checkBtn.setAttribute('title', on ? '下一步（→）' : '校验');
-    els.checkBtn.classList.toggle('is-mm-next', on);
-  }
-
-  /** 顶栏「校验」按钮在重放关里就是「下一步」（回放）/「提示」（自己推）。 */
-  function mmAdvance() {
-    var root = state.mmRoot;
-    if (!root) return;
-    var interactive = !!(state.mmProgress && state.mmProgress.mode === 'interactive');
-    if (interactive) {
-      var hintBtn = root.querySelector('[data-mm-hint]');
-      if (hintBtn) { hintBtn.click(); return; }
-      UI.toast('提示不可用');
-      return;
-    }
-    var btn = root.querySelector('[data-mm-next]:not([disabled])');
-    if (btn) { btn.click(); return; }
-    var level = state.level;
-    if (level && mmMode(level) && !state.solved[level.id]) {
-      var proof = mmProof(level);
-      var steps = proof && proof.stats ? proof.stats.steps : 0;
-      if (steps === 0) { mmWin(level); return; } /* 公理图式：确认即完成 */
-    }
-    UI.toast('已经是最后一步');
+  /** 把某个节点带进视口中心（提示摆放的节点可能在画布外）。 */
+  function mmEnsureVisible(node) {
+    if (!node || !state.board) return;
+    var board = state.board;
+    var width = board.board.clientWidth || 1000;
+    var height = board.board.clientHeight || 600;
+    var v = board.view;
+    var sx = v.x + node.x * v.scale;
+    var sy = v.y + node.y * v.scale;
+    var margin = 140;
+    if (sx >= margin && sx <= width - margin && sy >= margin && sy <= height - margin) return;
+    board.setView(width / 2 - node.x * v.scale, height / 2 - node.y * v.scale, v.scale);
   }
 
   function loadMmLevel(index) {
     var level = state.level;
     var proof = mmProof(level);
+    var Graph = mmGraph();
     var Expr = (window.RSL.MM && window.RSL.MM.Expr) || null;
-    destroyMmPanel();
-    setMmLayer(true);
+    state.mmProof = proof;
+    state.mmHintIndex = 0;
+    state.mmStepNode = {};
+    state.mmLayout = proof && Graph ? Graph.layout(proof) : null;
     state.results = null;
-    state.parts = [];
+    state.parts = mmPalette(proof);
     if (els.popover) els.popover.hidden = true;
     if (els.coach) els.coach.hidden = true;
-    if (els.tray) els.tray.innerHTML = '';
+    if (els.hintBtn) els.hintBtn.style.display = '';
+    if (els.tray) els.tray.classList.add('is-mm');
+
+    var init = proof && Graph ? Graph.initial(level, proof) : {
+      nodes: [{ id: 'target', kind: 'target', x: 620, y: 300, target: '', config: {} }],
+      edges: []
+    };
+    state.board.simpleWires = true;
+    state.board.setData(init.nodes, init.edges);
 
     /* 顶栏目标：去掉 |- 类型码（.turnstile 已经画了 ⊢） */
     var toks = level.targetTokens || [];
@@ -713,44 +702,101 @@
     els.goalFormula.innerHTML = Expr ? Expr.toHTML(body, vars) : UI.esc(level.targetUnicode || toks.join(' '));
     var plain = level.targetUnicode || els.goalFormula.textContent || '';
     els.goal.classList.toggle('is-long', String(plain).length > 52);
-    els.levelBtn.textContent = 'M' + String(level.order || 0).padStart(2, '0');
-    els.levelBtn.setAttribute('aria-label', '第 ' + (level.order || 0) + ' 个重放目标，选择关卡');
+    els.levelBtn.textContent = 'M' + String(level.chapterOrder || level.order || 0).padStart(2, '0');
+    els.levelBtn.setAttribute('aria-label', '第 ' + (level.chapterOrder || level.order || 0) + ' 个重放目标，选择关卡');
 
-    var Panel = window.RSL.MM && window.RSL.MM.Panel;
-    if (!Panel) { UI.toast('重放面板未加载'); return; }
-    var root = mmRoot();
-    if (!root) return;
-    var steps = proof && proof.stats ? proof.stats.steps : 0;
-    state.mmPanel = Panel.mount(root, {
-      level: level,
-      proof: proof,
-      mode: 'replay',
-      sfx: function (name) { Audio.sfx(name); },
-      onProgress: function (info) {
-        state.mmProgress = info;
-        var interactive = info && info.mode === 'interactive';
-        els.checkBtn.setAttribute('aria-label', interactive ? '提示' : '下一步');
-        els.checkBtn.setAttribute('title', interactive ? '提示下一步（h）' : '下一步（→）');
-      },
-      /* 公理图式（0 步）不自动通关：由顶栏「下一步/完成」确认 */
-      onSolved: steps > 0 ? function () {
-        if (state.solved[level.id]) return;
-        mmWin(level);
-      } : null
-    });
+    buildTray();
+    if (!proof || !Graph) { UI.toast('缺少证明数据'); state.board.fit({ minScale: 0.2 }); saveProgress(); return; }
+    refresh();
+    /* 参考电路可能有 20 多列：整图 fit 会缩到看不清，用 minScale 兜底；提示摆放时自动跟焦。 */
+    state.board.fit({ minScale: 0.3 });
     saveProgress();
   }
 
-  function mmWin(level) {
+  function mmCheck() {
+    var result = state.results;
+    if (!result) return;
+    if (result.complete) { mmWin(); return; }
+    Audio.sfx('fail');
+    var msg = result.errors && result.errors.length ? result.errors[0].message : '还没接完';
+    UI.toast(msg.length > 32 ? msg.slice(0, 32) + '…' : msg);
+  }
+
+  /** 参考证明的下一步：摆放步骤节点并接上前提（最后一步接到 ⊢）。
+      大证明（几百步）按批推进，一次 setData 重建，避免逐节点全量重绘。 */
+  function mmHint() {
+    var level = state.level;
+    var proof = state.mmProof;
+    var Graph = mmGraph();
+    if (!level || !mmMode(level) || !proof || !Graph) return;
+    if (state.results && state.results.complete) { UI.toast('已经完成'); return; }
+    var plan = Graph.plan(proof);
+    if (state.mmHintIndex >= plan.length) { UI.toast('参考证明已经走完'); return; }
+
+    var remaining = plan.length - state.mmHintIndex;
+    var batch = Math.max(1, Math.min(48, Math.ceil(remaining / 6)));
+    var layout = state.mmLayout || Graph.layout(proof);
+    var byStep = state.mmStepNode || (state.mmStepNode = {});
+    var data = state.board.getData();
+    var nodes = data.nodes;
+    var edges = data.edges;
+    var added = 0;
+    var lastNodeId = null;
+    var guard = 0;
+
+    while (state.mmHintIndex < plan.length && added < batch && guard < 600) {
+      guard += 1;
+      var action = plan[state.mmHintIndex];
+      state.mmHintIndex += 1;
+      if (action.kind === 'hyp') {
+        byStep[action.stepId] = Graph.hypNodeId(action.label);
+        continue;
+      }
+      var pos = layout.positions[action.stepId] || freeSpot();
+      var nodeId = 'hint_' + action.stepId;
+      nodes.push({
+        id: nodeId, kind: 'mmstep', x: pos.x, y: pos.y,
+        config: { label: action.label, arity: Graph.arityOf(proof, action.label) }
+      });
+      byStep[action.stepId] = nodeId;
+      action.inputs.forEach(function (inpStepId, i) {
+        var src = byStep[inpStepId];
+        if (!src) return;
+        edges.push({
+          id: 'hint_e_' + action.stepId + '_' + i,
+          from: { node: src, port: 'out' },
+          to: { node: nodeId, port: 'e' + (i + 1) }
+        });
+      });
+      added += 1;
+      lastNodeId = nodeId;
+    }
+
+    if (state.mmHintIndex >= plan.length && lastNodeId) {
+      edges.push({
+        id: 'hint_e_final',
+        from: { node: lastNodeId, port: 'out' },
+        to: { node: 'target', port: 'proof' }
+      });
+    }
+    state.board.setData(nodes, edges);
+    refresh();
+    if (lastNodeId) mmEnsureVisible(state.board.node(lastNodeId));
+    if (added > 1) UI.toast('参考：+' + added + ' 步');
+    if (state.results && state.results.complete && !state.solved[level.id]) mmWin();
+  }
+
+  function mmWin() {
+    var level = state.level;
+    var proof = state.mmProof;
     if (!level) return;
-    var proof = mmProof(level);
-    var steps = proof && proof.stats ? proof.stats.steps : 0;
+    var used = (state.board.items || []).filter(function (n) { return n.kind === 'mmstep'; }).length;
+    var ref = proof && proof.stats ? proof.stats.asserts : used;
     state.solved[level.id] = true;
-    if (!state.bestLen[level.id] || (steps && steps < state.bestLen[level.id])) {
-      state.bestLen[level.id] = steps || 1;
+    if (!state.bestLen[level.id] || (used && used < state.bestLen[level.id])) {
+      state.bestLen[level.id] = used || ref;
     }
     saveProgress();
-    /* 重放关不参与 240 关的成就体系（见 src/achievements.js 的 mm-proof 过滤） */
     Audio.sfx('win');
     updateProgress();
     els.levelBtn.classList.remove('just-solved');
@@ -760,8 +806,8 @@
     Screens.openMmWin({
       level: level,
       proof: proof,
-      steps: steps,
-      progress: state.mmProgress,
+      steps: ref,
+      progress: { mode: 'build', len: used, ref: ref },
       isLast: state.index >= state.levels.length - 1
     });
   }
@@ -773,6 +819,7 @@
   function bind() {
     els.levelBtn.addEventListener('click', Screens.openLevels);
     els.checkBtn.addEventListener('click', check);
+    if (els.hintBtn) els.hintBtn.addEventListener('click', function () { Audio.sfx('click'); mmHint(); });
     els.helpBtn.addEventListener('click', Screens.openHelp);
     els.achvBtn.addEventListener('click', Screens.openAchievements);
     els.saveFile.addEventListener('change', function () {
@@ -913,6 +960,14 @@
 
   function init() {
     els = UI.init();
+    /* 重放关的节点公式是 set.mm token 串：Board 通过这个钩子渲染（⊢ 前缀 + 斜体变量）。 */
+    window.RSL.formatTokens = function (tokens) {
+      var Expr = window.RSL.MM && window.RSL.MM.Expr;
+      if (!Expr || !Array.isArray(tokens)) return Array.isArray(tokens) ? tokens.join(' ') : '';
+      var vars = (state.mmProof && state.mmProof.vars) || {};
+      if (tokens[0] === '|-') return '<span class="node-turnstile">⊢</span>' + Expr.toHTML(tokens.slice(1), vars);
+      return Expr.toHTML(tokens, vars);
+    };
     if (!L) { document.body.innerHTML = '<div class="fatal">逻辑引擎未加载</div>'; return; }
     loadProgress();
     loadSettings();

@@ -6,7 +6,7 @@
 
   <p>
     <a href="https://yyxcnasd.github.io/RusselL/"><img alt="在线试玩" src="https://img.shields.io/badge/PLAY-ONLINE-e66f3f?style=for-the-badge"></a>
-    <img alt="版本" src="https://img.shields.io/badge/VERSION-v2.0.0-3f8e65?style=for-the-badge">
+    <img alt="版本" src="https://img.shields.io/badge/VERSION-v2.1.0-3f8e65?style=for-the-badge">
     <img alt="关卡" src="https://img.shields.io/badge/LEVELS-288-4f7fb5?style=for-the-badge">
     <img alt="重放" src="https://img.shields.io/badge/REPLAY-48-6b5bd2?style=for-the-badge">
     <img alt="档案" src="https://img.shields.io/badge/SET.MM-993-d3ad68?style=for-the-badge">
@@ -61,9 +61,10 @@
 证明 DAG，再校验结论，让 48 个定理/公理以**精确的 set.mm 目标公式**出现（每章 12 个，按证明
 步数从 3 步到 304 步）。
 
-- 每关两种玩法：**回放**（左边步骤列表，右边当前步骤的 label、替换 map 与结论；顶栏最右按钮
-  变成「下一步」，键盘 `←` `→` `Home` `End` 也能走）和**自推**（自己点假设/断言把证明走完，
-  有提示、错误反馈、撤销/重来；顶栏按钮变成「提示」）。
+- 每关和普通关一样**在棋盘上拼**：本关的前提是给定的输入节点，元件栏里是本关用得到的 set.mm
+  断言（输入端口数 = 该断言的前提数）。拖线接线，引擎即时算出每步代入后的结论，接上 ⊢ 即通关。
+- 顶栏多一个「参考」按钮：按参考证明逐步摆节点/接线（304 步的 axacnd 分批推进，约 13 次走完），
+  用来演示与兜底；`ax-11`、`ax-pr` 是公理，元件栏里只有它自己一条，接上前提即成图。
 - `ax-11`、`ax-pr` 是公理，没有可重放的证明，作为公理图式展示并由你确认。
 - 默认开启；想回到旧的 240 关布局用 `?mm=0`，或 `localStorage.setItem('axiom-simple:mm','off')`。
 - 重放关不参与 240 关的成就判定，也不写通关电路存档。
