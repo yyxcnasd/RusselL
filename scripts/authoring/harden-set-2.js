@@ -27,14 +27,14 @@ const h1 = P.allInst(F.iff(A, B), 'z', 'z');
 const e1 = P.iffElimAx(A, B, 'lr');
 const c1 = compose(h1, e1, H, F.iff(A, B), DX);
 const g1 = P.gen(c1, 'z');
-const s1 = P.shiftAx(H, DX, 'z');
+const s1 = P.subst(P.thm(64), { atoms: { P: H, Q: DX } });
 const branchX = P.mp(g1, s1);
 
 /* 分支 2：H → ∀z(B→A) */
 const e2 = P.iffElimAx(A, B, 'rl');
 const c2 = compose(h1, e2, H, F.iff(A, B), DY);
 const g2 = P.gen(c2, 'z');
-const s2 = P.shiftAx(H, DY, 'z');
+const s2 = P.subst(P.thm(64), { atoms: { P: H, Q: DY } });
 const branchY = P.mp(g2, s2);
 
 /* 合取：X→(Y→(X∧Y))，再用 A2 合并到 H→(X∧Y) */

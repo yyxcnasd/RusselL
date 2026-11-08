@@ -6,7 +6,8 @@
 'use strict';
 
 module.exports = {
-  ax: (schema) => ({ op: 'axiom', schema }),
+  ax: (schema, cfg) => ({ op: 'axiom', schema, v: cfg && cfg.v }),
+  shift: (formula, v) => ({ op: 'shift', formula, v }),
   thm: (n) => ({ op: 'lemma', n }),
   subst: (of, maps) => ({ op: 'subst', of, atoms: (maps && maps.atoms) || {}, vars: (maps && maps.vars) || null }),
   mp: (a, b) => ({ op: 'mp', a, b }),

@@ -25,7 +25,7 @@ function compose(pAB, pBC, a, b, c) {
 /* 正向：x=y → ∀z(z∈x→z∈y) */
 const l1 = P.leibniz('x', 'y', Pz, { mode: 'replace' });
 const g1 = P.gen(l1, 'z');
-const s1 = P.shiftAx(H, DX, 'z');
+const s1 = P.subst(P.thm(64), { atoms: { P: H, Q: DX } });
 const branchX = P.mp(g1, s1);
 
 /* 反向：x=y → ∀z(z∈y→z∈x)（先对称，再反向替换） */
@@ -33,7 +33,7 @@ const sym = P.thm(51);
 const l2 = P.leibniz('y', 'x', Qz, { mode: 'replace' });
 const c2 = compose(sym, l2, H, F.pred('=', Y, X), DY);
 const g2 = P.gen(c2, 'z');
-const s2 = P.shiftAx(H, DY, 'z');
+const s2 = P.subst(P.thm(64), { atoms: { P: H, Q: DY } });
 const branchY = P.mp(g2, s2);
 
 /* 合取 */

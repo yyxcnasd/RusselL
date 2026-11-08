@@ -31,7 +31,7 @@ const a2 = P.subst(P.ax('A2'), {
 const m1 = P.mp(h7, a2);                                  // (H→(A→B)) → (H→(B↔A))
 const h8 = P.mp(h5, m1);                                  // H → (B↔A)
 const h9 = P.gen(h8, 'z');                                // ∀z(H→(B↔A))
-const h10 = P.shiftAx(H, F.iff(B, A), 'z');               // ∀z(H→(B↔A)) → (H→∀z(B↔A))
+const h10 = P.subst(P.thm(64), { atoms: { P: H, Q: F.iff(B, A) } });
 const proof = P.mp(h9, h10);
 
 let nodes = 0;
