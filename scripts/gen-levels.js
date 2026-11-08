@@ -45,6 +45,43 @@ function normalize(formulaUnicode) {
   return s;
 }
 
+/* 关卡里出现的命题变元只允许这 14 个；档案公式按此归一化（保留已有合法名，其余补空位）。 */
+const ATOM_POOL = 'PQRSTUVWXYZABC'.split('');
+
+function mapAtoms(ast, map) {
+  switch (ast.k) {
+    case 'atom': return { k: 'atom', name: map[ast.name] || ast.name };
+    case 'var': return { k: 'var', name: ast.name };
+    case 'pred': return { k: 'pred', name: ast.name, args: ast.args.map((a) => ({ k: 'var', name: a.name })) };
+    case 'not': return { k: 'not', a: mapAtoms(ast.a, map) };
+    case 'or': return { k: 'or', a: mapAtoms(ast.a, map), b: mapAtoms(ast.b, map) };
+    case 'imp': return { k: 'imp', a: mapAtoms(ast.a, map), b: mapAtoms(ast.b, map) };
+    case 'and': return { k: 'and', a: mapAtoms(ast.a, map), b: mapAtoms(ast.b, map) };
+    case 'iff': return { k: 'iff', a: mapAtoms(ast.a, map), b: mapAtoms(ast.b, map) };
+    case 'all': return { k: 'all', v: ast.v, a: mapAtoms(ast.a, map) };
+    case 'exists': return { k: 'exists', v: ast.v, a: mapAtoms(ast.a, map) };
+    default: return ast;
+  }
+}
+function canonicalAtoms(ast) {
+  const names = L.atomsOf(ast).slice().sort();
+  if (!names.length) return ast;
+  const used = new Set();
+  const map = Object.create(null);
+  /* 优先保留本来就在 14 个名字里的原子，剩下的按池子顺序补。 */
+  names.forEach((name) => { if (ATOM_POOL.indexOf(name) >= 0) { map[name] = name; used.add(name); } });
+  let cursor = 0;
+  names.forEach((name) => {
+    if (map[name]) return;
+    while (cursor < ATOM_POOL.length && used.has(ATOM_POOL[cursor])) cursor += 1;
+    if (cursor >= ATOM_POOL.length) return;
+    map[name] = ATOM_POOL[cursor];
+    used.add(ATOM_POOL[cursor]);
+    cursor += 1;
+  });
+  return mapAtoms(ast, map);
+}
+
 const data = JSON.parse(fs.readFileSync(DATA, 'utf8'));
 {
   const seen = new Set(data.map((t) => t.label));
@@ -87,10 +124,12 @@ for (const t of data) {
   if (t.kind === 'syntax') continue;
   const cat = categoryOf(t);
   if (!cat) continue;
-  const formula = normalize(t.formulaUnicode);
+  let formula = normalize(t.formulaUnicode);
   if (!formula || formula.length > 180) continue;
   let ast;
   try { ast = L.parse(formula); } catch (e) { continue; }
+  ast = canonicalAtoms(ast);
+  formula = L.fmt(ast);
   const atoms = L.atomsOf(ast);
   const free = L.freeVars(ast);
   const opts = L.replaceOptions(ast);
@@ -261,7 +300,7 @@ function levelBase(chapter, num, source, kindName, target) {
 
 function freshAtoms(source, n, offset) {
   const used = new Set(source.atoms);
-  const pool = 'UVWXYZABCDEFGHIJKLMNOPQRST';
+  const pool = 'PQRSTUVWXYZABC';
   const out = [];
   for (let i = 0; i < pool.length && out.length < n; i++) {
     const ch = pool[(i + (offset || 0)) % pool.length];
@@ -639,19 +678,65 @@ RSL.AXIOMS.forEach((a) => { AXIOM_SOURCE[a.id] = sourceFromAxiom(a); });
 const HAND_SOURCE = Object.create(null);
 RSL.LEVELS.forEach((lv) => { if (/^CH[1-4]-(0[1-9]|1[0-2])$/.test(lv.id)) HAND_SOURCE[lv.id] = sourceFromTheorem(lv); });
 
-function reasoningAllowed(nodes) {
+const ALL_CAND = CAND.prop.concat(CAND.pred, CAND.eq, CAND.set);
+const ARCHIVE_SOURCE = Object.create(null);
+ALL_CAND.forEach((item) => {
+  ARCHIVE_SOURCE[item.label] = {
+    sourceKind: 'archive', id: item.label, label: item.label, formula: item.formula,
+    ast: item.ast, atoms: item.atoms, free: item.free, opts: item.opts, section: item.section
+  };
+});
+
+const HARD_LABELS = {
+  prop: ['pm3.24', 'pm2.07', 'simp2', '3mix1', 'pm2.5', 'pm3.11', 'simprrr', 'simpr12'],
+  pred: ['alex', 'ax-11', 'exancom', '19.31v', '3exdistr', '19.33b'],
+  eq: ['equequ1', 'ax8', 'axc16', 'axc11r', 'equvel', '19.12vvv'],
+  set: ['vex', 'vneqv', 'fin41', 'en3lp', 'eqtr2', 'axprlem1', 'ax-pr', 'axunnd', 'oneltri', 'axrep1', 'axacnd']
+};
+
+/* 难证档案定理不直接当答案；用它们作引理，要求做一步真正的推演：
+   命题/谓词 → 代入实例；等词/集合 → 全称闭包或闭包 + 例化。 */
+function hardPlan(chapter) {
+  const labels = HARD_LABELS[chapter] || [];
+  return labels.map((label, i) => {
+    const source = ARCHIVE_SOURCE[label];
+    if (!source) return null;
+    const vars = xyzVars(source);
+    if (chapter === 'prop' || chapter === 'pred') {
+      if (source.atoms.length) return { type: 'subst', source };
+      if (vars.length) return { type: 'closure', source, vars };
+      return null;
+    }
+    /* 等词 / 集合：优先代入；没有命题原子就做全称闭包；连自由变元都没有时
+       用定义置换；最后兜底闭包一个不自由出现的 x（∀I 允许 vacuous 量化）。 */
+    if (source.atoms.length) return { type: 'subst', source };
+    if (vars.length) return { type: 'closure', source, vars };
+    if (source.opts && source.opts.length) return { type: 'replace', source };
+    return { type: 'closure', source, vars: ['x'] };
+  }).filter(Boolean);
+}
+
+function allowedFromCircuit(nodes) {
   const set = new Set(['target']);
   nodes.forEach((n) => {
     if (n.kind === 'axiom') set.add('axiom:' + n.config.axiomId);
     else if (n.kind === 'theorem') set.add('theorem:' + n.config.theoremCode);
+    else if (n.kind === 'archive') set.add('archive:' + n.config.label);
     else if (n.kind !== 'target') set.add(n.kind);
   });
   return Array.from(set);
 }
 
+/* 每关的 allowed 只保留参考电路真正用到的模块 + 目标；
+   不再给 subst 关一律塞上所有连接词 / 谓词元件。 */
+function curateAllowed(spec) {
+  spec.allowed = allowedFromCircuit(spec.solution.nodes);
+  return spec;
+}
+
 function decorateReasoning(spec, source, kindName) {
   if (!spec) return null;
-  spec.allowed = reasoningAllowed(spec.solution.nodes);
+  spec.allowed = allowedFromCircuit(spec.solution.nodes);
   spec.title = source.id + ' · ' + kindName;
   spec.kicker = '推理 / ' + source.id;
   spec.teaches = [kindName];
@@ -668,6 +753,9 @@ function reasoningClosureLevel(chapter, num, source, vars) {
 }
 function reasoningInstantiateLevel(chapter, num, source, termOffset) {
   return decorateReasoning(instantiateLevel(chapter, num, source, 1, termOffset), source, '闭包 + 例化');
+}
+function reasoningReplaceLevel(chapter, num, source) {
+  return decorateReasoning(replaceLevel(chapter, num, source), source, '定义推演');
 }
 
 /* 每章直接接档案的关卡数量，替换成不依赖档案的推理关。 */
@@ -726,6 +814,7 @@ function buildReasoningLevel(chapter, num, desc) {
     if (desc.type === 'subst') return reasoningSubstLevel(chapter, num, desc.source);
     if (desc.type === 'closure') return reasoningClosureLevel(chapter, num, desc.source, desc.vars);
     if (desc.type === 'inst') return reasoningInstantiateLevel(chapter, num, desc.source, desc.termOffset);
+    if (desc.type === 'replace') return reasoningReplaceLevel(chapter, num, desc.source);
   } catch (e) {
     if (process.env.DEBUG) console.error('reasoning error', chapter, desc.type, desc.source.id, e && e.stack || e);
   }
@@ -743,7 +832,7 @@ const PLANS = {
       pairs.push({ s: sApp[(i * 13 + 3) % sApp.length], t: list[(i * 29 + 7) % list.length] });
     }
     return [
-      ['reasoning', 8, reasoningPlan('prop')],
+      ['reasoning', 8, hardPlan('prop')],
       ['subst1', 10, spread(atoms, 10, 7)],
       ['subst2', 10, spread(atoms2, 10, 13)],
       ['detachApply', 12, spread(pairs, 12, 19)],
@@ -754,7 +843,7 @@ const PLANS = {
     const atoms = filter(list.concat(all.prop), (x) => x.atoms.length >= 1);
     const atoms2 = filter(list.concat(all.prop), (x) => x.atoms.length >= 2);
     return [
-      ['reasoning', 6, reasoningPlan('pred')],
+      ['reasoning', 6, hardPlan('pred')],
       ['subst1', 12, spread(atoms, 12, 5)],
       ['substClosure', 10, spread(filter(all.prop, (x) => x.atoms.length >= 1), 10, 17)],
       ['substClosureElim', 10, spread(filter(all.prop, (x) => x.atoms.length >= 1), 10, 23)],
@@ -766,7 +855,7 @@ const PLANS = {
     const vars = filter(list, (x) => xyzVars(x).length >= 1);
     const vars2 = filter(list, (x) => xyzVars(x).length >= 2);
     return [
-      ['reasoning', 6, reasoningPlan('eq')],
+      ['reasoning', 6, hardPlan('eq')],
       ['subst1', 8, spread(atoms, 8, 9)],
       ['closure', 1, spread(vars, 1, 3)],
       ['replace', 3, spread(filter(list, (x) => x.opts.length > 0), 3, 31)],
@@ -790,7 +879,7 @@ const PLANS = {
       }
     }
     return [
-      ['reasoning', 11, reasoningPlan('set')],
+      ['reasoning', 11, hardPlan('set')],
       ['closureVariant', 5, closureVariants],
       ['replace', 2, spread(replacePairs, 2, 23)],
       ['instantiate', 12, spread(vars2, 12, 11)],
@@ -859,6 +948,7 @@ function buildChapter(chapter, list, all) {
       if (!spec) continue;
       if (usedTargets.has(spec.target)) continue;
       if (!validate(spec)) continue;
+      curateAllowed(spec);
       usedTargets.add(spec.target);
       spec.band = num <= 30 ? 'base' : 'challenge';
       spec._difficulty = difficultyOf(spec, type);

@@ -583,13 +583,13 @@ runTest('acceptance', async ({ openPage }) => {
   equal(zeroGroups.minus, false, '只剩 1 组时代换减号隐藏');
   equal(zeroGroups.plus, true, '只剩 1 组时加号仍可继续加组');
 
-  /* 原子命题可选 A–Z：第 22 关目标里出现 U，不能被 P–T 限制挡住 */
+  /* 命题变元只有 14 个：PQRSTUVWXYZABC；U 仍可选 */
   await page.js(`(function(){
     var st=window.RSL.APP.state;
-    var i=st.levels.findIndex(function(l){return l.id==='CH1-22';});
+    var i=st.levels.findIndex(function(l){return l.id==='CH1-15';});
     window.RSL.APP.loadLevel(i);
   })()`);
-  await page.waitFor('window.RSL.APP.state.level.id === "CH1-22"');
+  await page.waitFor('window.RSL.APP.state.level.id === "CH1-15"');
   await page.js('try{window.RSL.UI.els.coachPop.click();}catch(e){}');
   await page.js('document.querySelector(".tile[data-key=\\"atom\\"]").click()');
   await page.waitFor('!!document.querySelector(".node[data-kind=\\"atom\\"]")');
@@ -602,8 +602,8 @@ runTest('acceptance', async ({ openPage }) => {
     var opts=Array.prototype.map.call(document.querySelectorAll('.opt[data-config="name"]'),function(o){return o.dataset.value;});
     return {count:opts.length, hasU:opts.indexOf('U')>=0, head:opts.slice(0,5), target:window.RSL.APP.state.level.target};
   })()`);
-  ok(atomOptions.count >= 26, '原子选项覆盖 A–Z（实际 ' + atomOptions.count + ' 个）');
-  equal(atomOptions.hasU, true, '第 22 关的命题 U 能出现在原子选项里');
+  equal(atomOptions.count, 14, '命题变元选项正好 14 个');
+  equal(atomOptions.hasU, true, '命题 U 能出现在原子选项里');
   equal(atomOptions.head.slice(0, 5).join(''), 'PQRST', '原子选项固定以 P/Q/R/S/T 开头');
   const atomPicker = await page.js(`(function(){
     var p=document.getElementById('popover');
@@ -612,7 +612,7 @@ runTest('acceptance', async ({ openPage }) => {
     return {overflow:p.scrollWidth>p.clientWidth, rows:Object.keys(tops).length, width:Math.round(p.getBoundingClientRect().width)};
   })()`);
   equal(atomPicker.overflow, false, '26 个原子选项换行成网格，不出现横向溢出');
-  ok(atomPicker.rows >= 4, '原子选项分成多行显示（实际 ' + atomPicker.rows + ' 行）');
+  ok(atomPicker.rows >= 2, '原子选项分成多行显示（实际 ' + atomPicker.rows + ' 行）');
   await page.js('document.querySelector(".opt[data-value=\\"U\\"]").click()');
   await page.sleep(250);
   const atomU = await page.js(`(function(){

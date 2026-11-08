@@ -52,23 +52,6 @@ function challengeOf(group) {
   return group.filter((lv) => lv.band === 'challenge');
 }
 
-/* 目标公式里出现的构造符（按 catalog 的 CONSTRUCT_KINDS 语义，all/exists 归为 quant）。 */
-const CONSTRUCT_KINDS = ['not', 'imp', 'or', 'and', 'iff', 'pred', 'term', 'quant'];
-
-function constructorsInTarget(target) {
-  const ast = Logic.parse(target);
-  const found = new Set();
-  (function walk(node) {
-    if (!node) return;
-    const kind = node.k === 'all' || node.k === 'exists' ? 'quant' : node.k;
-    if (CONSTRUCT_KINDS.indexOf(kind) >= 0) found.add(kind);
-    if (node.a) walk(node.a);
-    if (node.b) walk(node.b);
-    if (node.args) node.args.forEach(walk);
-  })(ast);
-  return found;
-}
-
 /* ---------------------------------------------------------------- 1. build */
 
 test('build(): 240 关、四章各 60、章内按关号升序、章块连续', () => {
@@ -173,29 +156,52 @@ test('挑战段：章内顺序解锁，最后一关标记 challenge=true，且�
   assert.equal(LEVELS.filter((lv) => lv.challenge === true).length, 4, '每章恰好 1 个 challenge 收尾关');
 });
 
-/* ------------------------------------------------------- 4. subst 自动补模块 */
+/* ------------------------------------------- 4. allowed 按参考电路收敛，不批量塞模块 */
 
-test('subst 关卡自动补 atom 与目标里的构造模块，且不重复', () => {
+test('subst 关卡的 allowed 只包含参考电路用到的模块，且不重复', () => {
   const substLevels = LEVELS.filter((lv) => (lv.allowed || []).indexOf('subst') >= 0);
   assert.ok(substLevels.length > 0, '数据里应有使用 subst 的关卡');
 
   for (const lv of substLevels) {
     const allowed = lv.allowed;
     assert.ok(allowed.indexOf('atom') >= 0, lv.id + ' 使用 subst 时必须能放置 atom');
-    const constructors = constructorsInTarget(lv.target);
-    for (const kind of constructors) {
-      assert.ok(allowed.indexOf(kind) >= 0, lv.id + ' 目标含 ' + kind + '，allowed 应自动补上');
-    }
+    assert.ok(allowed.indexOf('subst') >= 0, lv.id + ' allowed 应含 subst');
     assert.equal(new Set(allowed).size, allowed.length, lv.id + ' allowed 不应有重复项');
+
+    const used = new Set(['target']);
+    for (const n of lv.solution.nodes || []) {
+      if (n.kind === 'axiom') used.add('axiom:' + n.config.axiomId);
+      else if (n.kind === 'theorem') used.add('theorem:' + n.config.theoremCode);
+      else if (n.kind === 'archive') used.add('archive:' + n.config.label);
+      else if (n.kind !== 'target') used.add(n.kind);
+    }
+    for (const key of allowed) {
+      assert.ok(used.has(key), lv.id + ' 的 allowed 不应包含参考电路没用到的模块：' + key);
+    }
   }
 
-  /* CH1-04 的目标 P→(R→P) 需要 imp：原始数据没有 imp，build 后补上。 */
-  const ch104 = LEVELS.find((lv) => lv.id === 'CH1-04');
-  assert.ok(ch104, '应存在 CH1-04');
-  assert.equal(ch104.target, 'P→(R→P)', 'CH1-04 目标应为 P→(R→P)');
-  assert.ok(ch104.allowed.indexOf('imp') >= 0, 'CH1-04 allowed 应补上 imp');
-  const orig104 = ORIG_BY_ID.get('CH1-04');
-  assert.ok(orig104.allowed.indexOf('imp') < 0, 'CH1-04 原始 allowed 本不含 imp（build 才补）');
+  const propPred = LEVELS.filter((lv) => lv.chapter === 'prop' &&
+    (lv.allowed || []).some((k) => ['pred', 'term', 'quant', 'all-intro', 'all-elim', 'exists-intro', 'exists-elim'].indexOf(k) >= 0));
+  assert.equal(propPred.length, 0, '命题章不应出现谓词/量词元件：' + propPred.map((l) => l.id).join(','));
+
+  const blanket = LEVELS.filter((lv) => ['not', 'imp', 'or', 'and', 'iff'].every((k) => (lv.allowed || []).indexOf(k) >= 0));
+  assert.equal(blanket.length, 0, '没有关卡应一次性允许全部连接词：' + blanket.map((l) => l.id).join(','));
+});
+
+test('每一关的 allowed 都只包含参考电路用到的模块 + target', () => {
+  for (const lv of LEVELS) {
+    const used = new Set(['target']);
+    for (const n of lv.solution.nodes || []) {
+      if (n.kind === 'axiom') used.add('axiom:' + n.config.axiomId);
+      else if (n.kind === 'theorem') used.add('theorem:' + n.config.theoremCode);
+      else if (n.kind === 'archive') used.add('archive:' + n.config.label);
+      else if (n.kind !== 'target') used.add(n.kind);
+    }
+    const extras = (lv.allowed || []).filter((k) => !used.has(k));
+    assert.equal(extras.length, 0, lv.id + ' 的 allowed 有多余模块：' + extras.join(','));
+    assert.ok((lv.allowed || []).indexOf('target') >= 0, lv.id + ' allowed 应含 target');
+    assert.equal(new Set(lv.allowed).size, lv.allowed.length, lv.id + ' allowed 不应有重复');
+  }
 });
 
 /* -------------------------------------------------------------- 5. isUnlocked */

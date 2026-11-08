@@ -479,8 +479,8 @@
    * ========================================================================= */
 
   /* 原子命题固定按 P–Z、A–O 排列：P/Q/R/S/T 在视觉最前，U…Z 紧随其后。
-     有些 set.mm 条目会用到 U/V/W/…/Z 甚至 A–O 的字母，不能只给 P–T。 */
-  var ATOM_CHOICES = 'PQRSTUVWXYZABCDEFGHIJKLMNO'.split('');
+     关卡里只使用 PQRSTUVWXYZABC 这 14 个命题变元。 */
+  var ATOM_CHOICES = 'PQRSTUVWXYZABC'.split('');
   function atomChoices() { return ATOM_CHOICES; }
 
   function renderPopover() {

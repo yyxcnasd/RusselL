@@ -8,7 +8,7 @@
       label: '原子命题', kindLabel: 'ATOM', group: 'build', symbol: 'P',
       ports: { inputs: [], outputs: [{ id: 'out', label: '公式', type: 'formula' }] },
       config: { name: 'P' },
-      help: '提供 A–Z 中的一枚原子命题。'
+      help: '提供 PQRSTUVWXYZABC 中的一枚原子命题。'
     },
     not: {
       label: '否定门', kindLabel: 'NOT', group: 'build', symbol: '¬',

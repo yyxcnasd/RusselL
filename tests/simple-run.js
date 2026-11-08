@@ -3,9 +3,9 @@
  * 引用“已证结论”的关卡（theorem 模块）+ config popover。
  *
  * 覆盖点：
- *   - CH1-08 能加载，目标 P→(Q→Q)，调色板 6 个元件；
+ *   - CH1-08 能加载，目标 P→(Q→Q)，调色板 5 个元件（不再补无用的 imp）；
  *   - 把 theorem:CH1-07（结论 P→P）接到目标：导线生成，但目标断言不匹配 → error；
- *   - 切到另一关后 atom 元件弹出 A–Z 实例选项（目标原子排最前）。
+ *   - 切到另一关后 atom 元件弹出 14 个命题变元选项（PQRSTUVWXYZABC）。
  */
 const { runTest } = require('./lib/browser');
 const { ok, equal, includes } = require('./lib/expect');
@@ -25,7 +25,7 @@ runTest('simple-run', async ({ openPage }) => {
     'P→(Q→Q)',
     'CH1-08 目标是 P→(Q→Q)'
   );
-  equal(await page.js('document.querySelectorAll(".tile").length'), 6, 'CH1-08 调色板有 6 个元件');
+  equal(await page.js('document.querySelectorAll(".tile").length'), 5, 'CH1-08 调色板只有参考电路需要的 5 个元件');
 
   await page.js('document.querySelector(".tile[data-key^=\\"theorem:\\"]").click()');
   await page.waitFor('document.querySelectorAll(".node[data-kind=\\"theorem\\"]").length === 1');
@@ -59,18 +59,18 @@ runTest('simple-run', async ({ openPage }) => {
   /* ---- 另一关的 atom 实例 popover ---- */
   await page.js('window.RSL.APP.loadLevel(7)');
   await page.waitFor('window.RSL.APP.state.level.id === "CH1-08"');
-  equal(await page.js('document.querySelectorAll(".tile").length'), 6, '重新载入 CH1-08 仍有 6 个元件');
+  equal(await page.js('document.querySelectorAll(".tile").length'), 5, '重新载入 CH1-08 仍有 5 个元件');
 
   await page.js('document.querySelector("[data-key=\\"atom\\"]").click()');
-  await page.waitFor('document.querySelectorAll("#popover .opt").length === 26');
+  await page.waitFor('document.querySelectorAll("#popover .opt").length === 14');
   const pop = await page.js(`(function(){
     return {opts:document.querySelectorAll('#popover .opt').length,
             visible:!document.getElementById('popover').hidden,
             texts:Array.from(document.querySelectorAll('#popover .opt')).map(function(e){return e.textContent})};
   })()`);
   equal(pop.visible, true, 'atom 元件弹出实例选择 popover');
-  equal(pop.opts, 26, 'popover 提供 A–Z 共 26 个原子选项');
+  equal(pop.opts, 14, 'popover 提供 14 个命题变元选项');
   equal(pop.texts[0] + pop.texts[1], 'PQ', '目标里出现的原子排在最前（P、Q）');
-  ok(pop.texts.indexOf('U') >= 0, '原子选项包含 U（第 22 关需要）');
+  ok(pop.texts.indexOf('U') >= 0, '命题变元选项包含 U');
   await page.shot('simple-popover');
 });

@@ -56,9 +56,15 @@ for (const lv of levels.filter((l) => l.band === 'challenge')) {
   if (lv.solution && lv.solution.nodes.length < 2) fail(lv.id, '挑战段关卡过短：' + lv.solution.nodes.length + ' 个模块');
 }
 
+const ATOM_POOL = 'PQRSTUVWXYZABC';
 for (const lv of levels) {
   /* 2. 目标可解析 */
   try { L.parse(lv.target); } catch (err) { fail(lv.id, '目标无法解析：' + err.message); continue; }
+
+  /* 2b. 命题变元只能是 14 个固定名字 */
+  for (const a of L.atomsOf(L.parse(lv.target))) {
+    if (ATOM_POOL.indexOf(a) < 0) fail(lv.id, '命题变元越界：' + a);
+  }
 
   /* 3. allowed 引用合法 */
   for (const key of lv.allowed || []) {

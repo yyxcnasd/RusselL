@@ -83,7 +83,8 @@ research/setmm-data.json (+ setmm-set-extra.json)
 
 改生成器后：`node scripts/gen-levels.js`，然后 `git diff src/archive.js src/levels-generated.js` 应为你预期的变化（纯重构应为空）。
 `src/levels.js` 是手工关，可直接改；四章各 12 关手工 + 48 关生成。
-生成关的前若干关是**推理关**：从公理或已证结论出发，用代入/全称闭包/闭包+例化推出目标，不使用 archive 直连；档案条目只作为已证引理出现在后续关卡。
+生成关的前若干关是**推理关**：把 set.mm 的难证定理/公理当作已证引理，用代入/全称闭包/定义置换推出新目标，不使用 archive 直连；难证定理仍会作为引理出现在关卡里。
+档案公式的命题变元统一归一化到 `PQRSTUVWXYZABC`；每关的 `allowed` 由参考电路收敛而来（只含真正用到的模块 + 目标），命题章不再出现谓词/量词元件。
 
 ## 5. 视觉与交互约定
 
@@ -99,7 +100,7 @@ research/setmm-data.json (+ setmm-set-extra.json)
 
 | 命令 | 覆盖 |
 | --- | --- |
-| `npm test` | 42 项单测：逻辑 17、成就 4、存档 2、走线 11、关卡目录 8；加上 240 关参考电路 |
+| `npm test` | 43 项单测：逻辑 17、成就 4、存档 2、走线 11、关卡目录 9；加上 240 关参考电路 |
 | `npm run test:ui` | Edge headless 真浏览器：放置/连线/通关/拆线/拖回删除/拖放/暗色/移动端/多选等 |
 | `npm run test:acceptance` | 先构建 `dist/`，再跑独立验收（含 dist 产物 file:// 冒烟与清单核对） |
 | `npm run capture:screens` | 重新采集 `screenshots/` 的 12 张文档图（`--repo`） |

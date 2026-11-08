@@ -32,25 +32,6 @@
     return m ? parseInt(m[1], 10) : level._ord;
   }
 
-  var CONSTRUCT_KINDS = ['not', 'imp', 'or', 'and', 'iff', 'pred', 'term', 'quant'];
-
-  /* 有代入的关卡必须能构造目标里出现的连接词，否则玩家无法把公式当作代入项。 */
-  function allowConstructors(level) {
-    if (level.allowed.indexOf('subst') < 0) return;
-    if (level.allowed.indexOf('atom') < 0) level.allowed.push('atom');
-    var ast = null;
-    try { ast = L.parse(level.target); } catch (e) { return; }
-    (function walk(n) {
-      if (!n) return;
-      var kind = n.k;
-      if (kind === 'all' || kind === 'exists') kind = 'quant';
-      if (CONSTRUCT_KINDS.indexOf(kind) >= 0 && level.allowed.indexOf(kind) < 0) level.allowed.push(kind);
-      if (n.a) walk(n.a);
-      if (n.b) walk(n.b);
-      if (n.args) n.args.forEach(walk);
-    })(ast);
-  }
-
   /** 生成运行时关卡目录：补齐字段、按章/关号排序、串好基础段与挑战段的解锁链。 */
   function build() {
     var list = (host.RSL.LEVELS || []).map(function (level, i) {
@@ -62,7 +43,6 @@
       copy.solution = level.solution || { nodes: [], edges: [] };
       copy._ord = i;
       copy.chapterGroup = chapterOf(copy);
-      allowConstructors(copy);
       return copy;
     });
 

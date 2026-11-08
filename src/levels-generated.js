@@ -9,8 +9,8 @@
   "id": "CH1-13",
   "chapter": "prop",
   "code": "CH1-13",
-  "title": "CH1-07 · 代入推演",
-  "kicker": "推理 / CH1-07",
+  "title": "3mix1 · 代入推演",
+  "kicker": "推理 / 3mix1",
   "brief": "",
   "hint": "",
   "teaches": [
@@ -18,14 +18,14 @@
   ],
   "allowed": [
    "target",
-   "theorem:CH1-07",
+   "archive:3mix1",
    "subst",
    "atom",
    "not"
   ],
   "reward": "—",
-  "note": "不使用档案结论；从 已证结论 CH1-07 出发，用代入 / 量词 / 分离规则推出目标。",
-  "target": "¬K→¬K",
+  "note": "不使用档案结论；从 已证结论 3mix1 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "¬S→¬S∨Q∨R",
   "targetPos": {
    "x": 980,
    "y": 640
@@ -38,11 +38,11 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "theorem",
+     "kind": "archive",
      "x": 60,
      "y": 700,
      "config": {
-      "theoremCode": "CH1-07"
+      "label": "3mix1"
      }
     },
     {
@@ -67,7 +67,7 @@
      "x": 280,
      "y": 80,
      "config": {
-      "name": "K"
+      "name": "S"
      }
     },
     {
@@ -137,8 +137,8 @@
   "id": "CH1-14",
   "chapter": "prop",
   "code": "CH1-14",
-  "title": "ax-1 · 代入推演",
-  "kicker": "推理 / ax-1",
+  "title": "simp2 · 代入推演",
+  "kicker": "推理 / simp2",
   "brief": "",
   "hint": "",
   "teaches": [
@@ -146,14 +146,14 @@
   ],
   "allowed": [
    "target",
-   "axiom:ax-1",
+   "archive:simp2",
    "subst",
    "atom",
-   "or"
+   "imp"
   ],
   "reward": "—",
-  "note": "不使用档案结论；从 公理 ax-1 出发，用代入 / 量词 / 分离规则推出目标。",
-  "target": "H∨I→Q→H∨I",
+  "note": "不使用档案结论；从 已证结论 simp2 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "(S→T)∧Q∧R→Q",
   "targetPos": {
    "x": 1080,
    "y": 640
@@ -166,11 +166,11 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "axiom",
+     "kind": "archive",
      "x": 60,
      "y": 700,
      "config": {
-      "axiomId": "ax-1"
+      "label": "simp2"
      }
     },
     {
@@ -195,7 +195,7 @@
      "x": 280,
      "y": 80,
      "config": {
-      "name": "H"
+      "name": "S"
      }
     },
     {
@@ -204,12 +204,12 @@
      "x": 500,
      "y": 80,
      "config": {
-      "name": "I"
+      "name": "T"
      }
     },
     {
      "id": "f3",
-     "kind": "or",
+     "kind": "imp",
      "x": 720,
      "y": 80,
      "config": {}
@@ -284,8 +284,8 @@
   "id": "CH1-15",
   "chapter": "prop",
   "code": "CH1-15",
-  "title": "CH1-12 · 代入推演",
-  "kicker": "推理 / CH1-12",
+  "title": "pm3.24 · 代入推演",
+  "kicker": "推理 / pm3.24",
   "brief": "",
   "hint": "",
   "teaches": [
@@ -293,14 +293,14 @@
   ],
   "allowed": [
    "target",
-   "theorem:CH1-12",
+   "archive:pm3.24",
    "subst",
    "atom",
    "or"
   ],
   "reward": "—",
-  "note": "不使用档案结论；从 已证结论 CH1-12 出发，用代入 / 量词 / 分离规则推出目标。",
-  "target": "(M∨N→Q)→M∨N→Q",
+  "note": "不使用档案结论；从 已证结论 pm3.24 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "¬((C∨Q)∧¬(C∨Q))",
   "targetPos": {
    "x": 1080,
    "y": 640
@@ -313,11 +313,11 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "theorem",
+     "kind": "archive",
      "x": 60,
      "y": 700,
      "config": {
-      "theoremCode": "CH1-12"
+      "label": "pm3.24"
      }
     },
     {
@@ -342,7 +342,7 @@
      "x": 280,
      "y": 80,
      "config": {
-      "name": "M"
+      "name": "C"
      }
     },
     {
@@ -351,7 +351,7 @@
      "x": 500,
      "y": 80,
      "config": {
-      "name": "N"
+      "name": "Q"
      }
     },
     {
@@ -431,8 +431,8 @@
   "id": "CH1-16",
   "chapter": "prop",
   "code": "CH1-16",
-  "title": "ax-1 · 代入推演",
-  "kicker": "推理 / ax-1",
+  "title": "pm2.07 · 代入推演",
+  "kicker": "推理 / pm2.07",
   "brief": "",
   "hint": "",
   "teaches": [
@@ -440,14 +440,14 @@
   ],
   "allowed": [
    "target",
-   "axiom:ax-1",
+   "archive:pm2.07",
    "subst",
    "atom",
    "iff"
   ],
   "reward": "—",
-  "note": "不使用档案结论；从 公理 ax-1 出发，用代入 / 量词 / 分离规则推出目标。",
-  "target": "(N↔O)→Q→(N↔O)",
+  "note": "不使用档案结论；从 已证结论 pm2.07 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "(Q↔R)→(Q↔R)∨(Q↔R)",
   "targetPos": {
    "x": 1080,
    "y": 640
@@ -460,11 +460,11 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "axiom",
+     "kind": "archive",
      "x": 60,
      "y": 700,
      "config": {
-      "axiomId": "ax-1"
+      "label": "pm2.07"
      }
     },
     {
@@ -489,7 +489,7 @@
      "x": 280,
      "y": 80,
      "config": {
-      "name": "N"
+      "name": "Q"
      }
     },
     {
@@ -498,7 +498,7 @@
      "x": 500,
      "y": 80,
      "config": {
-      "name": "O"
+      "name": "R"
      }
     },
     {
@@ -578,8 +578,8 @@
   "id": "CH1-17",
   "chapter": "prop",
   "code": "CH1-17",
-  "title": "ax-3 · 代入推演",
-  "kicker": "推理 / ax-3",
+  "title": "pm2.5 · 代入推演",
+  "kicker": "推理 / pm2.5",
   "brief": "",
   "hint": "",
   "teaches": [
@@ -587,161 +587,14 @@
   ],
   "allowed": [
    "target",
-   "axiom:ax-3",
-   "subst",
-   "atom",
-   "imp"
-  ],
-  "reward": "—",
-  "note": "不使用档案结论；从 公理 ax-3 出发，用代入 / 量词 / 分离规则推出目标。",
-  "target": "(¬(J→K)→¬Q)→Q→J→K",
-  "targetPos": {
-   "x": 1080,
-   "y": 640
-  },
-  "world": {
-   "w": 2200,
-   "h": 1340
-  },
-  "solution": {
-   "nodes": [
-    {
-     "id": "src",
-     "kind": "axiom",
-     "x": 60,
-     "y": 700,
-     "config": {
-      "axiomId": "ax-3"
-     }
-    },
-    {
-     "id": "s0",
-     "kind": "subst",
-     "x": 620,
-     "y": 700,
-     "config": {}
-    },
-    {
-     "id": "a0",
-     "kind": "atom",
-     "x": 60,
-     "y": 80,
-     "config": {
-      "name": "P"
-     }
-    },
-    {
-     "id": "a1",
-     "kind": "atom",
-     "x": 280,
-     "y": 80,
-     "config": {
-      "name": "J"
-     }
-    },
-    {
-     "id": "a2",
-     "kind": "atom",
-     "x": 500,
-     "y": 80,
-     "config": {
-      "name": "K"
-     }
-    },
-    {
-     "id": "f3",
-     "kind": "imp",
-     "x": 720,
-     "y": 80,
-     "config": {}
-    }
-   ],
-   "edges": [
-    {
-     "from": {
-      "node": "src",
-      "port": "out"
-     },
-     "to": {
-      "node": "s0",
-      "port": "assertion"
-     }
-    },
-    {
-     "from": {
-      "node": "a0",
-      "port": "out"
-     },
-     "to": {
-      "node": "s0",
-      "port": "atom"
-     }
-    },
-    {
-     "from": {
-      "node": "a1",
-      "port": "out"
-     },
-     "to": {
-      "node": "f3",
-      "port": "a"
-     }
-    },
-    {
-     "from": {
-      "node": "a2",
-      "port": "out"
-     },
-     "to": {
-      "node": "f3",
-      "port": "b"
-     }
-    },
-    {
-     "from": {
-      "node": "f3",
-      "port": "out"
-     },
-     "to": {
-      "node": "s0",
-      "port": "formula"
-     }
-    },
-    {
-     "from": {
-      "node": "s0",
-      "port": "out"
-     },
-     "to": {
-      "node": "target",
-      "port": "proof"
-     }
-    }
-   ]
-  },
-  "band": "base"
- },
- {
-  "id": "CH1-18",
-  "chapter": "prop",
-  "code": "CH1-18",
-  "title": "CH1-10 · 代入推演",
-  "kicker": "推理 / CH1-10",
-  "brief": "",
-  "hint": "",
-  "teaches": [
-   "代入推演"
-  ],
-  "allowed": [
-   "target",
-   "theorem:CH1-10",
+   "archive:pm2.5",
    "subst",
    "atom",
    "and"
   ],
   "reward": "—",
-  "note": "不使用档案结论；从 已证结论 CH1-10 出发，用代入 / 量词 / 分离规则推出目标。",
-  "target": "(L∧M→Q)→(S→L∧M)→S→Q",
+  "note": "不使用档案结论；从 已证结论 pm2.5 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "¬(S∧T→Q)→¬(S∧T)→Q",
   "targetPos": {
    "x": 1080,
    "y": 640
@@ -754,11 +607,11 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "theorem",
+     "kind": "archive",
      "x": 60,
      "y": 700,
      "config": {
-      "theoremCode": "CH1-10"
+      "label": "pm2.5"
      }
     },
     {
@@ -783,7 +636,7 @@
      "x": 280,
      "y": 80,
      "config": {
-      "name": "L"
+      "name": "S"
      }
     },
     {
@@ -792,7 +645,7 @@
      "x": 500,
      "y": 80,
      "config": {
-      "name": "M"
+      "name": "T"
      }
     },
     {
@@ -869,11 +722,11 @@
   "band": "base"
  },
  {
-  "id": "CH1-19",
+  "id": "CH1-18",
   "chapter": "prop",
-  "code": "CH1-19",
-  "title": "ax-2 · 代入推演",
-  "kicker": "推理 / ax-2",
+  "code": "CH1-18",
+  "title": "simprrr · 代入推演",
+  "kicker": "推理 / simprrr",
   "brief": "",
   "hint": "",
   "teaches": [
@@ -881,14 +734,14 @@
   ],
   "allowed": [
    "target",
-   "axiom:ax-2",
+   "archive:simprrr",
    "subst",
    "atom",
    "iff"
   ],
   "reward": "—",
-  "note": "不使用档案结论；从 公理 ax-2 出发，用代入 / 量词 / 分离规则推出目标。",
-  "target": "((I↔J)→Q→R)→((I↔J)→Q)→(I↔J)→R",
+  "note": "不使用档案结论；从 已证结论 simprrr 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "(U↔V)∧(Q∧(R∧S))→S",
   "targetPos": {
    "x": 1080,
    "y": 640
@@ -901,11 +754,11 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "axiom",
+     "kind": "archive",
      "x": 60,
      "y": 700,
      "config": {
-      "axiomId": "ax-2"
+      "label": "simprrr"
      }
     },
     {
@@ -930,7 +783,7 @@
      "x": 280,
      "y": 80,
      "config": {
-      "name": "I"
+      "name": "U"
      }
     },
     {
@@ -939,7 +792,7 @@
      "x": 500,
      "y": 80,
      "config": {
-      "name": "J"
+      "name": "V"
      }
     },
     {
@@ -1016,11 +869,11 @@
   "band": "base"
  },
  {
-  "id": "CH1-20",
+  "id": "CH1-19",
   "chapter": "prop",
-  "code": "CH1-20",
-  "title": "ax-2 · 代入推演",
-  "kicker": "推理 / ax-2",
+  "code": "CH1-19",
+  "title": "simpr12 · 代入推演",
+  "kicker": "推理 / simpr12",
   "brief": "",
   "hint": "",
   "teaches": [
@@ -1028,14 +881,14 @@
   ],
   "allowed": [
    "target",
-   "axiom:ax-2",
+   "archive:simpr12",
    "subst",
    "atom",
    "imp"
   ],
   "reward": "—",
-  "note": "不使用档案结论；从 公理 ax-2 出发，用代入 / 量词 / 分离规则推出目标。",
-  "target": "((O→S)→Q→R)→((O→S)→Q)→(O→S)→R",
+  "note": "不使用档案结论；从 已证结论 simpr12 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "U∧((V→W)∧Q∧R∧S∧T)→Q",
   "targetPos": {
    "x": 1080,
    "y": 640
@@ -1048,11 +901,11 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "axiom",
+     "kind": "archive",
      "x": 60,
      "y": 700,
      "config": {
-      "axiomId": "ax-2"
+      "label": "simpr12"
      }
     },
     {
@@ -1077,7 +930,7 @@
      "x": 280,
      "y": 80,
      "config": {
-      "name": "O"
+      "name": "V"
      }
     },
     {
@@ -1086,12 +939,159 @@
      "x": 500,
      "y": 80,
      "config": {
-      "name": "S"
+      "name": "W"
      }
     },
     {
      "id": "f3",
      "kind": "imp",
+     "x": 720,
+     "y": 80,
+     "config": {}
+    }
+   ],
+   "edges": [
+    {
+     "from": {
+      "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "a0",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "atom"
+     }
+    },
+    {
+     "from": {
+      "node": "a1",
+      "port": "out"
+     },
+     "to": {
+      "node": "f3",
+      "port": "a"
+     }
+    },
+    {
+     "from": {
+      "node": "a2",
+      "port": "out"
+     },
+     "to": {
+      "node": "f3",
+      "port": "b"
+     }
+    },
+    {
+     "from": {
+      "node": "f3",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "formula"
+     }
+    },
+    {
+     "from": {
+      "node": "s0",
+      "port": "out"
+     },
+     "to": {
+      "node": "target",
+      "port": "proof"
+     }
+    }
+   ]
+  },
+  "band": "base"
+ },
+ {
+  "id": "CH1-20",
+  "chapter": "prop",
+  "code": "CH1-20",
+  "title": "pm3.11 · 代入推演",
+  "kicker": "推理 / pm3.11",
+  "brief": "",
+  "hint": "",
+  "teaches": [
+   "代入推演"
+  ],
+  "allowed": [
+   "target",
+   "archive:pm3.11",
+   "subst",
+   "atom",
+   "or"
+  ],
+  "reward": "—",
+  "note": "不使用档案结论；从 已证结论 pm3.11 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "¬(¬(T∨U)∨¬Q)→(T∨U)∧Q",
+  "targetPos": {
+   "x": 1080,
+   "y": 640
+  },
+  "world": {
+   "w": 2200,
+   "h": 1340
+  },
+  "solution": {
+   "nodes": [
+    {
+     "id": "src",
+     "kind": "archive",
+     "x": 60,
+     "y": 700,
+     "config": {
+      "label": "pm3.11"
+     }
+    },
+    {
+     "id": "s0",
+     "kind": "subst",
+     "x": 620,
+     "y": 700,
+     "config": {}
+    },
+    {
+     "id": "a0",
+     "kind": "atom",
+     "x": 60,
+     "y": 80,
+     "config": {
+      "name": "P"
+     }
+    },
+    {
+     "id": "a1",
+     "kind": "atom",
+     "x": 280,
+     "y": 80,
+     "config": {
+      "name": "T"
+     }
+    },
+    {
+     "id": "a2",
+     "kind": "atom",
+     "x": 500,
+     "y": 80,
+     "config": {
+      "name": "U"
+     }
+    },
+    {
+     "id": "f3",
+     "kind": "or",
      "x": 720,
      "y": 80,
      "config": {}
@@ -1174,20 +1174,15 @@
    "代入"
   ],
   "allowed": [
+   "target",
    "archive:pm2.5",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "not"
   ],
   "reward": "—",
   "note": "set.mm pm2.5（Propositional calculus）；本作不重证档案定理。",
-  "target": "¬(¬R→Q)→¬¬R→Q",
+  "target": "¬(¬W→Q)→¬¬W→Q",
   "targetPos": {
    "x": 980,
    "y": 640
@@ -1229,7 +1224,7 @@
      "x": 280,
      "y": 80,
      "config": {
-      "name": "R"
+      "name": "W"
      }
     },
     {
@@ -1307,20 +1302,15 @@
    "代入"
   ],
   "allowed": [
+   "target",
    "archive:pm4.56",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "not"
   ],
   "reward": "—",
   "note": "set.mm pm4.56（Propositional calculus）；本作不重证档案定理。",
-  "target": "¬¬U∧¬Q↔¬(¬U∨Q)",
+  "target": "¬¬B∧¬Q↔¬(¬B∨Q)",
   "targetPos": {
    "x": 980,
    "y": 640
@@ -1362,7 +1352,7 @@
      "x": 280,
      "y": 80,
      "config": {
-      "name": "U"
+      "name": "B"
      }
     },
     {
@@ -1440,20 +1430,15 @@
    "代入"
   ],
   "allowed": [
+   "target",
    "archive:3orcoma",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "and"
   ],
   "reward": "—",
   "note": "set.mm 3orcoma（Propositional calculus）；本作不重证档案定理。",
-  "target": "V∧W∨Q∨R↔Q∨V∧W∨R",
+  "target": "C∧S∨Q∨R↔Q∨C∧S∨R",
   "targetPos": {
    "x": 1080,
    "y": 640
@@ -1495,7 +1480,7 @@
      "x": 280,
      "y": 80,
      "config": {
-      "name": "V"
+      "name": "C"
      }
     },
     {
@@ -1504,7 +1489,7 @@
      "x": 500,
      "y": 80,
      "config": {
-      "name": "W"
+      "name": "S"
      }
     },
     {
@@ -1592,20 +1577,15 @@
    "代入"
   ],
   "allowed": [
+   "target",
    "archive:simpl1l",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "or"
   ],
   "reward": "—",
   "note": "set.mm simpl1l（Propositional calculus）；本作不重证档案定理。",
-  "target": "(W∨X)∧Q∧R∧S∧T→W∨X",
+  "target": "(U∨V)∧Q∧R∧S∧T→U∨V",
   "targetPos": {
    "x": 1080,
    "y": 640
@@ -1647,7 +1627,7 @@
      "x": 280,
      "y": 80,
      "config": {
-      "name": "W"
+      "name": "U"
      }
     },
     {
@@ -1656,7 +1636,7 @@
      "x": 500,
      "y": 80,
      "config": {
-      "name": "X"
+      "name": "V"
      }
     },
     {
@@ -1744,20 +1724,15 @@
    "代入"
   ],
   "allowed": [
+   "target",
    "archive:biluk",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "and"
   ],
   "reward": "—",
   "note": "set.mm biluk（Propositional calculus）；本作不重证档案定理。",
-  "target": "(S∧T↔Q)↔(R↔Q)↔S∧T↔R",
+  "target": "(X∧Y↔Q)↔(R↔Q)↔X∧Y↔R",
   "targetPos": {
    "x": 1080,
    "y": 640
@@ -1799,7 +1774,7 @@
      "x": 280,
      "y": 80,
      "config": {
-      "name": "S"
+      "name": "X"
      }
     },
     {
@@ -1808,7 +1783,7 @@
      "x": 500,
      "y": 80,
      "config": {
-      "name": "T"
+      "name": "Y"
      }
     },
     {
@@ -1896,20 +1871,15 @@
    "代入"
   ],
   "allowed": [
+   "target",
    "archive:pm5.21",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "iff"
   ],
   "reward": "—",
   "note": "set.mm pm5.21（Propositional calculus）；本作不重证档案定理。",
-  "target": "¬(S↔T)∧¬Q→((S↔T)↔Q)",
+  "target": "¬(Z↔A)∧¬Q→((Z↔A)↔Q)",
   "targetPos": {
    "x": 1080,
    "y": 640
@@ -1951,7 +1921,7 @@
      "x": 280,
      "y": 80,
      "config": {
-      "name": "S"
+      "name": "Z"
      }
     },
     {
@@ -1960,7 +1930,7 @@
      "x": 500,
      "y": 80,
      "config": {
-      "name": "T"
+      "name": "A"
      }
     },
     {
@@ -2048,20 +2018,15 @@
    "代入"
   ],
   "allowed": [
+   "target",
    "archive:simp3l3",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "iff"
   ],
   "reward": "—",
   "note": "set.mm simp3l3（Propositional calculus）；本作不重证档案定理。",
-  "target": "T∧U∧((X↔Y)∧Q∧R∧S)→R",
+  "target": "T∧U∧((V↔W)∧Q∧R∧S)→R",
   "targetPos": {
    "x": 1080,
    "y": 640
@@ -2103,7 +2068,7 @@
      "x": 280,
      "y": 80,
      "config": {
-      "name": "X"
+      "name": "V"
      }
     },
     {
@@ -2112,7 +2077,7 @@
      "x": 500,
      "y": 80,
      "config": {
-      "name": "Y"
+      "name": "W"
      }
     },
     {
@@ -2200,20 +2165,15 @@
    "代入"
   ],
   "allowed": [
+   "target",
    "archive:anbi1",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "or"
   ],
   "reward": "—",
   "note": "set.mm anbi1（Propositional calculus）；本作不重证档案定理。",
-  "target": "(S∨T↔Q)→((S∨T)∧R↔Q∧R)",
+  "target": "(Y∨Z↔Q)→((Y∨Z)∧R↔Q∧R)",
   "targetPos": {
    "x": 1080,
    "y": 640
@@ -2255,7 +2215,7 @@
      "x": 280,
      "y": 80,
      "config": {
-      "name": "S"
+      "name": "Y"
      }
     },
     {
@@ -2264,7 +2224,7 @@
      "x": 500,
      "y": 80,
      "config": {
-      "name": "T"
+      "name": "Z"
      }
     },
     {
@@ -2352,20 +2312,15 @@
    "代入"
   ],
   "allowed": [
+   "target",
    "archive:pm2.32",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "imp"
   ],
   "reward": "—",
   "note": "set.mm pm2.32（Propositional calculus）；本作不重证档案定理。",
-  "target": "(T→U)∨Q∨R→(T→U)∨(Q∨R)",
+  "target": "(A→B)∨Q∨R→(A→B)∨(Q∨R)",
   "targetPos": {
    "x": 1080,
    "y": 640
@@ -2383,6 +2338,153 @@
      "y": 700,
      "config": {
       "label": "pm2.32"
+     }
+    },
+    {
+     "id": "s0",
+     "kind": "subst",
+     "x": 620,
+     "y": 700,
+     "config": {}
+    },
+    {
+     "id": "a0",
+     "kind": "atom",
+     "x": 60,
+     "y": 80,
+     "config": {
+      "name": "P"
+     }
+    },
+    {
+     "id": "a1",
+     "kind": "atom",
+     "x": 280,
+     "y": 80,
+     "config": {
+      "name": "A"
+     }
+    },
+    {
+     "id": "a2",
+     "kind": "atom",
+     "x": 500,
+     "y": 80,
+     "config": {
+      "name": "B"
+     }
+    },
+    {
+     "id": "f3",
+     "kind": "imp",
+     "x": 720,
+     "y": 80,
+     "config": {}
+    }
+   ],
+   "edges": [
+    {
+     "from": {
+      "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "a0",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "atom"
+     }
+    },
+    {
+     "from": {
+      "node": "a1",
+      "port": "out"
+     },
+     "to": {
+      "node": "f3",
+      "port": "a"
+     }
+    },
+    {
+     "from": {
+      "node": "a2",
+      "port": "out"
+     },
+     "to": {
+      "node": "f3",
+      "port": "b"
+     }
+    },
+    {
+     "from": {
+      "node": "f3",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "formula"
+     }
+    },
+    {
+     "from": {
+      "node": "s0",
+      "port": "out"
+     },
+     "to": {
+      "node": "target",
+      "port": "proof"
+     }
+    }
+   ]
+  },
+  "band": "base"
+ },
+ {
+  "id": "CH1-30",
+  "chapter": "prop",
+  "code": "CH1-30",
+  "title": "4anpull2 · 代入",
+  "kicker": "set.mm / 4anpull2",
+  "brief": "",
+  "hint": "",
+  "teaches": [
+   "代入"
+  ],
+  "allowed": [
+   "target",
+   "archive:4anpull2",
+   "subst",
+   "atom",
+   "imp"
+  ],
+  "reward": "—",
+  "note": "set.mm 4anpull2（Propositional calculus）；本作不重证档案定理。",
+  "target": "(T→U)∧Q∧(R∧S)↔(T→U)∧R∧S∧Q",
+  "targetPos": {
+   "x": 1080,
+   "y": 640
+  },
+  "world": {
+   "w": 2200,
+   "h": 1340
+  },
+  "solution": {
+   "nodes": [
+    {
+     "id": "src",
+     "kind": "archive",
+     "x": 60,
+     "y": 700,
+     "config": {
+      "label": "4anpull2"
      }
     },
     {
@@ -2493,158 +2595,6 @@
   "band": "base"
  },
  {
-  "id": "CH1-30",
-  "chapter": "prop",
-  "code": "CH1-30",
-  "title": "4anpull2 · 代入",
-  "kicker": "set.mm / 4anpull2",
-  "brief": "",
-  "hint": "",
-  "teaches": [
-   "代入"
-  ],
-  "allowed": [
-   "archive:4anpull2",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
-   "subst",
-   "target"
-  ],
-  "reward": "—",
-  "note": "set.mm 4anpull2（Propositional calculus）；本作不重证档案定理。",
-  "target": "(Y→Z)∧Q∧(R∧S)↔(Y→Z)∧R∧S∧Q",
-  "targetPos": {
-   "x": 1080,
-   "y": 640
-  },
-  "world": {
-   "w": 2200,
-   "h": 1340
-  },
-  "solution": {
-   "nodes": [
-    {
-     "id": "src",
-     "kind": "archive",
-     "x": 60,
-     "y": 700,
-     "config": {
-      "label": "4anpull2"
-     }
-    },
-    {
-     "id": "s0",
-     "kind": "subst",
-     "x": 620,
-     "y": 700,
-     "config": {}
-    },
-    {
-     "id": "a0",
-     "kind": "atom",
-     "x": 60,
-     "y": 80,
-     "config": {
-      "name": "P"
-     }
-    },
-    {
-     "id": "a1",
-     "kind": "atom",
-     "x": 280,
-     "y": 80,
-     "config": {
-      "name": "Y"
-     }
-    },
-    {
-     "id": "a2",
-     "kind": "atom",
-     "x": 500,
-     "y": 80,
-     "config": {
-      "name": "Z"
-     }
-    },
-    {
-     "id": "f3",
-     "kind": "imp",
-     "x": 720,
-     "y": 80,
-     "config": {}
-    }
-   ],
-   "edges": [
-    {
-     "from": {
-      "node": "src",
-      "port": "out"
-     },
-     "to": {
-      "node": "s0",
-      "port": "assertion"
-     }
-    },
-    {
-     "from": {
-      "node": "a0",
-      "port": "out"
-     },
-     "to": {
-      "node": "s0",
-      "port": "atom"
-     }
-    },
-    {
-     "from": {
-      "node": "a1",
-      "port": "out"
-     },
-     "to": {
-      "node": "f3",
-      "port": "a"
-     }
-    },
-    {
-     "from": {
-      "node": "a2",
-      "port": "out"
-     },
-     "to": {
-      "node": "f3",
-      "port": "b"
-     }
-    },
-    {
-     "from": {
-      "node": "f3",
-      "port": "out"
-     },
-     "to": {
-      "node": "s0",
-      "port": "formula"
-     }
-    },
-    {
-     "from": {
-      "node": "s0",
-      "port": "out"
-     },
-     "to": {
-      "node": "target",
-      "port": "proof"
-     }
-    }
-   ]
-  },
-  "band": "base"
- },
- {
   "id": "CH1-31",
   "chapter": "prop",
   "code": "CH1-31",
@@ -2656,14 +2606,14 @@
    "分离 · pm2.07 作为前件"
   ],
   "allowed": [
+   "target",
    "archive:pm2.24",
    "archive:pm2.07",
-   "atom",
    "subst",
-   "detach",
-   "target",
+   "atom",
+   "or",
    "imp",
-   "or"
+   "detach"
   ],
   "reward": "—",
   "note": "set.mm pm2.24（Propositional calculus）；本作不重证档案定理。",
@@ -2851,14 +2801,14 @@
    "分离 · 3anidm 作为前件"
   ],
   "allowed": [
+   "target",
    "archive:ornld",
    "archive:3anidm",
-   "atom",
    "subst",
-   "detach",
-   "target",
+   "atom",
+   "and",
    "iff",
-   "and"
+   "detach"
   ],
   "reward": "—",
   "note": "set.mm ornld（Propositional calculus）；本作不重证档案定理。",
@@ -3073,20 +3023,16 @@
    "双代入"
   ],
   "allowed": [
+   "target",
    "archive:simp1ll",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "imp",
+   "and"
   ],
   "reward": "—",
   "note": "set.mm simp1ll（Propositional calculus）；本作不重证档案定理。",
-  "target": "(G→H)∧(I∧J)∧R∧S∧T→G→H",
+  "target": "(Z→A)∧(B∧C)∧R∧S∧T→Z→A",
   "targetPos": {
    "x": 1960,
    "y": 640
@@ -3104,978 +3050,6 @@
      "y": 700,
      "config": {
       "label": "simp1ll"
-     }
-    },
-    {
-     "id": "s0",
-     "kind": "subst",
-     "x": 620,
-     "y": 700,
-     "config": {}
-    },
-    {
-     "id": "a0",
-     "kind": "atom",
-     "x": 60,
-     "y": 80,
-     "config": {
-      "name": "P"
-     }
-    },
-    {
-     "id": "a1",
-     "kind": "atom",
-     "x": 280,
-     "y": 80,
-     "config": {
-      "name": "G"
-     }
-    },
-    {
-     "id": "a2",
-     "kind": "atom",
-     "x": 500,
-     "y": 80,
-     "config": {
-      "name": "H"
-     }
-    },
-    {
-     "id": "f3",
-     "kind": "imp",
-     "x": 1380,
-     "y": 80,
-     "config": {}
-    },
-    {
-     "id": "s1",
-     "kind": "subst",
-     "x": 980,
-     "y": 700,
-     "config": {}
-    },
-    {
-     "id": "a4",
-     "kind": "atom",
-     "x": 720,
-     "y": 80,
-     "config": {
-      "name": "Q"
-     }
-    },
-    {
-     "id": "a5",
-     "kind": "atom",
-     "x": 940,
-     "y": 80,
-     "config": {
-      "name": "I"
-     }
-    },
-    {
-     "id": "a6",
-     "kind": "atom",
-     "x": 1160,
-     "y": 80,
-     "config": {
-      "name": "J"
-     }
-    },
-    {
-     "id": "f7",
-     "kind": "and",
-     "x": 1600,
-     "y": 80,
-     "config": {}
-    }
-   ],
-   "edges": [
-    {
-     "from": {
-      "node": "src",
-      "port": "out"
-     },
-     "to": {
-      "node": "s0",
-      "port": "assertion"
-     }
-    },
-    {
-     "from": {
-      "node": "a0",
-      "port": "out"
-     },
-     "to": {
-      "node": "s0",
-      "port": "atom"
-     }
-    },
-    {
-     "from": {
-      "node": "a1",
-      "port": "out"
-     },
-     "to": {
-      "node": "f3",
-      "port": "a"
-     }
-    },
-    {
-     "from": {
-      "node": "a2",
-      "port": "out"
-     },
-     "to": {
-      "node": "f3",
-      "port": "b"
-     }
-    },
-    {
-     "from": {
-      "node": "f3",
-      "port": "out"
-     },
-     "to": {
-      "node": "s0",
-      "port": "formula"
-     }
-    },
-    {
-     "from": {
-      "node": "s0",
-      "port": "out"
-     },
-     "to": {
-      "node": "s1",
-      "port": "assertion"
-     }
-    },
-    {
-     "from": {
-      "node": "a4",
-      "port": "out"
-     },
-     "to": {
-      "node": "s1",
-      "port": "atom"
-     }
-    },
-    {
-     "from": {
-      "node": "a5",
-      "port": "out"
-     },
-     "to": {
-      "node": "f7",
-      "port": "a"
-     }
-    },
-    {
-     "from": {
-      "node": "a6",
-      "port": "out"
-     },
-     "to": {
-      "node": "f7",
-      "port": "b"
-     }
-    },
-    {
-     "from": {
-      "node": "f7",
-      "port": "out"
-     },
-     "to": {
-      "node": "s1",
-      "port": "formula"
-     }
-    },
-    {
-     "from": {
-      "node": "s1",
-      "port": "out"
-     },
-     "to": {
-      "node": "target",
-      "port": "proof"
-     }
-    }
-   ]
-  },
-  "band": "challenge"
- },
- {
-  "id": "CH1-34",
-  "chapter": "prop",
-  "code": "CH1-34",
-  "title": "annim · 双代入",
-  "kicker": "set.mm / annim",
-  "brief": "",
-  "hint": "",
-  "teaches": [
-   "双代入"
-  ],
-  "allowed": [
-   "archive:annim",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
-   "subst",
-   "target"
-  ],
-  "reward": "—",
-  "note": "set.mm annim（Propositional calculus）；本作不重证档案定理。",
-  "target": "(A→B)∧¬(C∧D)↔¬((A→B)→C∧D)",
-  "targetPos": {
-   "x": 1960,
-   "y": 640
-  },
-  "world": {
-   "w": 2480,
-   "h": 1340
-  },
-  "solution": {
-   "nodes": [
-    {
-     "id": "src",
-     "kind": "archive",
-     "x": 60,
-     "y": 700,
-     "config": {
-      "label": "annim"
-     }
-    },
-    {
-     "id": "s0",
-     "kind": "subst",
-     "x": 620,
-     "y": 700,
-     "config": {}
-    },
-    {
-     "id": "a0",
-     "kind": "atom",
-     "x": 60,
-     "y": 80,
-     "config": {
-      "name": "P"
-     }
-    },
-    {
-     "id": "a1",
-     "kind": "atom",
-     "x": 280,
-     "y": 80,
-     "config": {
-      "name": "A"
-     }
-    },
-    {
-     "id": "a2",
-     "kind": "atom",
-     "x": 500,
-     "y": 80,
-     "config": {
-      "name": "B"
-     }
-    },
-    {
-     "id": "f3",
-     "kind": "imp",
-     "x": 1380,
-     "y": 80,
-     "config": {}
-    },
-    {
-     "id": "s1",
-     "kind": "subst",
-     "x": 980,
-     "y": 700,
-     "config": {}
-    },
-    {
-     "id": "a4",
-     "kind": "atom",
-     "x": 720,
-     "y": 80,
-     "config": {
-      "name": "Q"
-     }
-    },
-    {
-     "id": "a5",
-     "kind": "atom",
-     "x": 940,
-     "y": 80,
-     "config": {
-      "name": "C"
-     }
-    },
-    {
-     "id": "a6",
-     "kind": "atom",
-     "x": 1160,
-     "y": 80,
-     "config": {
-      "name": "D"
-     }
-    },
-    {
-     "id": "f7",
-     "kind": "and",
-     "x": 1600,
-     "y": 80,
-     "config": {}
-    }
-   ],
-   "edges": [
-    {
-     "from": {
-      "node": "src",
-      "port": "out"
-     },
-     "to": {
-      "node": "s0",
-      "port": "assertion"
-     }
-    },
-    {
-     "from": {
-      "node": "a0",
-      "port": "out"
-     },
-     "to": {
-      "node": "s0",
-      "port": "atom"
-     }
-    },
-    {
-     "from": {
-      "node": "a1",
-      "port": "out"
-     },
-     "to": {
-      "node": "f3",
-      "port": "a"
-     }
-    },
-    {
-     "from": {
-      "node": "a2",
-      "port": "out"
-     },
-     "to": {
-      "node": "f3",
-      "port": "b"
-     }
-    },
-    {
-     "from": {
-      "node": "f3",
-      "port": "out"
-     },
-     "to": {
-      "node": "s0",
-      "port": "formula"
-     }
-    },
-    {
-     "from": {
-      "node": "s0",
-      "port": "out"
-     },
-     "to": {
-      "node": "s1",
-      "port": "assertion"
-     }
-    },
-    {
-     "from": {
-      "node": "a4",
-      "port": "out"
-     },
-     "to": {
-      "node": "s1",
-      "port": "atom"
-     }
-    },
-    {
-     "from": {
-      "node": "a5",
-      "port": "out"
-     },
-     "to": {
-      "node": "f7",
-      "port": "a"
-     }
-    },
-    {
-     "from": {
-      "node": "a6",
-      "port": "out"
-     },
-     "to": {
-      "node": "f7",
-      "port": "b"
-     }
-    },
-    {
-     "from": {
-      "node": "f7",
-      "port": "out"
-     },
-     "to": {
-      "node": "s1",
-      "port": "formula"
-     }
-    },
-    {
-     "from": {
-      "node": "s1",
-      "port": "out"
-     },
-     "to": {
-      "node": "target",
-      "port": "proof"
-     }
-    }
-   ]
-  },
-  "band": "challenge"
- },
- {
-  "id": "CH1-35",
-  "chapter": "prop",
-  "code": "CH1-35",
-  "title": "simp21l · 双代入",
-  "kicker": "set.mm / simp21l",
-  "brief": "",
-  "hint": "",
-  "teaches": [
-   "双代入"
-  ],
-  "allowed": [
-   "archive:simp21l",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
-   "subst",
-   "target"
-  ],
-  "reward": "—",
-  "note": "set.mm simp21l（Propositional calculus）；本作不重证档案定理。",
-  "target": "T∧((H→I)∧(J∧K)∧R∧S)∧U→H→I",
-  "targetPos": {
-   "x": 1960,
-   "y": 640
-  },
-  "world": {
-   "w": 2480,
-   "h": 1340
-  },
-  "solution": {
-   "nodes": [
-    {
-     "id": "src",
-     "kind": "archive",
-     "x": 60,
-     "y": 700,
-     "config": {
-      "label": "simp21l"
-     }
-    },
-    {
-     "id": "s0",
-     "kind": "subst",
-     "x": 620,
-     "y": 700,
-     "config": {}
-    },
-    {
-     "id": "a0",
-     "kind": "atom",
-     "x": 60,
-     "y": 80,
-     "config": {
-      "name": "P"
-     }
-    },
-    {
-     "id": "a1",
-     "kind": "atom",
-     "x": 280,
-     "y": 80,
-     "config": {
-      "name": "H"
-     }
-    },
-    {
-     "id": "a2",
-     "kind": "atom",
-     "x": 500,
-     "y": 80,
-     "config": {
-      "name": "I"
-     }
-    },
-    {
-     "id": "f3",
-     "kind": "imp",
-     "x": 1380,
-     "y": 80,
-     "config": {}
-    },
-    {
-     "id": "s1",
-     "kind": "subst",
-     "x": 980,
-     "y": 700,
-     "config": {}
-    },
-    {
-     "id": "a4",
-     "kind": "atom",
-     "x": 720,
-     "y": 80,
-     "config": {
-      "name": "Q"
-     }
-    },
-    {
-     "id": "a5",
-     "kind": "atom",
-     "x": 940,
-     "y": 80,
-     "config": {
-      "name": "J"
-     }
-    },
-    {
-     "id": "a6",
-     "kind": "atom",
-     "x": 1160,
-     "y": 80,
-     "config": {
-      "name": "K"
-     }
-    },
-    {
-     "id": "f7",
-     "kind": "and",
-     "x": 1600,
-     "y": 80,
-     "config": {}
-    }
-   ],
-   "edges": [
-    {
-     "from": {
-      "node": "src",
-      "port": "out"
-     },
-     "to": {
-      "node": "s0",
-      "port": "assertion"
-     }
-    },
-    {
-     "from": {
-      "node": "a0",
-      "port": "out"
-     },
-     "to": {
-      "node": "s0",
-      "port": "atom"
-     }
-    },
-    {
-     "from": {
-      "node": "a1",
-      "port": "out"
-     },
-     "to": {
-      "node": "f3",
-      "port": "a"
-     }
-    },
-    {
-     "from": {
-      "node": "a2",
-      "port": "out"
-     },
-     "to": {
-      "node": "f3",
-      "port": "b"
-     }
-    },
-    {
-     "from": {
-      "node": "f3",
-      "port": "out"
-     },
-     "to": {
-      "node": "s0",
-      "port": "formula"
-     }
-    },
-    {
-     "from": {
-      "node": "s0",
-      "port": "out"
-     },
-     "to": {
-      "node": "s1",
-      "port": "assertion"
-     }
-    },
-    {
-     "from": {
-      "node": "a4",
-      "port": "out"
-     },
-     "to": {
-      "node": "s1",
-      "port": "atom"
-     }
-    },
-    {
-     "from": {
-      "node": "a5",
-      "port": "out"
-     },
-     "to": {
-      "node": "f7",
-      "port": "a"
-     }
-    },
-    {
-     "from": {
-      "node": "a6",
-      "port": "out"
-     },
-     "to": {
-      "node": "f7",
-      "port": "b"
-     }
-    },
-    {
-     "from": {
-      "node": "f7",
-      "port": "out"
-     },
-     "to": {
-      "node": "s1",
-      "port": "formula"
-     }
-    },
-    {
-     "from": {
-      "node": "s1",
-      "port": "out"
-     },
-     "to": {
-      "node": "target",
-      "port": "proof"
-     }
-    }
-   ]
-  },
-  "band": "challenge"
- },
- {
-  "id": "CH1-36",
-  "chapter": "prop",
-  "code": "CH1-36",
-  "title": "pm2.42 · 双代入",
-  "kicker": "set.mm / pm2.42",
-  "brief": "",
-  "hint": "",
-  "teaches": [
-   "双代入"
-  ],
-  "allowed": [
-   "archive:pm2.42",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
-   "subst",
-   "target"
-  ],
-  "reward": "—",
-  "note": "set.mm pm2.42（Propositional calculus）；本作不重证档案定理。",
-  "target": "¬(D→E)∨((D→E)→F∧G)→(D→E)→F∧G",
-  "targetPos": {
-   "x": 1960,
-   "y": 640
-  },
-  "world": {
-   "w": 2480,
-   "h": 1340
-  },
-  "solution": {
-   "nodes": [
-    {
-     "id": "src",
-     "kind": "archive",
-     "x": 60,
-     "y": 700,
-     "config": {
-      "label": "pm2.42"
-     }
-    },
-    {
-     "id": "s0",
-     "kind": "subst",
-     "x": 620,
-     "y": 700,
-     "config": {}
-    },
-    {
-     "id": "a0",
-     "kind": "atom",
-     "x": 60,
-     "y": 80,
-     "config": {
-      "name": "P"
-     }
-    },
-    {
-     "id": "a1",
-     "kind": "atom",
-     "x": 280,
-     "y": 80,
-     "config": {
-      "name": "D"
-     }
-    },
-    {
-     "id": "a2",
-     "kind": "atom",
-     "x": 500,
-     "y": 80,
-     "config": {
-      "name": "E"
-     }
-    },
-    {
-     "id": "f3",
-     "kind": "imp",
-     "x": 1380,
-     "y": 80,
-     "config": {}
-    },
-    {
-     "id": "s1",
-     "kind": "subst",
-     "x": 980,
-     "y": 700,
-     "config": {}
-    },
-    {
-     "id": "a4",
-     "kind": "atom",
-     "x": 720,
-     "y": 80,
-     "config": {
-      "name": "Q"
-     }
-    },
-    {
-     "id": "a5",
-     "kind": "atom",
-     "x": 940,
-     "y": 80,
-     "config": {
-      "name": "F"
-     }
-    },
-    {
-     "id": "a6",
-     "kind": "atom",
-     "x": 1160,
-     "y": 80,
-     "config": {
-      "name": "G"
-     }
-    },
-    {
-     "id": "f7",
-     "kind": "and",
-     "x": 1600,
-     "y": 80,
-     "config": {}
-    }
-   ],
-   "edges": [
-    {
-     "from": {
-      "node": "src",
-      "port": "out"
-     },
-     "to": {
-      "node": "s0",
-      "port": "assertion"
-     }
-    },
-    {
-     "from": {
-      "node": "a0",
-      "port": "out"
-     },
-     "to": {
-      "node": "s0",
-      "port": "atom"
-     }
-    },
-    {
-     "from": {
-      "node": "a1",
-      "port": "out"
-     },
-     "to": {
-      "node": "f3",
-      "port": "a"
-     }
-    },
-    {
-     "from": {
-      "node": "a2",
-      "port": "out"
-     },
-     "to": {
-      "node": "f3",
-      "port": "b"
-     }
-    },
-    {
-     "from": {
-      "node": "f3",
-      "port": "out"
-     },
-     "to": {
-      "node": "s0",
-      "port": "formula"
-     }
-    },
-    {
-     "from": {
-      "node": "s0",
-      "port": "out"
-     },
-     "to": {
-      "node": "s1",
-      "port": "assertion"
-     }
-    },
-    {
-     "from": {
-      "node": "a4",
-      "port": "out"
-     },
-     "to": {
-      "node": "s1",
-      "port": "atom"
-     }
-    },
-    {
-     "from": {
-      "node": "a5",
-      "port": "out"
-     },
-     "to": {
-      "node": "f7",
-      "port": "a"
-     }
-    },
-    {
-     "from": {
-      "node": "a6",
-      "port": "out"
-     },
-     "to": {
-      "node": "f7",
-      "port": "b"
-     }
-    },
-    {
-     "from": {
-      "node": "f7",
-      "port": "out"
-     },
-     "to": {
-      "node": "s1",
-      "port": "formula"
-     }
-    },
-    {
-     "from": {
-      "node": "s1",
-      "port": "out"
-     },
-     "to": {
-      "node": "target",
-      "port": "proof"
-     }
-    }
-   ]
-  },
-  "band": "challenge"
- },
- {
-  "id": "CH1-37",
-  "chapter": "prop",
-  "code": "CH1-37",
-  "title": "impt · 双代入",
-  "kicker": "set.mm / impt",
-  "brief": "",
-  "hint": "",
-  "teaches": [
-   "双代入"
-  ],
-  "allowed": [
-   "archive:impt",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
-   "subst",
-   "target"
-  ],
-  "reward": "—",
-  "note": "set.mm impt（Propositional calculus）；本作不重证档案定理。",
-  "target": "((Z→A)→B∧C→R)→¬((Z→A)→¬(B∧C))→R",
-  "targetPos": {
-   "x": 1960,
-   "y": 640
-  },
-  "world": {
-   "w": 2480,
-   "h": 1340
-  },
-  "solution": {
-   "nodes": [
-    {
-     "id": "src",
-     "kind": "archive",
-     "x": 60,
-     "y": 700,
-     "config": {
-      "label": "impt"
      }
     },
     {
@@ -4277,6 +3251,962 @@
   "band": "challenge"
  },
  {
+  "id": "CH1-34",
+  "chapter": "prop",
+  "code": "CH1-34",
+  "title": "annim · 双代入",
+  "kicker": "set.mm / annim",
+  "brief": "",
+  "hint": "",
+  "teaches": [
+   "双代入"
+  ],
+  "allowed": [
+   "target",
+   "archive:annim",
+   "subst",
+   "atom",
+   "imp",
+   "and"
+  ],
+  "reward": "—",
+  "note": "set.mm annim（Propositional calculus）；本作不重证档案定理。",
+  "target": "(T→U)∧¬(V∧W)↔¬((T→U)→V∧W)",
+  "targetPos": {
+   "x": 1960,
+   "y": 640
+  },
+  "world": {
+   "w": 2480,
+   "h": 1340
+  },
+  "solution": {
+   "nodes": [
+    {
+     "id": "src",
+     "kind": "archive",
+     "x": 60,
+     "y": 700,
+     "config": {
+      "label": "annim"
+     }
+    },
+    {
+     "id": "s0",
+     "kind": "subst",
+     "x": 620,
+     "y": 700,
+     "config": {}
+    },
+    {
+     "id": "a0",
+     "kind": "atom",
+     "x": 60,
+     "y": 80,
+     "config": {
+      "name": "P"
+     }
+    },
+    {
+     "id": "a1",
+     "kind": "atom",
+     "x": 280,
+     "y": 80,
+     "config": {
+      "name": "T"
+     }
+    },
+    {
+     "id": "a2",
+     "kind": "atom",
+     "x": 500,
+     "y": 80,
+     "config": {
+      "name": "U"
+     }
+    },
+    {
+     "id": "f3",
+     "kind": "imp",
+     "x": 1380,
+     "y": 80,
+     "config": {}
+    },
+    {
+     "id": "s1",
+     "kind": "subst",
+     "x": 980,
+     "y": 700,
+     "config": {}
+    },
+    {
+     "id": "a4",
+     "kind": "atom",
+     "x": 720,
+     "y": 80,
+     "config": {
+      "name": "Q"
+     }
+    },
+    {
+     "id": "a5",
+     "kind": "atom",
+     "x": 940,
+     "y": 80,
+     "config": {
+      "name": "V"
+     }
+    },
+    {
+     "id": "a6",
+     "kind": "atom",
+     "x": 1160,
+     "y": 80,
+     "config": {
+      "name": "W"
+     }
+    },
+    {
+     "id": "f7",
+     "kind": "and",
+     "x": 1600,
+     "y": 80,
+     "config": {}
+    }
+   ],
+   "edges": [
+    {
+     "from": {
+      "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "a0",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "atom"
+     }
+    },
+    {
+     "from": {
+      "node": "a1",
+      "port": "out"
+     },
+     "to": {
+      "node": "f3",
+      "port": "a"
+     }
+    },
+    {
+     "from": {
+      "node": "a2",
+      "port": "out"
+     },
+     "to": {
+      "node": "f3",
+      "port": "b"
+     }
+    },
+    {
+     "from": {
+      "node": "f3",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "formula"
+     }
+    },
+    {
+     "from": {
+      "node": "s0",
+      "port": "out"
+     },
+     "to": {
+      "node": "s1",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "a4",
+      "port": "out"
+     },
+     "to": {
+      "node": "s1",
+      "port": "atom"
+     }
+    },
+    {
+     "from": {
+      "node": "a5",
+      "port": "out"
+     },
+     "to": {
+      "node": "f7",
+      "port": "a"
+     }
+    },
+    {
+     "from": {
+      "node": "a6",
+      "port": "out"
+     },
+     "to": {
+      "node": "f7",
+      "port": "b"
+     }
+    },
+    {
+     "from": {
+      "node": "f7",
+      "port": "out"
+     },
+     "to": {
+      "node": "s1",
+      "port": "formula"
+     }
+    },
+    {
+     "from": {
+      "node": "s1",
+      "port": "out"
+     },
+     "to": {
+      "node": "target",
+      "port": "proof"
+     }
+    }
+   ]
+  },
+  "band": "challenge"
+ },
+ {
+  "id": "CH1-35",
+  "chapter": "prop",
+  "code": "CH1-35",
+  "title": "simp21l · 双代入",
+  "kicker": "set.mm / simp21l",
+  "brief": "",
+  "hint": "",
+  "teaches": [
+   "双代入"
+  ],
+  "allowed": [
+   "target",
+   "archive:simp21l",
+   "subst",
+   "atom",
+   "imp",
+   "and"
+  ],
+  "reward": "—",
+  "note": "set.mm simp21l（Propositional calculus）；本作不重证档案定理。",
+  "target": "T∧((A→B)∧(C∧V)∧R∧S)∧U→A→B",
+  "targetPos": {
+   "x": 1960,
+   "y": 640
+  },
+  "world": {
+   "w": 2480,
+   "h": 1340
+  },
+  "solution": {
+   "nodes": [
+    {
+     "id": "src",
+     "kind": "archive",
+     "x": 60,
+     "y": 700,
+     "config": {
+      "label": "simp21l"
+     }
+    },
+    {
+     "id": "s0",
+     "kind": "subst",
+     "x": 620,
+     "y": 700,
+     "config": {}
+    },
+    {
+     "id": "a0",
+     "kind": "atom",
+     "x": 60,
+     "y": 80,
+     "config": {
+      "name": "P"
+     }
+    },
+    {
+     "id": "a1",
+     "kind": "atom",
+     "x": 280,
+     "y": 80,
+     "config": {
+      "name": "A"
+     }
+    },
+    {
+     "id": "a2",
+     "kind": "atom",
+     "x": 500,
+     "y": 80,
+     "config": {
+      "name": "B"
+     }
+    },
+    {
+     "id": "f3",
+     "kind": "imp",
+     "x": 1380,
+     "y": 80,
+     "config": {}
+    },
+    {
+     "id": "s1",
+     "kind": "subst",
+     "x": 980,
+     "y": 700,
+     "config": {}
+    },
+    {
+     "id": "a4",
+     "kind": "atom",
+     "x": 720,
+     "y": 80,
+     "config": {
+      "name": "Q"
+     }
+    },
+    {
+     "id": "a5",
+     "kind": "atom",
+     "x": 940,
+     "y": 80,
+     "config": {
+      "name": "C"
+     }
+    },
+    {
+     "id": "a6",
+     "kind": "atom",
+     "x": 1160,
+     "y": 80,
+     "config": {
+      "name": "V"
+     }
+    },
+    {
+     "id": "f7",
+     "kind": "and",
+     "x": 1600,
+     "y": 80,
+     "config": {}
+    }
+   ],
+   "edges": [
+    {
+     "from": {
+      "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "a0",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "atom"
+     }
+    },
+    {
+     "from": {
+      "node": "a1",
+      "port": "out"
+     },
+     "to": {
+      "node": "f3",
+      "port": "a"
+     }
+    },
+    {
+     "from": {
+      "node": "a2",
+      "port": "out"
+     },
+     "to": {
+      "node": "f3",
+      "port": "b"
+     }
+    },
+    {
+     "from": {
+      "node": "f3",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "formula"
+     }
+    },
+    {
+     "from": {
+      "node": "s0",
+      "port": "out"
+     },
+     "to": {
+      "node": "s1",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "a4",
+      "port": "out"
+     },
+     "to": {
+      "node": "s1",
+      "port": "atom"
+     }
+    },
+    {
+     "from": {
+      "node": "a5",
+      "port": "out"
+     },
+     "to": {
+      "node": "f7",
+      "port": "a"
+     }
+    },
+    {
+     "from": {
+      "node": "a6",
+      "port": "out"
+     },
+     "to": {
+      "node": "f7",
+      "port": "b"
+     }
+    },
+    {
+     "from": {
+      "node": "f7",
+      "port": "out"
+     },
+     "to": {
+      "node": "s1",
+      "port": "formula"
+     }
+    },
+    {
+     "from": {
+      "node": "s1",
+      "port": "out"
+     },
+     "to": {
+      "node": "target",
+      "port": "proof"
+     }
+    }
+   ]
+  },
+  "band": "challenge"
+ },
+ {
+  "id": "CH1-36",
+  "chapter": "prop",
+  "code": "CH1-36",
+  "title": "pm2.42 · 双代入",
+  "kicker": "set.mm / pm2.42",
+  "brief": "",
+  "hint": "",
+  "teaches": [
+   "双代入"
+  ],
+  "allowed": [
+   "target",
+   "archive:pm2.42",
+   "subst",
+   "atom",
+   "imp",
+   "and"
+  ],
+  "reward": "—",
+  "note": "set.mm pm2.42（Propositional calculus）；本作不重证档案定理。",
+  "target": "¬(W→X)∨((W→X)→Y∧Z)→(W→X)→Y∧Z",
+  "targetPos": {
+   "x": 1960,
+   "y": 640
+  },
+  "world": {
+   "w": 2480,
+   "h": 1340
+  },
+  "solution": {
+   "nodes": [
+    {
+     "id": "src",
+     "kind": "archive",
+     "x": 60,
+     "y": 700,
+     "config": {
+      "label": "pm2.42"
+     }
+    },
+    {
+     "id": "s0",
+     "kind": "subst",
+     "x": 620,
+     "y": 700,
+     "config": {}
+    },
+    {
+     "id": "a0",
+     "kind": "atom",
+     "x": 60,
+     "y": 80,
+     "config": {
+      "name": "P"
+     }
+    },
+    {
+     "id": "a1",
+     "kind": "atom",
+     "x": 280,
+     "y": 80,
+     "config": {
+      "name": "W"
+     }
+    },
+    {
+     "id": "a2",
+     "kind": "atom",
+     "x": 500,
+     "y": 80,
+     "config": {
+      "name": "X"
+     }
+    },
+    {
+     "id": "f3",
+     "kind": "imp",
+     "x": 1380,
+     "y": 80,
+     "config": {}
+    },
+    {
+     "id": "s1",
+     "kind": "subst",
+     "x": 980,
+     "y": 700,
+     "config": {}
+    },
+    {
+     "id": "a4",
+     "kind": "atom",
+     "x": 720,
+     "y": 80,
+     "config": {
+      "name": "Q"
+     }
+    },
+    {
+     "id": "a5",
+     "kind": "atom",
+     "x": 940,
+     "y": 80,
+     "config": {
+      "name": "Y"
+     }
+    },
+    {
+     "id": "a6",
+     "kind": "atom",
+     "x": 1160,
+     "y": 80,
+     "config": {
+      "name": "Z"
+     }
+    },
+    {
+     "id": "f7",
+     "kind": "and",
+     "x": 1600,
+     "y": 80,
+     "config": {}
+    }
+   ],
+   "edges": [
+    {
+     "from": {
+      "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "a0",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "atom"
+     }
+    },
+    {
+     "from": {
+      "node": "a1",
+      "port": "out"
+     },
+     "to": {
+      "node": "f3",
+      "port": "a"
+     }
+    },
+    {
+     "from": {
+      "node": "a2",
+      "port": "out"
+     },
+     "to": {
+      "node": "f3",
+      "port": "b"
+     }
+    },
+    {
+     "from": {
+      "node": "f3",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "formula"
+     }
+    },
+    {
+     "from": {
+      "node": "s0",
+      "port": "out"
+     },
+     "to": {
+      "node": "s1",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "a4",
+      "port": "out"
+     },
+     "to": {
+      "node": "s1",
+      "port": "atom"
+     }
+    },
+    {
+     "from": {
+      "node": "a5",
+      "port": "out"
+     },
+     "to": {
+      "node": "f7",
+      "port": "a"
+     }
+    },
+    {
+     "from": {
+      "node": "a6",
+      "port": "out"
+     },
+     "to": {
+      "node": "f7",
+      "port": "b"
+     }
+    },
+    {
+     "from": {
+      "node": "f7",
+      "port": "out"
+     },
+     "to": {
+      "node": "s1",
+      "port": "formula"
+     }
+    },
+    {
+     "from": {
+      "node": "s1",
+      "port": "out"
+     },
+     "to": {
+      "node": "target",
+      "port": "proof"
+     }
+    }
+   ]
+  },
+  "band": "challenge"
+ },
+ {
+  "id": "CH1-37",
+  "chapter": "prop",
+  "code": "CH1-37",
+  "title": "impt · 双代入",
+  "kicker": "set.mm / impt",
+  "brief": "",
+  "hint": "",
+  "teaches": [
+   "双代入"
+  ],
+  "allowed": [
+   "target",
+   "archive:impt",
+   "subst",
+   "atom",
+   "imp",
+   "and"
+  ],
+  "reward": "—",
+  "note": "set.mm impt（Propositional calculus）；本作不重证档案定理。",
+  "target": "((S→T)→U∧V→R)→¬((S→T)→¬(U∧V))→R",
+  "targetPos": {
+   "x": 1960,
+   "y": 640
+  },
+  "world": {
+   "w": 2480,
+   "h": 1340
+  },
+  "solution": {
+   "nodes": [
+    {
+     "id": "src",
+     "kind": "archive",
+     "x": 60,
+     "y": 700,
+     "config": {
+      "label": "impt"
+     }
+    },
+    {
+     "id": "s0",
+     "kind": "subst",
+     "x": 620,
+     "y": 700,
+     "config": {}
+    },
+    {
+     "id": "a0",
+     "kind": "atom",
+     "x": 60,
+     "y": 80,
+     "config": {
+      "name": "P"
+     }
+    },
+    {
+     "id": "a1",
+     "kind": "atom",
+     "x": 280,
+     "y": 80,
+     "config": {
+      "name": "S"
+     }
+    },
+    {
+     "id": "a2",
+     "kind": "atom",
+     "x": 500,
+     "y": 80,
+     "config": {
+      "name": "T"
+     }
+    },
+    {
+     "id": "f3",
+     "kind": "imp",
+     "x": 1380,
+     "y": 80,
+     "config": {}
+    },
+    {
+     "id": "s1",
+     "kind": "subst",
+     "x": 980,
+     "y": 700,
+     "config": {}
+    },
+    {
+     "id": "a4",
+     "kind": "atom",
+     "x": 720,
+     "y": 80,
+     "config": {
+      "name": "Q"
+     }
+    },
+    {
+     "id": "a5",
+     "kind": "atom",
+     "x": 940,
+     "y": 80,
+     "config": {
+      "name": "U"
+     }
+    },
+    {
+     "id": "a6",
+     "kind": "atom",
+     "x": 1160,
+     "y": 80,
+     "config": {
+      "name": "V"
+     }
+    },
+    {
+     "id": "f7",
+     "kind": "and",
+     "x": 1600,
+     "y": 80,
+     "config": {}
+    }
+   ],
+   "edges": [
+    {
+     "from": {
+      "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "a0",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "atom"
+     }
+    },
+    {
+     "from": {
+      "node": "a1",
+      "port": "out"
+     },
+     "to": {
+      "node": "f3",
+      "port": "a"
+     }
+    },
+    {
+     "from": {
+      "node": "a2",
+      "port": "out"
+     },
+     "to": {
+      "node": "f3",
+      "port": "b"
+     }
+    },
+    {
+     "from": {
+      "node": "f3",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "formula"
+     }
+    },
+    {
+     "from": {
+      "node": "s0",
+      "port": "out"
+     },
+     "to": {
+      "node": "s1",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "a4",
+      "port": "out"
+     },
+     "to": {
+      "node": "s1",
+      "port": "atom"
+     }
+    },
+    {
+     "from": {
+      "node": "a5",
+      "port": "out"
+     },
+     "to": {
+      "node": "f7",
+      "port": "a"
+     }
+    },
+    {
+     "from": {
+      "node": "a6",
+      "port": "out"
+     },
+     "to": {
+      "node": "f7",
+      "port": "b"
+     }
+    },
+    {
+     "from": {
+      "node": "f7",
+      "port": "out"
+     },
+     "to": {
+      "node": "s1",
+      "port": "formula"
+     }
+    },
+    {
+     "from": {
+      "node": "s1",
+      "port": "out"
+     },
+     "to": {
+      "node": "target",
+      "port": "proof"
+     }
+    }
+   ]
+  },
+  "band": "challenge"
+ },
+ {
   "id": "CH1-38",
   "chapter": "prop",
   "code": "CH1-38",
@@ -4288,20 +4218,16 @@
    "双代入"
   ],
   "allowed": [
+   "target",
    "archive:ordi",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "imp",
+   "and"
   ],
   "reward": "—",
   "note": "set.mm ordi（Propositional calculus）；本作不重证档案定理。",
-  "target": "(E→F)∨G∧H∧R↔((E→F)∨G∧H)∧((E→F)∨R)",
+  "target": "(X→Y)∨Z∧A∧R↔((X→Y)∨Z∧A)∧((X→Y)∨R)",
   "targetPos": {
    "x": 1960,
    "y": 640
@@ -4343,7 +4269,7 @@
      "x": 280,
      "y": 80,
      "config": {
-      "name": "E"
+      "name": "X"
      }
     },
     {
@@ -4352,7 +4278,7 @@
      "x": 500,
      "y": 80,
      "config": {
-      "name": "F"
+      "name": "Y"
      }
     },
     {
@@ -4384,7 +4310,7 @@
      "x": 940,
      "y": 80,
      "config": {
-      "name": "G"
+      "name": "Z"
      }
     },
     {
@@ -4393,7 +4319,7 @@
      "x": 1160,
      "y": 80,
      "config": {
-      "name": "H"
+      "name": "A"
      }
     },
     {
@@ -4531,20 +4457,16 @@
    "双代入"
   ],
   "allowed": [
+   "target",
    "archive:3ianor",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "imp",
+   "and"
   ],
   "reward": "—",
   "note": "set.mm 3ianor（Propositional calculus）；本作不重证档案定理。",
-  "target": "¬((F→G)∧(H∧I)∧R)↔¬(F→G)∨¬(H∧I)∨¬R",
+  "target": "¬((Y→Z)∧(A∧B)∧R)↔¬(Y→Z)∨¬(A∧B)∨¬R",
   "targetPos": {
    "x": 1960,
    "y": 640
@@ -4586,7 +4508,7 @@
      "x": 280,
      "y": 80,
      "config": {
-      "name": "F"
+      "name": "Y"
      }
     },
     {
@@ -4595,7 +4517,7 @@
      "x": 500,
      "y": 80,
      "config": {
-      "name": "G"
+      "name": "Z"
      }
     },
     {
@@ -4627,7 +4549,7 @@
      "x": 940,
      "y": 80,
      "config": {
-      "name": "H"
+      "name": "A"
      }
     },
     {
@@ -4636,7 +4558,7 @@
      "x": 1160,
      "y": 80,
      "config": {
-      "name": "I"
+      "name": "B"
      }
     },
     {
@@ -4774,20 +4696,16 @@
    "双代入"
   ],
   "allowed": [
+   "target",
    "archive:anandi",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "imp",
+   "and"
   ],
   "reward": "—",
   "note": "set.mm anandi（Propositional calculus）；本作不重证档案定理。",
-  "target": "(B→C)∧(D∧E∧R)↔(B→C)∧(D∧E)∧((B→C)∧R)",
+  "target": "(U→V)∧(W∧X∧R)↔(U→V)∧(W∧X)∧((U→V)∧R)",
   "targetPos": {
    "x": 1960,
    "y": 640
@@ -4829,7 +4747,7 @@
      "x": 280,
      "y": 80,
      "config": {
-      "name": "B"
+      "name": "U"
      }
     },
     {
@@ -4838,7 +4756,7 @@
      "x": 500,
      "y": 80,
      "config": {
-      "name": "C"
+      "name": "V"
      }
     },
     {
@@ -4870,7 +4788,7 @@
      "x": 940,
      "y": 80,
      "config": {
-      "name": "D"
+      "name": "W"
      }
     },
     {
@@ -4879,7 +4797,7 @@
      "x": 1160,
      "y": 80,
      "config": {
-      "name": "E"
+      "name": "X"
      }
     },
     {
@@ -5017,20 +4935,16 @@
    "双代入"
   ],
   "allowed": [
+   "target",
    "archive:an33rean",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "imp",
+   "and"
   ],
   "reward": "—",
   "note": "set.mm an33rean（Propositional calculus）；本作不重证档案定理。",
-  "target": "(I→J)∧(K∧L)∧R∧(S∧T∧U)∧(V∧W∧X)↔(I→J)∧T∧X∧(K∧L∧S∧(U∧W)∧(R∧V))",
+  "target": "(B→C)∧(Y∧Z)∧R∧(S∧T∧U)∧(V∧W∧X)↔(B→C)∧T∧X∧(Y∧Z∧S∧(U∧W)∧(R∧V))",
   "targetPos": {
    "x": 1960,
    "y": 640
@@ -5072,7 +4986,7 @@
      "x": 280,
      "y": 80,
      "config": {
-      "name": "I"
+      "name": "B"
      }
     },
     {
@@ -5081,7 +4995,7 @@
      "x": 500,
      "y": 80,
      "config": {
-      "name": "J"
+      "name": "C"
      }
     },
     {
@@ -5113,7 +5027,7 @@
      "x": 940,
      "y": 80,
      "config": {
-      "name": "K"
+      "name": "Y"
      }
     },
     {
@@ -5122,7 +5036,7 @@
      "x": 1160,
      "y": 80,
      "config": {
-      "name": "L"
+      "name": "Z"
      }
     },
     {
@@ -5260,13 +5174,13 @@
    "分离 · 2a1 作为前件"
   ],
   "allowed": [
+   "target",
    "archive:idALT",
    "archive:2a1",
-   "atom",
    "subst",
-   "detach",
-   "target",
-   "imp"
+   "atom",
+   "imp",
+   "detach"
   ],
   "reward": "—",
   "note": "set.mm idALT（Propositional calculus）；本作不重证档案定理。",
@@ -5499,20 +5413,16 @@
    "双代入"
   ],
   "allowed": [
+   "target",
    "archive:pm4.87",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "imp",
+   "and"
   ],
   "reward": "—",
   "note": "set.mm pm4.87（Propositional calculus）；本作不重证档案定理。",
-  "target": "((C→D)∧(E∧F)→R↔(C→D)→E∧F→R)∧((C→D)→E∧F→R↔E∧F→(C→D)→R)∧(E∧F→(C→D)→R↔E∧F∧(C→D)→R)",
+  "target": "((V→W)∧(X∧Y)→R↔(V→W)→X∧Y→R)∧((V→W)→X∧Y→R↔X∧Y→(V→W)→R)∧(X∧Y→(V→W)→R↔X∧Y∧(V→W)→R)",
   "targetPos": {
    "x": 1960,
    "y": 640
@@ -5554,7 +5464,7 @@
      "x": 280,
      "y": 80,
      "config": {
-      "name": "C"
+      "name": "V"
      }
     },
     {
@@ -5563,7 +5473,7 @@
      "x": 500,
      "y": 80,
      "config": {
-      "name": "D"
+      "name": "W"
      }
     },
     {
@@ -5595,7 +5505,7 @@
      "x": 940,
      "y": 80,
      "config": {
-      "name": "E"
+      "name": "X"
      }
     },
     {
@@ -5604,7 +5514,7 @@
      "x": 1160,
      "y": 80,
      "config": {
-      "name": "F"
+      "name": "Y"
      }
     },
     {
@@ -5742,15 +5652,15 @@
    "分离 · animorlr 作为前件"
   ],
   "allowed": [
+   "target",
    "archive:norasslem2",
    "archive:animorlr",
-   "atom",
    "subst",
-   "detach",
-   "target",
-   "imp",
+   "atom",
    "and",
-   "or"
+   "or",
+   "imp",
+   "detach"
   ],
   "reward": "—",
   "note": "set.mm norasslem2（Propositional calculus）；本作不重证档案定理。",
@@ -5983,14 +5893,14 @@
    "分离 · pm5.4 作为前件"
   ],
   "allowed": [
+   "target",
    "archive:pm2.27",
    "archive:pm5.4",
-   "atom",
    "subst",
-   "detach",
-   "target",
+   "atom",
+   "imp",
    "iff",
-   "imp"
+   "detach"
   ],
   "reward": "—",
   "note": "set.mm pm2.27（Propositional calculus）；本作不重证档案定理。",
@@ -6241,15 +6151,15 @@
    "分离 · anclb 作为前件"
   ],
   "allowed": [
+   "target",
    "archive:dedlema",
    "archive:anclb",
-   "atom",
    "subst",
-   "detach",
-   "target",
-   "iff",
+   "atom",
    "imp",
-   "and"
+   "and",
+   "iff",
+   "detach"
   ],
   "reward": "—",
   "note": "set.mm dedlema（Propositional calculus）；本作不重证档案定理。",
@@ -6500,14 +6410,14 @@
    "分离 · 3simpb 作为前件"
   ],
   "allowed": [
+   "target",
    "archive:ax-1",
    "archive:3simpb",
-   "atom",
    "subst",
-   "detach",
-   "target",
+   "atom",
+   "and",
    "imp",
-   "and"
+   "detach"
   ],
   "reward": "—",
   "note": "set.mm ax-1（Propositional calculus）；本作不重证档案定理。",
@@ -6767,14 +6677,14 @@
    "分离 · pm3.41 作为前件"
   ],
   "allowed": [
+   "target",
    "archive:ibar",
    "archive:pm3.41",
-   "atom",
    "subst",
-   "detach",
-   "target",
+   "atom",
    "imp",
-   "and"
+   "and",
+   "detach"
   ],
   "reward": "—",
   "note": "set.mm ibar（Propositional calculus）；本作不重证档案定理。",
@@ -7034,14 +6944,14 @@
    "分离 · pm2.67-2 作为前件"
   ],
   "allowed": [
+   "target",
    "archive:cad1",
    "archive:pm2.67-2",
-   "atom",
    "subst",
-   "detach",
-   "target",
+   "atom",
+   "or",
    "imp",
-   "or"
+   "detach"
   ],
   "reward": "—",
   "note": "set.mm cad1（Propositional calculus）；本作不重证档案定理。",
@@ -7301,16 +7211,16 @@
    "分离 · imnan 作为前件"
   ],
   "allowed": [
+   "target",
    "archive:pm5.5",
    "archive:imnan",
-   "atom",
    "subst",
-   "detach",
-   "target",
-   "iff",
-   "imp",
+   "atom",
    "not",
-   "and"
+   "imp",
+   "and",
+   "iff",
+   "detach"
   ],
   "reward": "—",
   "note": "set.mm pm5.5（Propositional calculus）；本作不重证档案定理。",
@@ -7568,16 +7478,16 @@
    "分离 · pm4.66 作为前件"
   ],
   "allowed": [
+   "target",
    "archive:3mix2",
    "archive:pm4.66",
-   "atom",
    "subst",
-   "detach",
-   "target",
-   "iff",
-   "imp",
+   "atom",
    "not",
-   "or"
+   "imp",
+   "or",
+   "iff",
+   "detach"
   ],
   "reward": "—",
   "note": "set.mm 3mix2（Propositional calculus）；本作不重证档案定理。",
@@ -7852,14 +7762,14 @@
    "分离 · pm2.36 作为前件"
   ],
   "allowed": [
+   "target",
    "archive:biortn",
    "archive:pm2.36",
-   "atom",
    "subst",
-   "detach",
-   "target",
+   "atom",
    "imp",
-   "or"
+   "or",
+   "detach"
   ],
   "reward": "—",
   "note": "set.mm biortn（Propositional calculus）；本作不重证档案定理。",
@@ -8146,13 +8056,13 @@
    "分离 · pm2.86 作为前件"
   ],
   "allowed": [
+   "target",
    "archive:biidd",
    "archive:pm2.86",
-   "atom",
    "subst",
-   "detach",
-   "target",
-   "imp"
+   "atom",
+   "imp",
+   "detach"
   ],
   "reward": "—",
   "note": "set.mm biidd（Propositional calculus）；本作不重证档案定理。",
@@ -8466,16 +8376,16 @@
    "分离 · nan 作为前件"
   ],
   "allowed": [
+   "target",
    "archive:exmidd",
    "archive:nan",
-   "atom",
    "subst",
-   "detach",
-   "target",
-   "iff",
-   "imp",
+   "atom",
+   "and",
    "not",
-   "and"
+   "imp",
+   "iff",
+   "detach"
   ],
   "reward": "—",
   "note": "set.mm exmidd（Propositional calculus）；本作不重证档案定理。",
@@ -8796,14 +8706,14 @@
    "分离 · simp23 作为前件"
   ],
   "allowed": [
+   "target",
    "archive:2a1",
    "archive:simp23",
-   "atom",
    "subst",
-   "detach",
-   "target",
+   "atom",
+   "and",
    "imp",
-   "and"
+   "detach"
   ],
   "reward": "—",
   "note": "set.mm 2a1（Propositional calculus）；本作不重证档案定理。",
@@ -9108,14 +9018,14 @@
    "分离 · simprl1 作为前件"
   ],
   "allowed": [
+   "target",
    "archive:biimt",
    "archive:simprl1",
-   "atom",
    "subst",
-   "detach",
-   "target",
+   "atom",
+   "and",
    "imp",
-   "and"
+   "detach"
   ],
   "reward": "—",
   "note": "set.mm biimt（Propositional calculus）；本作不重证档案定理。",
@@ -9420,14 +9330,14 @@
    "分离 · 13an22anass 作为前件"
   ],
   "allowed": [
+   "target",
    "archive:3mix1",
    "archive:13an22anass",
-   "atom",
    "subst",
-   "detach",
-   "target",
+   "atom",
+   "and",
    "iff",
-   "and"
+   "detach"
   ],
   "reward": "—",
   "note": "set.mm 3mix1（Propositional calculus）；本作不重证档案定理。",
@@ -9777,14 +9687,14 @@
    "分离 · simp23r 作为前件"
   ],
   "allowed": [
+   "target",
    "archive:notnot",
    "archive:simp23r",
-   "atom",
    "subst",
-   "detach",
-   "target",
+   "atom",
+   "and",
    "imp",
-   "and"
+   "detach"
   ],
   "reward": "—",
   "note": "set.mm notnot（Propositional calculus）；本作不重证档案定理。",
@@ -10125,14 +10035,14 @@
    "分离 · simp121 作为前件"
   ],
   "allowed": [
+   "target",
    "archive:pm3.2",
    "archive:simp121",
-   "atom",
    "subst",
-   "detach",
-   "target",
+   "atom",
+   "and",
    "imp",
-   "and"
+   "detach"
   ],
   "reward": "—",
   "note": "set.mm pm3.2（Propositional calculus）；本作不重证档案定理。",
@@ -10509,14 +10419,14 @@
    "分离 · simp322 作为前件"
   ],
   "allowed": [
+   "target",
    "archive:olc",
    "archive:simp322",
-   "atom",
    "subst",
-   "detach",
-   "target",
+   "atom",
+   "and",
    "imp",
-   "and"
+   "detach"
   ],
   "reward": "—",
   "note": "set.mm olc（Propositional calculus）；本作不重证档案定理。",
@@ -10885,8 +10795,8 @@
   "id": "CH2-13",
   "chapter": "pred",
   "code": "CH2-13",
-  "title": "CH1-07 · 代入推演",
-  "kicker": "推理 / CH1-07",
+  "title": "alex · 代入推演",
+  "kicker": "推理 / alex",
   "brief": "",
   "hint": "",
   "teaches": [
@@ -10894,14 +10804,14 @@
   ],
   "allowed": [
    "target",
-   "theorem:CH1-07",
+   "archive:alex",
    "subst",
    "atom",
    "pred"
   ],
   "reward": "—",
-  "note": "不使用档案结论；从 已证结论 CH1-07 出发，用代入 / 量词 / 分离规则推出目标。",
-  "target": "F(x)→F(x)",
+  "note": "不使用档案结论；从 已证结论 alex 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "∀x F(x)↔¬∃x ¬F(x)",
   "targetPos": {
    "x": 980,
    "y": 640
@@ -10914,11 +10824,11 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "theorem",
+     "kind": "archive",
      "x": 60,
      "y": 700,
      "config": {
-      "theoremCode": "CH1-07"
+      "label": "alex"
      }
     },
     {
@@ -10997,8 +10907,8 @@
   "id": "CH2-14",
   "chapter": "pred",
   "code": "CH2-14",
-  "title": "ax-5 · 代入推演",
-  "kicker": "推理 / ax-5",
+  "title": "ax-11 · 代入推演",
+  "kicker": "推理 / ax-11",
   "brief": "",
   "hint": "",
   "teaches": [
@@ -11006,14 +10916,14 @@
   ],
   "allowed": [
    "target",
-   "axiom:ax-5",
+   "archive:ax-11",
    "subst",
    "atom",
    "pred"
   ],
   "reward": "—",
-  "note": "不使用档案结论；从 公理 ax-5 出发，用代入 / 量词 / 分离规则推出目标。",
-  "target": "F(x)→∀x F(x)",
+  "note": "不使用档案结论；从 已证结论 ax-11 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "∀x ∀y F(x)→∀y ∀x F(x)",
   "targetPos": {
    "x": 980,
    "y": 640
@@ -11026,11 +10936,11 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "axiom",
+     "kind": "archive",
      "x": 60,
      "y": 700,
      "config": {
-      "axiomId": "ax-5"
+      "label": "ax-11"
      }
     },
     {
@@ -11109,8 +11019,8 @@
   "id": "CH2-15",
   "chapter": "pred",
   "code": "CH2-15",
-  "title": "ax-10 · 代入推演",
-  "kicker": "推理 / ax-10",
+  "title": "19.31v · 代入推演",
+  "kicker": "推理 / 19.31v",
   "brief": "",
   "hint": "",
   "teaches": [
@@ -11118,14 +11028,14 @@
   ],
   "allowed": [
    "target",
-   "axiom:ax-10",
+   "archive:19.31v",
    "subst",
    "atom",
    "pred"
   ],
   "reward": "—",
-  "note": "不使用档案结论；从 公理 ax-10 出发，用代入 / 量词 / 分离规则推出目标。",
-  "target": "¬∀x F(x)→∀x ¬∀x F(x)",
+  "note": "不使用档案结论；从 已证结论 19.31v 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "∀x (F(x)∨Q)↔∀x F(x)∨Q",
   "targetPos": {
    "x": 980,
    "y": 640
@@ -11138,11 +11048,11 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "axiom",
+     "kind": "archive",
      "x": 60,
      "y": 700,
      "config": {
-      "axiomId": "ax-10"
+      "label": "19.31v"
      }
     },
     {
@@ -11221,8 +11131,8 @@
   "id": "CH2-16",
   "chapter": "pred",
   "code": "CH2-16",
-  "title": "ax-11 · 代入推演",
-  "kicker": "推理 / ax-11",
+  "title": "exancom · 代入推演",
+  "kicker": "推理 / exancom",
   "brief": "",
   "hint": "",
   "teaches": [
@@ -11230,14 +11140,14 @@
   ],
   "allowed": [
    "target",
-   "axiom:ax-11",
+   "archive:exancom",
    "subst",
    "atom",
    "pred"
   ],
   "reward": "—",
-  "note": "不使用档案结论；从 公理 ax-11 出发，用代入 / 量词 / 分离规则推出目标。",
-  "target": "∀x ∀y F(x)→∀y ∀x F(x)",
+  "note": "不使用档案结论；从 已证结论 exancom 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "∃x (F(x)∧Q)↔∃x (Q∧F(x))",
   "targetPos": {
    "x": 980,
    "y": 640
@@ -11250,11 +11160,11 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "axiom",
+     "kind": "archive",
      "x": 60,
      "y": 700,
      "config": {
-      "axiomId": "ax-11"
+      "label": "exancom"
      }
     },
     {
@@ -11333,8 +11243,8 @@
   "id": "CH2-17",
   "chapter": "pred",
   "code": "CH2-17",
-  "title": "CH1-10 · 代入推演",
-  "kicker": "推理 / CH1-10",
+  "title": "3exdistr · 代入推演",
+  "kicker": "推理 / 3exdistr",
   "brief": "",
   "hint": "",
   "teaches": [
@@ -11342,14 +11252,14 @@
   ],
   "allowed": [
    "target",
-   "theorem:CH1-10",
+   "archive:3exdistr",
    "subst",
    "atom",
    "pred"
   ],
   "reward": "—",
-  "note": "不使用档案结论；从 已证结论 CH1-10 出发，用代入 / 量词 / 分离规则推出目标。",
-  "target": "(F(x)→Q)→(S→F(x))→S→Q",
+  "note": "不使用档案结论；从 已证结论 3exdistr 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "∃x ∃y ∃z (F(x)∧Q∧R)↔∃x (F(x)∧∃y (Q∧∃z R))",
   "targetPos": {
    "x": 980,
    "y": 640
@@ -11362,11 +11272,11 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "theorem",
+     "kind": "archive",
      "x": 60,
      "y": 700,
      "config": {
-      "theoremCode": "CH1-10"
+      "label": "3exdistr"
      }
     },
     {
@@ -11445,8 +11355,8 @@
   "id": "CH2-18",
   "chapter": "pred",
   "code": "CH2-18",
-  "title": "ax-4 · 代入推演",
-  "kicker": "推理 / ax-4",
+  "title": "19.33b · 代入推演",
+  "kicker": "推理 / 19.33b",
   "brief": "",
   "hint": "",
   "teaches": [
@@ -11454,14 +11364,14 @@
   ],
   "allowed": [
    "target",
-   "axiom:ax-4",
+   "archive:19.33b",
    "subst",
    "atom",
    "pred"
   ],
   "reward": "—",
-  "note": "不使用档案结论；从 公理 ax-4 出发，用代入 / 量词 / 分离规则推出目标。",
-  "target": "∀x (F(x)→Q)→∀x F(x)→∀x Q",
+  "note": "不使用档案结论；从 已证结论 19.33b 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "¬(∃x F(x)∧∃x Q)→(∀x (F(x)∨Q)↔∀x F(x)∨∀x Q)",
   "targetPos": {
    "x": 980,
    "y": 640
@@ -11474,11 +11384,11 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "axiom",
+     "kind": "archive",
      "x": 60,
      "y": 700,
      "config": {
-      "axiomId": "ax-4"
+      "label": "19.33b"
      }
     },
     {
@@ -11565,16 +11475,11 @@
    "代入"
   ],
   "allowed": [
+   "target",
    "archive:3anan32",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "pred"
   ],
   "reward": "—",
   "note": "set.mm 3anan32（Propositional calculus）；本作不重证档案定理。",
@@ -11682,16 +11587,11 @@
    "代入"
   ],
   "allowed": [
+   "target",
    "archive:pm3.13",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "pred"
   ],
   "reward": "—",
   "note": "set.mm pm3.13（Propositional calculus）；本作不重证档案定理。",
@@ -11799,16 +11699,11 @@
    "代入"
   ],
   "allowed": [
+   "target",
    "archive:pm4.67",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "pred"
   ],
   "reward": "—",
   "note": "set.mm pm4.67（Propositional calculus）；本作不重证档案定理。",
@@ -11916,16 +11811,11 @@
    "代入"
   ],
   "allowed": [
+   "target",
    "archive:pm5.31r",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "pred"
   ],
   "reward": "—",
   "note": "set.mm pm5.31r（Propositional calculus）；本作不重证档案定理。",
@@ -12033,16 +11923,11 @@
    "代入"
   ],
   "allowed": [
+   "target",
    "archive:simpl2l",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "pred"
   ],
   "reward": "—",
   "note": "set.mm simpl2l（Propositional calculus）；本作不重证档案定理。",
@@ -12150,16 +12035,11 @@
    "代入"
   ],
   "allowed": [
+   "target",
    "archive:pm2.61",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "pred"
   ],
   "reward": "—",
   "note": "set.mm pm2.61（Propositional calculus）；本作不重证档案定理。",
@@ -12267,16 +12147,11 @@
    "代入"
   ],
   "allowed": [
+   "target",
    "archive:simp3r1",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "pred"
   ],
   "reward": "—",
   "note": "set.mm simp3r1（Propositional calculus）；本作不重证档案定理。",
@@ -12384,16 +12259,11 @@
    "代入"
   ],
   "allowed": [
+   "target",
    "archive:19.29r",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "pred"
   ],
   "reward": "—",
   "note": "set.mm 19.29r（Predicate calculus with equality:  Tarski's system S2 (1 rule, 6 schemes)）；本作不重证档案定理。",
@@ -12501,16 +12371,11 @@
    "代入"
   ],
   "allowed": [
+   "target",
    "archive:orimdi",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "pred"
   ],
   "reward": "—",
   "note": "set.mm orimdi（Propositional calculus）；本作不重证档案定理。",
@@ -12618,16 +12483,11 @@
    "代入"
   ],
   "allowed": [
+   "target",
    "archive:an43",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "pred"
   ],
   "reward": "—",
   "note": "set.mm an43（Propositional calculus）；本作不重证档案定理。",
@@ -12735,16 +12595,11 @@
    "代入"
   ],
   "allowed": [
+   "target",
    "archive:13an22anassOLD",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "pred"
   ],
   "reward": "—",
   "note": "set.mm 13an22anassOLD（Propositional calculus）；本作不重证档案定理。",
@@ -12852,16 +12707,11 @@
    "代入"
   ],
   "allowed": [
+   "target",
    "archive:alrot4",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "pred"
   ],
   "reward": "—",
   "note": "set.mm alrot4（Predicate calculus with equality:  Auxiliary axiom schemes (4 schemes)）；本作不重证档案定理。",
@@ -12969,12 +12819,12 @@
    "代入 + 闭包"
   ],
   "allowed": [
+   "target",
    "archive:orabs",
+   "subst",
    "atom",
    "pred",
-   "subst",
-   "all-intro",
-   "target"
+   "all-intro"
   ],
   "reward": "—",
   "note": "set.mm orabs（Propositional calculus）；本作不重证档案定理。",
@@ -13101,12 +12951,12 @@
    "代入 + 闭包"
   ],
   "allowed": [
+   "target",
    "archive:3orel3",
+   "subst",
    "atom",
    "pred",
-   "subst",
-   "all-intro",
-   "target"
+   "all-intro"
   ],
   "reward": "—",
   "note": "set.mm 3orel3（Propositional calculus）；本作不重证档案定理。",
@@ -13233,12 +13083,12 @@
    "代入 + 闭包"
   ],
   "allowed": [
+   "target",
    "archive:simpr3l",
+   "subst",
    "atom",
    "pred",
-   "subst",
-   "all-intro",
-   "target"
+   "all-intro"
   ],
   "reward": "—",
   "note": "set.mm simpr3l（Propositional calculus）；本作不重证档案定理。",
@@ -13365,12 +13215,12 @@
    "代入 + 闭包"
   ],
   "allowed": [
+   "target",
    "archive:simp21l",
+   "subst",
    "atom",
    "pred",
-   "subst",
-   "all-intro",
-   "target"
+   "all-intro"
   ],
   "reward": "—",
   "note": "set.mm simp21l（Propositional calculus）；本作不重证档案定理。",
@@ -13497,12 +13347,12 @@
    "代入 + 闭包"
   ],
   "allowed": [
+   "target",
    "archive:impt",
+   "subst",
    "atom",
    "pred",
-   "subst",
-   "all-intro",
-   "target"
+   "all-intro"
   ],
   "reward": "—",
   "note": "set.mm impt（Propositional calculus）；本作不重证档案定理。",
@@ -13629,12 +13479,12 @@
    "代入 + 闭包"
   ],
   "allowed": [
+   "target",
    "archive:pm5.36",
+   "subst",
    "atom",
    "pred",
-   "subst",
-   "all-intro",
-   "target"
+   "all-intro"
   ],
   "reward": "—",
   "note": "set.mm pm5.36（Propositional calculus）；本作不重证档案定理。",
@@ -13761,12 +13611,12 @@
    "代入 + 闭包"
   ],
   "allowed": [
+   "target",
    "archive:pm2.75",
+   "subst",
    "atom",
    "pred",
-   "subst",
-   "all-intro",
-   "target"
+   "all-intro"
   ],
   "reward": "—",
   "note": "set.mm pm2.75（Propositional calculus）；本作不重证档案定理。",
@@ -13893,12 +13743,12 @@
    "代入 + 闭包"
   ],
   "allowed": [
+   "target",
    "archive:anandi3",
+   "subst",
    "atom",
    "pred",
-   "subst",
-   "all-intro",
-   "target"
+   "all-intro"
   ],
   "reward": "—",
   "note": "set.mm anandi3（Propositional calculus）；本作不重证档案定理。",
@@ -14025,12 +13875,12 @@
    "代入 + 闭包"
   ],
   "allowed": [
+   "target",
    "archive:an42",
+   "subst",
    "atom",
    "pred",
-   "subst",
-   "all-intro",
-   "target"
+   "all-intro"
   ],
   "reward": "—",
   "note": "set.mm an42（Propositional calculus）；本作不重证档案定理。",
@@ -14157,12 +14007,12 @@
    "代入 + 闭包"
   ],
   "allowed": [
+   "target",
    "archive:imim21b",
+   "subst",
    "atom",
    "pred",
-   "subst",
-   "all-intro",
-   "target"
+   "all-intro"
   ],
   "reward": "—",
   "note": "set.mm imim21b（Propositional calculus）；本作不重证档案定理。",
@@ -14289,13 +14139,13 @@
    "代入 + 闭包 + 例化"
   ],
   "allowed": [
+   "target",
    "archive:pm4.66",
+   "subst",
    "atom",
    "pred",
-   "subst",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm pm4.66（Propositional calculus）；本作不重证档案定理。",
@@ -14441,13 +14291,13 @@
    "代入 + 闭包 + 例化"
   ],
   "allowed": [
+   "target",
    "archive:pm2.63",
+   "subst",
    "atom",
    "pred",
-   "subst",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm pm2.63（Propositional calculus）；本作不重证档案定理。",
@@ -14593,13 +14443,13 @@
    "代入 + 闭包 + 例化"
   ],
   "allowed": [
+   "target",
    "archive:annim",
+   "subst",
    "atom",
    "pred",
-   "subst",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm annim（Propositional calculus）；本作不重证档案定理。",
@@ -14745,13 +14595,13 @@
    "代入 + 闭包 + 例化"
   ],
   "allowed": [
+   "target",
    "archive:simp2ll",
+   "subst",
    "atom",
    "pred",
-   "subst",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm simp2ll（Propositional calculus）；本作不重证档案定理。",
@@ -14897,13 +14747,13 @@
    "代入 + 闭包 + 例化"
   ],
   "allowed": [
+   "target",
    "archive:simp31l",
+   "subst",
    "atom",
    "pred",
-   "subst",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm simp31l（Propositional calculus）；本作不重证档案定理。",
@@ -15049,13 +14899,13 @@
    "代入 + 闭包 + 例化"
   ],
   "allowed": [
+   "target",
    "archive:3anor",
+   "subst",
    "atom",
    "pred",
-   "subst",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm 3anor（Propositional calculus）；本作不重证档案定理。",
@@ -15201,13 +15051,13 @@
    "代入 + 闭包 + 例化"
   ],
   "allowed": [
+   "target",
    "archive:had1OLD",
+   "subst",
    "atom",
    "pred",
-   "subst",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm had1OLD（Propositional calculus）；本作不重证档案定理。",
@@ -15353,13 +15203,13 @@
    "代入 + 闭包 + 例化"
   ],
   "allowed": [
+   "target",
    "archive:looinv",
+   "subst",
    "atom",
    "pred",
-   "subst",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm looinv（Propositional calculus）；本作不重证档案定理。",
@@ -15505,13 +15355,13 @@
    "代入 + 闭包 + 例化"
   ],
   "allowed": [
+   "target",
    "archive:anandi",
+   "subst",
    "atom",
    "pred",
-   "subst",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm anandi（Propositional calculus）；本作不重证档案定理。",
@@ -15657,13 +15507,13 @@
    "代入 + 闭包 + 例化"
   ],
   "allowed": [
+   "target",
    "archive:ordi",
+   "subst",
    "atom",
    "pred",
-   "subst",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm ordi（Propositional calculus）；本作不重证档案定理。",
@@ -15809,20 +15659,16 @@
    "双代入"
   ],
   "allowed": [
+   "target",
    "archive:pm2.521g2",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "imp",
+   "and"
   ],
   "reward": "—",
   "note": "set.mm pm2.521g2（Propositional calculus）；本作不重证档案定理。",
-  "target": "¬((U→V)→W∧X)→R→U→V",
+  "target": "¬((Z→A)→B∧C)→R→Z→A",
   "targetPos": {
    "x": 1960,
    "y": 640
@@ -15864,7 +15710,7 @@
      "x": 280,
      "y": 80,
      "config": {
-      "name": "U"
+      "name": "Z"
      }
     },
     {
@@ -15873,7 +15719,7 @@
      "x": 500,
      "y": 80,
      "config": {
-      "name": "V"
+      "name": "A"
      }
     },
     {
@@ -15905,7 +15751,7 @@
      "x": 940,
      "y": 80,
      "config": {
-      "name": "W"
+      "name": "B"
      }
     },
     {
@@ -15914,7 +15760,7 @@
      "x": 1160,
      "y": 80,
      "config": {
-      "name": "X"
+      "name": "C"
      }
     },
     {
@@ -16052,20 +15898,16 @@
    "双代入"
   ],
   "allowed": [
+   "target",
    "archive:simpllr",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "imp",
+   "and"
   ],
   "reward": "—",
   "note": "set.mm simpllr（Propositional calculus）；本作不重证档案定理。",
-  "target": "(W→X)∧(Y∧Z)∧R∧S→Y∧Z",
+  "target": "(B→C)∧(T∧U)∧R∧S→T∧U",
   "targetPos": {
    "x": 1960,
    "y": 640
@@ -16107,7 +15949,7 @@
      "x": 280,
      "y": 80,
      "config": {
-      "name": "W"
+      "name": "B"
      }
     },
     {
@@ -16116,7 +15958,7 @@
      "x": 500,
      "y": 80,
      "config": {
-      "name": "X"
+      "name": "C"
      }
     },
     {
@@ -16148,7 +15990,7 @@
      "x": 940,
      "y": 80,
      "config": {
-      "name": "Y"
+      "name": "T"
      }
     },
     {
@@ -16157,7 +15999,7 @@
      "x": 1160,
      "y": 80,
      "config": {
-      "name": "Z"
+      "name": "U"
      }
     },
     {
@@ -16295,20 +16137,16 @@
    "双代入"
   ],
   "allowed": [
+   "target",
    "archive:simplr3",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "imp",
+   "and"
   ],
   "reward": "—",
   "note": "set.mm simplr3（Propositional calculus）；本作不重证档案定理。",
-  "target": "S∧((A→B)∧(C∧D)∧R)∧T→R",
+  "target": "S∧((U→V)∧(W∧X)∧R)∧T→R",
   "targetPos": {
    "x": 1960,
    "y": 640
@@ -16350,7 +16188,7 @@
      "x": 280,
      "y": 80,
      "config": {
-      "name": "A"
+      "name": "U"
      }
     },
     {
@@ -16359,7 +16197,7 @@
      "x": 500,
      "y": 80,
      "config": {
-      "name": "B"
+      "name": "V"
      }
     },
     {
@@ -16391,7 +16229,7 @@
      "x": 940,
      "y": 80,
      "config": {
-      "name": "C"
+      "name": "W"
      }
     },
     {
@@ -16400,7 +16238,7 @@
      "x": 1160,
      "y": 80,
      "config": {
-      "name": "D"
+      "name": "X"
      }
     },
     {
@@ -16538,20 +16376,16 @@
    "双代入"
   ],
   "allowed": [
+   "target",
    "archive:simp3l1",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "imp",
+   "and"
   ],
   "reward": "—",
   "note": "set.mm simp3l1（Propositional calculus）；本作不重证档案定理。",
-  "target": "T∧U∧((B→C)∧(D∧E)∧R∧S)→B→C",
+  "target": "T∧U∧((V→W)∧(X∧Y)∧R∧S)→V→W",
   "targetPos": {
    "x": 1960,
    "y": 640
@@ -16593,7 +16427,7 @@
      "x": 280,
      "y": 80,
      "config": {
-      "name": "B"
+      "name": "V"
      }
     },
     {
@@ -16602,7 +16436,7 @@
      "x": 500,
      "y": 80,
      "config": {
-      "name": "C"
+      "name": "W"
      }
     },
     {
@@ -16634,7 +16468,7 @@
      "x": 940,
      "y": 80,
      "config": {
-      "name": "D"
+      "name": "X"
      }
     },
     {
@@ -16643,7 +16477,7 @@
      "x": 1160,
      "y": 80,
      "config": {
-      "name": "E"
+      "name": "Y"
      }
     },
     {
@@ -16781,20 +16615,16 @@
    "双代入"
   ],
   "allowed": [
+   "target",
    "archive:pm2.49",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "imp",
+   "and"
   ],
   "reward": "—",
   "note": "set.mm pm2.49（Propositional calculus）；本作不重证档案定理。",
-  "target": "¬((X→Y)∨Z∧A)→¬(X→Y)∨¬(Z∧A)",
+  "target": "¬((C→R)∨S∧T)→¬(C→R)∨¬(S∧T)",
   "targetPos": {
    "x": 1960,
    "y": 640
@@ -16836,7 +16666,7 @@
      "x": 280,
      "y": 80,
      "config": {
-      "name": "X"
+      "name": "C"
      }
     },
     {
@@ -16845,7 +16675,7 @@
      "x": 500,
      "y": 80,
      "config": {
-      "name": "Y"
+      "name": "R"
      }
     },
     {
@@ -16877,7 +16707,7 @@
      "x": 940,
      "y": 80,
      "config": {
-      "name": "Z"
+      "name": "S"
      }
     },
     {
@@ -16886,7 +16716,7 @@
      "x": 1160,
      "y": 80,
      "config": {
-      "name": "A"
+      "name": "T"
      }
     },
     {
@@ -17024,20 +16854,16 @@
    "双代入"
   ],
   "allowed": [
+   "target",
    "archive:pm2.8",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "imp",
+   "and"
   ],
   "reward": "—",
   "note": "set.mm pm2.8（Propositional calculus）；本作不重证档案定理。",
-  "target": "(Y→Z)∨A∧B→¬(A∧B)∨R→(Y→Z)∨R",
+  "target": "(S→T)∨U∧V→¬(U∧V)∨R→(S→T)∨R",
   "targetPos": {
    "x": 1960,
    "y": 640
@@ -17079,7 +16905,7 @@
      "x": 280,
      "y": 80,
      "config": {
-      "name": "Y"
+      "name": "S"
      }
     },
     {
@@ -17088,7 +16914,7 @@
      "x": 500,
      "y": 80,
      "config": {
-      "name": "Z"
+      "name": "T"
      }
     },
     {
@@ -17120,7 +16946,7 @@
      "x": 940,
      "y": 80,
      "config": {
-      "name": "A"
+      "name": "U"
      }
     },
     {
@@ -17129,7 +16955,7 @@
      "x": 1160,
      "y": 80,
      "config": {
-      "name": "B"
+      "name": "V"
      }
     },
     {
@@ -17267,20 +17093,16 @@
    "双代入"
   ],
   "allowed": [
+   "target",
    "archive:pm3.3",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "imp",
+   "and"
   ],
   "reward": "—",
   "note": "set.mm pm3.3（Propositional calculus）；本作不重证档案定理。",
-  "target": "((V→W)∧(X∧Y)→R)→(V→W)→X∧Y→R",
+  "target": "((A→B)∧(C∧S)→R)→(A→B)→C∧S→R",
   "targetPos": {
    "x": 1960,
    "y": 640
@@ -17322,7 +17144,7 @@
      "x": 280,
      "y": 80,
      "config": {
-      "name": "V"
+      "name": "A"
      }
     },
     {
@@ -17331,7 +17153,7 @@
      "x": 500,
      "y": 80,
      "config": {
-      "name": "W"
+      "name": "B"
      }
     },
     {
@@ -17363,7 +17185,7 @@
      "x": 940,
      "y": 80,
      "config": {
-      "name": "X"
+      "name": "C"
      }
     },
     {
@@ -17372,7 +17194,7 @@
      "x": 1160,
      "y": 80,
      "config": {
-      "name": "Y"
+      "name": "S"
      }
     },
     {
@@ -17510,20 +17332,16 @@
    "双代入"
   ],
   "allowed": [
+   "target",
    "archive:alsyl",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "imp",
+   "and"
   ],
   "reward": "—",
   "note": "set.mm alsyl（Predicate calculus with equality:  Tarski's system S2 (1 rule, 6 schemes)）；本作不重证档案定理。",
-  "target": "∀x ((T→U)→V∧W)∧∀x (V∧W→R)→∀x ((T→U)→R)",
+  "target": "∀x ((Y→Z)→A∧B)∧∀x (A∧B→R)→∀x ((Y→Z)→R)",
   "targetPos": {
    "x": 1960,
    "y": 640
@@ -17541,6 +17359,245 @@
      "y": 700,
      "config": {
       "label": "alsyl"
+     }
+    },
+    {
+     "id": "s0",
+     "kind": "subst",
+     "x": 620,
+     "y": 700,
+     "config": {}
+    },
+    {
+     "id": "a0",
+     "kind": "atom",
+     "x": 60,
+     "y": 80,
+     "config": {
+      "name": "P"
+     }
+    },
+    {
+     "id": "a1",
+     "kind": "atom",
+     "x": 280,
+     "y": 80,
+     "config": {
+      "name": "Y"
+     }
+    },
+    {
+     "id": "a2",
+     "kind": "atom",
+     "x": 500,
+     "y": 80,
+     "config": {
+      "name": "Z"
+     }
+    },
+    {
+     "id": "f3",
+     "kind": "imp",
+     "x": 1380,
+     "y": 80,
+     "config": {}
+    },
+    {
+     "id": "s1",
+     "kind": "subst",
+     "x": 980,
+     "y": 700,
+     "config": {}
+    },
+    {
+     "id": "a4",
+     "kind": "atom",
+     "x": 720,
+     "y": 80,
+     "config": {
+      "name": "Q"
+     }
+    },
+    {
+     "id": "a5",
+     "kind": "atom",
+     "x": 940,
+     "y": 80,
+     "config": {
+      "name": "A"
+     }
+    },
+    {
+     "id": "a6",
+     "kind": "atom",
+     "x": 1160,
+     "y": 80,
+     "config": {
+      "name": "B"
+     }
+    },
+    {
+     "id": "f7",
+     "kind": "and",
+     "x": 1600,
+     "y": 80,
+     "config": {}
+    }
+   ],
+   "edges": [
+    {
+     "from": {
+      "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "a0",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "atom"
+     }
+    },
+    {
+     "from": {
+      "node": "a1",
+      "port": "out"
+     },
+     "to": {
+      "node": "f3",
+      "port": "a"
+     }
+    },
+    {
+     "from": {
+      "node": "a2",
+      "port": "out"
+     },
+     "to": {
+      "node": "f3",
+      "port": "b"
+     }
+    },
+    {
+     "from": {
+      "node": "f3",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "formula"
+     }
+    },
+    {
+     "from": {
+      "node": "s0",
+      "port": "out"
+     },
+     "to": {
+      "node": "s1",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "a4",
+      "port": "out"
+     },
+     "to": {
+      "node": "s1",
+      "port": "atom"
+     }
+    },
+    {
+     "from": {
+      "node": "a5",
+      "port": "out"
+     },
+     "to": {
+      "node": "f7",
+      "port": "a"
+     }
+    },
+    {
+     "from": {
+      "node": "a6",
+      "port": "out"
+     },
+     "to": {
+      "node": "f7",
+      "port": "b"
+     }
+    },
+    {
+     "from": {
+      "node": "f7",
+      "port": "out"
+     },
+     "to": {
+      "node": "s1",
+      "port": "formula"
+     }
+    },
+    {
+     "from": {
+      "node": "s1",
+      "port": "out"
+     },
+     "to": {
+      "node": "target",
+      "port": "proof"
+     }
+    }
+   ]
+  },
+  "band": "challenge"
+ },
+ {
+  "id": "CH2-59",
+  "chapter": "pred",
+  "code": "CH2-59",
+  "title": "3jao · 双代入",
+  "kicker": "set.mm / 3jao",
+  "brief": "",
+  "hint": "",
+  "teaches": [
+   "双代入"
+  ],
+  "allowed": [
+   "target",
+   "archive:3jao",
+   "subst",
+   "atom",
+   "imp",
+   "and"
+  ],
+  "reward": "—",
+  "note": "set.mm 3jao（Propositional calculus）；本作不重证档案定理。",
+  "target": "((T→U)→V∧W)∧(R→V∧W)∧(S→V∧W)→(T→U)∨R∨S→V∧W",
+  "targetPos": {
+   "x": 1960,
+   "y": 640
+  },
+  "world": {
+   "w": 2480,
+   "h": 1340
+  },
+  "solution": {
+   "nodes": [
+    {
+     "id": "src",
+     "kind": "archive",
+     "x": 60,
+     "y": 700,
+     "config": {
+      "label": "3jao"
      }
     },
     {
@@ -17742,249 +17799,6 @@
   "band": "challenge"
  },
  {
-  "id": "CH2-59",
-  "chapter": "pred",
-  "code": "CH2-59",
-  "title": "3jao · 双代入",
-  "kicker": "set.mm / 3jao",
-  "brief": "",
-  "hint": "",
-  "teaches": [
-   "双代入"
-  ],
-  "allowed": [
-   "archive:3jao",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
-   "subst",
-   "target"
-  ],
-  "reward": "—",
-  "note": "set.mm 3jao（Propositional calculus）；本作不重证档案定理。",
-  "target": "((C→D)→E∧F)∧(R→E∧F)∧(S→E∧F)→(C→D)∨R∨S→E∧F",
-  "targetPos": {
-   "x": 1960,
-   "y": 640
-  },
-  "world": {
-   "w": 2480,
-   "h": 1340
-  },
-  "solution": {
-   "nodes": [
-    {
-     "id": "src",
-     "kind": "archive",
-     "x": 60,
-     "y": 700,
-     "config": {
-      "label": "3jao"
-     }
-    },
-    {
-     "id": "s0",
-     "kind": "subst",
-     "x": 620,
-     "y": 700,
-     "config": {}
-    },
-    {
-     "id": "a0",
-     "kind": "atom",
-     "x": 60,
-     "y": 80,
-     "config": {
-      "name": "P"
-     }
-    },
-    {
-     "id": "a1",
-     "kind": "atom",
-     "x": 280,
-     "y": 80,
-     "config": {
-      "name": "C"
-     }
-    },
-    {
-     "id": "a2",
-     "kind": "atom",
-     "x": 500,
-     "y": 80,
-     "config": {
-      "name": "D"
-     }
-    },
-    {
-     "id": "f3",
-     "kind": "imp",
-     "x": 1380,
-     "y": 80,
-     "config": {}
-    },
-    {
-     "id": "s1",
-     "kind": "subst",
-     "x": 980,
-     "y": 700,
-     "config": {}
-    },
-    {
-     "id": "a4",
-     "kind": "atom",
-     "x": 720,
-     "y": 80,
-     "config": {
-      "name": "Q"
-     }
-    },
-    {
-     "id": "a5",
-     "kind": "atom",
-     "x": 940,
-     "y": 80,
-     "config": {
-      "name": "E"
-     }
-    },
-    {
-     "id": "a6",
-     "kind": "atom",
-     "x": 1160,
-     "y": 80,
-     "config": {
-      "name": "F"
-     }
-    },
-    {
-     "id": "f7",
-     "kind": "and",
-     "x": 1600,
-     "y": 80,
-     "config": {}
-    }
-   ],
-   "edges": [
-    {
-     "from": {
-      "node": "src",
-      "port": "out"
-     },
-     "to": {
-      "node": "s0",
-      "port": "assertion"
-     }
-    },
-    {
-     "from": {
-      "node": "a0",
-      "port": "out"
-     },
-     "to": {
-      "node": "s0",
-      "port": "atom"
-     }
-    },
-    {
-     "from": {
-      "node": "a1",
-      "port": "out"
-     },
-     "to": {
-      "node": "f3",
-      "port": "a"
-     }
-    },
-    {
-     "from": {
-      "node": "a2",
-      "port": "out"
-     },
-     "to": {
-      "node": "f3",
-      "port": "b"
-     }
-    },
-    {
-     "from": {
-      "node": "f3",
-      "port": "out"
-     },
-     "to": {
-      "node": "s0",
-      "port": "formula"
-     }
-    },
-    {
-     "from": {
-      "node": "s0",
-      "port": "out"
-     },
-     "to": {
-      "node": "s1",
-      "port": "assertion"
-     }
-    },
-    {
-     "from": {
-      "node": "a4",
-      "port": "out"
-     },
-     "to": {
-      "node": "s1",
-      "port": "atom"
-     }
-    },
-    {
-     "from": {
-      "node": "a5",
-      "port": "out"
-     },
-     "to": {
-      "node": "f7",
-      "port": "a"
-     }
-    },
-    {
-     "from": {
-      "node": "a6",
-      "port": "out"
-     },
-     "to": {
-      "node": "f7",
-      "port": "b"
-     }
-    },
-    {
-     "from": {
-      "node": "f7",
-      "port": "out"
-     },
-     "to": {
-      "node": "s1",
-      "port": "formula"
-     }
-    },
-    {
-     "from": {
-      "node": "s1",
-      "port": "out"
-     },
-     "to": {
-      "node": "target",
-      "port": "proof"
-     }
-    }
-   ]
-  },
-  "band": "challenge"
- },
- {
   "id": "CH2-60",
   "chapter": "pred",
   "code": "CH2-60",
@@ -17996,20 +17810,16 @@
    "双代入"
   ],
   "allowed": [
+   "target",
    "archive:4exmid",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "imp",
+   "and"
   ],
   "reward": "—",
   "note": "set.mm 4exmid（Propositional calculus）；本作不重证档案定理。",
-  "target": "(Z→A)∧(B∧C)∨¬(Z→A)∧¬(B∧C)∨((Z→A)∧¬(B∧C)∨B∧C∧¬(Z→A))",
+  "target": "(R→S)∧(T∧U)∨¬(R→S)∧¬(T∧U)∨((R→S)∧¬(T∧U)∨T∧U∧¬(R→S))",
   "targetPos": {
    "x": 1960,
    "y": 640
@@ -18051,7 +17861,7 @@
      "x": 280,
      "y": 80,
      "config": {
-      "name": "Z"
+      "name": "R"
      }
     },
     {
@@ -18060,7 +17870,7 @@
      "x": 500,
      "y": 80,
      "config": {
-      "name": "A"
+      "name": "S"
      }
     },
     {
@@ -18092,7 +17902,7 @@
      "x": 940,
      "y": 80,
      "config": {
-      "name": "B"
+      "name": "T"
      }
     },
     {
@@ -18101,7 +17911,7 @@
      "x": 1160,
      "y": 80,
      "config": {
-      "name": "C"
+      "name": "U"
      }
     },
     {
@@ -18231,8 +18041,8 @@
   "id": "CH3-13",
   "chapter": "eq",
   "code": "CH3-13",
-  "title": "ax-6 · 全称闭包",
-  "kicker": "推理 / ax-6",
+  "title": "equvel · 全称闭包",
+  "kicker": "推理 / equvel",
   "brief": "",
   "hint": "",
   "teaches": [
@@ -18240,86 +18050,12 @@
   ],
   "allowed": [
    "target",
-   "axiom:ax-6",
+   "archive:equvel",
    "all-intro"
   ],
   "reward": "—",
-  "note": "不使用档案结论；从 公理 ax-6 出发，用代入 / 量词 / 分离规则推出目标。",
-  "target": "∀y ¬∀x ¬x = y",
-  "targetPos": {
-   "x": 980,
-   "y": 640
-  },
-  "world": {
-   "w": 2200,
-   "h": 1340
-  },
-  "solution": {
-   "nodes": [
-    {
-     "id": "src",
-     "kind": "axiom",
-     "x": 60,
-     "y": 700,
-     "config": {
-      "axiomId": "ax-6"
-     }
-    },
-    {
-     "id": "i0",
-     "kind": "all-intro",
-     "x": 620,
-     "y": 700,
-     "config": {
-      "v": "y"
-     }
-    }
-   ],
-   "edges": [
-    {
-     "from": {
-      "node": "src",
-      "port": "out"
-     },
-     "to": {
-      "node": "i0",
-      "port": "assertion"
-     }
-    },
-    {
-     "from": {
-      "node": "i0",
-      "port": "out"
-     },
-     "to": {
-      "node": "target",
-      "port": "proof"
-     }
-    }
-   ]
-  },
-  "band": "base"
- },
- {
-  "id": "CH3-14",
-  "chapter": "eq",
-  "code": "CH3-14",
-  "title": "ax-7 · 闭包 + 例化",
-  "kicker": "推理 / ax-7",
-  "brief": "",
-  "hint": "",
-  "teaches": [
-   "闭包 + 例化"
-  ],
-  "allowed": [
-   "target",
-   "axiom:ax-7",
-   "all-intro",
-   "all-elim"
-  ],
-  "reward": "—",
-  "note": "不使用档案结论；从 公理 ax-7 出发，用代入 / 量词 / 分离规则推出目标。",
-  "target": "a = y→a = z→y = z",
+  "note": "不使用档案结论；从 已证结论 equvel 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "∀y ∀x (∀z (z = x↔z = y)→x = y)",
   "targetPos": {
    "x": 1280,
    "y": 640
@@ -18332,289 +18068,11 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "axiom",
+     "kind": "archive",
      "x": 60,
      "y": 700,
      "config": {
-      "axiomId": "ax-7"
-     }
-    },
-    {
-     "id": "i0",
-     "kind": "all-intro",
-     "x": 620,
-     "y": 700,
-     "config": {
-      "v": "x"
-     }
-    },
-    {
-     "id": "e0",
-     "kind": "all-elim",
-     "x": 920,
-     "y": 700,
-     "config": {
-      "term": "a"
-     }
-    }
-   ],
-   "edges": [
-    {
-     "from": {
-      "node": "src",
-      "port": "out"
-     },
-     "to": {
-      "node": "i0",
-      "port": "assertion"
-     }
-    },
-    {
-     "from": {
-      "node": "i0",
-      "port": "out"
-     },
-     "to": {
-      "node": "e0",
-      "port": "assertion"
-     }
-    },
-    {
-     "from": {
-      "node": "e0",
-      "port": "out"
-     },
-     "to": {
-      "node": "target",
-      "port": "proof"
-     }
-    }
-   ]
-  },
-  "band": "base"
- },
- {
-  "id": "CH3-15",
-  "chapter": "eq",
-  "code": "CH3-15",
-  "title": "ax-8 · 闭包 + 例化",
-  "kicker": "推理 / ax-8",
-  "brief": "",
-  "hint": "",
-  "teaches": [
-   "闭包 + 例化"
-  ],
-  "allowed": [
-   "target",
-   "axiom:ax-8",
-   "all-intro",
-   "all-elim"
-  ],
-  "reward": "—",
-  "note": "不使用档案结论；从 公理 ax-8 出发，用代入 / 量词 / 分离规则推出目标。",
-  "target": "b = y→b ∈ z→y ∈ z",
-  "targetPos": {
-   "x": 1280,
-   "y": 640
-  },
-  "world": {
-   "w": 2200,
-   "h": 1340
-  },
-  "solution": {
-   "nodes": [
-    {
-     "id": "src",
-     "kind": "axiom",
-     "x": 60,
-     "y": 700,
-     "config": {
-      "axiomId": "ax-8"
-     }
-    },
-    {
-     "id": "i0",
-     "kind": "all-intro",
-     "x": 620,
-     "y": 700,
-     "config": {
-      "v": "x"
-     }
-    },
-    {
-     "id": "e0",
-     "kind": "all-elim",
-     "x": 920,
-     "y": 700,
-     "config": {
-      "term": "b"
-     }
-    }
-   ],
-   "edges": [
-    {
-     "from": {
-      "node": "src",
-      "port": "out"
-     },
-     "to": {
-      "node": "i0",
-      "port": "assertion"
-     }
-    },
-    {
-     "from": {
-      "node": "i0",
-      "port": "out"
-     },
-     "to": {
-      "node": "e0",
-      "port": "assertion"
-     }
-    },
-    {
-     "from": {
-      "node": "e0",
-      "port": "out"
-     },
-     "to": {
-      "node": "target",
-      "port": "proof"
-     }
-    }
-   ]
-  },
-  "band": "base"
- },
- {
-  "id": "CH3-16",
-  "chapter": "eq",
-  "code": "CH3-16",
-  "title": "ax-9 · 闭包 + 例化",
-  "kicker": "推理 / ax-9",
-  "brief": "",
-  "hint": "",
-  "teaches": [
-   "闭包 + 例化"
-  ],
-  "allowed": [
-   "target",
-   "axiom:ax-9",
-   "all-intro",
-   "all-elim"
-  ],
-  "reward": "—",
-  "note": "不使用档案结论；从 公理 ax-9 出发，用代入 / 量词 / 分离规则推出目标。",
-  "target": "c = y→z ∈ c→z ∈ y",
-  "targetPos": {
-   "x": 1280,
-   "y": 640
-  },
-  "world": {
-   "w": 2200,
-   "h": 1340
-  },
-  "solution": {
-   "nodes": [
-    {
-     "id": "src",
-     "kind": "axiom",
-     "x": 60,
-     "y": 700,
-     "config": {
-      "axiomId": "ax-9"
-     }
-    },
-    {
-     "id": "i0",
-     "kind": "all-intro",
-     "x": 620,
-     "y": 700,
-     "config": {
-      "v": "x"
-     }
-    },
-    {
-     "id": "e0",
-     "kind": "all-elim",
-     "x": 920,
-     "y": 700,
-     "config": {
-      "term": "c"
-     }
-    }
-   ],
-   "edges": [
-    {
-     "from": {
-      "node": "src",
-      "port": "out"
-     },
-     "to": {
-      "node": "i0",
-      "port": "assertion"
-     }
-    },
-    {
-     "from": {
-      "node": "i0",
-      "port": "out"
-     },
-     "to": {
-      "node": "e0",
-      "port": "assertion"
-     }
-    },
-    {
-     "from": {
-      "node": "e0",
-      "port": "out"
-     },
-     "to": {
-      "node": "target",
-      "port": "proof"
-     }
-    }
-   ]
-  },
-  "band": "base"
- },
- {
-  "id": "CH3-17",
-  "chapter": "eq",
-  "code": "CH3-17",
-  "title": "ax-12 · 全称闭包",
-  "kicker": "推理 / ax-12",
-  "brief": "",
-  "hint": "",
-  "teaches": [
-   "全称闭包"
-  ],
-  "allowed": [
-   "target",
-   "axiom:ax-12",
-   "all-intro"
-  ],
-  "reward": "—",
-  "note": "不使用档案结论；从 公理 ax-12 出发，用代入 / 量词 / 分离规则推出目标。",
-  "target": "∀y ∀x (x = y→∀y P→∀x (x = y→P))",
-  "targetPos": {
-   "x": 1280,
-   "y": 640
-  },
-  "world": {
-   "w": 2200,
-   "h": 1340
-  },
-  "solution": {
-   "nodes": [
-    {
-     "id": "src",
-     "kind": "axiom",
-     "x": 60,
-     "y": 700,
-     "config": {
-      "axiomId": "ax-12"
+      "label": "equvel"
      }
     },
     {
@@ -18672,11 +18130,11 @@
   "band": "base"
  },
  {
-  "id": "CH3-18",
+  "id": "CH3-14",
   "chapter": "eq",
-  "code": "CH3-18",
-  "title": "ax-13 · 全称闭包",
-  "kicker": "推理 / ax-13",
+  "code": "CH3-14",
+  "title": "ax8 · 全称闭包",
+  "kicker": "推理 / ax8",
   "brief": "",
   "hint": "",
   "teaches": [
@@ -18684,12 +18142,12 @@
   ],
   "allowed": [
    "target",
-   "axiom:ax-13",
+   "archive:ax8",
    "all-intro"
   ],
   "reward": "—",
-  "note": "不使用档案结论；从 公理 ax-13 出发，用代入 / 量词 / 分离规则推出目标。",
-  "target": "∀z ∀y ∀x (¬x = y→y = z→∀x y = z)",
+  "note": "不使用档案结论；从 已证结论 ax8 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "∀z ∀y ∀x (x = y→x ∈ z→y ∈ z)",
   "targetPos": {
    "x": 1580,
    "y": 640
@@ -18702,11 +18160,11 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "axiom",
+     "kind": "archive",
      "x": 60,
      "y": 700,
      "config": {
-      "axiomId": "ax-13"
+      "label": "ax8"
      }
     },
     {
@@ -18783,6 +18241,539 @@
   "band": "base"
  },
  {
+  "id": "CH3-15",
+  "chapter": "eq",
+  "code": "CH3-15",
+  "title": "equequ1 · 全称闭包",
+  "kicker": "推理 / equequ1",
+  "brief": "",
+  "hint": "",
+  "teaches": [
+   "全称闭包"
+  ],
+  "allowed": [
+   "target",
+   "archive:equequ1",
+   "all-intro"
+  ],
+  "reward": "—",
+  "note": "不使用档案结论；从 已证结论 equequ1 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "∀z ∀y ∀x (x = y→(x = z↔y = z))",
+  "targetPos": {
+   "x": 1580,
+   "y": 640
+  },
+  "world": {
+   "w": 2200,
+   "h": 1340
+  },
+  "solution": {
+   "nodes": [
+    {
+     "id": "src",
+     "kind": "archive",
+     "x": 60,
+     "y": 700,
+     "config": {
+      "label": "equequ1"
+     }
+    },
+    {
+     "id": "i0",
+     "kind": "all-intro",
+     "x": 620,
+     "y": 700,
+     "config": {
+      "v": "x"
+     }
+    },
+    {
+     "id": "i1",
+     "kind": "all-intro",
+     "x": 920,
+     "y": 700,
+     "config": {
+      "v": "y"
+     }
+    },
+    {
+     "id": "i2",
+     "kind": "all-intro",
+     "x": 1220,
+     "y": 700,
+     "config": {
+      "v": "z"
+     }
+    }
+   ],
+   "edges": [
+    {
+     "from": {
+      "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "i0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "i0",
+      "port": "out"
+     },
+     "to": {
+      "node": "i1",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "i1",
+      "port": "out"
+     },
+     "to": {
+      "node": "i2",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "i2",
+      "port": "out"
+     },
+     "to": {
+      "node": "target",
+      "port": "proof"
+     }
+    }
+   ]
+  },
+  "band": "base"
+ },
+ {
+  "id": "CH3-16",
+  "chapter": "eq",
+  "code": "CH3-16",
+  "title": "axc11r · 代入推演",
+  "kicker": "推理 / axc11r",
+  "brief": "",
+  "hint": "",
+  "teaches": [
+   "代入推演"
+  ],
+  "allowed": [
+   "target",
+   "archive:axc11r",
+   "subst",
+   "atom",
+   "not"
+  ],
+  "reward": "—",
+  "note": "不使用档案结论；从 已证结论 axc11r 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "∀y y = x→∀x ¬R→∀y ¬R",
+  "targetPos": {
+   "x": 980,
+   "y": 640
+  },
+  "world": {
+   "w": 2200,
+   "h": 1340
+  },
+  "solution": {
+   "nodes": [
+    {
+     "id": "src",
+     "kind": "archive",
+     "x": 60,
+     "y": 700,
+     "config": {
+      "label": "axc11r"
+     }
+    },
+    {
+     "id": "s0",
+     "kind": "subst",
+     "x": 620,
+     "y": 700,
+     "config": {}
+    },
+    {
+     "id": "a0",
+     "kind": "atom",
+     "x": 60,
+     "y": 80,
+     "config": {
+      "name": "P"
+     }
+    },
+    {
+     "id": "a1",
+     "kind": "atom",
+     "x": 280,
+     "y": 80,
+     "config": {
+      "name": "R"
+     }
+    },
+    {
+     "id": "f2",
+     "kind": "not",
+     "x": 500,
+     "y": 80,
+     "config": {}
+    }
+   ],
+   "edges": [
+    {
+     "from": {
+      "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "a0",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "atom"
+     }
+    },
+    {
+     "from": {
+      "node": "a1",
+      "port": "out"
+     },
+     "to": {
+      "node": "f2",
+      "port": "a"
+     }
+    },
+    {
+     "from": {
+      "node": "f2",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "formula"
+     }
+    },
+    {
+     "from": {
+      "node": "s0",
+      "port": "out"
+     },
+     "to": {
+      "node": "target",
+      "port": "proof"
+     }
+    }
+   ]
+  },
+  "band": "base"
+ },
+ {
+  "id": "CH3-17",
+  "chapter": "eq",
+  "code": "CH3-17",
+  "title": "axc16 · 代入推演",
+  "kicker": "推理 / axc16",
+  "brief": "",
+  "hint": "",
+  "teaches": [
+   "代入推演"
+  ],
+  "allowed": [
+   "target",
+   "archive:axc16",
+   "subst",
+   "atom",
+   "imp"
+  ],
+  "reward": "—",
+  "note": "不使用档案结论；从 已证结论 axc16 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "∀x x = y→(Q→R)→∀x (Q→R)",
+  "targetPos": {
+   "x": 1080,
+   "y": 640
+  },
+  "world": {
+   "w": 2200,
+   "h": 1340
+  },
+  "solution": {
+   "nodes": [
+    {
+     "id": "src",
+     "kind": "archive",
+     "x": 60,
+     "y": 700,
+     "config": {
+      "label": "axc16"
+     }
+    },
+    {
+     "id": "s0",
+     "kind": "subst",
+     "x": 620,
+     "y": 700,
+     "config": {}
+    },
+    {
+     "id": "a0",
+     "kind": "atom",
+     "x": 60,
+     "y": 80,
+     "config": {
+      "name": "P"
+     }
+    },
+    {
+     "id": "a1",
+     "kind": "atom",
+     "x": 280,
+     "y": 80,
+     "config": {
+      "name": "Q"
+     }
+    },
+    {
+     "id": "a2",
+     "kind": "atom",
+     "x": 500,
+     "y": 80,
+     "config": {
+      "name": "R"
+     }
+    },
+    {
+     "id": "f3",
+     "kind": "imp",
+     "x": 720,
+     "y": 80,
+     "config": {}
+    }
+   ],
+   "edges": [
+    {
+     "from": {
+      "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "a0",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "atom"
+     }
+    },
+    {
+     "from": {
+      "node": "a1",
+      "port": "out"
+     },
+     "to": {
+      "node": "f3",
+      "port": "a"
+     }
+    },
+    {
+     "from": {
+      "node": "a2",
+      "port": "out"
+     },
+     "to": {
+      "node": "f3",
+      "port": "b"
+     }
+    },
+    {
+     "from": {
+      "node": "f3",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "formula"
+     }
+    },
+    {
+     "from": {
+      "node": "s0",
+      "port": "out"
+     },
+     "to": {
+      "node": "target",
+      "port": "proof"
+     }
+    }
+   ]
+  },
+  "band": "base"
+ },
+ {
+  "id": "CH3-18",
+  "chapter": "eq",
+  "code": "CH3-18",
+  "title": "19.12vvv · 代入推演",
+  "kicker": "推理 / 19.12vvv",
+  "brief": "",
+  "hint": "",
+  "teaches": [
+   "代入推演"
+  ],
+  "allowed": [
+   "target",
+   "archive:19.12vvv",
+   "subst",
+   "atom",
+   "or"
+  ],
+  "reward": "—",
+  "note": "不使用档案结论；从 已证结论 19.12vvv 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "∃x ∀y (T∨U→Q)↔∀y ∃x (T∨U→Q)",
+  "targetPos": {
+   "x": 1080,
+   "y": 640
+  },
+  "world": {
+   "w": 2200,
+   "h": 1340
+  },
+  "solution": {
+   "nodes": [
+    {
+     "id": "src",
+     "kind": "archive",
+     "x": 60,
+     "y": 700,
+     "config": {
+      "label": "19.12vvv"
+     }
+    },
+    {
+     "id": "s0",
+     "kind": "subst",
+     "x": 620,
+     "y": 700,
+     "config": {}
+    },
+    {
+     "id": "a0",
+     "kind": "atom",
+     "x": 60,
+     "y": 80,
+     "config": {
+      "name": "P"
+     }
+    },
+    {
+     "id": "a1",
+     "kind": "atom",
+     "x": 280,
+     "y": 80,
+     "config": {
+      "name": "T"
+     }
+    },
+    {
+     "id": "a2",
+     "kind": "atom",
+     "x": 500,
+     "y": 80,
+     "config": {
+      "name": "U"
+     }
+    },
+    {
+     "id": "f3",
+     "kind": "or",
+     "x": 720,
+     "y": 80,
+     "config": {}
+    }
+   ],
+   "edges": [
+    {
+     "from": {
+      "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "a0",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "atom"
+     }
+    },
+    {
+     "from": {
+      "node": "a1",
+      "port": "out"
+     },
+     "to": {
+      "node": "f3",
+      "port": "a"
+     }
+    },
+    {
+     "from": {
+      "node": "a2",
+      "port": "out"
+     },
+     "to": {
+      "node": "f3",
+      "port": "b"
+     }
+    },
+    {
+     "from": {
+      "node": "f3",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "formula"
+     }
+    },
+    {
+     "from": {
+      "node": "s0",
+      "port": "out"
+     },
+     "to": {
+      "node": "target",
+      "port": "proof"
+     }
+    }
+   ]
+  },
+  "band": "base"
+ },
+ {
   "id": "CH3-19",
   "chapter": "eq",
   "code": "CH3-19",
@@ -18794,9 +18785,9 @@
    "定义置换"
   ],
   "allowed": [
+   "target",
    "archive:axc16gb",
-   "replace",
-   "target"
+   "replace"
   ],
   "reward": "—",
   "note": "set.mm axc16gb（Predicate calculus with equality:  Auxiliary axiom schemes (4 schemes)）；本作不重证档案定理。",
@@ -18867,9 +18858,9 @@
    "定义置换"
   ],
   "allowed": [
+   "target",
    "archive:19.44v",
-   "replace",
-   "target"
+   "replace"
   ],
   "reward": "—",
   "note": "set.mm 19.44v（Predicate calculus with equality:  Tarski's system S2 (1 rule, 6 schemes)）；本作不重证档案定理。",
@@ -18940,9 +18931,9 @@
    "定义置换"
   ],
   "allowed": [
+   "target",
    "archive:ax12b",
-   "replace",
-   "target"
+   "replace"
   ],
   "reward": "—",
   "note": "set.mm ax12b（Predicate calculus with equality:  Auxiliary axiom schemes (4 schemes)）；本作不重证档案定理。",
@@ -19013,9 +19004,9 @@
    "全称闭包"
   ],
   "allowed": [
+   "target",
    "archive:ax12v",
-   "all-intro",
-   "target"
+   "all-intro"
   ],
   "reward": "—",
   "note": "set.mm ax12v（Predicate calculus with equality:  Auxiliary axiom schemes (4 schemes)）；本作不重证档案定理。",
@@ -19086,20 +19077,15 @@
    "代入"
   ],
   "allowed": [
+   "target",
    "archive:19.9v",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "not"
   ],
   "reward": "—",
   "note": "set.mm 19.9v（Predicate calculus with equality:  Tarski's system S2 (1 rule, 6 schemes)）；本作不重证档案定理。",
-  "target": "∃x ¬U↔¬U",
+  "target": "∃x ¬B↔¬B",
   "targetPos": {
    "x": 980,
    "y": 640
@@ -19141,7 +19127,7 @@
      "x": 280,
      "y": 80,
      "config": {
-      "name": "U"
+      "name": "B"
      }
     },
     {
@@ -19219,20 +19205,15 @@
    "代入"
   ],
   "allowed": [
+   "target",
    "archive:qexmid",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "not"
   ],
   "reward": "—",
   "note": "set.mm qexmid（Predicate calculus with equality:  Auxiliary axiom schemes (4 schemes)）；本作不重证档案定理。",
-  "target": "∃x (¬Q→∀x ¬Q)",
+  "target": "∃x (¬W→∀x ¬W)",
   "targetPos": {
    "x": 980,
    "y": 640
@@ -19274,7 +19255,7 @@
      "x": 280,
      "y": 80,
      "config": {
-      "name": "Q"
+      "name": "W"
      }
     },
     {
@@ -19352,20 +19333,15 @@
    "代入"
   ],
   "allowed": [
+   "target",
    "archive:hba1",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "and"
   ],
   "reward": "—",
   "note": "set.mm hba1（Predicate calculus with equality:  Auxiliary axiom schemes (4 schemes)）；本作不重证档案定理。",
-  "target": "∀x (Q∧R)→∀x ∀x (Q∧R)",
+  "target": "∀x (X∧Y)→∀x ∀x (X∧Y)",
   "targetPos": {
    "x": 1080,
    "y": 640
@@ -19407,7 +19383,7 @@
      "x": 280,
      "y": 80,
      "config": {
-      "name": "Q"
+      "name": "X"
      }
     },
     {
@@ -19416,7 +19392,7 @@
      "x": 500,
      "y": 80,
      "config": {
-      "name": "R"
+      "name": "Y"
      }
     },
     {
@@ -19504,20 +19480,15 @@
    "代入"
   ],
   "allowed": [
+   "target",
    "archive:19.44v",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "iff"
   ],
   "reward": "—",
   "note": "set.mm 19.44v（Predicate calculus with equality:  Tarski's system S2 (1 rule, 6 schemes)）；本作不重证档案定理。",
-  "target": "∃x ((N↔O)∨Q)↔∃x (N↔O)∨Q",
+  "target": "∃x ((U↔V)∨Q)↔∃x (U↔V)∨Q",
   "targetPos": {
    "x": 1080,
    "y": 640
@@ -19559,7 +19530,7 @@
      "x": 280,
      "y": 80,
      "config": {
-      "name": "N"
+      "name": "U"
      }
     },
     {
@@ -19568,7 +19539,7 @@
      "x": 500,
      "y": 80,
      "config": {
-      "name": "O"
+      "name": "V"
      }
     },
     {
@@ -19656,20 +19627,15 @@
    "代入"
   ],
   "allowed": [
+   "target",
    "archive:axc11r",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "iff"
   ],
   "reward": "—",
   "note": "set.mm axc11r（Predicate calculus with equality:  Auxiliary axiom schemes (4 schemes)）；本作不重证档案定理。",
-  "target": "∀y y = x→∀x (S↔T)→∀y (S↔T)",
+  "target": "∀y y = x→∀x (Z↔A)→∀y (Z↔A)",
   "targetPos": {
    "x": 1080,
    "y": 640
@@ -19711,7 +19677,7 @@
      "x": 280,
      "y": 80,
      "config": {
-      "name": "S"
+      "name": "Z"
      }
     },
     {
@@ -19720,7 +19686,7 @@
      "x": 500,
      "y": 80,
      "config": {
-      "name": "T"
+      "name": "A"
      }
     },
     {
@@ -19808,20 +19774,15 @@
    "代入"
   ],
   "allowed": [
+   "target",
    "archive:19.12vv",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "or"
   ],
   "reward": "—",
   "note": "set.mm 19.12vv（Predicate calculus with equality:  Auxiliary axiom schemes (4 schemes)）；本作不重证档案定理。",
-  "target": "∃x ∀y (R∨S→Q)↔∀y ∃x (R∨S→Q)",
+  "target": "∃x ∀y (Y∨Z→Q)↔∀y ∃x (Y∨Z→Q)",
   "targetPos": {
    "x": 1080,
    "y": 640
@@ -19863,7 +19824,7 @@
      "x": 280,
      "y": 80,
      "config": {
-      "name": "R"
+      "name": "Y"
      }
     },
     {
@@ -19872,7 +19833,7 @@
      "x": 500,
      "y": 80,
      "config": {
-      "name": "S"
+      "name": "Z"
      }
     },
     {
@@ -19960,20 +19921,15 @@
    "代入"
   ],
   "allowed": [
+   "target",
    "archive:ax-12",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "imp"
   ],
   "reward": "—",
   "note": "set.mm ax-12（Predicate calculus with equality:  Auxiliary axiom schemes (4 schemes)）；本作不重证档案定理。",
-  "target": "x = y→∀y (O→Q)→∀x (x = y→O→Q)",
+  "target": "x = y→∀y (V→W)→∀x (x = y→V→W)",
   "targetPos": {
    "x": 1080,
    "y": 640
@@ -20015,7 +19971,7 @@
      "x": 280,
      "y": 80,
      "config": {
-      "name": "O"
+      "name": "V"
      }
     },
     {
@@ -20024,7 +19980,7 @@
      "x": 500,
      "y": 80,
      "config": {
-      "name": "Q"
+      "name": "W"
      }
     },
     {
@@ -20112,20 +20068,15 @@
    "代入"
   ],
   "allowed": [
+   "target",
    "archive:equs5",
-   "atom",
-   "pred",
-   "not",
-   "imp",
-   "or",
-   "and",
-   "iff",
    "subst",
-   "target"
+   "atom",
+   "imp"
   ],
   "reward": "—",
   "note": "set.mm equs5（Predicate calculus with equality:  Auxiliary axiom schemes (4 schemes)）；本作不重证档案定理。",
-  "target": "¬∀x x = y→(∃x (x = y∧(T→U))↔∀x (x = y→T→U))",
+  "target": "¬∀x x = y→(∃x (x = y∧(A→B))↔∀x (x = y→A→B))",
   "targetPos": {
    "x": 1080,
    "y": 640
@@ -20167,7 +20118,7 @@
      "x": 280,
      "y": 80,
      "config": {
-      "name": "T"
+      "name": "A"
      }
     },
     {
@@ -20176,7 +20127,7 @@
      "x": 500,
      "y": 80,
      "config": {
-      "name": "U"
+      "name": "B"
      }
     },
     {
@@ -20264,10 +20215,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:equcomiv",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm equcomiv（Predicate calculus with equality:  Tarski's system S2 (1 rule, 6 schemes)）；本作不重证档案定理。",
@@ -20357,10 +20308,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:axc16",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm axc16（Predicate calculus with equality:  Auxiliary axiom schemes (4 schemes)）；本作不重证档案定理。",
@@ -20450,10 +20401,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:axc16",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm axc16（Predicate calculus with equality:  Auxiliary axiom schemes (4 schemes)）；本作不重证档案定理。",
@@ -20543,10 +20494,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:equeuclr",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm equeuclr（Predicate calculus with equality:  Tarski's system S2 (1 rule, 6 schemes)）；本作不重证档案定理。",
@@ -20636,10 +20587,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:aev",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm aev（Predicate calculus with equality:  Tarski's system S2 (1 rule, 6 schemes)）；本作不重证档案定理。",
@@ -20729,10 +20680,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:ax8v",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm ax8v（Predicate calculus with equality:  Tarski's system S2 (1 rule, 6 schemes)）；本作不重证档案定理。",
@@ -20822,10 +20773,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:ax9v",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm ax9v（Predicate calculus with equality:  Tarski's system S2 (1 rule, 6 schemes)）；本作不重证档案定理。",
@@ -20915,10 +20866,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:alequexv",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm alequexv（Predicate calculus with equality:  Tarski's system S2 (1 rule, 6 schemes)）；本作不重证档案定理。",
@@ -21008,10 +20959,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:ru0",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm ru0（Predicate calculus with equality:  Tarski's system S2 (1 rule, 6 schemes)）；本作不重证档案定理。",
@@ -21101,10 +21052,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:axc11",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm axc11（Predicate calculus with equality:  Auxiliary axiom schemes (4 schemes)）；本作不重证档案定理。",
@@ -21194,10 +21145,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:2ax6e",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm 2ax6e（Predicate calculus with equality:  Auxiliary axiom schemes (4 schemes)）；本作不重证档案定理。",
@@ -21287,10 +21238,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:ax13lem2",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm ax13lem2（Predicate calculus with equality:  Auxiliary axiom schemes (4 schemes)）；本作不重证档案定理。",
@@ -21380,10 +21331,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:equvelv",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm equvelv（Predicate calculus with equality:  Tarski's system S2 (1 rule, 6 schemes)）；本作不重证档案定理。",
@@ -21473,10 +21424,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:equvelv",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm equvelv（Predicate calculus with equality:  Tarski's system S2 (1 rule, 6 schemes)）；本作不重证档案定理。",
@@ -21566,10 +21517,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:equs4",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm equs4（Predicate calculus with equality:  Auxiliary axiom schemes (4 schemes)）；本作不重证档案定理。",
@@ -21659,10 +21610,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:equs5aALT",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm equs5aALT（Predicate calculus with equality:  Auxiliary axiom schemes (4 schemes)）；本作不重证档案定理。",
@@ -21752,10 +21703,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:equs5e",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm equs5e（Predicate calculus with equality:  Auxiliary axiom schemes (4 schemes)）；本作不重证档案定理。",
@@ -21845,10 +21796,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:equs5e",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm equs5e（Predicate calculus with equality:  Auxiliary axiom schemes (4 schemes)）；本作不重证档案定理。",
@@ -21938,10 +21889,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:equcom",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm equcom（Predicate calculus with equality:  Tarski's system S2 (1 rule, 6 schemes)）；本作不重证档案定理。",
@@ -22069,10 +22020,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:ax8v",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm ax8v（Predicate calculus with equality:  Tarski's system S2 (1 rule, 6 schemes)）；本作不重证档案定理。",
@@ -22200,10 +22151,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:ax-9",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm ax-9（Predicate calculus with equality:  Tarski's system S2 (1 rule, 6 schemes)）；本作不重证档案定理。",
@@ -22331,10 +22282,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:aecom",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm aecom（Predicate calculus with equality:  Auxiliary axiom schemes (4 schemes)）；本作不重证档案定理。",
@@ -22462,10 +22413,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:ax7v",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm ax7v（Predicate calculus with equality:  Tarski's system S2 (1 rule, 6 schemes)）；本作不重证档案定理。",
@@ -22593,10 +22544,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:elequ2",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm elequ2（Predicate calculus with equality:  Tarski's system S2 (1 rule, 6 schemes)）；本作不重证档案定理。",
@@ -22724,10 +22675,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:equequ1",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm equequ1（Predicate calculus with equality:  Tarski's system S2 (1 rule, 6 schemes)）；本作不重证档案定理。",
@@ -22855,10 +22806,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:ax12ev2",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm ax12ev2（Predicate calculus with equality:  Auxiliary axiom schemes (4 schemes)）；本作不重证档案定理。",
@@ -22986,10 +22937,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:ax13lem1",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm ax13lem1（Predicate calculus with equality:  Auxiliary axiom schemes (4 schemes)）；本作不重证档案定理。",
@@ -23117,10 +23068,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:dveel2",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm dveel2（Predicate calculus with equality:  Auxiliary axiom schemes (4 schemes)）；本作不重证档案定理。",
@@ -23248,10 +23199,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:axc9",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm axc9（Predicate calculus with equality:  Auxiliary axiom schemes (4 schemes)）；本作不重证档案定理。",
@@ -23379,10 +23330,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:ax13b",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm ax13b（Predicate calculus with equality:  Tarski's system S2 (1 rule, 6 schemes)）；本作不重证档案定理。",
@@ -23502,8 +23453,8 @@
   "id": "CH4-13",
   "chapter": "set",
   "code": "CH4-13",
-  "title": "ax-pow · 全称闭包",
-  "kicker": "推理 / ax-pow",
+  "title": "vex · 全称闭包",
+  "kicker": "推理 / vex",
   "brief": "",
   "hint": "",
   "teaches": [
@@ -23511,12 +23462,12 @@
   ],
   "allowed": [
    "target",
-   "axiom:ax-pow",
+   "archive:vex",
    "all-intro"
   ],
   "reward": "—",
-  "note": "不使用档案结论；从 公理 ax-pow 出发，用代入 / 量词 / 分离规则推出目标。",
-  "target": "∀x ∃y ∀z (∀w (w ∈ z→w ∈ x)→z ∈ y)",
+  "note": "不使用档案结论；从 已证结论 vex 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "∀x x ∈ V",
   "targetPos": {
    "x": 980,
    "y": 640
@@ -23529,11 +23480,11 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "axiom",
+     "kind": "archive",
      "x": 60,
      "y": 700,
      "config": {
-      "axiomId": "ax-pow"
+      "label": "vex"
      }
     },
     {
@@ -23575,8 +23526,8 @@
   "id": "CH4-14",
   "chapter": "set",
   "code": "CH4-14",
-  "title": "ax-un · 全称闭包",
-  "kicker": "推理 / ax-un",
+  "title": "vneqv · 全称闭包",
+  "kicker": "推理 / vneqv",
   "brief": "",
   "hint": "",
   "teaches": [
@@ -23584,12 +23535,12 @@
   ],
   "allowed": [
    "target",
-   "axiom:ax-un",
+   "archive:vneqv",
    "all-intro"
   ],
   "reward": "—",
-  "note": "不使用档案结论；从 公理 ax-un 出发，用代入 / 量词 / 分离规则推出目标。",
-  "target": "∀x ∃y ∀z (∃w (z ∈ w∧w ∈ x)→z ∈ y)",
+  "note": "不使用档案结论；从 已证结论 vneqv 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "∀x ¬x = V",
   "targetPos": {
    "x": 980,
    "y": 640
@@ -23602,11 +23553,11 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "axiom",
+     "kind": "archive",
      "x": 60,
      "y": 700,
      "config": {
-      "axiomId": "ax-un"
+      "label": "vneqv"
      }
     },
     {
@@ -23648,8 +23599,8 @@
   "id": "CH4-15",
   "chapter": "set",
   "code": "CH4-15",
-  "title": "ax-inf · 全称闭包",
-  "kicker": "推理 / ax-inf",
+  "title": "fin41 · 全称闭包",
+  "kicker": "推理 / fin41",
   "brief": "",
   "hint": "",
   "teaches": [
@@ -23657,12 +23608,12 @@
   ],
   "allowed": [
    "target",
-   "axiom:ax-inf",
+   "archive:fin41",
    "all-intro"
   ],
   "reward": "—",
-  "note": "不使用档案结论；从 公理 ax-inf 出发，用代入 / 量词 / 分离规则推出目标。",
-  "target": "∀x ∃y (x ∈ y∧∀z (z ∈ y→∃w (z ∈ w∧w ∈ y)))",
+  "note": "不使用档案结论；从 已证结论 fin41 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "∀x Fin4 = Fin",
   "targetPos": {
    "x": 980,
    "y": 640
@@ -23675,11 +23626,11 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "axiom",
+     "kind": "archive",
      "x": 60,
      "y": 700,
      "config": {
-      "axiomId": "ax-inf"
+      "label": "fin41"
      }
     },
     {
@@ -23721,21 +23672,21 @@
   "id": "CH4-16",
   "chapter": "set",
   "code": "CH4-16",
-  "title": "ax-reg · 全称闭包",
-  "kicker": "推理 / ax-reg",
+  "title": "eqtr2 · 定义推演",
+  "kicker": "推理 / eqtr2",
   "brief": "",
   "hint": "",
   "teaches": [
-   "全称闭包"
+   "定义推演"
   ],
   "allowed": [
    "target",
-   "axiom:ax-reg",
-   "all-intro"
+   "archive:eqtr2",
+   "replace"
   ],
   "reward": "—",
-  "note": "不使用档案结论；从 公理 ax-reg 出发，用代入 / 量词 / 分离规则推出目标。",
-  "target": "∀x (∃y y ∈ x→∃y (y ∈ x∧∀z (z ∈ y→¬z ∈ x)))",
+  "note": "不使用档案结论；从 已证结论 eqtr2 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "¬(A = B→¬A = C)→B = C",
   "targetPos": {
    "x": 980,
    "y": 640
@@ -23748,20 +23699,20 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "axiom",
+     "kind": "archive",
      "x": 60,
      "y": 700,
      "config": {
-      "axiomId": "ax-reg"
+      "label": "eqtr2"
      }
     },
     {
-     "id": "i0",
-     "kind": "all-intro",
+     "id": "r0",
+     "kind": "replace",
      "x": 620,
      "y": 700,
      "config": {
-      "v": "x"
+      "optionId": "df-an:expand:a"
      }
     }
    ],
@@ -23772,13 +23723,13 @@
       "port": "out"
      },
      "to": {
-      "node": "i0",
+      "node": "r0",
       "port": "assertion"
      }
     },
     {
      "from": {
-      "node": "i0",
+      "node": "r0",
       "port": "out"
      },
      "to": {
@@ -23794,21 +23745,21 @@
   "id": "CH4-17",
   "chapter": "set",
   "code": "CH4-17",
-  "title": "ax-rep · 全称闭包",
-  "kicker": "推理 / ax-rep",
+  "title": "en3lp · 定义推演",
+  "kicker": "推理 / en3lp",
   "brief": "",
   "hint": "",
   "teaches": [
-   "全称闭包"
+   "定义推演"
   ],
   "allowed": [
    "target",
-   "axiom:ax-rep",
-   "all-intro"
+   "archive:en3lp",
+   "replace"
   ],
   "reward": "—",
-  "note": "不使用档案结论；从 公理 ax-rep 出发，用代入 / 量词 / 分离规则推出目标。",
-  "target": "∀x (∀w ∃y ∀z (∀y P→z = y)→∃y ∀z (z ∈ y↔∃w (w ∈ x∧∀y P)))",
+  "note": "不使用档案结论；从 已证结论 en3lp 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "¬¬(A ∈ B∧B ∈ C→¬C ∈ A)",
   "targetPos": {
    "x": 980,
    "y": 640
@@ -23821,20 +23772,20 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "axiom",
+     "kind": "archive",
      "x": 60,
      "y": 700,
      "config": {
-      "axiomId": "ax-rep"
+      "label": "en3lp"
      }
     },
     {
-     "id": "i0",
-     "kind": "all-intro",
+     "id": "r0",
+     "kind": "replace",
      "x": 620,
      "y": 700,
      "config": {
-      "v": "x"
+      "optionId": "df-an:expand:a"
      }
     }
    ],
@@ -23845,13 +23796,13 @@
       "port": "out"
      },
      "to": {
-      "node": "i0",
+      "node": "r0",
       "port": "assertion"
      }
     },
     {
      "from": {
-      "node": "i0",
+      "node": "r0",
       "port": "out"
      },
      "to": {
@@ -23867,24 +23818,23 @@
   "id": "CH4-18",
   "chapter": "set",
   "code": "CH4-18",
-  "title": "ax-ext · 闭包 + 例化",
-  "kicker": "推理 / ax-ext",
+  "title": "axprlem1 · 定义推演",
+  "kicker": "推理 / axprlem1",
   "brief": "",
   "hint": "",
   "teaches": [
-   "闭包 + 例化"
+   "定义推演"
   ],
   "allowed": [
    "target",
-   "axiom:ax-ext",
-   "all-intro",
-   "all-elim"
+   "archive:axprlem1",
+   "replace"
   ],
   "reward": "—",
-  "note": "不使用档案结论；从 公理 ax-ext 出发，用代入 / 量词 / 分离规则推出目标。",
-  "target": "∀z (z ∈ a↔z ∈ y)→a = y",
+  "note": "不使用档案结论；从 已证结论 axprlem1 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "¬∀x ¬∀y (∀z ¬z ∈ y→y ∈ x)",
   "targetPos": {
-   "x": 1280,
+   "x": 980,
    "y": 640
   },
   "world": {
@@ -23895,11 +23845,84 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "axiom",
+     "kind": "archive",
      "x": 60,
      "y": 700,
      "config": {
-      "axiomId": "ax-ext"
+      "label": "axprlem1"
+     }
+    },
+    {
+     "id": "r0",
+     "kind": "replace",
+     "x": 620,
+     "y": 700,
+     "config": {
+      "optionId": "df-ex:expand:@"
+     }
+    }
+   ],
+   "edges": [
+    {
+     "from": {
+      "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "r0",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "r0",
+      "port": "out"
+     },
+     "to": {
+      "node": "target",
+      "port": "proof"
+     }
+    }
+   ]
+  },
+  "band": "base"
+ },
+ {
+  "id": "CH4-19",
+  "chapter": "set",
+  "code": "CH4-19",
+  "title": "axunnd · 全称闭包",
+  "kicker": "推理 / axunnd",
+  "brief": "",
+  "hint": "",
+  "teaches": [
+   "全称闭包"
+  ],
+  "allowed": [
+   "target",
+   "archive:axunnd",
+   "all-intro"
+  ],
+  "reward": "—",
+  "note": "不使用档案结论；从 已证结论 axunnd 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "∀z ∃x ∀y (∃x (y ∈ x∧x ∈ z)→y ∈ x)",
+  "targetPos": {
+   "x": 980,
+   "y": 640
+  },
+  "world": {
+   "w": 2200,
+   "h": 1340
+  },
+  "solution": {
+   "nodes": [
+    {
+     "id": "src",
+     "kind": "archive",
+     "x": 60,
+     "y": 700,
+     "config": {
+      "label": "axunnd"
      }
     },
     {
@@ -23908,16 +23931,7 @@
      "x": 620,
      "y": 700,
      "config": {
-      "v": "x"
-     }
-    },
-    {
-     "id": "e0",
-     "kind": "all-elim",
-     "x": 920,
-     "y": 700,
-     "config": {
-      "term": "a"
+      "v": "z"
      }
     }
    ],
@@ -23938,13 +23952,76 @@
       "port": "out"
      },
      "to": {
-      "node": "e0",
+      "node": "target",
+      "port": "proof"
+     }
+    }
+   ]
+  },
+  "band": "base"
+ },
+ {
+  "id": "CH4-20",
+  "chapter": "set",
+  "code": "CH4-20",
+  "title": "oneltri · 定义推演",
+  "kicker": "推理 / oneltri",
+  "brief": "",
+  "hint": "",
+  "teaches": [
+   "定义推演"
+  ],
+  "allowed": [
+   "target",
+   "archive:oneltri",
+   "replace"
+  ],
+  "reward": "—",
+  "note": "不使用档案结论；从 已证结论 oneltri 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "¬(A ∈ On→¬B ∈ On)→A ∈ B∨B ∈ A∨A = B",
+  "targetPos": {
+   "x": 980,
+   "y": 640
+  },
+  "world": {
+   "w": 2200,
+   "h": 1340
+  },
+  "solution": {
+   "nodes": [
+    {
+     "id": "src",
+     "kind": "archive",
+     "x": 60,
+     "y": 700,
+     "config": {
+      "label": "oneltri"
+     }
+    },
+    {
+     "id": "r0",
+     "kind": "replace",
+     "x": 620,
+     "y": 700,
+     "config": {
+      "optionId": "df-an:expand:a"
+     }
+    }
+   ],
+   "edges": [
+    {
+     "from": {
+      "node": "src",
+      "port": "out"
+     },
+     "to": {
+      "node": "r0",
       "port": "assertion"
      }
     },
     {
      "from": {
-      "node": "e0",
+      "node": "r0",
       "port": "out"
      },
      "to": {
@@ -23957,11 +24034,11 @@
   "band": "base"
  },
  {
-  "id": "CH4-19",
+  "id": "CH4-21",
   "chapter": "set",
-  "code": "CH4-19",
-  "title": "ax-ext · 全称闭包",
-  "kicker": "推理 / ax-ext",
+  "code": "CH4-21",
+  "title": "ax-pr · 全称闭包",
+  "kicker": "推理 / ax-pr",
   "brief": "",
   "hint": "",
   "teaches": [
@@ -23969,12 +24046,12 @@
   ],
   "allowed": [
    "target",
-   "axiom:ax-ext",
+   "archive:ax-pr",
    "all-intro"
   ],
   "reward": "—",
-  "note": "不使用档案结论；从 公理 ax-ext 出发，用代入 / 量词 / 分离规则推出目标。",
-  "target": "∀y ∀x (∀z (z ∈ x↔z ∈ y)→x = y)",
+  "note": "不使用档案结论；从 已证结论 ax-pr 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "∀y ∀x ∃z ∀w (w = x∨w = y→w ∈ z)",
   "targetPos": {
    "x": 1280,
    "y": 640
@@ -23987,11 +24064,11 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "axiom",
+     "kind": "archive",
      "x": 60,
      "y": 700,
      "config": {
-      "axiomId": "ax-ext"
+      "label": "ax-pr"
      }
     },
     {
@@ -24049,210 +24126,24 @@
   "band": "base"
  },
  {
-  "id": "CH4-20",
-  "chapter": "set",
-  "code": "CH4-20",
-  "title": "ax-pow · 闭包 + 例化",
-  "kicker": "推理 / ax-pow",
-  "brief": "",
-  "hint": "",
-  "teaches": [
-   "闭包 + 例化"
-  ],
-  "allowed": [
-   "target",
-   "axiom:ax-pow",
-   "all-intro",
-   "all-elim"
-  ],
-  "reward": "—",
-  "note": "不使用档案结论；从 公理 ax-pow 出发，用代入 / 量词 / 分离规则推出目标。",
-  "target": "∃y ∀z (∀w (w ∈ z→w ∈ b)→z ∈ y)",
-  "targetPos": {
-   "x": 1280,
-   "y": 640
-  },
-  "world": {
-   "w": 2200,
-   "h": 1340
-  },
-  "solution": {
-   "nodes": [
-    {
-     "id": "src",
-     "kind": "axiom",
-     "x": 60,
-     "y": 700,
-     "config": {
-      "axiomId": "ax-pow"
-     }
-    },
-    {
-     "id": "i0",
-     "kind": "all-intro",
-     "x": 620,
-     "y": 700,
-     "config": {
-      "v": "x"
-     }
-    },
-    {
-     "id": "e0",
-     "kind": "all-elim",
-     "x": 920,
-     "y": 700,
-     "config": {
-      "term": "b"
-     }
-    }
-   ],
-   "edges": [
-    {
-     "from": {
-      "node": "src",
-      "port": "out"
-     },
-     "to": {
-      "node": "i0",
-      "port": "assertion"
-     }
-    },
-    {
-     "from": {
-      "node": "i0",
-      "port": "out"
-     },
-     "to": {
-      "node": "e0",
-      "port": "assertion"
-     }
-    },
-    {
-     "from": {
-      "node": "e0",
-      "port": "out"
-     },
-     "to": {
-      "node": "target",
-      "port": "proof"
-     }
-    }
-   ]
-  },
-  "band": "base"
- },
- {
-  "id": "CH4-21",
-  "chapter": "set",
-  "code": "CH4-21",
-  "title": "ax-un · 闭包 + 例化",
-  "kicker": "推理 / ax-un",
-  "brief": "",
-  "hint": "",
-  "teaches": [
-   "闭包 + 例化"
-  ],
-  "allowed": [
-   "target",
-   "axiom:ax-un",
-   "all-intro",
-   "all-elim"
-  ],
-  "reward": "—",
-  "note": "不使用档案结论；从 公理 ax-un 出发，用代入 / 量词 / 分离规则推出目标。",
-  "target": "∃y ∀z (∃w (z ∈ w∧w ∈ c)→z ∈ y)",
-  "targetPos": {
-   "x": 1280,
-   "y": 640
-  },
-  "world": {
-   "w": 2200,
-   "h": 1340
-  },
-  "solution": {
-   "nodes": [
-    {
-     "id": "src",
-     "kind": "axiom",
-     "x": 60,
-     "y": 700,
-     "config": {
-      "axiomId": "ax-un"
-     }
-    },
-    {
-     "id": "i0",
-     "kind": "all-intro",
-     "x": 620,
-     "y": 700,
-     "config": {
-      "v": "x"
-     }
-    },
-    {
-     "id": "e0",
-     "kind": "all-elim",
-     "x": 920,
-     "y": 700,
-     "config": {
-      "term": "c"
-     }
-    }
-   ],
-   "edges": [
-    {
-     "from": {
-      "node": "src",
-      "port": "out"
-     },
-     "to": {
-      "node": "i0",
-      "port": "assertion"
-     }
-    },
-    {
-     "from": {
-      "node": "i0",
-      "port": "out"
-     },
-     "to": {
-      "node": "e0",
-      "port": "assertion"
-     }
-    },
-    {
-     "from": {
-      "node": "e0",
-      "port": "out"
-     },
-     "to": {
-      "node": "target",
-      "port": "proof"
-     }
-    }
-   ]
-  },
-  "band": "base"
- },
- {
   "id": "CH4-22",
   "chapter": "set",
   "code": "CH4-22",
-  "title": "ax-ac · 全称闭包",
-  "kicker": "推理 / ax-ac",
+  "title": "axacnd · 定义推演",
+  "kicker": "推理 / axacnd",
   "brief": "",
   "hint": "",
   "teaches": [
-   "全称闭包"
+   "定义推演"
   ],
   "allowed": [
    "target",
-   "axiom:ax-ac",
-   "all-intro"
+   "archive:axacnd",
+   "replace"
   ],
   "reward": "—",
-  "note": "不使用档案结论；从 公理 ax-ac 出发，用代入 / 量词 / 分离规则推出目标。",
-  "target": "∀x ∃y ∀z ∀w (z ∈ w∧w ∈ x→∃v ∀u (∃t (u ∈ w∧w ∈ t∧(u ∈ t∧t ∈ y))↔u = v))",
+  "note": "不使用档案结论；从 已证结论 axacnd 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "∃x ∀y ∀z (∀x (y ∈ z∧z ∈ w)→∃w ∀y (∃w (y ∈ z∧z ∈ w∧¬(y ∈ w→¬w ∈ x))↔y = w))",
   "targetPos": {
    "x": 980,
    "y": 640
@@ -24265,20 +24156,20 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "axiom",
+     "kind": "archive",
      "x": 60,
      "y": 700,
      "config": {
-      "axiomId": "ax-ac"
+      "label": "axacnd"
      }
     },
     {
-     "id": "i0",
-     "kind": "all-intro",
+     "id": "r0",
+     "kind": "replace",
      "x": 620,
      "y": 700,
      "config": {
-      "v": "x"
+      "optionId": "df-an:expand:a.a.a.b.a.a.a.a.b"
      }
     }
    ],
@@ -24289,13 +24180,13 @@
       "port": "out"
      },
      "to": {
-      "node": "i0",
+      "node": "r0",
       "port": "assertion"
      }
     },
     {
      "from": {
-      "node": "i0",
+      "node": "r0",
       "port": "out"
      },
      "to": {
@@ -24311,24 +24202,25 @@
   "id": "CH4-23",
   "chapter": "set",
   "code": "CH4-23",
-  "title": "ax-ac · 闭包 + 例化",
-  "kicker": "推理 / ax-ac",
+  "title": "axrep1 · 代入推演",
+  "kicker": "推理 / axrep1",
   "brief": "",
   "hint": "",
   "teaches": [
-   "闭包 + 例化"
+   "代入推演"
   ],
   "allowed": [
    "target",
-   "axiom:ax-ac",
-   "all-intro",
-   "all-elim"
+   "archive:axrep1",
+   "subst",
+   "atom",
+   "and"
   ],
   "reward": "—",
-  "note": "不使用档案结论；从 公理 ax-ac 出发，用代入 / 量词 / 分离规则推出目标。",
-  "target": "∃y ∀z ∀w (z ∈ w∧w ∈ b→∃v ∀u (∃t (u ∈ w∧w ∈ t∧(u ∈ t∧t ∈ y))↔u = v))",
+  "note": "不使用档案结论；从 已证结论 axrep1 出发，用代入 / 量词 / 分离规则推出目标。",
+  "target": "∃x (∃y ∀z (X∧Y→z = y)→∀z (z ∈ x↔∃x (x ∈ y∧(X∧Y))))",
   "targetPos": {
-   "x": 1280,
+   "x": 1080,
    "y": 640
   },
   "world": {
@@ -24339,30 +24231,53 @@
    "nodes": [
     {
      "id": "src",
-     "kind": "axiom",
+     "kind": "archive",
      "x": 60,
      "y": 700,
      "config": {
-      "axiomId": "ax-ac"
+      "label": "axrep1"
      }
     },
     {
-     "id": "i0",
-     "kind": "all-intro",
+     "id": "s0",
+     "kind": "subst",
      "x": 620,
      "y": 700,
+     "config": {}
+    },
+    {
+     "id": "a0",
+     "kind": "atom",
+     "x": 60,
+     "y": 80,
      "config": {
-      "v": "x"
+      "name": "P"
      }
     },
     {
-     "id": "e0",
-     "kind": "all-elim",
-     "x": 920,
-     "y": 700,
+     "id": "a1",
+     "kind": "atom",
+     "x": 280,
+     "y": 80,
      "config": {
-      "term": "b"
+      "name": "X"
      }
+    },
+    {
+     "id": "a2",
+     "kind": "atom",
+     "x": 500,
+     "y": 80,
+     "config": {
+      "name": "Y"
+     }
+    },
+    {
+     "id": "f3",
+     "kind": "and",
+     "x": 720,
+     "y": 80,
+     "config": {}
     }
    ],
    "edges": [
@@ -24372,23 +24287,53 @@
       "port": "out"
      },
      "to": {
-      "node": "i0",
+      "node": "s0",
       "port": "assertion"
      }
     },
     {
      "from": {
-      "node": "i0",
+      "node": "a0",
       "port": "out"
      },
      "to": {
-      "node": "e0",
-      "port": "assertion"
+      "node": "s0",
+      "port": "atom"
      }
     },
     {
      "from": {
-      "node": "e0",
+      "node": "a1",
+      "port": "out"
+     },
+     "to": {
+      "node": "f3",
+      "port": "a"
+     }
+    },
+    {
+     "from": {
+      "node": "a2",
+      "port": "out"
+     },
+     "to": {
+      "node": "f3",
+      "port": "b"
+     }
+    },
+    {
+     "from": {
+      "node": "f3",
+      "port": "out"
+     },
+     "to": {
+      "node": "s0",
+      "port": "formula"
+     }
+    },
+    {
+     "from": {
+      "node": "s0",
       "port": "out"
      },
      "to": {
@@ -24412,9 +24357,9 @@
    "定义置换"
   ],
   "allowed": [
+   "target",
    "archive:axinfnd",
-   "replace",
-   "target"
+   "replace"
   ],
   "reward": "—",
   "note": "set.mm axinfnd（ZFC Axioms with no distinct variable requirements）；本作不重证档案定理。",
@@ -24485,9 +24430,9 @@
    "定义置换"
   ],
   "allowed": [
+   "target",
    "archive:axreplem",
-   "replace",
-   "target"
+   "replace"
   ],
   "reward": "—",
   "note": "set.mm axreplem（ZF Set Theory - add the Axiom of Replacement）；本作不重证档案定理。",
@@ -24558,9 +24503,9 @@
    "全称闭包"
   ],
   "allowed": [
+   "target",
    "archive:ax-ext",
-   "all-intro",
-   "target"
+   "all-intro"
   ],
   "reward": "—",
   "note": "set.mm ax-ext（ZF Set Theory - start with the Axiom of Extensionality）；本作不重证档案定理。",
@@ -24631,9 +24576,9 @@
    "全称闭包"
   ],
   "allowed": [
+   "target",
    "archive:ax-ext",
-   "all-intro",
-   "target"
+   "all-intro"
   ],
   "reward": "—",
   "note": "set.mm ax-ext（ZF Set Theory - start with the Axiom of Extensionality）；本作不重证档案定理。",
@@ -24704,9 +24649,9 @@
    "全称闭包"
   ],
   "allowed": [
+   "target",
    "archive:axextb",
-   "all-intro",
-   "target"
+   "all-intro"
   ],
   "reward": "—",
   "note": "set.mm axextb（ZF Set Theory - start with the Axiom of Extensionality）；本作不重证档案定理。",
@@ -24769,23 +24714,23 @@
   "id": "CH4-29",
   "chapter": "set",
   "code": "CH4-29",
-  "title": "axextb · 全称闭包",
-  "kicker": "set.mm / axextb",
+  "title": "ax-ext · 全称闭包",
+  "kicker": "set.mm / ax-ext",
   "brief": "",
   "hint": "",
   "teaches": [
    "全称闭包"
   ],
   "allowed": [
-   "archive:axextb",
-   "all-intro",
-   "target"
+   "target",
+   "archive:ax-ext",
+   "all-intro"
   ],
   "reward": "—",
-  "note": "set.mm axextb（ZF Set Theory - start with the Axiom of Extensionality）；本作不重证档案定理。",
-  "target": "∀y (x = y↔∀z (z ∈ x↔z ∈ y))",
+  "note": "set.mm ax-ext（ZF Set Theory - start with the Axiom of Extensionality）；本作不重证档案定理。",
+  "target": "∀y ∀x (∀z (z ∈ x↔z ∈ y)→x = y)",
   "targetPos": {
-   "x": 980,
+   "x": 1280,
    "y": 640
   },
   "world": {
@@ -24800,13 +24745,22 @@
      "x": 60,
      "y": 700,
      "config": {
-      "label": "axextb"
+      "label": "ax-ext"
      }
     },
     {
      "id": "i0",
      "kind": "all-intro",
      "x": 620,
+     "y": 700,
+     "config": {
+      "v": "x"
+     }
+    },
+    {
+     "id": "i1",
+     "kind": "all-intro",
+     "x": 920,
      "y": 700,
      "config": {
       "v": "y"
@@ -24830,6 +24784,16 @@
       "port": "out"
      },
      "to": {
+      "node": "i1",
+      "port": "assertion"
+     }
+    },
+    {
+     "from": {
+      "node": "i1",
+      "port": "out"
+     },
+     "to": {
       "node": "target",
       "port": "proof"
      }
@@ -24850,9 +24814,9 @@
    "全称闭包"
   ],
   "allowed": [
+   "target",
    "archive:ax-ext",
-   "all-intro",
-   "target"
+   "all-intro"
   ],
   "reward": "—",
   "note": "set.mm ax-ext（ZF Set Theory - start with the Axiom of Extensionality）；本作不重证档案定理。",
@@ -24942,10 +24906,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:elirrvOLDOLD",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm elirrvOLDOLD（ZF Set Theory - add the Axiom of Regularity）；本作不重证档案定理。",
@@ -25035,10 +24999,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:elALT2",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm elALT2（ZF Set Theory - add the Axiom of Power Sets）；本作不重证档案定理。",
@@ -25128,10 +25092,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:dtru",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm dtru（ZF Set Theory - add the Axiom of Power Sets）；本作不重证档案定理。",
@@ -25221,10 +25185,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:axc16b",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm axc16b（ZF Set Theory - add the Axiom of Power Sets）；本作不重证档案定理。",
@@ -25314,10 +25278,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:nd4",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm nd4（ZFC Axioms with no distinct variable requirements）；本作不重证档案定理。",
@@ -25407,10 +25371,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:nd2",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm nd2（ZFC Axioms with no distinct variable requirements）；本作不重证档案定理。",
@@ -25500,10 +25464,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:eleq2w2",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm eleq2w2（ZF Set Theory - start with the Axiom of Extensionality）；本作不重证档案定理。",
@@ -25593,10 +25557,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:axsep",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm axsep（ZF Set Theory - add the Axiom of Replacement）；本作不重证档案定理。",
@@ -25686,10 +25650,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:axextb",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm axextb（ZF Set Theory - start with the Axiom of Extensionality）；本作不重证档案定理。",
@@ -25779,10 +25743,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:axun2",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm axun2（ZF Set Theory - add the Axiom of Union）；本作不重证档案定理。",
@@ -25872,10 +25836,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:ax-rep",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm ax-rep（ZF Set Theory - add the Axiom of Replacement）；本作不重证档案定理。",
@@ -25965,10 +25929,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:axpowndlem2",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm axpowndlem2（ZFC Axioms with no distinct variable requirements）；本作不重证档案定理。",
@@ -26058,10 +26022,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:axreplem",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm axreplem（ZF Set Theory - add the Axiom of Replacement）；本作不重证档案定理。",
@@ -26151,10 +26115,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:axpowndlem4",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm axpowndlem4（ZFC Axioms with no distinct variable requirements）；本作不重证档案定理。",
@@ -26244,10 +26208,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:ax-ac",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm ax-ac（ZFC Set Theory - add the Axiom of Choice）；本作不重证档案定理。",
@@ -26337,10 +26301,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:axacndlem3",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm axacndlem3（ZFC Axioms with no distinct variable requirements）；本作不重证档案定理。",
@@ -26430,10 +26394,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:axacndlem3",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm axacndlem3（ZFC Axioms with no distinct variable requirements）；本作不重证档案定理。",
@@ -26523,10 +26487,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:ax-ac2",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm ax-ac2（ZFC Set Theory - add the Axiom of Choice）；本作不重证档案定理。",
@@ -26616,10 +26580,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:dvdemo1",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm dvdemo1（ZF Set Theory - add the Axiom of Power Sets）；本作不重证档案定理。",
@@ -26747,10 +26711,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:nd1",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm nd1（ZFC Axioms with no distinct variable requirements）；本作不重证档案定理。",
@@ -26878,10 +26842,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:nd3",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm nd3（ZFC Axioms with no distinct variable requirements）；本作不重证档案定理。",
@@ -27009,10 +26973,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:eleq1w",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm eleq1w（ZF Set Theory - start with the Axiom of Extensionality）；本作不重证档案定理。",
@@ -27140,10 +27104,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:axextg",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm axextg（ZF Set Theory - start with the Axiom of Extensionality）；本作不重证档案定理。",
@@ -27271,10 +27235,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:axexte",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm axexte（ZF Set Theory - start with the Axiom of Extensionality）；本作不重证档案定理。",
@@ -27402,10 +27366,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:axpr",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm axpr（ZF Set Theory - add the Axiom of Power Sets）；本作不重证档案定理。",
@@ -27533,10 +27497,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:axregndlem2",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm axregndlem2（ZFC Axioms with no distinct variable requirements）；本作不重证档案定理。",
@@ -27664,10 +27628,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:axpownd",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm axpownd（ZFC Axioms with no distinct variable requirements）；本作不重证档案定理。",
@@ -27795,10 +27759,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:axinfnd",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm axinfnd（ZFC Axioms with no distinct variable requirements）；本作不重证档案定理。",
@@ -27926,10 +27890,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:axpowndlem2",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm axpowndlem2（ZFC Axioms with no distinct variable requirements）；本作不重证档案定理。",
@@ -28057,10 +28021,10 @@
    "例化"
   ],
   "allowed": [
+   "target",
    "archive:axrepndlem1",
    "all-intro",
-   "all-elim",
-   "target"
+   "all-elim"
   ],
   "reward": "—",
   "note": "set.mm axrepndlem1（ZFC Axioms with no distinct variable requirements）；本作不重证档案定理。",
