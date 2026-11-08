@@ -748,7 +748,7 @@
     if (!this.result) return 'idle';
     var from = this.result.results[e.from.node];
     if (from && from.state === 'error') return 'error';
-    if (from && from.ast) return 'live';
+    if (from && from.tokens) return 'live';
     return 'idle';
   };
 
@@ -954,8 +954,10 @@
     var plain = '';
     if (tokens) {
       plain = tokens.join(' ');
-      /* 重放关的公式是 set.mm token 串；渲染器由 main.js 注入（含 ⊢ 前缀与斜体变量）。 */
-      formula = window.RSL.formatTokens ? window.RSL.formatTokens(tokens) : tokens.join(' ');
+      /* 公式统一由 RSL.Term 渲染（断言自带 ⊢ 前缀，变量斜体）。 */
+      formula = window.RSL.Term
+        ? window.RSL.Term.toNodeHTML(tokens, (result && result.vars) || null)
+        : tokens.join(' ');
     } else if (ast) {
       var L = window.RSL.Logic;
       formula = window.RSL.formatFormula ? window.RSL.formatFormula(ast) : L.toHTML(ast);

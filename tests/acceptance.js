@@ -132,62 +132,73 @@ runTest('acceptance', async ({ openPage }) => {
   const distDir = path.join(ROOT, 'dist');
   const distIndexPath = path.join(distDir, 'index.html');
   ok(fs.existsSync(distIndexPath), 'dist/index.html 存在（先运行 npm run build:toy）');
+  const MAINTENANCE = fs.existsSync(path.join(ROOT, '.maintenance'));
 
   /* 从 index.html 提取运行时引用；脚本与样式表各自保持文档顺序。 */
   const scriptsOf = (html) => Array.from(html.matchAll(/<script src="src\/([^"]+)"><\/script>/g)).map((m) => m[1]);
   const stylesOf = (html) => Array.from(html.matchAll(/<link rel="stylesheet" href="src\/([^"]+)">/g)).map((m) => m[1]);
 
-  const srcIndex = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
-  const distIndex = fs.readFileSync(distIndexPath, 'utf8');
-  const srcScripts = scriptsOf(srcIndex);
-  const distScripts = scriptsOf(distIndex);
-  const srcStyles = stylesOf(srcIndex);
-  const distStyles = stylesOf(distIndex);
+  if (MAINTENANCE) {
+    /* 维护模式：Pages 只发布维护页，不包含任何游戏脚本。 */
+    const maintIndex = fs.readFileSync(distIndexPath, 'utf8');
+    equal(/<script src="src\//.test(maintIndex), false, '维护页不加载游戏脚本');
+    equal(maintIndex.indexOf('公理板正在升级') >= 0, true, 'dist/index.html 是维护页');
+    equal(fs.existsSync(path.join(distDir, 'src')), false, '维护模式不发布 src/');
+    ok(fs.existsSync(path.join(distDir, 'assets', 'favicon.svg')), '维护页带 favicon');
+    ok(fs.existsSync(path.join(distDir, 'assets', 'fonts', 'IBMPlexSans-Regular.woff2')), '维护页带本地字体');
+  } else {
+    const srcIndex = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+    const distIndex = fs.readFileSync(distIndexPath, 'utf8');
+    const srcScripts = scriptsOf(srcIndex);
+    const distScripts = scriptsOf(distIndex);
+    const srcStyles = stylesOf(srcIndex);
+    const distStyles = stylesOf(distIndex);
 
-  equal(distScripts, srcScripts, 'dist/index.html 的脚本列表（含顺序）与源码 index.html 完全一致');
-  equal(distStyles, srcStyles, 'dist/index.html 的样式表列表（含顺序）与源码 index.html 完全一致');
-  equal(new Set(srcScripts).size, srcScripts.length, 'index.html 不应重复引用同一脚本');
-  equal(new Set(srcStyles).size, srcStyles.length, 'index.html 不应重复引用同一样式表');
+    equal(distScripts, srcScripts, 'dist/index.html 的脚本列表（含顺序）与源码 index.html 完全一致');
+    equal(distStyles, srcStyles, 'dist/index.html 的样式表列表（含顺序）与源码 index.html 完全一致');
+    equal(new Set(srcScripts).size, srcScripts.length, 'index.html 不应重复引用同一脚本');
+    equal(new Set(srcStyles).size, srcStyles.length, 'index.html 不应重复引用同一样式表');
 
-  /* 递归收集目录下的运行时 js/css：mm/ 是子目录，只读顶层会漏掉 6 个脚本与 mm.css。 */
-  const runtimeFilesOf = (dir, base) => {
-    const out = [];
-    for (const name of fs.readdirSync(dir)) {
-      const full = path.join(dir, name);
-      const rel = base ? base + '/' + name : name;
-      if (fs.statSync(full).isDirectory()) out.push(...runtimeFilesOf(full, rel));
-      else if (/\.(js|css)$/i.test(name)) out.push(rel);
+    /* 递归收集目录下的运行时 js/css：mm/ 是子目录，只读顶层会漏掉 6 个脚本与 mm.css。 */
+    const runtimeFilesOf = (dir, base) => {
+      const out = [];
+      for (const name of fs.readdirSync(dir)) {
+        const full = path.join(dir, name);
+        const rel = base ? base + '/' + name : name;
+        if (fs.statSync(full).isDirectory()) out.push(...runtimeFilesOf(full, rel));
+        else if (/\.(js|css)$/i.test(name)) out.push(rel);
+      }
+      return out.sort();
+    };
+
+    const srcDir = path.join(ROOT, 'src');
+    const distSrcDir = path.join(distDir, 'src');
+    const srcRuntime = runtimeFilesOf(srcDir);
+    const distRuntime = runtimeFilesOf(distSrcDir);
+    const referenced = srcScripts.concat(srcStyles).sort();
+
+    equal(distRuntime, referenced, 'dist/src 的运行时 js/css 与 index.html 引用一一对应（含 mm/ 子目录）');
+    for (const rel of distRuntime) {
+      ok(srcRuntime.includes(rel), 'dist/src/' + rel + ' 应存在于源码 src/（dist 是源码的完整拷贝）');
     }
-    return out.sort();
-  };
-
-  const srcDir = path.join(ROOT, 'src');
-  const distSrcDir = path.join(distDir, 'src');
-  const srcRuntime = runtimeFilesOf(srcDir);
-  const distRuntime = runtimeFilesOf(distSrcDir);
-  const referenced = srcScripts.concat(srcStyles).sort();
-
-  equal(distRuntime, referenced, 'dist/src 的运行时 js/css 与 index.html 引用一一对应（含 mm/ 子目录）');
-  for (const rel of distRuntime) {
-    ok(srcRuntime.includes(rel), 'dist/src/' + rel + ' 应存在于源码 src/（dist 是源码的完整拷贝）');
+    equal(
+      referenced.filter((rel) => !distRuntime.includes(rel)),
+      [],
+      'index.html 引用的运行时文件必须全部出现在 dist/src 中'
+    );
+    for (const rel of referenced) {
+      ok(srcRuntime.includes(rel), 'index.html 引用的 src/' + rel + ' 必须存在于源码目录');
+      const a = fs.statSync(path.join(distSrcDir, rel)).size;
+      const b = fs.statSync(path.join(srcDir, rel)).size;
+      equal(a, b, 'dist/src/' + rel + ' 与源码同尺寸（拷贝完整）');
+    }
+    equal(
+      distRuntime.filter((f) => f.endsWith('.js')).length,
+      srcScripts.length,
+      'dist/src 的 js 数量与 index.html 的脚本引用数一致'
+    );
+    equal(distRuntime.length, referenced.length, 'dist/src 的运行时文件总数与 index.html 引用总数一致');
   }
-  equal(
-    referenced.filter((rel) => !distRuntime.includes(rel)),
-    [],
-    'index.html 引用的运行时文件必须全部出现在 dist/src 中'
-  );
-  for (const rel of referenced) {
-    ok(srcRuntime.includes(rel), 'index.html 引用的 src/' + rel + ' 必须存在于源码目录');
-    const a = fs.statSync(path.join(distSrcDir, rel)).size;
-    const b = fs.statSync(path.join(srcDir, rel)).size;
-    equal(a, b, 'dist/src/' + rel + ' 与源码同尺寸（拷贝完整）');
-  }
-  equal(
-    distRuntime.filter((f) => f.endsWith('.js')).length,
-    srcScripts.length,
-    'dist/src 的 js 数量与 index.html 的脚本引用数一致'
-  );
-  equal(distRuntime.length, referenced.length, 'dist/src 的运行时文件总数与 index.html 引用总数一致');
 
   const page = await openPage({
     width: 1440,
@@ -680,7 +691,7 @@ runTest('acceptance', async ({ openPage }) => {
     ];
     var r=Engine.evaluate({}, nodes, edges);
     var res=r.results['s'];
-    return {state:res.state, eq:res.ast ? L.eq(res.ast, L.parse('(Q→(R→P))→((Q→R)→(Q→P))')) : false};
+    return {state:res.state, eq:res.tokens ? window.RSL.Term.eq(res.tokens, window.RSL.Term.parse('(Q→(R→P))→((Q→R)→(Q→P))')) : false};
   })()`);
   equal(multiSubst.state, 'valid', '引擎可以一次应用 3 组代入');
   equal(multiSubst.eq, true, '多组代入结果与逐组替换一致');
@@ -926,15 +937,19 @@ runTest('acceptance', async ({ openPage }) => {
    * J. dist 构建产物 smoke：file:// 打开，首关放置 → 连线 → 通关
    * ------------------------------------------------------------------ */
   await page.js('localStorage.clear()');
-  await page.send('Page.navigate', { url: fileUrl('dist/index.html') });
-  await page.ready();
-  await install(page);
-  equal(await page.js('typeof window.RSL.APP === "object" && !!window.RSL.APP'), true, 'dist：window.RSL.APP 初始化成功');
-  equal(await page.js('window.RSL.APP.state.levels.length'), 288, 'dist：加载 288 关（240 接线 + 48 重放）');
-  await solveFirstLevel(page);
-  equal(await page.js('document.querySelector(".node.is-target").dataset.state'), 'complete', 'dist：首关连线后目标 complete');
-  ok(await page.js('!!document.querySelector(".win")'), 'dist：首关校验后出现通关面板');
-  await page.shot('10-dist-win');
+  if (!MAINTENANCE) {
+    await page.send('Page.navigate', { url: fileUrl('dist/index.html') });
+    await page.ready();
+    await install(page);
+    equal(await page.js('typeof window.RSL.APP === "object" && !!window.RSL.APP'), true, 'dist：window.RSL.APP 初始化成功');
+    equal(await page.js('window.RSL.APP.state.levels.length'), 288, 'dist：加载 288 关（240 接线 + 48 重放）');
+    await solveFirstLevel(page);
+    equal(await page.js('document.querySelector(".node.is-target").dataset.state'), 'complete', 'dist：首关连线后目标 complete');
+    ok(await page.js('!!document.querySelector(".win")'), 'dist：首关校验后出现通关面板');
+    await page.shot('10-dist-win');
+  } else {
+    ok(true, '维护模式：跳过 dist 游戏 smoke（产物只含维护页）');
+  }
 
   /* 截图落盘检查 */
   for (const name of fs.readdirSync(SHOT_DIR)) {

@@ -209,6 +209,7 @@
       id: 'target', kind: 'target',
       x: lay.target.x, y: lay.target.y,
       target: Array.isArray(level && level.targetTokens) ? level.targetTokens.join(' ') : '',
+      targetTokens: Array.isArray(level && level.targetTokens) ? level.targetTokens.slice() : null,
       config: {}
     }];
     hypLabels(proof).forEach(function (h) {

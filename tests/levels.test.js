@@ -10,6 +10,8 @@ const RSL = loadRuntime({
     'src/library.js',
     'src/levels.js',
     'src/levels-generated.js',
+    'src/term.js',
+    'src/modules.js',
     'src/engine.js'
   ]
 });

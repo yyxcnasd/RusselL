@@ -316,19 +316,9 @@
 
   function refresh() {
     if (!state.level) return;
-    var Graph = mmGraph();
-    if (mmMode(state.level) && Graph && state.mmProof) {
-      var mmData = state.board.getData();
-      var mmResult = Graph.evaluate(state.level, state.mmProof, mmData.nodes, mmData.edges);
-      state.results = mmResult;
-      state.board.paint(mmResult);
-      els.checkBtn.classList.toggle('is-ready', mmResult.complete);
-      renderPopover();
-      saveProgress();
-      return;
-    }
     var data = state.board.getData();
-    var result = window.RSL.Engine.evaluate(state.level, data.nodes, data.edges);
+    var ctx = mmMode(state.level) ? { proof: state.mmProof } : null;
+    var result = window.RSL.Engine.evaluate(state.level, data.nodes, data.edges, ctx);
     state.results = result;
     state.board.paint(result);
     els.coach.hidden = !(state.index === 0 && data.nodes.length <= 1 && !state.hintDismissed);
@@ -457,11 +447,10 @@
     var code = state.board._code({ kind: part.kind, config: config }) || part.symbol || '·';
     var formula = '<span class="blank">·</span>';
     try {
-      var preview = window.RSL.Engine.evaluate(state.level, [{ id: '__ghost', kind: part.kind, x: 0, y: 0, config: config }], []);
+      var preview = window.RSL.Engine.evaluate(state.level, [{ id: '__ghost', kind: part.kind, x: 0, y: 0, config: config }], [], mmMode(state.level) ? { proof: state.mmProof } : null);
       var result = preview.results && preview.results.__ghost;
-      if (result && result.ast) {
-        var isAssertion = outs.some(function (p) { return p.type === 'assertion'; });
-        formula = (isAssertion ? '<span class="node-turnstile">⊢</span>' : '') + UI.formulaHTML(result.ast);
+      if (result && result.tokens && window.RSL.Term) {
+        formula = window.RSL.Term.toNodeHTML(result.tokens);
       }
     } catch (e) {}
     var minHeight = Math.max(96, 47 + Math.max(0, ins.length - 1) * 32 + 29);
@@ -521,7 +510,8 @@
       }).join('') + '</div>';
     } else if (node.kind === 'replace' && result && result.meta && result.meta.options) {
       html = result.meta.options.slice(0, 8).map(function (o) {
-        return '<button class="opt formula-opt' + (result.meta.optionId === o.id ? ' is-on' : '') + '" data-option="' + UI.esc(o.id) + '">' + UI.formulaHTML(o.result) + '</button>';
+        var inner = o.tokens && window.RSL.Term ? window.RSL.Term.toHTML(o.tokens, { full: true }) : '';
+        return '<button class="opt formula-opt' + (result.meta.optionId === o.id ? ' is-on' : '') + '" data-option="' + UI.esc(o.id) + '">' + inner + '</button>';
       }).join('');
     } else if (node.kind === 'quant') {
       html = '<button class="opt opt-sym' + (config.kind === 'all' ? ' is-on' : '') + '" data-config="kind" data-value="all">∀</button>' +
@@ -734,7 +724,10 @@
     if (state.mmHintIndex >= plan.length) { UI.toast('参考证明已经走完'); return; }
 
     var remaining = plan.length - state.mmHintIndex;
-    var batch = Math.max(1, Math.min(48, Math.ceil(remaining / 6)));
+    /* 小证明（含公理图式）一次摆完；大证明按批推进，避免几百次全量重绘。 */
+    var batch = plan.length <= 6
+      ? remaining
+      : Math.max(1, Math.min(48, Math.ceil(remaining / 6)));
     var layout = state.mmLayout || Graph.layout(proof);
     var byStep = state.mmStepNode || (state.mmStepNode = {});
     var data = state.board.getData();
@@ -960,14 +953,6 @@
 
   function init() {
     els = UI.init();
-    /* 重放关的节点公式是 set.mm token 串：Board 通过这个钩子渲染（⊢ 前缀 + 斜体变量）。 */
-    window.RSL.formatTokens = function (tokens) {
-      var Expr = window.RSL.MM && window.RSL.MM.Expr;
-      if (!Expr || !Array.isArray(tokens)) return Array.isArray(tokens) ? tokens.join(' ') : '';
-      var vars = (state.mmProof && state.mmProof.vars) || {};
-      if (tokens[0] === '|-') return '<span class="node-turnstile">⊢</span>' + Expr.toHTML(tokens.slice(1), vars);
-      return Expr.toHTML(tokens, vars);
-    };
     if (!L) { document.body.innerHTML = '<div class="fatal">逻辑引擎未加载</div>'; return; }
     loadProgress();
     loadSettings();
