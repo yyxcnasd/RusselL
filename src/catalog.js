@@ -42,9 +42,9 @@
     if (kind === 'term') return cfg.name || 'x';
     if (kind === 'pred') return cfg.symbol || 'F';
     if (kind === 'all') return '∀' + (cfg.v || 'x');
-    if (kind === 'gen') return '∀I' + (cfg.v ? '·' + cfg.v : '');
-    if (kind === 'shift') return '∀*' + (cfg.v ? '·' + cfg.v : '');
-    if (kind === 'all-elim') return '∀E' + (cfg.t ? '·' + cfg.t : '');
+    if (kind === 'gen') return '∀I' + (cfg.v || '');
+    if (kind === 'shift') return '∀*' + (cfg.v || '');
+    if (kind === 'all-elim') return '∀E' + (cfg.t || '');
     if (kind === 'axiom') return (cfg.schema || 'Ax') + (cfg.v ? '·' + cfg.v : '');
     if (kind === 'theorem') return '*' + String(cfg.n || 0).padStart(2, '0');
     if (kind === 'not') return '¬';

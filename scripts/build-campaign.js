@@ -387,14 +387,9 @@ function compileLevel(def, prevLevels) {
   const targetTokens = ['|-'].concat(def.target);
   nodes.find((n) => n.id === targetId).targetTokens = targetTokens;
 
+  /* 只收录参考证明实际用到的模块：元件栏保持精简，玩家按参考解法即可通关。 */
   const mergedPalette = [];
   const seenPalette = new Set();
-  expandAllowed(def.allowed).forEach((entry) => {
-    const k = entry.kind + ':' + JSON.stringify(entry.config || {});
-    if (seenPalette.has(k)) return;
-    seenPalette.add(k);
-    mergedPalette.push(entry);
-  });
   builder.used().forEach((entry) => {
     if (entry.kind === 'target') return;
     const k = entry.kind + ':' + JSON.stringify(entry.config || {});
