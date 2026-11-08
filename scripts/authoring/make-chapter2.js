@@ -113,31 +113,53 @@ addPred(36, '全称到存在', '∀x F(x) → ∃x F(x)。', '全称例化 + 存
     return P.mp(ex, P.mp(all, chain));
   })());
 
-LABELS.slice(8).forEach((entry) => {
-  const no = levels.length + 25;
-  const r = expand(entry.label, {}, [], levelMap);
-  let nodes = 0;
-  (function count(t) {
-    nodes += 1;
-    if (t.op === 'mp') { count(t.a); count(t.b); }
-    else if (t.op === 'gen') count(t.of);
-    else if (t.op === 'shift') count(t.formula);
-  })(r.term);
-  levels.push({
-    no,
-    chapter: 1,
-    label: entry.label,
-    title: entry.title,
-    teaches: entry.teaches,
-    hint: entry.hint,
-    targetTokens: r.targetTokens,
-    proof: r.term,
-    stats: { nodes }
-  });
-  levelMap[entry.label] = { n: no, targetBody: r.targetTokens.slice(1) };
-  targetByNo[no] = r.targetTokens.slice(1);
-  console.log(String(no).padStart(2, '0'), entry.label.padEnd(12), 'nodes=' + String(nodes).padStart(3));
-});
+/* 37-48：谓词为主的补充关卡 */
+const Fz = F.pred('F', F.term('z'));
+const Hz = F.pred('H', F.term('z'));
+const Hx = F.pred('H', X);
+
+addPred(37, '谓词分配（H）', '∀x(F(x)→H(x)) → (∀xF(x)→∀xH(x))。', 'A5 换一个谓词实例。',
+  F.imp(F.all('x', F.imp(Fx, Hx)), F.imp(F.all('x', Fx), F.all('x', Hx))),
+  P.subst(P.ax('A5'), { atoms: { P: Fx, Q: Hx } }));
+addPred(38, '全称到自身', '∀x F(x) → F(x)。', '全称例化到 x 自己。',
+  F.imp(F.all('x', Fx), Fx), P.allInst(Fx, 'x', 'x'));
+addPred(39, '自反谓词的实例', '∀x(F(x)→F(x)) → (F(y)→F(y))。', '对自反谓词全称例化到 y。',
+  F.imp(F.all('x', F.imp(Fx, Fx)), F.imp(Fy, Fy)),
+  P.allInst(F.imp(Fx, Fx), 'x', 'y'));
+addPred(40, '全称到存在（y）', '∀x F(x) → ∃y F(y)。', '全称例化到 y，再存在推广。',
+  F.imp(F.all('x', Fx), F.exists('y', Fy)),
+  (() => {
+    const all = P.allInst(Fx, 'x', 'y');
+    const ex = P.existsGen(Fy, 'y', 'y');
+    const chain = P.subst(P.thm(5), { atoms: { P: F.all('x', Fx), Q: Fy, R: F.exists('y', Fy) } });
+    return P.mp(ex, P.mp(all, chain));
+  })());
+addPred(41, '个体到存在（y）', 'F(x) → ∃y F(y)。', '存在推广，见证是 x。',
+  F.imp(Fx, F.exists('y', Fy)), P.existsGen(Fy, 'y', 'x'));
+addPred(42, '无关后件的例化', '∀x(F(x)→F(y)) → (F(x)→F(y))。', '对含自由 y 的公式全称例化到 x。',
+  F.imp(F.all('x', F.imp(Fx, Fy)), F.imp(Fx, Fy)),
+  P.allInst(F.imp(Fx, Fy), 'x', 'x'));
+addPred(43, '只量化前件', '∀x(F(x)→G(y)) → (F(x)→G(y))。', '全称例化到 x，y 保持自由。',
+  F.imp(F.all('x', F.imp(Fx, Gy)), F.imp(Fx, Gy)),
+  P.allInst(F.imp(Fx, Gy), 'x', 'x'));
+addPred(44, '全称到存在（y 变体）', '∀y F(y) → ∃y F(y)。', '全称例化 + 存在推广。',
+  F.imp(F.all('y', Fy), F.exists('y', Fy)),
+  (() => {
+    const all = P.allInst(Fy, 'y', 'y');
+    const ex = P.existsGen(Fy, 'y', 'y');
+    const chain = P.subst(P.thm(5), { atoms: { P: F.all('y', Fy), Q: Fy, R: F.exists('y', Fy) } });
+    return P.mp(ex, P.mp(all, chain));
+  })());
+addPred(45, 'z 自反谓词', '∀z(F(z)→F(z))。', '同一律实例 + 全称推广。',
+  F.all('z', F.imp(Fz, Fz)),
+  P.gen(P.subst(P.thm(1), { atoms: { P: Fz } }), 'z'));
+addPred(46, 'z 的双层自反', '∀z∀y(F(z)→F(z))。', '连续两次全称推广。',
+  F.all('z', F.all('y', F.imp(Fz, Fz))),
+  P.gen(P.gen(P.subst(P.thm(1), { atoms: { P: Fz } }), 'y'), 'z'));
+addPred(47, '全称例化（z）', '∀z F(z) → F(x)。', '把 z 换成 x。',
+  F.imp(F.all('z', Fz), Fx), P.allInst(Fz, 'z', 'x'));
+addPred(48, '存在推广（z）', 'F(x) → ∃z F(z)。', 'x 作为 z 的见证。',
+  F.imp(Fx, F.exists('z', Fz)), P.existsGen(Fz, 'z', 'x'));
 
 fs.writeFileSync(path.join(ROOT, 'campaign', 'chapter2.json'), JSON.stringify(levels, null, 2) + '\n', 'utf8');
 console.log('written campaign/chapter2.json', levels.length, 'levels');
