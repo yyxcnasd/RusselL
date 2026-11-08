@@ -221,6 +221,13 @@ function compileProof(proof, builder, ctx) {
         id = builder.addNode('eq-refl', { t: pt.t });
         break;
       }
+      case 'leibniz': {
+        id = builder.addNode('leibniz', { mode: pt.mode || 'abstract', v: pt.v || 'z' });
+        builder.connect(builder.termNode(pt.x), 'out', id, 'x');
+        builder.connect(builder.termNode(pt.y), 'out', id, 'y');
+        builder.connect(builder.formula(pt.formula), 'out', id, 'formula');
+        break;
+      }
       case 'eqSubst': {
         id = builder.addNode('eq-subst', { dir: pt.dir || 'l2r' });
         builder.connect(resolve(pt.eq), 'out', id, 'eq');

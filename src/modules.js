@@ -336,6 +336,40 @@
         return { tokens: assertionOf(['('].concat(left, ['->'], right, [')'])), note: '全称分配' };
       }
     },
+    leibniz: {
+      label: '等词替换公理', kindLabel: '=L', group: 'rule', symbol: '=L', construct: false,
+      ports: {
+        inputs: [
+          { id: 'x', label: '个体 x', type: TERM },
+          { id: 'y', label: '个体 y', type: TERM },
+          { id: 'formula', label: '公式 A', type: FORMULA }
+        ],
+        outputs: [{ id: 'out', label: 'x=y→(A→A[y/x])', type: ASSERTION }]
+      },
+      config: {},
+      help: 'x = y 说明两个个体不可区分：A 推出把 x 捕获规避地换成 y 的结论。',
+      apply: function (inputs, cfg) {
+        var x = termOf(inputs, 'x', 'x');
+        var y = termOf(inputs, 'y', 'y');
+        var a = need(inputs, 'formula', '公式 A');
+        var bodyA = asBody(a);
+        var mode = (cfg && cfg.mode) === 'replace' ? 'replace' : 'abstract';
+        var left = bodyA;
+        var right;
+        if (mode === 'replace') {
+          right = asBody(T.substituteVar(wffOf(bodyA), x, y));
+        } else {
+          var v = (cfg && cfg.v) || 'z';
+          if (!/^[xyz]$/.test(v)) v = 'z';
+          left = asBody(T.substituteVar(wffOf(bodyA), v, x));
+          right = asBody(T.substituteVar(wffOf(bodyA), v, y));
+        }
+        return {
+          tokens: assertionOf(['('].concat([x, '=', y], ['->'], ['('].concat(left, ['->'], right, [')']), [')'])),
+          note: '=L · ' + x + '→' + y + (mode === 'replace' ? '' : ' · 抽象')
+        };
+      }
+    },
     'eq-refl': {
       label: '等词自反', kindLabel: '=I', group: 'rule', symbol: '=I', construct: false,
       ports: { inputs: [], outputs: [{ id: 'out', label: 't = t', type: ASSERTION }] },
@@ -378,7 +412,7 @@
         var levels = (ctx && ctx.levels) || [];
         var current = ctx && ctx.levelNo ? Number(ctx.levelNo) : Infinity;
         if (n >= current) fail('只能引用更早的关卡（不能引用 *' + String(n).padStart(2, '0') + ' 或更晚）');
-        var lv = levels[n - 1];
+        var lv = levels.filter(function (x) { return Number(x.no) === n; })[0];
         if (!lv) fail('找不到关卡 *' + String(n).padStart(2, '0'));
         if (!Array.isArray(lv.targetTokens) || !lv.targetTokens.length) fail('关卡 *' + String(n).padStart(2, '0') + ' 缺少目标断言');
         return { tokens: lv.targetTokens.slice(), note: '*' + String(n).padStart(2, '0') };

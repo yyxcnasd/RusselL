@@ -14,5 +14,7 @@ module.exports = {
   allE: (of, t) => ({ op: 'allE', of, t }),
   allDist: (of) => ({ op: 'allDist', of }),
   eqRefl: (t) => ({ op: 'eqRefl', t }),
-  eqSubst: (eq, of, dir) => ({ op: 'eqSubst', eq, of, dir: dir || 'l2r' })
+  eqSubst: (eq, of, dir) => ({ op: 'eqSubst', eq, of, dir: dir || 'l2r' }),
+  leibniz: (x, y, formula, opts) => ({ op: 'leibniz', x, y, formula,
+    mode: (opts && opts.mode) || 'abstract', v: (opts && opts.v) || 'z' })
 };
