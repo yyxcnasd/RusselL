@@ -576,6 +576,14 @@ runTest('acceptance', async ({ openPage }) => {
   ok(atomOptions.count >= 26, '原子选项覆盖 A–Z（实际 ' + atomOptions.count + ' 个）');
   equal(atomOptions.hasU, true, '第 22 关的命题 U 能出现在原子选项里');
   equal(atomOptions.head.slice(0, 5).join(''), 'PQRST', '原子选项固定以 P/Q/R/S/T 开头');
+  const atomPicker = await page.js(`(function(){
+    var p=document.getElementById('popover');
+    var tops={};
+    Array.prototype.forEach.call(document.querySelectorAll('.letter-grid .opt'),function(o){tops[Math.round(o.getBoundingClientRect().top)]=true;});
+    return {overflow:p.scrollWidth>p.clientWidth, rows:Object.keys(tops).length, width:Math.round(p.getBoundingClientRect().width)};
+  })()`);
+  equal(atomPicker.overflow, false, '26 个原子选项换行成网格，不出现横向溢出');
+  ok(atomPicker.rows >= 4, '原子选项分成多行显示（实际 ' + atomPicker.rows + ' 行）');
   await page.js('document.querySelector(".opt[data-value=\\"U\\"]").click()');
   await page.sleep(250);
   const atomU = await page.js(`(function(){

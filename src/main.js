@@ -485,14 +485,15 @@
 
   function renderPopover() {
     var node = state.selectedNode ? state.board.node(state.selectedNode) : null;
+    els.popover.classList.toggle('is-grid', !!node && node.kind === 'atom');
     if (!node || node.kind === 'target') { els.popover.hidden = true; return; }
     var result = state.results && state.results.results[node.id];
     var config = node.config || {};
     var html = '';
     if (node.kind === 'atom') {
-      html = atomChoices().map(function (x) {
+      html = '<div class="letter-grid">' + atomChoices().map(function (x) {
         return '<button class="opt opt-var' + (config.name === x ? ' is-on' : '') + '" data-config="name" data-value="' + x + '">' + x + '</button>';
-      }).join('');
+      }).join('') + '</div>';
     } else if (node.kind === 'replace' && result && result.meta && result.meta.options) {
       html = result.meta.options.slice(0, 8).map(function (o) {
         return '<button class="opt formula-opt' + (result.meta.optionId === o.id ? ' is-on' : '') + '" data-option="' + UI.esc(o.id) + '">' + UI.formulaHTML(o.result) + '</button>';
@@ -530,7 +531,7 @@
         return '<button class="opt opt-var' + (config.y === v ? ' is-on' : '') + '" data-config="y" data-value="' + v + '">' + v + '</button>';
       }).join('');
     }
-    if (!html) { els.popover.hidden = true; return; }
+    if (!html) { els.popover.hidden = true; els.popover.classList.remove('is-grid'); return; }
     els.popover.innerHTML = html;
     els.popover.hidden = false;
   }
