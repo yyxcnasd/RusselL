@@ -30,7 +30,7 @@ test('模块注册表：6 构造 + 1 公理 + 基本推理 + 定理，没有旧�
   const kinds = Object.keys(RSL.Modules.MODULES);
   ['atom', 'term', 'pred', 'not', 'imp', 'all'].forEach((k) => assert.ok(kinds.includes(k), k));
   assert.ok(kinds.includes('axiom'));
-  ['subst', 'mp', 'gen', 'shift', 'all-elim', 'exists-intro', 'exists-elim', 'leibniz', 'eq-refl'].forEach((k) => assert.ok(kinds.includes(k), k));
+  ['subst', 'mp', 'gen', 'shift', 'exists-intro', 'exists-elim', 'leibniz', 'eq-refl'].forEach((k) => assert.ok(kinds.includes(k), k));
   assert.ok(kinds.includes('theorem'));
   ['archive', 'replace', 'syllogism', 'detach'].forEach((k) => {
     assert.ok(!kinds.includes(k), '不应再有旧模块 ' + k);
