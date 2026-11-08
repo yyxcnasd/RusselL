@@ -412,7 +412,7 @@ runTest('acceptance', async ({ openPage }) => {
   equal(levelsDesign.glyphs, 8, '四章各两个分带图标（基础/挑战）');
   equal(levelsDesign.names, 0, '分带不再写“基础/挑战”文字');
   equal(levelsDesign.titles, 0, '章节不再写中文标题（只留罗马数字）');
-  ok(levelsDesign.counts.every(function (c) { return /^\d+\s*\/\s*60$/.test(c); }), '章节计数保留为数字');
+  ok(levelsDesign.counts.every(function (c) { return /^\d+\s*\/\s*72$/.test(c); }), '章节计数保留为数字（每章 72 关）');
   equal(levelsDesign.stars, 0, '关卡格不再重复星标（挑战段由分带表达）');
   equal(await page.js('!!document.querySelector(".module-ghost")'), true, '程序打开面板时 sticky ghost 仍在');
   await page.key('Escape');
@@ -930,7 +930,7 @@ runTest('acceptance', async ({ openPage }) => {
   await page.ready();
   await install(page);
   equal(await page.js('typeof window.RSL.APP === "object" && !!window.RSL.APP'), true, 'dist：window.RSL.APP 初始化成功');
-  equal(await page.js('window.RSL.APP.state.levels.length'), 240, 'dist：加载 240 关');
+  equal(await page.js('window.RSL.APP.state.levels.length'), 288, 'dist：加载 288 关（240 接线 + 48 重放）');
   await solveFirstLevel(page);
   equal(await page.js('document.querySelector(".node.is-target").dataset.state'), 'complete', 'dist：首关连线后目标 complete');
   ok(await page.js('!!document.querySelector(".win")'), 'dist：首关校验后出现通关面板');

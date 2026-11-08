@@ -61,49 +61,39 @@
         '<span class="band-progress" aria-hidden="true"><i style="width:' + (solved / items.length * 100) + '%"></i></span>' +
         '<span class="band-count">' + solved + ' / ' + items.length + '</span>' +
       '</div>' +
-      '<div class="levels">' + items.map(levelCell).join('') + '</div>' +
+      '<div class="levels">' + bandCells(items) + '</div>' +
     '</div>';
   }
 
-  /* mm-proof 重放关：独立分组，不进入四章的解锁链与进度统计。 */
-  function mmCells(items) {
-    return items.map(function (entry) {
-      var lv = entry.lv, i = entry.i;
-      var solved = !!ctx.state.solved[lv.id];
-      var current = i === ctx.state.index;
-      var steps = lv.stats ? lv.stats.steps : 0;
-      var badge = lv.axiom ? '公理' : steps + ' 步';
-      return '<button class="mm-level' + (solved ? ' is-solved' : '') + (current ? ' is-current' : '') +
-        '" data-level="' + i + '" title="' + esc(lv.note || '') + '"' +
-        ' aria-label="' + esc((lv.title || lv.code || '') + '，' + badge) + '">' +
-        '<span class="mm-level-no">' + esc(String(lv.id || '').replace(/^MM-/, '')) + '</span>' +
-        '<span class="mm-level-title">' + esc(lv.title || '') + '</span>' +
-        '<span class="mm-level-code">' + esc(lv.code || '') + '</span>' +
-        '<span class="mm-level-steps">' + esc(badge) + '</span>' +
-      '</button>';
-    }).join('');
+  /* 重放关在章内按统一难度交错，用横跨 5 格的宽行表示（不是独立分带）。 */
+  function mmInline(entry) {
+    var lv = entry.lv, i = entry.i;
+    var solved = !!ctx.state.solved[lv.id];
+    var current = i === ctx.state.index;
+    var unlocked = ctx.isUnlocked(i);
+    var steps = lv.stats ? lv.stats.steps : 0;
+    var badge = lv.axiom ? '公理' : steps + ' 步';
+    return '<button class="mm-level is-inline' + (solved ? ' is-solved' : '') + (current ? ' is-current' : '') +
+      (unlocked ? '' : ' is-locked') + '" data-level="' + i + '"' +
+      (unlocked ? '' : ' disabled') +
+      ' title="' + esc(lv.note || '') + '"' +
+      ' aria-label="' + esc((lv.title || lv.code || '') + '，重放 ' + badge + (unlocked ? '' : '，未解锁')) + '">' +
+      '<span class="mm-level-no">' + esc(String(lv.chapterOrder || '').padStart(2, '0')) + '</span>' +
+      '<span class="mm-level-title">' + esc(lv.title || '') + '</span>' +
+      '<span class="mm-level-steps">' + esc(badge) + '</span>' +
+    '</button>';
   }
 
-  function mmSection(items) {
-    if (!items.length) return '';
-    var solved = items.filter(function (x) { return ctx.state.solved[x.lv.id]; }).length;
-    var isCurrent = items.some(function (x) { return x.i === ctx.state.index; });
-    return '<section class="chapter mm-chapter' + (isCurrent ? ' is-current' : '') + '">' +
-      '<div class="chapter-head">' +
-        '<span class="chapter-roman">MM</span>' +
-        '<span class="chapter-progress" aria-hidden="true"><i style="width:' + (solved / items.length * 100) + '%"></i></span>' +
-        '<span class="chapter-count">' + solved + ' / ' + items.length + '</span>' +
-      '</div>' +
-      '<div class="mm-levels">' + mmCells(items) + '</div>' +
-    '</section>';
+  function bandCells(items) {
+    return items.map(function (entry) {
+      return entry.lv.mode === 'mm-proof' ? mmInline(entry) : levelCell(entry);
+    }).join('');
   }
 
   function levelsHTML() {
     var buckets = {};
     Catalog.CHAPTERS.forEach(function (c) { buckets[c.id] = []; });
-    var mmItems = [];
     ctx.state.levels.forEach(function (lv, i) {
-      if (Catalog.chapterOf(lv) === 'MM') { mmItems.push({ lv: lv, i: i }); return; }
       (buckets[Catalog.chapterOf(lv)] || buckets['Ⅰ']).push({ lv: lv, i: i });
     });
     return Catalog.CHAPTERS.map(function (c) {
@@ -111,7 +101,7 @@
       if (!items.length) return '';
       var solved = items.filter(function (x) { return ctx.state.solved[x.lv.id]; }).length;
       var isCurrent = items.some(function (x) { return x.i === ctx.state.index; });
-      var base = items.filter(function (x) { return x.lv.band !== 'challenge'; });
+      var base = items.filter(function (x) { return x.lv.band === 'base'; });
       var chal = items.filter(function (x) { return x.lv.band === 'challenge'; });
       var chapterLocked = !ctx.isUnlocked(items[0].i);
       return '<section class="chapter' + (isCurrent ? ' is-current' : '') + (chapterLocked ? ' is-locked' : '') + '">' +
@@ -123,7 +113,7 @@
         bandHTML(base, 'base') +
         bandHTML(chal, 'challenge') +
       '</section>';
-    }).join('') + mmSection(mmItems);
+    }).join('');
   }
 
   function openLevels() {
@@ -244,13 +234,26 @@
       ? Expr.toHTML(proof.conclusion, proof.vars || {})
       : esc(level.targetUnicode || '');
     var steps = (data && data.steps) || 0;
+    var progress = (data && data.progress) || null;
+    var metric;
+    var caption;
+    if (progress && progress.mode === 'interactive') {
+      metric = '<b>' + (progress.actions || 0) + '</b><span class="metric-ref">步 · 自推 / 参考 ' + steps + '</span>';
+      caption = '不计提示的步骤数';
+    } else if (progress && typeof progress.step === 'number' && progress.step > 0) {
+      metric = '<b>' + progress.step + '</b><span class="metric-ref">/ ' + steps + ' 步</span>';
+      caption = '重放进度';
+    } else {
+      metric = '<b>' + steps + '</b><span class="metric-ref">步 · ' + esc(level.code || '') + '</span>';
+      caption = '证明 DAG 的步骤数';
+    }
     UI.openSheet(closeButton() +
       '<div class="win">' +
         '<div class="win-check"><svg class="icon"><use href="#i-check"></use></svg></div>' +
         '<div class="win-formula formula mm-win-target">' + targetHTML + '</div>' +
-        '<div class="win-len" title="重放步骤：本关证明 DAG 的步骤数">' +
+        '<div class="win-len" title="' + esc(caption) + '">' +
           '<span class="metric-glyph"><svg class="icon"><use href="#i-squares-2x2"></use></svg></span>' +
-          '<b>' + steps + '</b><span class="metric-ref">步 · ' + esc(level.code || '') + '</span>' +
+          metric +
         '</div>' +
         '<button class="primary next-btn" data-next="1">' + (data.isLast ? '选关' : '下一关') + '</button>' +
       '</div>');

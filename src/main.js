@@ -672,10 +672,17 @@
     els.checkBtn.classList.toggle('is-mm-next', on);
   }
 
-  /** 顶栏「校验」按钮在重放关里就是「下一步」。 */
+  /** 顶栏「校验」按钮在重放关里就是「下一步」（回放）/「提示」（自己推）。 */
   function mmAdvance() {
     var root = state.mmRoot;
     if (!root) return;
+    var interactive = !!(state.mmProgress && state.mmProgress.mode === 'interactive');
+    if (interactive) {
+      var hintBtn = root.querySelector('[data-mm-hint]');
+      if (hintBtn) { hintBtn.click(); return; }
+      UI.toast('提示不可用');
+      return;
+    }
     var btn = root.querySelector('[data-mm-next]:not([disabled])');
     if (btn) { btn.click(); return; }
     var level = state.level;
@@ -719,7 +726,12 @@
       proof: proof,
       mode: 'replay',
       sfx: function (name) { Audio.sfx(name); },
-      onProgress: function (info) { state.mmProgress = info; },
+      onProgress: function (info) {
+        state.mmProgress = info;
+        var interactive = info && info.mode === 'interactive';
+        els.checkBtn.setAttribute('aria-label', interactive ? '提示' : '下一步');
+        els.checkBtn.setAttribute('title', interactive ? '提示下一步（h）' : '下一步（→）');
+      },
       /* 公理图式（0 步）不自动通关：由顶栏「下一步/完成」确认 */
       onSolved: steps > 0 ? function () {
         if (state.solved[level.id]) return;
@@ -749,6 +761,7 @@
       level: level,
       proof: proof,
       steps: steps,
+      progress: state.mmProgress,
       isLast: state.index >= state.levels.length - 1
     });
   }

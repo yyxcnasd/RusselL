@@ -6,9 +6,9 @@
 
   <p>
     <a href="https://yyxcnasd.github.io/RusselL/"><img alt="在线试玩" src="https://img.shields.io/badge/PLAY-ONLINE-e66f3f?style=for-the-badge"></a>
-    <img alt="版本" src="https://img.shields.io/badge/VERSION-v1.1.0-3f8e65?style=for-the-badge">
-    <img alt="关卡" src="https://img.shields.io/badge/LEVELS-240-4f7fb5?style=for-the-badge">
-    <img alt="重放" src="https://img.shields.io/badge/REPLAY-31-6b5bd2?style=for-the-badge">
+    <img alt="版本" src="https://img.shields.io/badge/VERSION-v2.0.0-3f8e65?style=for-the-badge">
+    <img alt="关卡" src="https://img.shields.io/badge/LEVELS-288-4f7fb5?style=for-the-badge">
+    <img alt="重放" src="https://img.shields.io/badge/REPLAY-48-6b5bd2?style=for-the-badge">
     <img alt="档案" src="https://img.shields.io/badge/SET.MM-993-d3ad68?style=for-the-badge">
   </p>
 
@@ -37,37 +37,43 @@
 
 ## 关卡
 
-一共 240 关，四章各 60 关，每章再分成 30 关基础段和 30 关挑战段。
+一共 288 关，四章各 72 关：每章 12 个引导关 + 48 个接线关 + 12 个 set.mm 证明重放关。
 
-| 章 | 主题 | 基础 | 挑战 |
-|:---:| --- |:---:|:---:|
-| Ⅰ | 命题演算：`ax-1`–`ax-3` 与早期命题定理 | 30 | 30 |
-| Ⅱ | 谓词演算：`ax-4`、`ax-5`、`ax-10`、`ax-11` | 30 | 30 |
-| Ⅲ | 等词：`ax-6`–`ax-9`、`ax-12`、`ax-13` | 30 | 30 |
-| Ⅳ | 集合论：ZFC 七条公理 | 30 | 30 |
+| 章 | 主题 | 引导 | 基础段 | 挑战段 |
+|:---:| --- |:---:|:---:|:---:|
+| Ⅰ | 命题演算：`ax-1`–`ax-3` 与早期命题定理 | 12 | 36 | 36 |
+| Ⅱ | 谓词演算：`ax-4`、`ax-5`、`ax-10`、`ax-11` | 12 | 36 | 36 |
+| Ⅲ | 等词：`ax-6`–`ax-9`、`ax-12`、`ax-13` | 12 | 36 | 36 |
+| Ⅳ | 集合论：ZFC 七条公理 | 12 | 36 | 36 |
 
-- **基础段**顺序解锁：先用档案里的难证定理/公理做代入、全称闭包与定义推演（不能把定理本身直接接目标），再接触更多档案引理和定义置换；打完本章基础段，下一章基础段才解锁。
-- **挑战段**在基础段完成后开放，不挡下一章，内容以分离、双代入、闭包后例化等组合操作为主。
+- **统一难度曲线**：每章前 12 关是手工引导关（固定位置）。第 13–72 关把接线关与重放关放在
+  同一把尺子上排序后交错排列——接线关的难度 = 参考电路模块数 + 0.1 × 目标公式 AST 节点数，
+  重放关的难度 = 1.4 + 2.2417·log₂(1 + 证明步数)。所以章内难度全程单调不减，不会出现
+  “刚看完 304 步的选择公理，下一关又回到 3 个模块”。
+- **基础段 36 关 → 挑战段 36 关**顺序解锁；基础段打完，下一章基础段才解锁，挑战段不挡下一章。
+- 重放关不是独立分组：它们按难度**交错**在基础段/挑战段里，用横跨 4 格的卡片表示
+  （显示章内位置号、中文短名、证明步数），读屏/键盘与普通关卡格行为一致。
 - 命题章第 4–6 关是 S 代入、M 分离、D 定义置换教程；谓词章第 11–12 关是 ∀I、∀E 教程。
 
-### 31 个 set.mm 证明重放关（默认关闭）
+### 48 个 set.mm 证明重放关
 
-除了 240 个接线关，仓库里还有一层**真正的 set.mm 证明重放器**：把 set.mm 的完整压缩证明
-按 Metamath 规则重放成证明 DAG，再校验结论，让 31 个“难证档案定理”以**精确的 set.mm 目标
-公式**出现。打开方式是 URL 加 `?mm=1`，或控制台执行
-`localStorage.setItem('axiom-simple:mm','on')` 后刷新：
+仓库里有一层**真正的 set.mm 证明重放器**：把 set.mm 的完整压缩证明按 Metamath 规则重放成
+证明 DAG，再校验结论，让 48 个定理/公理以**精确的 set.mm 目标公式**出现（每章 12 个，按证明
+步数从 3 步到 304 步）。
 
-- 选关面板末尾会多出 `MM` 分组，共 31 关（最大的一关 `axacnd` 有 304 步）。
-- 每关是**只读重放**：左边步骤列表，右边当前步骤的 label、替换 map 与结论；顶栏最右按钮
-  变成「下一步」，键盘 `←` `→` `Home` `End` 也能走。
+- 每关两种玩法：**回放**（左边步骤列表，右边当前步骤的 label、替换 map 与结论；顶栏最右按钮
+  变成「下一步」，键盘 `←` `→` `Home` `End` 也能走）和**自推**（自己点假设/断言把证明走完，
+  有提示、错误反馈、撤销/重来；顶栏按钮变成「提示」）。
 - `ax-11`、`ax-pr` 是公理，没有可重放的证明，作为公理图式展示并由你确认。
-- 默认关闭，所以 240 关的目录、解锁链、进度、界面**完全不变**。
+- 默认开启；想回到旧的 240 关布局用 `?mm=0`，或 `localStorage.setItem('axiom-simple:mm','off')`。
+- 重放关不参与 240 关的成就判定，也不写通关电路存档。
 
 <p align="center">
   <img src="screenshots/15-replay.png" width="880" alt="set.mm 证明重放关：步骤列表与当前步骤">
 </p>
 
 实现与口径（含 DV 覆盖范围、不声称是完整验证器）见 [docs/MM-REPLAY.md](docs/MM-REPLAY.md)，
+难度公式与候选目标清单见 [docs/LEVEL-DESIGN-PROPOSAL.md](docs/LEVEL-DESIGN-PROPOSAL.md)，
 数学说明见 [docs/metamath.md](docs/metamath.md#证明重放mm-replay)。
 
 <p align="center">
@@ -82,7 +88,7 @@
 - `df-or`、`df-an`、`df-ex`、`dfbi2` 只是缩写，不能当断言模块接进目标；它们只参与“定义等价”判定和 `replace` 模块。
 - 993 条 `set.mm` 条目收进档案模块，用 `archive:<label>` 接入。
 - 关卡目标是 `set.mm` 的公式；主游戏没有实现完整的 `set.mm` 证明器，也不声称重新证明了这些定理。
-- 另有 31 个**证明重放关**（默认关闭，`?mm=1` 打开）：按 Metamath 规则重放 set.mm 的压缩证明并校验结论；它只覆盖这 31 个目标的局部证明，不是完整验证器。
+- 另有 48 个**证明重放关**（默认开启，`?mm=0` 关闭）：按 Metamath 规则重放 set.mm 的压缩证明并校验结论；它只覆盖这 48 个目标的局部证明，不是完整验证器。
 
 细节、DV 条件和数据来源见 [docs/metamath.md](docs/metamath.md)；谓词、等词、集合论部分分别见 [docs/predicate.md](docs/predicate.md)、[docs/equality.md](docs/equality.md)、[docs/set-theory.md](docs/set-theory.md)。
 
@@ -119,7 +125,7 @@ python -m http.server 8000
 ## 开发
 
 ```bash
-npm test              # 65 项单测（逻辑/成就/存档/走线/关卡目录/mm flags/mm 重放）+ 240 关参考电路
+npm test              # 70 项单测（逻辑/成就/存档/走线/关卡目录/mm flags/mm 重放）+ 240 关参考电路
 npm run test:ui       # Edge headless 真浏览器回归（放置、连线、通关、暗色、移动端、重放关端到端）
 npm run test:acceptance  # 构建 dist/ 后做独立验收（脚本/样式清单按 index.html 顺序核对 + dist file:// 冒烟）
 npm run build:toy     # 只生成 bilibili Toy / Pages 用的 dist/

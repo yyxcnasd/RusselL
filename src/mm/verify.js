@@ -411,12 +411,175 @@
     return { ok: errors.length === 0, errors: errors, checked: checked };
   }
 
+  /* =========================================================================
+   * Tier 3：交互式会话（玩家自己选断言，引擎校验）
+   *
+   * 与 replay 共用同一套语义：栈里存完整公式（含类型码），断言按 mandatory 全量
+   * 弹栈、$f 绑定变元、$e 逐 token 比对、DV basic 检查。玩家可以：
+   *   - 压入本关的 $f / $e 假设（以及证明里用到的假元假设）；
+   *   - 应用任意一条本关可用断言（proof.frames 里的 label）；
+   *   - 撤销 / 重来 / 要提示（提示只按参考证明的前缀给下一条动作）。
+   * 通关条件与 replay 相同：栈高 1 且公式等于证明结论。允许与参考证明不同的路线。
+   * ========================================================================= */
+
+  /** 参考证明的动作序列（已剪枝顺序 = 产生顺序）。 */
+  function referenceActions(proof) {
+    var out = [];
+    ((proof && proof.steps) || []).forEach(function (s) {
+      out.push({ kind: s.kind === 'hyp' ? 'hyp' : 'assert', label: s.label });
+    });
+    return out;
+  }
+
+  function session(proof) {
+    if (!proof || !Array.isArray(proof.conclusion)) throw new Error('session 需要自包含 proof');
+    var mand = proof.mandatory || [];
+    var frames = proof.frames || {};
+    var vars = proof.vars || {};
+    var ref = referenceActions(proof);
+    var stack = [];      // { form, label, kind }
+    var history = [];    // { kind, label }
+    var snapshots = [];  // undo 用的栈快照
+    var lastError = '';
+
+    function hypLabels() {
+      var out = [];
+      var seen = {};
+      mand.forEach(function (h) {
+        if (seen[h.label]) return;
+        seen[h.label] = true;
+        out.push({ label: h.label, kind: h.kind, math: h.math.slice() });
+      });
+      Object.keys(frames).forEach(function (label) {
+        var f = frames[label];
+        if (!f || (f.kind !== '$f' && f.kind !== '$e') || seen[label]) return;
+        seen[label] = true;
+        out.push({ label: label, kind: f.kind, math: f.math.slice() });
+      });
+      return out;
+    }
+
+    function hypOf(label) {
+      var list = hypLabels();
+      for (var i = 0; i < list.length; i += 1) if (list[i].label === label) return list[i];
+      return null;
+    }
+
+    function checkApplicable(label) {
+      var frame = frames[label];
+      if (!frame || frame.kind === '$f' || frame.kind === '$e') return null;
+      var n = (frame.mandatory || []).length;
+      if (stack.length < n) {
+        return { label: label, ready: false, arity: n, error: '需要 ' + n + ' 个前提，栈上只有 ' + stack.length };
+      }
+      var popped = stack.slice(stack.length - n);
+      var res = Expr.applyAssertion(frame, popped.map(function (e) { return e.form; }));
+      if (!res.ok) return { label: label, ready: false, arity: n, error: res.error };
+      var dv = Expr.checkDv(mandatoryDv(frame), res.sub, vars);
+      if (!dv.ok) return { label: label, ready: false, arity: n, error: dv.errors.join('; ') };
+      return { label: label, ready: true, arity: n, error: '' };
+    }
+
+    function assertions() {
+      var out = [];
+      Object.keys(frames).forEach(function (label) {
+        var c = checkApplicable(label);
+        if (c) out.push(c);
+      });
+      out.sort(function (a, b) {
+        return (b.ready ? 1 : 0) - (a.ready ? 1 : 0) || a.label.localeCompare(b.label);
+      });
+      return out;
+    }
+
+    function apply(label) {
+      var frame = frames[label];
+      if (!frame || frame.kind === '$f' || frame.kind === '$e') {
+        var hyp = hypOf(label);
+        if (!hyp) { lastError = '未知 label：' + label; return { ok: false, error: lastError }; }
+        snapshots.push(stack.map(function (e) { return { form: e.form, label: e.label, kind: e.kind }; }));
+        stack.push({ form: hyp.math.slice(), label: label, kind: 'hyp' });
+        history.push({ kind: 'hyp', label: label });
+        lastError = '';
+        return { ok: true };
+      }
+      var check = checkApplicable(label);
+      if (!check.ready) { lastError = label + '：' + check.error; return { ok: false, error: lastError }; }
+      var n = check.arity;
+      var popped = stack.slice(stack.length - n);
+      var res = Expr.applyAssertion(frame, popped.map(function (e) { return e.form; }));
+      snapshots.push(stack.map(function (e) { return { form: e.form, label: e.label, kind: e.kind }; }));
+      stack = stack.slice(0, stack.length - n);
+      stack.push({ form: res.conclusion, label: label, kind: 'assert' });
+      history.push({ kind: 'assert', label: label });
+      lastError = '';
+      return { ok: true };
+    }
+
+    function undo() {
+      if (!history.length) return false;
+      history.pop();
+      stack = snapshots.pop() || [];
+      lastError = '';
+      return true;
+    }
+
+    function reset() {
+      stack = [];
+      history = [];
+      snapshots = [];
+      lastError = '';
+    }
+
+    function solved() {
+      return stack.length === 1 && key(stack[0].form) === key(proof.conclusion);
+    }
+
+    function state() {
+      return {
+        depth: stack.length,
+        top: stack.length ? stack[stack.length - 1].form.slice() : null,
+        stack: stack.map(function (e) { return { form: e.form.slice(), label: e.label, kind: e.kind }; }),
+        actions: history.length,
+        history: history.map(function (h) { return { kind: h.kind, label: h.label }; }),
+        reference: ref.length,
+        solved: solved(),
+        error: lastError
+      };
+    }
+
+    /** 提示：只在玩家动作与参考证明前缀一致时给下一条，避免“猜不到就误导”。 */
+    function hint() {
+      for (var i = 0; i < history.length; i += 1) {
+        if (!ref[i] || ref[i].kind !== history[i].kind || ref[i].label !== history[i].label) {
+          return { label: null, kind: null, aligned: false, reason: '与参考证明不同路线，无法给下一步提示' };
+        }
+      }
+      if (history.length >= ref.length) return { label: null, kind: null, aligned: true, reason: '参考证明已走完' };
+      return { label: ref[history.length].label, kind: ref[history.length].kind, aligned: true, reason: '' };
+    }
+
+    return {
+      proof: proof,
+      hypotheses: hypLabels,
+      assertions: assertions,
+      apply: apply,
+      undo: undo,
+      reset: reset,
+      state: state,
+      solved: solved,
+      hint: hint
+    };
+  }
+
   var API = {
     splitProof: splitProof,
     replay: replay,
     verifyProof: verifyProof,
     prune: prune,
-    statsOf: statsOf
+    statsOf: statsOf,
+    referenceActions: referenceActions,
+    session: session
   };
 
   host.RSL.MM.Verify = API;

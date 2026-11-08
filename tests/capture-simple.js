@@ -146,9 +146,10 @@ runTest('capture-simple', async ({ openPage }) => {
   /* 15 set.mm 证明重放关（mm-replay，默认关闭，用 ?mm=1 打开） */
   const mmPage = await openPage({ width: 1440, height: 900, url: fileUrl('index.html?mm=1'), shotDir });
   await mmPage.ready();
-  equal(await mmPage.js('window.RSL.MM.Flags.enabled()'), true, '?mm=1 打开重放子系统');
-  const mmIndex = await mmPage.js('window.RSL.APP.state.levels.findIndex(function(l){return l.id==="MM-01"})');
-  ok(mmIndex >= 240, '重放关排在 240 关之后');
+  equal(await mmPage.js('window.RSL.MM.Flags.enabled()'), true, '重放段默认开启');
+  await mmPage.js('window.RSL.APP.state.forceUnlock = true');
+  const mmIndex = await mmPage.js('window.RSL.APP.state.levels.findIndex(function(l){return l.code==="pm3.24"&&l.mode==="mm-proof"})');
+  ok(mmIndex >= 0, '目录里能找到 pm3.24 重放关');
   await mmPage.js('window.RSL.APP.loadLevel(' + mmIndex + ')');
   await mmPage.waitFor('!!document.querySelector("#mmRoot [data-mm-panel]")');
   for (let step = 0; step < 2; step++) await mmPage.js('document.querySelector("#checkBtn").click()');

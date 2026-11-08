@@ -219,14 +219,20 @@ runTest('simple-smoke', async ({ openPage }) => {
   const bands = await page.js(`(function(){
     var app=window.RSL.APP, L=app.state.levels;
     var idx=function(id){return L.findIndex(function(l){return l.id===id});};
-    var base=L.filter(function(l){return l.chapterGroup==='Ⅰ'&&l.band!=='challenge'});
+    var base=L.filter(function(l){return l.chapterGroup==='Ⅰ'&&l.band==='base'});
+    var replay=L.filter(function(l){return l.chapterGroup==='Ⅰ'&&l.mode==='mm-proof'});
+    var chal=L.filter(function(l){return l.chapterGroup==='Ⅰ'&&l.band==='challenge'});
     base.forEach(function(l){app.state.solved[l.id]=true;});
-    return {base:base.length, chal:app.isUnlocked(idx('CH1-31')), next:app.isUnlocked(idx('CH2-01')),
-            nextChal:app.isUnlocked(idx('CH2-31')), baseLast:base[base.length-1].id};
+    return {base:base.length, replay:replay.length, chal:chal.length,
+            chalUnlocked:app.isUnlocked(idx(chal[0].id)),
+            next:app.isUnlocked(idx('CH2-01')),
+            nextChal:app.isUnlocked(idx('CH2-31')), baseLast:base[base.length-1].id,
+            firstChal:chal[0].id, replayLast:replay[replay.length-1].id};
   })()`);
-  equal(bands.base, 30, '第一章基础段 30 关');
-  equal(bands.baseLast, 'CH1-30', '基础段最后一关是 CH1-30');
-  equal(bands.chal, true, '基础段全通后 CH1-31 挑战关解锁');
+  equal(bands.base, 36, '第一章基础段 36 关');
+  equal(bands.chal, 36, '第一章挑战段 36 关');
+  equal(bands.replay, 12, '第一章重放关 12 个（交错在段内）');
+  equal(bands.chalUnlocked, true, '基础段全通后挑战段解锁（' + bands.firstChal + '）');
   equal(bands.next, true, '基础段全通后下一章 CH2-01 解锁');
   equal(bands.nextChal, false, '下一章挑战段 CH2-31 仍锁着');
 

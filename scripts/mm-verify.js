@@ -21,7 +21,7 @@ const REPORT = path.join(ROOT, 'research', 'mm-report.json');
 
 const Verify = require(path.join(ROOT, 'src', 'mm', 'verify.js'));
 const Expr = require(path.join(ROOT, 'src', 'mm', 'expr.js'));
-const { HARD_LABELS } = require('./mm-build-frames.js');
+const { HARD_LABELS } = require('./mm-targets.js');
 
 function loadFrames() {
   if (!fs.existsSync(FRAMES)) {

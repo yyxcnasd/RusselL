@@ -17,10 +17,10 @@
 | WP1 frame 提取 | 完成 | `scripts/mm-build-frames.js` → `research/mm-frames.json`；31/31 目标存在。**只输出重放闭包 241 个 frame**（`--full` 才输出四模块 10 793 个，11 MB） |
 | WP2 证明重放 | 完成 | `src/mm/expr.js` + `src/mm/verify.js` + `scripts/mm-verify.js`；31/31 重放通过，`research/mm-report.json` 记录每目标步骤数与失败原因 |
 | WP3 DAG 剪枝与产物 | 完成 | 剪掉 finalStep 不可达步骤；`src/mm/proofs.js` 386 KB（< 2 MB），31 个 DAG 共 1 299 步，可离线 `Verify.verifyProof` 复验 |
-| WP4 关卡接入 | 完成（方案 A，只读） | 31 个 `mode:"mm-proof"` 关卡（`src/mm/levels.js`），目标 = set.mm 原始结论 token 串；**没有**做 `mmstep` 棋盘模块 |
-| WP5 UI | 完成 | `src/mm/panel.js` + `src/mm/mm.css`：步骤列表 / 当前步骤详情（label、替换 map、结论）/ 前后导航 / 键盘 ←→ Home End / >80 步分段 / 移动端堆叠 / 0 步公理分支 |
-| WP6 回归与文档 | 完成 | `npm test` 65 项、`npm run test:ui`（含 mm-ui 47 checks）、`npm run test:acceptance` 251 checks 全绿；文档 ARCHITECTURE / metamath / 本文件 / MM-REPLAY 已更新 |
-| Tier 3 交互 | **未做** | 玩家仍只能逐步重放，不能自己选下一条断言/替换 |
+| WP4 关卡接入 | 完成（方案 A）+ 二次设计 | **48 个** `mode:"mm-proof"` 关卡（每章 12 个，`src/mm/levels.js`），目标 = set.mm 原始结论 token 串；重放关不再独立成组，而是按统一难度交错进每章基础/挑战段（见 `docs/LEVEL-DESIGN-PROPOSAL.md`）；**没有**做 `mmstep` 棋盘模块 |
+| WP5 UI | 完成 | `src/mm/panel.js` + `src/mm/mm.css`：回放（步骤列表 / 当前步骤 / 前后导航 / 键盘 / >80 步分段 / 移动端）+ 自推（候选断言与假设 / 栈 / 提示 / 错误 / 撤销重来） |
+| WP6 回归与文档 | 完成 | `npm test` 70 项、`npm run test:ui` 238 checks、`npm run test:acceptance` 251 checks 全绿；文档 ARCHITECTURE / metamath / 本文件 / MM-REPLAY / LEVEL-DESIGN-PROPOSAL 已更新 |
+| Tier 3 交互 | 完成 | `Verify.session(proof)` + 面板 `mode:'interactive'`：玩家自己选断言/假设，引擎按同一套 Metamath 语义校验，有提示、错误反馈、撤销/重来 |
 
 ### 计划里被证伪的一条（重要）
 
@@ -36,16 +36,17 @@ mandatory 假设里的 `$d` 对**才是套用该定理时必须满足的条件�
 variable，如 `isfin4-2` 的 `$d x A` 里的 x）的 `$d` 对必须忽略，否则 set.mm 里合法
 证明会被误判失败（实测 fin41 / axunnd / axacnd 会被卡住）。
 
-### 剩余工作（Tier 3，按优先级）
+### 剩余工作（按优先级）
 
-1. **交互式重放**：面板给出候选断言集合，玩家选 label + 替换，`MM.Verify` 逐步校验并给
-   「applyAssertion 失败在第几号假设」这类可定位错误。引擎已经具备全部能力（`replay` 的
-   `apply`/`applyLabel` 拆开即可），缺的是候选生成与提示 UI。
-2. **DAG 展开/折叠**：现在列表按 40 步分段；可以再按「前提子树」折叠。
+1. **DAG 展开/折叠**：回放列表现在按 40 步分段，可以再按「前提子树」折叠。
+2. **自推的候选剪枝**：目前候选 = 参考证明用到的断言 + 本关假设，可用但数量偏多（axacnd
+   57 条）；可以按「哪个前件已就位」进一步排序/分组。
 3. **目标公式和 `Logic` 的互操作**：只在目标恰好能映射回 AST 时做（`tokenToGame`），
    当前不做，避免把两套公式语言混在一起。
 4. **完整 DV / 全库重放**：需要把闭包扩到 10 793 个 frame 并递归展开引用，属于另一个量级
    的工作；现在明确不做，也不声称。
+5. **更多重放目标**：`scripts/mm-targets.js` 加一行 + `npm run build:mm` 即可；候选池
+   （已实测通过）见 `docs/LEVEL-DESIGN-PROPOSAL.md` §5。
 
 
 ## 0. 一句话目标

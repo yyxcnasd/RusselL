@@ -34,10 +34,10 @@ token 公式层与校验器，不进入 `Logic` 的 AST，也不改现有 240 �
 | `src/levels.js` | `RSL.LEVELS` | 手工关（含参考电路） | 无 |
 | `src/levels-generated.js` | `RSL.LEVELS` | 生成关（生成） | 无 |
 | `src/mm/flags.js` | `RSL.MM.Flags` | 重放子系统特性开关（默认关闭） | 无 |
-| `src/mm/proofs.js` | `RSL.MM_PROOFS` | 31 个自包含证明 DAG（生成，< 400 KB） | 无 |
-| `src/mm/levels.js` | `RSL.MM_LEVELS` | 31 个 `mm-proof` 关卡（生成） | 无 |
+| `src/mm/proofs.js` | `RSL.MM_PROOFS` | 48 个自包含证明 DAG（生成，约 440 KB） | 无 |
+| `src/mm/levels.js` | `RSL.MM_LEVELS` | 48 个 `mm-proof` 关卡（生成，每章 12 个） | 无 |
 | `src/mm/expr.js` | `RSL.MM.Expr` | token 公式：替换、$e 比对、断言应用、DV、显示。纯函数 | 无 |
-| `src/mm/verify.js` | `RSL.MM.Verify` | 压缩证明重放、DAG 构造与离线校验 | Expr |
+| `src/mm/verify.js` | `RSL.MM.Verify` | 压缩证明重放、DAG 构造与离线校验、Tier 3 交互会话 | Expr |
 | `src/mm/panel.js` | `RSL.MM.Panel` | 只读重放面板（步骤列表 / 当前步骤 / 前后导航） | 无（DOM 由调用方给） |
 | `src/engine.js` | `RSL.Engine` | 模块元数据 + 电路拓扑求值 + 反作弊（目标上游必须有来源） | Logic |
 | `src/route.js` | `RSL.Route` | 纯几何：A* 走线、正交化、45° 倒角、线段避障。无 DOM | 无 |
@@ -70,7 +70,15 @@ token 公式层与校验器，不进入 `Logic` 的 AST，也不改现有 240 �
 - 过关条件：目标焊盘 `complete`，且目标上游真的包含公理/规则/档案/已证结论（见 `Engine.evaluate` 反作弊段）。
 - 存档只存解出的关卡、最佳长度、通关电路等；电路在 `save.clean` 里按白名单清洗。
 
-### 3.0 重放关的数据流（并行分支）
+### 3.0 关卡进程与重放关的数据流
+
+`Catalog.build()` 负责新进程：每章 `12 引导 + 48 接线 + 12 重放 = 72`，引导关固定在 1–12，
+其余 60 个按统一难度 D 升序交错；位置 1–36 为基础段、37–72 为挑战段。
+
+```
+D(接线) = 参考电路模块数 + 0.1 × target 的 AST 节点数
+D(重放) = 1.4 + 2.2417 × log2(1 + 证明步骤数)
+```
 
 `mm-proof` 关卡不经过 `Engine`/`Board`，走独立的 token 公式与证明数据：
 
@@ -79,16 +87,17 @@ selectedLevel.mode === 'mm-proof'
   └─ loadLevel() → main.js 的 loadMmLevel()
        ├─ 隐藏 .board 与元件栏，懒挂 #mmRoot（.stage 里的兄弟节点）
        ├─ goal 用 MM.Expr.toHTML(token 公式) 渲染（不是 Logic AST）
-       └─ MM.Panel.mount(#mmRoot, { level, proof })   // proof = MM_PROOFS[level.proofId]
-            ├─ 步骤列表 + 当前步骤详情（label / 替换 map / 结论）
-            ├─ ←/→/Home/End、分页（>80 步）、0 步公理分支
-            └─ 到 finalStep → onSolved → main.js mmWin() → Screens.openMmWin
+       └─ MM.Panel.mount(#mmRoot, { level, proof, mode })   // 'replay' | 'interactive'
+            ├─ 回放：步骤列表 + 当前步骤详情（label / 替换 map / 结论）
+            │        ←/→/Home/End、分页（>80 步）、0 步公理分支
+            └─ 自推：Verify.session(proof) 的候选断言/假设、栈、提示、撤销/重来
+                 到 finalStep 或自己走完 → onSolved → main.js mmWin() → Screens.openMmWin
 ```
 
-- 菜单与解锁：`RSL.MM_LEVELS` 只在 `MM.Flags.enabled()`（`?mm=1` 或
-  `localStorage['axiom-simple:mm']==='on'`）时由 `Catalog.build()` 追加到目录末尾，
-  `chapterGroup:'MM'`、`requires:[]`；关闭时目录与现有 240 关逐字段不变。
-- 顶栏「校验」按钮在重放关里变成「下一步」（`main.js` 里 `check()` 分支）。
+- 目录：`RSL.MM_LEVELS` 默认并入章节（`MM.Flags.enabled()` 默认 true，`?mm=0` 关闭）；
+  关闭时 `Catalog.build()` 回到旧版 240 关布局（基础 30 → 挑战 30，逐字段等于旧基线）。
+- 顶栏「校验」按钮在重放关里变成「下一步」（回放）或「提示」（自推），
+  见 `main.js` 的 `check()` / `mmAdvance()` 分支。
 - 面板不读 `RSL.APP`，只通过 mount 参数与 `onSolved/onProgress/sfx` 回调通信。
 - 重放关**不计入** 240 关的成就体系（`achievements.evaluate` 过滤 `mode:'mm-proof'`），
   只登记 `solved` / `bestLen`，不写 `circuits`。
@@ -123,11 +132,12 @@ research/setmm-data.json (+ setmm-set-extra.json)
 
 ```
 assets/data/set.mm（仓库外，51 MB）
-  └─ scripts/mm-build-frames.js → research/mm-frames.json（重放闭包，约 160 KB）
-       └─ scripts/mm-verify.js   → research/mm-proofs/<label>.json × 31
+  └─ scripts/mm-targets.js      ← 48 个重放目标（label/章节/中文名/说明，唯一来源）
+  └─ scripts/mm-build-frames.js → research/mm-frames.json（重放闭包）
+       └─ scripts/mm-verify.js   → research/mm-proofs/<label>.json × 48
                                 → research/mm-report.json（成功/失败与步骤统计）
-            └─ scripts/mm-to-levels.js → src/mm/proofs.js   （RSL.MM_PROOFS，约 386 KB）
-                                       → src/mm/levels.js   （RSL.MM_LEVELS，31 关）
+            └─ scripts/mm-to-levels.js → src/mm/proofs.js   （RSL.MM_PROOFS）
+                                       → src/mm/levels.js   （RSL.MM_LEVELS，48 关）
                  └─ tests/mm-replay.test.js / tests/mm-ui.js 逐关校验与真浏览器重放
 ```
 
@@ -151,12 +161,12 @@ assets/data/set.mm（仓库外，51 MB）
 
 | 命令 | 覆盖 |
 | --- | --- |
-| `npm test` | 65 项单测：逻辑 17、成就 4、存档 2、走线 11、关卡目录 9、mm flags 14、mm 重放 8；加上 240 关参考电路 |
-| `npm run test:ui` | Edge headless 真浏览器：放置/连线/通关/拆线/拖回删除/拖放/暗色/移动端/多选 + 重放关端到端 47 checks |
-| `npm run test:acceptance` | 先构建 `dist/`，再跑独立验收（脚本/样式清单按 index.html 顺序逐项核对 + dist 产物 file:// 冒烟） |
+| `npm test` | 70 项单测：逻辑 17、成就 4、存档 2、走线 11、关卡目录 9、mm flags 15、mm 重放 12；加上 240 关参考电路 |
+| `npm run test:ui` | Edge headless 真浏览器（238 checks）：放置/连线/通关/拆线/拖回删除/拖放/暗色/移动端/多选 + 重放关回放与自推端到端 |
+| `npm run test:acceptance` | 先构建 `dist/`，再跑独立验收（251 checks：脚本/样式清单按 index.html 顺序逐项核对 + dist 产物 file:// 冒烟） |
 | `npm run capture:screens` | 重新采集 `screenshots/` 的文档图（`--repo`） |
 | `node .research/perf.js` | 大电路（18 节点 20 边）走线与渲染耗时（开发用，`.research/` 不进仓库） |
-| `node scripts/mm-verify.js` | 重放 31 个 hard label，失败给出可定位原因（CLI 报告） |
+| `node scripts/mm-verify.js` | 重放 48 个目标，失败给出可定位原因（CLI 报告） |
 
 浏览器测试走 CDP；Edge 路径固定在 `tests/lib/browser.js`。无 Edge 的机器只能跑 `npm test`。
 测试与脚本统一用 `scripts/lib/load-runtime.js` 在 Node 里按 `index.html` 的顺序加载经典脚本。
@@ -164,8 +174,8 @@ assets/data/set.mm（仓库外，51 MB）
 ## 7. 已知边界
 
 - 主游戏没有完整 set.mm 证明器，也不重证 set.mm 定理；游戏目标是 set.mm 公式。
-- mm-replay 子系统**只重放 31 个 hard label 的局部证明**：引用是断言级的（不展开被引定理
-  自己的证明），所以它是「按 set.mm 规则重放并校验这 31 个证明」，不是完整 set.mm 验证器
+- mm-replay 子系统**只重放 48 个目标的局部证明**：引用是断言级的（不展开被引定理
+  自己的证明），所以它是「按 set.mm 规则重放并校验这 48 个证明」，不是完整 set.mm 验证器
   （不校验全部 40k+ 定理，也不做完整的 DV 全量证明）。
 - DV 覆盖：只检查「两个变元都在该断言 mandatory 假设里」的 $d 对，且比对的是替换后表达式
   共享变量；涉及假元变量（dummy variable）的 $d 对按 Metamath 语义忽略。
@@ -173,3 +183,5 @@ assets/data/set.mm（仓库外，51 MB）
 - 集合论章只用 `∈` / `=` 原始语言，没有类抽象；重放关的公式是原始 token，不走 `Logic`。
 - 存档版本 2；改 schema 时要同时改 `save.js` 的 `clean` 与 `README` 的说明。重放关只登记
   `solved`/`bestLen`，不写 `circuits`。
+- 关卡顺序由 `Catalog.build()` 的难度公式决定，不再是 `CHx-NN` 的生成顺序；`id` 只作为
+  稳定存档键，显示编号用章内位置（`chapterOrder`）。

@@ -12,8 +12,8 @@
 | 文件 | 命名空间 | 职责 | 生产者 |
 | --- | --- | --- | --- |
 | `src/mm/flags.js` | `RSL.MM.Flags` | feature flag，默认关闭 | wiring |
-| `src/mm/proofs.js` | `RSL.MM_PROOFS` | 生成：31 个证明 DAG（自包含） | 生成器 |
-| `src/mm/levels.js` | `RSL.MM_LEVELS` | 生成：31 个 `mm-proof` 关卡 | 生成器 |
+| `src/mm/proofs.js` | `RSL.MM_PROOFS` | 生成：48 个证明 DAG（自包含） | 生成器 |
+| `src/mm/levels.js` | `RSL.MM_LEVELS` | 生成：48 个 `mm-proof` 关卡（每章 12 个） | 生成器 |
 | `src/mm/expr.js` | `RSL.MM.Expr` | MM token 公式层（替换/匹配/应用/显示） | core |
 | `src/mm/verify.js` | `RSL.MM.Verify` | 压缩证明重放 + DAG 校验 | core |
 | `src/mm/panel.js` | `RSL.MM.Panel` | 只读重放面板（DOM） | panel |
@@ -117,7 +117,7 @@ checkDv(proof) -> { ok, errors:[], checked, mode:'basic' }
 }
 ```
 
-`frames` 必须包含 31 个目标的**传递闭包**（目标本身 + 其证明里引用到的全部 label），
+`frames` 必须包含 48 个目标的**传递闭包**（目标本身 + 其证明里引用到的全部 label），
 否则校验会缺 frame。文件只进 `research/`，不进 `src/`、不进 `dist/`。
 
 ## 5. `RSL.MM_PROOFS`（生成，随游戏发布）
@@ -157,47 +157,53 @@ checkDv(proof) -> { ok, errors:[], checked, mode:'basic' }
 }
 ```
 
-硬约束：整个 `src/mm/proofs.js` **< 2 MB**；31 个 label 必须全部存在；每个 proof 必须能被
-`Verify.verifyProof` 离线校验通过。
+硬约束：整个 `src/mm/proofs.js` **< 2 MB**；`scripts/mm-targets.js` 里的 48 个 label 必须
+全部存在；每个 proof 必须能被 `Verify.verifyProof` 离线校验通过。
 
 ## 6. `RSL.MM_LEVELS`（生成，随游戏发布）
 
 ```js
 {
-  id: 'MM-01',                    // 稳定 id，顺序即序号
+  id: 'MM-01',                    // 稳定 id（存档键），显示编号用 chapterOrder
   mode: 'mm-proof',
-  chapter: 'mm',                  // Catalog 里单独一组，不进入原有四章
-  band: 'mm',
+  chapter: 'prop',                // 真实章节：prop/pred/eq/set
+  band: 'replay',                 // 生成数据的占位标记；Catalog 会按难度重新分配 base/challenge
+  group: '命题',
   title: '非矛盾律',               // 中文短名（≤ 14 字）
+  note: '⊢ ¬(φ ∧ ¬φ)：…',
   code: 'pm3.24',                 // set.mm label
   targetTokens: ['|-','-.','(','ph','/\\','-.','ph',')'],
   targetUnicode: '⊢ ¬ ( φ ∧ ¬ φ )',
   proofId: 'pm3.24',
-  requires: [],                   // 重放关不参与原有解锁链
-  order: 1
+  axiom: false,                   // $a 公理图式（没有可重放步骤）
+  stats: { steps: 14, asserts: 7, maxDepth: 5, refs: 6 },
+  requires: [], order: 1, chapterOrder: 1
 }
 ```
 
-`chapter: 'mm'` 保证现有 240 关的 `requires` 链与章节计数完全不变。
+重放关**不再单独成组**：`Catalog.build()` 把它们和接线关放在同一把难度尺子上，
+按章交错排列（见下面的 §7 与 `docs/LEVEL-DESIGN-PROPOSAL.md`）。
 
 ## 7. `RSL.MM.Flags` API（`src/mm/flags.js`）
 
 ```js
-Flags.enabled() -> boolean        // 默认 false
+Flags.enabled() -> boolean        // 默认 true（重放关是主线的一部分）
 Flags.set(true|false)             // 写 localStorage；不刷新页面
 Flags.source() -> 'query'|'storage'|'default'
 ```
 
-开关来源（任一为真即开启，query 优先）：`?mm=1` / `?mm=on`，`localStorage['axiom-simple:mm'] === 'on'`。
-`Catalog.build()` 只在 `Flags.enabled()` 为真时把 `RSL.MM_LEVELS` 追加到目录末尾，
-且**不修改**原有 240 关的 `requires` / `chapter` / `band`。
+取值优先级：`?mm=0` / `?mm=off`（本次访问关闭）→ `?mm=1` / `?mm=on`（本次访问开启）→
+`localStorage['axiom-simple:mm']` 的 `'off'` / `'on'` → 默认 true。
+
+`Catalog.build()` 在关闭时回到**旧版 240 关布局**（基础 30 → 挑战 30，逐字段等于旧基线）；
+开启时把 48 个重放关并进对应章节参与统一难度排序（见 §10）。
 
 ## 8. `RSL.MM.Panel` API（`src/mm/panel.js` + `src/mm/mm.css`）
 
 ```js
 Panel.mount(container, opts) -> handle
-// opts = { level, proof, mode:'replay', onSolved(){}, onProgress(info){}, sfx(name){} }
-// handle = { destroy(){} }   // 必须移除自己挂的事件监听与 DOM
+// opts = { level, proof, mode:'replay'|'interactive', onSolved(){}, onProgress(info){}, sfx(name){} }
+// handle = { destroy(), state(), mode(), setMode(mode), next(), prev(), goTo(i) }
 ```
 
 容器由 `main.js` 提供（`#mm-root`，与棋盘同级）。面板自己建根节点、加 class `mm-panel`。
@@ -223,7 +229,13 @@ Panel.mount(container, opts) -> handle
 - 到 `finalStep` 时触发一次 `onSolved()`（同一次挂载不重复触发）。
 - 键盘：`←`/`→` 上一步/下一步，`Home`/`End` 首/末步；焦点在输入框时不拦截。
 - 步骤数 > 80 时分页/分段折叠（每段 40 步，可跳到段首），不一次性把上千行塞进 DOM。
-- 步骤数 = 0（`$a` 公理）：显示「公理图式 · 无可重放步骤」+ 断言本身，并立即视为已完成。
+- 步骤数 = 0（`$a` 公理）：显示「公理图式 · 无可重放步骤」+ 断言本身，不提供模式切换，
+  由顶栏按钮确认完成（不自动通关）。
+- **交互式自推（Tier 3）**：头部有 `[data-mm-mode-toggle]`；切到 interactive 后，左列是
+  `[data-mm-hyp="<label>"]` / `[data-mm-assert="<label>"]` 候选（不可用的 `disabled` + `title`
+  写原因），右列是 `[data-mm-stack]`（底→顶）、`[data-mm-actions]`、`[data-mm-ref]`、
+  `[data-mm-hint]` / `[data-mm-hint-text]`、`[data-mm-error]`、`[data-mm-undo]`、
+  `[data-mm-reset]`，通关后才有 `[data-mm-solved]`。键盘 `Backspace` 撤销、`h` 提示。
 - 移动端（≤ 700px）：纵向堆叠，步骤列表在详情下方。
 - 文案与设计走 `docs/DESIGN.md`：少字、对象语言用 → / ↔、变量与公式用 STIX 斜体（`class="formula"`）。
 - 面板不得读取 `RSL.APP` / 全局状态；只通过参数与回调通信。
@@ -246,7 +258,7 @@ Panel.mount(container, opts) -> handle
    dummy 变量的 `$d` 对按 Metamath 语义忽略（见 `Verify.mandatoryDv`）。
    不这样做会把 fin41 / axunnd / axacnd 的合法证明误判为 DV 失败。
 4. **闭包只有一层**：引用是断言级的（不展开被引定理自己的证明），所以
-   `mm-frames.json` 默认只含 31 个目标 + 它们直接引用的断言（241 个）；
+   `mm-frames.json` 默认只含 48 个目标 + 它们直接引用的断言（275 个）；
    `--full` 才输出四模块 10 793 个 frame。证明数据自包含：`proofs.js` 里每个
    proof 带 `frames`（refs 的 frame）与 `vars`（token → 类型码），可脱离 frames.json
    用 `Verify.verifyProof` 复验。
@@ -264,5 +276,12 @@ Panel.mount(container, opts) -> handle
    与 `.board` 互斥显示；`mm.css` 只管 `.mm-panel` 内部与选关行样式。
 10. **验收命令**：`npm run build:mm` 重建数据；`node scripts/mm-verify.js` 出报告；
     `node --test tests/mm-replay.test.js` 数据层断言；`node tests/mm-ui.js` 真浏览器
-    端到端（47 checks）。
+    端到端（88 checks，含回放 + 自推 + 移动端）。
+11. **目标清单唯一来源是 `scripts/mm-targets.js`**：加目标只要往那里加一行
+    `{label, chapter, title, note}`，再 `npm run build:mm`；每章 12 个、章内按步数升序是
+    设计约束（`tests/mm-replay.test.js` 会检查）。
+12. **统一难度与交错**：`Catalog.build()` 用 `D(接线)=模块数+0.1·AST`、
+    `D(重放)=1.4+2.2417·log2(1+steps)` 排序，位置 1–36 基础段 / 37–72 挑战段；
+    这消除了「304 步之后回到 3 个模块」的断崖（数据见 `docs/LEVEL-DESIGN-PROPOSAL.md`）。
+    重放关在选关面板里是横跨 4 格的卡片，显示章内位置号而不是 `MM-xx`。
 

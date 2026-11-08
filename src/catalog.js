@@ -1,9 +1,20 @@
 /*!
  * 公理板 / AXIOM BOARD — RSL.Catalog
  *
- * 关卡目录的运行时视图：章节分组、排序、解锁链、调色板条目。
- * 输入是只读的 RSL.LEVELS / RSL.PARTS / RSL.ARCHIVE / RSL.AXIOMS，
+ * 关卡目录的运行时视图：章节分组、统一难度排序、分段与解锁链、调色板条目。
+ * 输入是只读的 RSL.LEVELS / RSL.MM_LEVELS / RSL.PARTS / RSL.ARCHIVE / RSL.AXIOMS，
  * 输出是派生的关卡副本（不修改原始数据）。
+ *
+ * 关卡进程（重新设计后）：
+ *   每章 72 关 = 12 个手工/引导关（固定 01–12，豁免单调）
+ *              + 48 个接线关（现有生成关，内容不变）
+ *              + 12 个 set.mm 证明重放关
+ *   13–72 这 60 个按统一难度 D 升序交错排列，位置 1–36 为基础段、37–72 为挑战段，
+ *   所以重放关不是独立的一段，而是按难度插在接线关之间（避免段边界断崖）。
+ *
+ * 难度标尺（见 docs/LEVEL-DESIGN-PROPOSAL.md）：
+ *   接线 D = 参考电路模块数 + 0.1 × 目标公式 AST 节点数
+ *   重放 D = 1.4 + 2.2417 × log2(1 + 证明步骤数)      （0 步 = 1.4，304 步 ≈ 19.9）
  */
 (function (host) {
   'use strict';
@@ -17,13 +28,16 @@
     { id: 'Ⅲ', key: 'eq', title: '等词' },
     { id: 'Ⅳ', key: 'set', title: '集合' }
   ];
-  var CHAPTER_RANK = {};
-  CHAPTERS.forEach(function (c, i) { CHAPTER_RANK[c.id] = i; });
-  /* mm-replay 是独立分组，排在原有四章之后；只在特性开关打开时才出现。 */
-  CHAPTER_RANK.MM = 4;
+
+  /* 每章结构：12 手工/引导 + 48 接线 + 12 重放 = 72；基础段 36、挑战段 36。 */
+  var HAND_SIZE = 12;
+  var CHAPTER_SIZE = 72;
+  var BAND_SPLIT = 36;
+
+  var REPLAY_D_BASE = 1.4;
+  var REPLAY_D_K = 2.2417;
 
   function chapterOf(level) {
-    if (level.chapter === 'mm') return 'MM';
     if (level.chapter === 'pred') return 'Ⅱ';
     if (level.chapter === 'eq') return 'Ⅲ';
     if (level.chapter === 'set') return 'Ⅳ';
@@ -42,64 +56,113 @@
     return !!(flags && typeof flags.enabled === 'function' && flags.enabled());
   }
 
-  /** 生成运行时关卡目录：补齐字段、按章/关号排序、串好基础段与挑战段的解锁链。 */
+  function astNodes(ast) {
+    if (!ast || typeof ast !== 'object' || !ast.k) return 0;
+    var n = 1;
+    if (Array.isArray(ast.args)) ast.args.forEach(function (x) { n += astNodes(x); });
+    if (ast.a) n += astNodes(ast.a);
+    if (ast.b) n += astNodes(ast.b);
+    return n;
+  }
+
+  /** 统一难度：接线 N + 0.1·AST，重放 1.4 + 2.2417·log2(1+steps)。 */
+  function difficultyOf(level) {
+    if (level.mode === 'mm-proof') {
+      var steps = level.stats && typeof level.stats.steps === 'number' ? level.stats.steps : 0;
+      return REPLAY_D_BASE + REPLAY_D_K * Math.log(1 + steps) / Math.LN2;
+    }
+    var nodes = level.solution && level.solution.nodes ? level.solution.nodes.length : 0;
+    var ast = 0;
+    try { ast = astNodes(L.parse(level.target)); } catch (e) { ast = 0; }
+    return nodes + 0.1 * ast;
+  }
+
+  /** 生成运行时关卡目录：每章按统一难度交错排列，并串好解锁链。 */
   function build() {
     var list = (host.RSL.LEVELS || []).map(function (level, i) {
-      var copy = Object.assign({}, level);
-      copy.chapter = level.chapter || 'prop';
-      copy.band = level.band || 'base';
-      copy.targetPos = level.targetPos || { x: 650, y: 300 };
-      copy.allowed = (level.allowed || []).slice();
-      copy.solution = level.solution || { nodes: [], edges: [] };
-      copy._ord = i;
-      copy.chapterGroup = chapterOf(copy);
-      return copy;
+      return normalize(level, i);
     });
 
-    list.sort(function (a, b) {
-      return (CHAPTER_RANK[a.chapterGroup] - CHAPTER_RANK[b.chapterGroup]) || (levelNo(a) - levelNo(b));
-    });
-
-    var prevBaseLast = null;
-    CHAPTERS.forEach(function (chapter) {
-      var group = list.filter(function (lv) { return lv.chapterGroup === chapter.id; });
-      var base = group.filter(function (lv) { return lv.band !== 'challenge'; });
-      var challenge = group.filter(function (lv) { return lv.band === 'challenge'; });
-      base.forEach(function (lv, i) {
-        lv.requires = i === 0 ? (prevBaseLast ? [prevBaseLast] : []) : [base[i - 1].id];
-        lv.challenge = false;
-      });
-      challenge.forEach(function (lv, i) {
-        lv.requires = i === 0
-          ? (base.length ? [base[base.length - 1].id] : (prevBaseLast ? [prevBaseLast] : []))
-          : [challenge[i - 1].id];
-        lv.challenge = i === challenge.length - 1;
-      });
-      if (base.length) prevBaseLast = base[base.length - 1].id;
-    });
-
-    /* mm-replay（契约 §7）：仅当特性开关为真时，把 RSL.MM_LEVELS 追加到目录末尾。
-       重放关不进入原有四章，也不参与原有解锁链（requires 恒为空数组）；
-       原有 240 关的 requires / chapter / band 一个字节都不改。 */
+    /* mm-replay：开关打开时把重放关并进对应章节，参与统一难度排序。 */
     if (mmEnabled()) {
       var mmLevels = host.RSL.MM_LEVELS;
       if (Array.isArray(mmLevels)) {
-        mmLevels.forEach(function (level) {
-          var copy = Object.assign({}, level);
-          copy.chapter = level.chapter || 'mm';
-          copy.band = level.band || 'mm';
-          copy.targetPos = level.targetPos || { x: 650, y: 300 };
-          copy.allowed = (level.allowed || []).slice();
-          copy.solution = level.solution || { nodes: [], edges: [] };
-          copy._ord = list.length;
-          copy.chapterGroup = 'MM';
-          copy.requires = [];
+        mmLevels.forEach(function (level, i) {
+          var copy = normalize(level, list.length + i);
+          copy.mode = level.mode || 'mm-proof';
+          copy.chapterOrder = level.chapterOrder || (i + 1);
           list.push(copy);
         });
       }
     }
 
-    return list;
+    var groups = {};
+    CHAPTERS.forEach(function (c) { groups[c.id] = []; });
+    list.forEach(function (lv) { (groups[chapterOf(lv)] || groups['Ⅰ']).push(lv); });
+
+    var out = [];
+    var prevBaseLast = null;
+    CHAPTERS.forEach(function (chapter) {
+      var group = groups[chapter.id] || [];
+      var hasReplay = group.some(function (lv) { return lv.mode === 'mm-proof'; });
+      var ordered;
+      var baseEnd;
+      if (hasReplay) {
+        /* 新进程：12 手工固定，其余 60 个（接线 + 重放）按统一难度 D 升序交错；
+           位置 1–36 基础段、37–72 挑战段。 */
+        var hand = group.filter(function (lv) {
+          return lv.mode !== 'mm-proof' && levelNo(lv) <= HAND_SIZE;
+        }).sort(function (a, b) { return levelNo(a) - levelNo(b); });
+        var handSet = {};
+        hand.forEach(function (lv) { handSet[lv.id] = true; });
+        var rest = group.filter(function (lv) { return !handSet[lv.id]; }).map(function (lv) {
+          var d = difficultyOf(lv);
+          lv._difficulty = d;
+          return { lv: lv, d: d };
+        });
+        rest.sort(function (a, b) {
+          return (a.d - b.d) || String(a.lv.id).localeCompare(String(b.lv.id));
+        });
+        ordered = hand.concat(rest.map(function (x) { return x.lv; }));
+        baseEnd = BAND_SPLIT;
+      } else {
+        /* 关闭重放段时回到旧版 240 关布局：基础按关号 → 挑战按关号，基础 30 / 挑战 30。 */
+        var oldBase = group.filter(function (lv) { return lv.band !== 'challenge'; })
+          .sort(function (a, b) { return levelNo(a) - levelNo(b); });
+        var oldChal = group.filter(function (lv) { return lv.band === 'challenge'; })
+          .sort(function (a, b) { return levelNo(a) - levelNo(b); });
+        ordered = oldBase.concat(oldChal);
+        baseEnd = oldBase.length;
+        if (ordered.length > CHAPTER_SIZE) baseEnd = BAND_SPLIT;
+        if (ordered.length <= CHAPTER_SIZE && baseEnd >= ordered.length) baseEnd = Math.ceil(ordered.length / 2);
+      }
+
+      ordered.forEach(function (lv, i) {
+        if (hasReplay) lv.band = i < baseEnd ? 'base' : 'challenge';
+        lv.challenge = i === ordered.length - 1;
+        lv.chapterOrder = i + 1;
+        lv.requires = i === 0 ? (prevBaseLast ? [prevBaseLast] : []) : [ordered[i - 1].id];
+        lv.difficulty = Math.round((lv._difficulty === undefined ? difficultyOf(lv) : lv._difficulty) * 100) / 100;
+        delete lv._difficulty;
+        out.push(lv);
+      });
+      /* 下一章在「本章基础段末关」完成后解锁（挑战段不挡下一章）。 */
+      if (baseEnd > 0 && baseEnd <= ordered.length) prevBaseLast = ordered[baseEnd - 1].id;
+    });
+
+    return out;
+  }
+
+  function normalize(level, i) {
+    var copy = Object.assign({}, level);
+    copy.chapter = level.chapter || 'prop';
+    copy.band = level.band || 'base';
+    copy.targetPos = level.targetPos || { x: 650, y: 300 };
+    copy.allowed = (level.allowed || []).slice();
+    copy.solution = level.solution || { nodes: [], edges: [] };
+    copy._ord = i;
+    copy.chapterGroup = chapterOf(copy);
+    return copy;
   }
 
   function isUnlocked(state, levels, index) {
@@ -179,7 +242,11 @@
 
   host.RSL.Catalog = {
     CHAPTERS: CHAPTERS,
+    HAND_SIZE: HAND_SIZE,
+    CHAPTER_SIZE: CHAPTER_SIZE,
+    BAND_SPLIT: BAND_SPLIT,
     chapterOf: chapterOf,
+    difficultyOf: difficultyOf,
     build: build,
     isUnlocked: isUnlocked,
     levelById: levelById,

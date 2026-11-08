@@ -20,18 +20,12 @@ const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
 const FILE = path.join(ROOT, 'assets', 'data', 'set.mm');
-const OUT = path.join(ROOT, 'research', 'mm-frames.json');
+const OUT_DEFAULT = path.join(ROOT, 'research', 'mm-frames.json');
 
 const WANTED_MODULES = new Set(['set-pred.mm', 'set-class.mm', 'set-zf.mm', 'set-zfc.mm']);
 
-/* src/mm/build-tool.js 与 docs/REPLAY-HANDOFF.md 里的 31 个 hard label。 */
-const HARD_LABELS = [
-  'pm3.24', 'pm2.07', 'simp2', '3mix1', 'pm2.5', 'pm3.11', 'simprrr', 'simpr12',
-  'alex', 'ax-11', 'exancom', '19.31v', '3exdistr', '19.33b',
-  'equequ1', 'ax8', 'axc16', 'axc11r', 'equvel', '19.12vvv',
-  'vex', 'vneqv', 'fin41', 'en3lp', 'eqtr2', 'axprlem1', 'ax-pr', 'axunnd', 'oneltri',
-  'axrep1', 'axacnd'
-];
+/* 重放目标清单的唯一来源（章节/中文名/说明都在那里）。 */
+const { HARD_LABELS } = require('./mm-targets.js');
 
 const isSpace = (c) => c === ' ' || c === '\t' || c === '\n' || c === '\r';
 
@@ -253,6 +247,8 @@ function proofLabels(frame) {
 function main() {
   const args = process.argv.slice(2);
   const quiet = args.includes('--quiet');
+  const outIdx = args.indexOf('--out');
+  const OUT = outIdx >= 0 && args[outIdx + 1] ? path.resolve(args[outIdx + 1]) : OUT_DEFAULT;
   const t0 = Date.now();
   const src = fs.readFileSync(FILE, 'utf8');
   const { frames, hypFrames, varKinds } = parseMm(src);

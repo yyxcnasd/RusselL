@@ -20,10 +20,10 @@
 }
 .mm-panel [hidden]{display:none!important}
 
-/* 顶栏：label 芯片 | 目标公式 | 当前步骤 / 总步骤 */
+/* 顶栏：label 芯片 | 目标公式 | 当前步骤 / 总步骤 | 模式切换 */
 .mm-head{
-  display:grid;grid-template-columns:auto minmax(0,1fr) auto;
-  align-items:center;gap:12px;padding:0 2px;
+  display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;
+  align-items:center;gap:10px;padding:0 2px;
 }
 .mm-code{
   align-self:center;
@@ -214,11 +214,240 @@
 .mm-ctl-next:disabled{background:var(--soft);color:var(--muted);opacity:.34}
 
 /* =========================================================================
+ * 04b 模式切换（重放 ↔ 自推）
+ *
+ * 两个字、平涂胶囊；不抢主操作。少字原则：回放 / 自推。
+ * ========================================================================= */
+
+.mm-mode-toggle{
+  align-self:center;
+  padding:4px 11px;border-radius:var(--radius-pill);
+  background:var(--soft);color:var(--muted);
+  font-family:var(--font);font-size:12px;font-weight:600;
+  letter-spacing:.02em;white-space:nowrap;
+  transition:background .12s var(--ease),color .12s var(--ease),transform .12s var(--ease);
+}
+.mm-mode-toggle:hover{background:var(--soft-hover);color:var(--ink)}
+.mm-mode-toggle:active{transform:translateY(1px)}
+.mm-mode-toggle:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mm-mode-toggle[aria-pressed="true"]{background:var(--stamp-bg);color:var(--stamp-fg)}
+
+/* =========================================================================
+ * 04c 交互式自推：左 = 候选操作，右 = 状态（栈 / 提示 / 错误 / 控制）
+ * ========================================================================= */
+
+.mm-body-interactive{
+  grid-template-columns:minmax(0,1.2fr) minmax(300px,0.8fr);
+  grid-template-areas:"cands state";
+}
+
+/* 左列：可做（假设 + 断言） */
+.mm-cands{
+  grid-area:cands;
+  display:flex;flex-direction:column;gap:8px;min-width:0;min-height:0;
+}
+.mm-cands-head{
+  display:flex;align-items:baseline;justify-content:flex-start;gap:8px;
+  padding:0 2px;
+}
+.mm-cands-title{
+  font-family:var(--font);font-size:12px;font-weight:600;color:var(--ink);
+  letter-spacing:.02em;
+}
+.mm-count{
+  font-size:11px;font-weight:600;color:var(--muted);
+  font-variant-numeric:tabular-nums;
+}
+.mm-cands-scroll{
+  flex:1;min-height:0;
+  display:flex;flex-direction:column;gap:14px;
+  overflow:auto;padding:2px;
+  scrollbar-width:thin;overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+}
+.mm-cands-group{display:flex;flex-direction:column;gap:7px;min-width:0}
+.mm-cands-group-title{
+  margin:0;padding:0 2px;
+  font-family:var(--font);font-size:11px;font-weight:600;color:var(--muted);
+  letter-spacing:.04em;
+}
+.mm-chips{display:flex;flex-wrap:wrap;gap:6px;min-width:0}
+
+/* 候选 chip：平涂胶囊；可用 = 正文色，不可用 = 降透明 + 保持 title 说明原因 */
+.mm-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  max-width:100%;min-height:32px;padding:5px 10px;
+  border-radius:var(--radius-sm);
+  background:var(--soft);color:var(--ink);
+  font-family:var(--font);font-size:12px;font-weight:600;
+  transition:background .12s var(--ease),color .12s var(--ease),transform .12s var(--ease);
+}
+.mm-chip:hover{background:var(--soft-hover)}
+.mm-chip:active{transform:translateY(1px)}
+.mm-chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mm-chip-label{
+  min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.mm-chip-arity{
+  flex:none;
+  font-size:11px;font-weight:600;color:var(--muted);
+  font-variant-numeric:tabular-nums;
+}
+.mm-chip-formula{
+  min-width:0;max-width:190px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-size:13px;font-weight:400;color:var(--muted);
+}
+.mm-chip-hyp{background:var(--soft)}
+/* 不可用：仍然看得清（方便预判“再走一步就能用什么”），但降透明且点不动 */
+.mm-chip.is-unready,
+.mm-chip:disabled{
+  opacity:.5;cursor:not-allowed;background:var(--soft);color:var(--muted);
+  transform:none;
+}
+/* 提示指向的那一条：accent 注意力环，不改变颜色语义 */
+.mm-chip.is-hint{
+  background:var(--accent-soft);color:var(--ink);
+  outline:2px solid var(--accent);outline-offset:1px;
+}
+
+/* 右列：状态 */
+.mm-state{
+  grid-area:state;
+  align-self:stretch;
+  display:flex;flex-direction:column;gap:10px;
+  min-width:0;min-height:0;
+  padding:14px;
+  border-radius:var(--radius);
+  background:var(--soft);
+  overflow:hidden;
+}
+.mm-state-head{
+  display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+  flex:none;
+}
+.mm-stat{display:inline-flex;align-items:baseline;gap:6px}
+.mm-stat-label{font-size:11px;font-weight:600;color:var(--muted)}
+.mm-stat-value{
+  font-size:14px;font-weight:600;color:var(--ink);
+  font-variant-numeric:tabular-nums;
+}
+.mm-state-body{
+  flex:1;min-height:0;
+  display:flex;flex-direction:column;gap:8px;
+  overflow:auto;padding:2px;
+  scrollbar-width:thin;overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+}
+.mm-stack{display:flex;flex-direction:column;gap:5px;min-height:0}
+.mm-stack-row{
+  display:grid;grid-template-columns:auto auto minmax(0,auto) minmax(0,1fr);
+  align-items:baseline;gap:8px;
+  padding:6px 9px;border-radius:var(--radius-sm);
+  background:var(--card);color:var(--ink);
+  min-width:0;
+}
+.mm-stack-no{
+  font-size:11px;font-weight:600;color:var(--muted);
+  font-variant-numeric:tabular-nums;
+}
+.mm-stack-row .mm-kind{
+  padding:1px 7px;font-size:10px;
+}
+.mm-stack-label{
+  min-width:0;max-width:46%;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-size:12px;font-weight:600;color:var(--muted);
+}
+.mm-stack-form{
+  min-width:0;overflow-wrap:anywhere;
+  font-size:13px;line-height:1.4;color:var(--ink);
+}
+.mm-stack-row.is-top{
+  background:var(--card);
+  outline:1.5px solid var(--accent);outline-offset:-1.5px;
+}
+.mm-top-tag{
+  grid-column:1 / -1;
+  justify-self:start;
+  font-size:10px;font-weight:600;color:var(--accent);
+  letter-spacing:.04em;
+}
+.mm-empty-state{
+  margin:0;padding:10px 2px;
+  font-size:12px;line-height:1.5;color:var(--muted);
+}
+
+/* 提示 / 错误 / 通关 */
+.mm-hint-text{
+  margin:0;padding:7px 10px;border-radius:var(--radius-sm);
+  background:var(--accent-soft);color:var(--ink);
+  font-family:var(--font);font-size:12px;font-weight:600;line-height:1.4;
+}
+.mm-error{
+  margin:0;
+  font-family:var(--font);font-size:12px;line-height:1.45;
+  color:var(--red);
+}
+/* 偏离参考不是引擎错误：用辅助色，别和真正的错误抢红色 */
+.mm-error.is-warn{color:var(--muted)}
+.mm-solved-slot:empty{display:none}
+.mm-solved{
+  flex:none;
+  display:flex;align-items:center;gap:8px;
+  padding:8px 11px;border-radius:var(--radius-sm);
+  background:var(--accent-soft);color:var(--ink);
+}
+.mm-solved-mark{
+  display:grid;place-items:center;
+  width:20px;height:20px;border-radius:var(--radius-pill);
+  background:var(--green);color:var(--card);
+  font-size:12px;font-weight:700;line-height:1;
+}
+.mm-solved-text{font-family:var(--font);font-size:13px;font-weight:600}
+
+/* 控制条：撤销 / 重来 / 提示（平涂行，钉在状态卡底部） */
+.mm-state-controls{
+  flex:none;display:flex;align-items:center;gap:6px;
+  margin-top:auto;padding-top:8px;
+}
+.mm-btn{
+  min-height:34px;padding:6px 12px;
+  border-radius:var(--radius-sm);
+  background:var(--soft-hover);color:var(--ink);
+  font-family:var(--font);font-size:12px;font-weight:600;
+  transition:background .12s var(--ease),color .12s var(--ease),transform .12s var(--ease);
+}
+.mm-btn:hover{background:var(--hover)}
+.mm-btn:active{transform:translateY(1px)}
+.mm-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mm-btn:disabled{
+  opacity:.34;cursor:not-allowed;transform:none;
+  background:var(--soft);color:var(--muted);
+}
+.mm-btn-hint{margin-left:auto;background:var(--stamp-bg);color:var(--stamp-fg)}
+.mm-btn-hint:hover{background:var(--stamp-bg);color:var(--stamp-fg)}
+.mm-btn-hint:disabled{background:var(--soft);color:var(--muted);opacity:.34}
+
+/* =========================================================================
  * 05 关卡目录行（由 screens.js 输出，面板只提供样式）
  *
  * 选关面板里的 MM 重放关：平涂行、无描边、soft 底，高 ≥44px；
  * 只有「当前」用反相印章，「已通关」用 accent-soft（与 240 关的关卡格同一语义）。
+ * 重放段是章内的第三段（基础 → 重放 → 挑战），用 band 头部 + 这个网格。
  * ========================================================================= */
+
+/* 重放关在章内按统一难度交错：横跨 5 格的宽行，和 48px 编号格同高。
+   网格仍是 9 列，所以一行可能同时出现编号格与一张重放卡片。 */
+.levels .mm-level.is-inline{
+  grid-column:span 4;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  height:48px;padding:0 12px;gap:8px;
+}
+.levels .mm-level.is-inline .mm-level-code{display:none}
+.levels .mm-level.is-inline .mm-level-no{width:auto;font-size:11px}
+.levels .mm-level.is-inline .mm-level-title{font-size:12px}
+.levels .mm-level.is-inline .mm-level-steps{font-size:11px;text-align:right}
 
 .mm-levels{
   display:grid;
@@ -278,12 +507,13 @@
 @media (max-width:700px){
   .mm-panel{gap:10px}
   .mm-head{
-    grid-template-columns:auto minmax(0,1fr);
-    grid-template-areas:"code progress" "target target";
+    grid-template-columns:auto minmax(0,1fr) auto;
+    grid-template-areas:"code progress toggle" "target target target";
     row-gap:6px;column-gap:10px;
   }
   .mm-code{grid-area:code;justify-self:start}
   .mm-progress{grid-area:progress;justify-self:end}
+  .mm-mode-toggle{grid-area:toggle;justify-self:end}
   .mm-target{grid-area:target;font-size:17px}
   .mm-body{
     grid-template-columns:minmax(0,1fr);
@@ -291,6 +521,16 @@
     gap:12px;
   }
   .mm-panel.is-empty .mm-body{grid-template-areas:"detail"}
+  /* 自推：候选在上、状态在下（§8 交付要求）；候选按内容收高，状态吃掉剩余高度 */
+  .mm-body-interactive{
+    grid-template-columns:minmax(0,1fr);
+    grid-template-areas:"cands" "state";
+    grid-template-rows:auto minmax(0,1fr);
+  }
+  .mm-cands{min-height:0}
+  .mm-cands-scroll{max-height:44vh}
+  .mm-state{max-height:52vh;padding:12px}
+  .mm-chip{min-height:36px}
   .mm-detail{padding:14px}
   .mm-list{max-height:40vh}
   .mm-step{min-height:44px}
@@ -301,9 +541,12 @@
   .mm-target{font-size:15px}
   .mm-step-out{font-size:12px}
   .mm-controls{gap:4px}
+  .mm-chip{font-size:11px;padding:5px 8px}
+  .mm-chip-formula{max-width:120px}
+  .mm-btn{padding:6px 9px;font-size:11px}
 }
 
 @media (prefers-reduced-motion:reduce){
-  .mm-step,.mm-seg,.mm-ctl{transition:none}
-  .mm-step:active,.mm-seg:active,.mm-ctl:active{transform:none}
+  .mm-step,.mm-seg,.mm-ctl,.mm-chip,.mm-btn,.mm-mode-toggle{transition:none}
+  .mm-step:active,.mm-seg:active,.mm-ctl:active,.mm-chip:active,.mm-btn:active,.mm-mode-toggle:active{transform:none}
 }
