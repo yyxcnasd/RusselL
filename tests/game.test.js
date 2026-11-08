@@ -36,7 +36,7 @@ test('模块注册表：6 构造 + 1 公理 + 基本推理 + 定理，没有旧�
     assert.ok(!kinds.includes(k), '不应再有旧模块 ' + k);
   });
   ['exists', 'mem', 'and', 'or', 'iff', 'exists-intro', 'exists-elim',
-    'and-intro', 'and-elim', 'or-intro', 'or-elim', 'iff-intro', 'iff-elim',
+    'and-intro-ax', 'and-elim-ax', 'or-intro-ax', 'or-elim-ax', 'iff-intro-ax', 'iff-elim-ax',
     'set-ext', 'set-empty', 'set-pair', 'set-union'].forEach((k) => {
     assert.ok(kinds.includes(k), '缺少新模块 ' + k);
   });
