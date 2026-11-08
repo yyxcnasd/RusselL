@@ -25,6 +25,7 @@ module.exports = {
   iffIntroAx: (a, b) => ({ op: 'iffIntroAx', a, b }),
   iffElimAx: (a, b, dir) => ({ op: 'iffElimAx', a, b, dir }),
   allInst: (formula, v, t) => ({ op: 'allInst', formula, v, t }),
+  shiftAx: (a, b, v) => ({ op: 'shiftAx', a, b, v }),
   existsGen: (formula, v, t) => ({ op: 'existsGen', formula, v, t }),
   existsE: (ex, imp) => ({ op: 'existsE', ex, imp }),
   andI: (a, b) => ({ op: 'andI', a, b }),

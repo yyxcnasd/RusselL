@@ -212,6 +212,12 @@ function compileProof(proof, builder, ctx) {
         builder.connect(resolve(pt.of), 'out', id, 'assertion');
         break;
       }
+      case 'shiftAx': {
+        id = builder.addNode('shift-ax', { v: pt.v });
+        builder.connect(builder.formula(pt.a), 'out', id, 'a');
+        builder.connect(builder.formula(pt.b), 'out', id, 'b');
+        break;
+      }
       case 'allInst': {
         id = builder.addNode('all-inst', { v: pt.v });
         builder.connect(builder.formula(pt.formula), 'out', id, 'formula');

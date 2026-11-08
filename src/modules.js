@@ -358,6 +358,22 @@
         return { tokens: assertionOf(['('].concat(body, ['->', 'A.', v], body, [')'])), note: '∀I* · ' + v };
       }
     },
+    'shift-ax': {
+      label: '全称辖域公理', kindLabel: '∀→*', group: 'rule', symbol: '∀→*', construct: false,
+      ports: { inputs: [{ id: 'a', label: '公式 A', type: FORMULA }, { id: 'b', label: '公式 B', type: FORMULA }], outputs: [{ id: 'out', label: '∀x(A→B) → (A→∀xB)', type: ASSERTION }] },
+      config: { v: 'x' },
+      help: '若 x 不在 A 中自由出现，则 ∀x(A→B) → (A→∀xB)。',
+      apply: function (inputs, cfg) {
+        var a = asBody(need(inputs, 'a', '公式 A')), b = asBody(need(inputs, 'b', '公式 B'));
+        var v = (cfg.v || 'x').toLowerCase().slice(0, 1);
+        if (!/^[xyzuvw]$/.test(v)) v = 'x';
+        if (T.freeVars(wffOf(a)).indexOf(v) >= 0) fail('变元 ' + v + ' 在 A 中自由出现');
+        return {
+          tokens: assertionOf(['('].concat(['A.', v], ['('].concat(a, ['->'], b, [')']), ['->'], ['('].concat(a, ['->'], ['A.', v], b, [')']), [')'])),
+          note: '∀→* · ' + v
+        };
+      }
+    },
     'all-inst': {
       label: '全称例化公理', kindLabel: '∀E*', group: 'rule', symbol: '∀E*', construct: false,
       ports: {
