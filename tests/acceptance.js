@@ -450,6 +450,25 @@ runTest('acceptance', async ({ openPage }) => {
   equal(await page.js('window.RSL.APP.state.board.edges.length'), 0, '拆线后电路不再保留该连接');
   ok(await page.js('document.querySelector(".node.is-target").dataset.state !== "complete"'), '拆线后目标回到未完成状态');
 
+  /* 自动放置：高 S 元件不能互相压住；加组变高后也不重叠 */
+  const placement = await page.js(`(function(){
+    var b=window.RSL.APP.state.board;
+    var ids=[];
+    for(var i=0;i<5;i++) ids.push(b.addNode('subst',{}, {x:320,y:120}).id);
+    function overlaps(){
+      var n=0;
+      var rs=b.items.map(function(x){var el=b.nodes.querySelector('[data-id="'+x.id+'"]');return {x:x.x,y:x.y,w:x.kind==='target'?160:232,h:el?el.offsetHeight:96};});
+      for(var i=0;i<rs.length;i++)for(var j=i+1;j<rs.length;j++){var A=rs[i],B=rs[j];if(A.x<B.x+B.w&&A.x+A.w>B.x&&A.y<B.y+B.h&&A.y+A.h>B.y)n++;}
+      return n;
+    }
+    var before=overlaps();
+    b.updateConfig(ids[0],{groups:4});
+    return {before:before, after:overlaps(), tall:b.nodes.querySelector('[data-id="'+ids[0]+'"]').offsetHeight};
+  })()`);
+  equal(placement.before, 0, '连续添加 5 个 S 元件时自动避让，无节点重叠');
+  equal(placement.after, 0, 'S 元件加满 4 组变高后自动让位，不压住邻居');
+  ok(placement.tall > 300, 'S 元件 5 组时高度按端口数增长（' + placement.tall + 'px）');
+
   /* ------------------------------------------------------------------
    * F2. S 元件：最多 4 组额外代换（共 5 组），每组橙原子 + 蓝公式
    * ------------------------------------------------------------------ */
@@ -490,7 +509,50 @@ runTest('acceptance', async ({ openPage }) => {
   equal(substGroups.formulas, 5, '5 组公式端口都是蓝色角色');
   equal(substGroups.assertion, 1, '断言端口仍为墨色角色');
   equal(substGroups.last, ['atom5', 'formula5'], '第 5 组端口是 atom5/formula5');
-  equal(substGroups.hidden, true, '加满 4 组后加号浮条自动收起');
+  equal(substGroups.hidden, false, '加满 4 组后浮条保留并显示减号');
+
+  /* 减号：有 2 组以上时才出现；减少一组会一并移除接在该组端口上的导线 */
+  const minusUI = await page.js(`(function(){
+    return {minus:!!document.querySelector('.opt[data-config="removeGroup"]'), plus:!!document.querySelector('.opt[data-config="dual"]')};
+  })()`);
+  equal(minusUI.minus, true, '有 2 组以上代换时出现减号');
+  equal(minusUI.plus, false, '加满 4 组后加号隐藏');
+  await page.js('document.querySelector(".tile[data-key=\\"atom\\"]").click()');
+  await page.waitFor('!!document.querySelector(".node[data-kind=\\"atom\\"]")');
+  const pruneBefore = await page.js(`(function(){
+    var b=window.RSL.APP.state.board;
+    var s=b.items.find(function(x){return x.kind==='subst'});
+    var a=b.items.find(function(x){return x.kind==='atom'});
+    b.connect(a.id,'out',s.id,'atom5');
+    b.select(s.id);
+    return {edges:b.edges.length, ports:document.querySelectorAll('.node[data-kind="subst"] .port-in').length};
+  })()`);
+  equal(pruneBefore.edges, 1, '先把一条线接到第 5 组端口');
+  await page.js('document.querySelector(".opt[data-config=\\"removeGroup\\"]").click()');
+  await page.sleep(300);
+  const pruneAfter = await page.js(`(function(){
+    var b=window.RSL.APP.state.board;
+    return {edges:b.edges.length, ports:document.querySelectorAll('.node[data-kind="subst"] .port-in').length,
+            minus:!!document.querySelector('.opt[data-config="removeGroup"]'),
+            plus:!!document.querySelector('.opt[data-config="dual"]')};
+  })()`);
+  equal(pruneAfter.ports, 9, '减一组后剩 9 个输入端口（1 断言 + 4 组）');
+  equal(pruneAfter.edges, 0, '被移除组的连线一并删除');
+  equal(pruneAfter.minus, true, '还剩 2 组以上时减号保留');
+  equal(pruneAfter.plus, true, '少于 4 组时加号重新出现');
+  for (let i = 0; i < 3; i += 1) {
+    const has = await page.js('!!document.querySelector(".opt[data-config=\\"removeGroup\\"]")');
+    if (has) await page.js('document.querySelector(".opt[data-config=\\"removeGroup\\"]").click()');
+    await page.sleep(150);
+  }
+  const zeroGroups = await page.js(`({
+    ports:document.querySelectorAll('.node[data-kind="subst"] .port-in').length,
+    minus:!!document.querySelector('.opt[data-config="removeGroup"]'),
+    plus:!!document.querySelector('.opt[data-config="dual"]')
+  })`);
+  equal(zeroGroups.ports, 3, '减到只剩基础 1 组时是 3 个输入端口');
+  equal(zeroGroups.minus, false, '只剩 1 组时代换减号隐藏');
+  equal(zeroGroups.plus, true, '只剩 1 组时加号仍可继续加组');
 
   const multiSubst = await page.js(`(function(){
     var Engine=window.RSL.Engine, L=window.RSL.Logic;

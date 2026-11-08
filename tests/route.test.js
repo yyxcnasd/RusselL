@@ -1,4 +1,4 @@
-﻿/* Node vm tests for the pure routing module (src/route.js). */
+/* Node vm tests for the pure routing module (src/route.js). */
 'use strict';
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
@@ -197,6 +197,23 @@ test('route prefers its own network and avoids other groups\' used segments', ()
     orthogonal(pts, 'reuse route');
     assert.equal(polylineCrossesRect(pts, wall), false);
   }
+});
+
+test('final path occupancy keeps different networks off the same collinear run', () => {
+  /* 预置一条别的网络占用的横向走廊：y=0, x=96..204（网格 12px => 8..17）。 */
+  const used = {};
+  for (let gx = 8; gx < 17; gx += 1) used[gx + ',0|' + (gx + 1) + ',0'] = { other: true };
+  const pts = Route.route({ x: 0, y: 0 }, { x: 300, y: 0 }, [], used, 'mine');
+  orthogonal(pts, 'occupancy route');
+  for (let i = 1; i < pts.length; i += 1) {
+    const p = pts[i - 1], q = pts[i];
+    if (Math.abs(p.y) < 0.6 && Math.abs(q.y) < 0.6) {
+      const overlap = Math.max(0, Math.min(Math.max(p.x, q.x), 204) - Math.max(Math.min(p.x, q.x), 96));
+      assert.equal(overlap, 0, 'my net must not be straightened onto another net\'s line');
+    }
+  }
+  const recorded = Object.keys(used).some((key) => used[key] && used[key].mine);
+  assert.equal(recorded, true, 'final path segments are registered for later nets');
 });
 
 test('fallbackRoute returns a clear deterministic detour when A* cannot reach', () => {

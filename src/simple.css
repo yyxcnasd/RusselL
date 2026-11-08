@@ -606,7 +606,7 @@ body.is-holding *{cursor:grabbing!important}
 .opt-sym{font-family:var(--math);font-size:19px}
 .opt-code{font-family:var(--font);font-size:15px;font-weight:600}
 .formula-opt{font-family:var(--math);font-size:19px;font-weight:400;white-space:nowrap;padding:0 14px}
-.opt-plus{font-family:var(--font);font-size:24px;line-height:1;font-weight:400;padding:0}
+.opt-plus,.opt-minus{font-family:var(--font);font-size:24px;line-height:1;font-weight:400;padding:0}
 .opt-gap{flex:none;width:1px;height:30px;background:var(--line);margin:0 3px}
 
 /* =========================================================================

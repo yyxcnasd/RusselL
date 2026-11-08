@@ -111,10 +111,14 @@
     return true;
   }
 
-  /* Replace the A* staircase with clean straight / two-segment runs. */
-  function shortcut(pts, rects) {
+  /* Replace the A* staircase with clean straight / two-segment runs.
+   * extraFree（可选）用来排除已被其它网络占用的线段，避免 shortcut 把
+   * 不同网络的走线压到同一条线上。 */
+  function shortcut(pts, rects, extraFree) {
     if (!pts || pts.length < 3) return pts;
-    function clear(p, q) { return segmentClear(p, q, rects); }
+    function clear(p, q) {
+      return segmentClear(p, q, rects) && (!extraFree || extraFree(p, q));
+    }
     function lpath(p, q) {
       if (p.x === q.x || p.y === q.y) return clear(p, q) ? [p, q] : null;
       var c1 = { x: q.x, y: p.y };
@@ -157,6 +161,100 @@
       if (pathClear(candidates[i], obstacles)) return simplify(candidates[i]);
     }
     return simplePoints(a.x, a.y, b.x, b.y);
+  }
+
+  /* =========================================================================
+   * 占用表（negotiated congestion / rip-up 风格的基础）
+   *
+   * used 的 key 使用**全局**网格坐标（而不是每条走线自己的局部 origin），
+   * 这样不同走线之间才能比较“谁占了哪段”。
+   *   横向线段：y0 === y1，x 取区间；纵向线段：x0 === x1，y 取区间。
+   * shortcut 之前先查占用，避免把两条不同网络的走线折叠到同一条线。
+   * ========================================================================= */
+
+  function segmentKey(x0, y0, x1, y1) {
+    if (x0 < x1 || (x0 === x1 && y0 < y1)) return x0 + ',' + y0 + '|' + x1 + ',' + y1;
+    return x1 + ',' + y1 + '|' + x0 + ',' + y0;
+  }
+
+  function addOccupancy(used, group, x0, y0, x1, y1) {
+    var key = segmentKey(x0, y0, x1, y1);
+    if (!used[key]) used[key] = {};
+    used[key][String(group || '')] = true;
+  }
+
+  function groupConflict(groups, group) {
+    if (!groups) return false;
+    for (var gk in groups) {
+      if (Object.prototype.hasOwnProperty.call(groups, gk) && gk !== String(group || '')) return true;
+    }
+    return false;
+  }
+
+  function buildOccupancy(used, cell) {
+    var h = Object.create(null), v = Object.create(null);
+    Object.keys(used || {}).forEach(function (key) {
+      var m = /^(-?\d+),(-?\d+)\|(-?\d+),(-?\d+)$/.exec(key);
+      if (!m) return;
+      var x0 = +m[1], y0 = +m[2], x1 = +m[3], y1 = +m[4];
+      var groups = used[key];
+      if (y0 === y1) {
+        var line = y0;
+        (h[line] = h[line] || []).push({ a: Math.min(x0, x1), b: Math.max(x0, x1), groups: groups });
+      } else if (x0 === x1) {
+        var vline = x0;
+        (v[vline] = v[vline] || []).push({ a: Math.min(y0, y1), b: Math.max(y0, y1), groups: groups });
+      }
+    });
+    return { h: h, v: v, cell: cell };
+  }
+
+  /* 候选线段是否与其它网络的占用线段共线重叠（占用单位是网格）。 */
+  function segmentBlocked(p, q, group, occupancy) {
+    var cell = occupancy.cell;
+    if (Math.abs(p.y - q.y) < 0.6) {
+      var line = Math.round(p.y / cell);
+      var list = occupancy.h[line];
+      if (!list) return false;
+      var a = Math.min(p.x, q.x) / cell, b = Math.max(p.x, q.x) / cell;
+      for (var i = 0; i < list.length; i += 1) {
+        var e = list[i];
+        if (!groupConflict(e.groups, group)) continue;
+        if (Math.min(b, e.b) - Math.max(a, e.a) > 0.35) return true;
+      }
+      return false;
+    }
+    if (Math.abs(p.x - q.x) < 0.6) {
+      var vline = Math.round(p.x / cell);
+      var vlist = occupancy.v[vline];
+      if (!vlist) return false;
+      var c = Math.min(p.y, q.y) / cell, d = Math.max(p.y, q.y) / cell;
+      for (var j = 0; j < vlist.length; j += 1) {
+        var ve = vlist[j];
+        if (!groupConflict(ve.groups, group)) continue;
+        if (Math.min(d, ve.b) - Math.max(c, ve.a) > 0.35) return true;
+      }
+      return false;
+    }
+    return false;
+  }
+
+  /* 把最终路径（而不是 A* 的原始阶梯）登记进占用表。 */
+  function markPath(pts, used, group, cell) {
+    for (var i = 1; i < pts.length; i += 1) {
+      var p = pts[i - 1], q = pts[i];
+      if (Math.abs(p.y - q.y) < 0.6) {
+        var y = Math.round(p.y / cell);
+        var xa = Math.round(p.x / cell), xb = Math.round(q.x / cell);
+        var lo = Math.min(xa, xb), hi = Math.max(xa, xb);
+        for (var x = lo; x < hi; x += 1) addOccupancy(used, group, x, y, x + 1, y);
+      } else if (Math.abs(p.x - q.x) < 0.6) {
+        var xcol = Math.round(p.x / cell);
+        var ya = Math.round(p.y / cell), yb = Math.round(q.y / cell);
+        var ylo = Math.min(ya, yb), yhi = Math.max(ya, yb);
+        for (var yy = ylo; yy < yhi; yy += 1) addOccupancy(used, group, xcol, yy, xcol, yy + 1);
+      }
+    }
   }
 
   /* A* on a 12px grid: bend penalty + segment-reuse penalty. Reuse only costs
@@ -255,15 +353,13 @@
         if (blocked[ny * cols + nx]) continue;
         var ncell = ny * cols + nx;
         var nstate = ncell * 4 + nd;
-        var sk = (cx < nx || (cx === nx && cy < ny)) ? (cx + ',' + cy + '|' + nx + ',' + ny) : (nx + ',' + ny + '|' + cx + ',' + cy);
-        var reuse = 0;
-        var groups = used[sk];
-        if (groups) {
-          for (var gk in groups) {
-            if (groups.hasOwnProperty(gk) && gk !== String(group || '')) { reuse = 1; break; }
-          }
-        }
-        var cost = 1 + (nd === (dir + 2) % 4 ? ROUTE.reverse : (nd !== dir ? ROUTE.bend : 0)) + reuse * ROUTE.networkPenalty;
+        /* used 的 key 走全局网格坐标：minX/minY 已经是 CELL 的整数倍。 */
+        var baseGX = Math.round(minX / CELL), baseGY = Math.round(minY / CELL);
+        var sk = (cx < nx || (cx === nx && cy < ny))
+          ? ((baseGX + cx) + ',' + (baseGY + cy) + '|' + (baseGX + nx) + ',' + (baseGY + ny))
+          : ((baseGX + nx) + ',' + (baseGY + ny) + '|' + (baseGX + cx) + ',' + (baseGY + cy));
+        var reuse = groupConflict(used[sk], group);
+        var cost = 1 + (nd === (dir + 2) % 4 ? ROUTE.reverse : (nd !== dir ? ROUTE.bend : 0)) + (reuse ? ROUTE.networkPenalty : 0);
         var ndist = dist[state] + cost;
         if (ndist < dist[nstate]) {
           dist[nstate] = ndist;
@@ -272,7 +368,11 @@
         }
       }
     }
-    if (found < 0) return fallbackRoute(a, b, rects, opts.fromId, opts.toId);
+    if (found < 0) {
+      var fallback = fallbackRoute(a, b, rects, opts.fromId, opts.toId);
+      markPath(fallback, used, group, CELL);
+      return fallback;
+    }
     var cells = [];
     var cur = found;
     while (cur >= 0) {
@@ -281,19 +381,15 @@
       cur = prev[cur];
     }
     cells.reverse();
-    // mark used segments
-    for (var q = 1; q < cells.length; q++) {
-      var p0 = cells[q - 1], p1 = cells[q];
-      var gx0 = Math.round((p0.x - minX) / CELL), gy0 = Math.round((p0.y - minY) / CELL);
-      var gx1 = Math.round((p1.x - minX) / CELL), gy1 = Math.round((p1.y - minY) / CELL);
-      var key = (gx0 < gx1 || (gx0 === gx1 && gy0 < gy1)) ? (gx0 + ',' + gy0 + '|' + gx1 + ',' + gy1) : (gx1 + ',' + gy1 + '|' + gx0 + ',' + gy0);
-      if (!used[key]) used[key] = {};
-      used[key][String(group || '')] = true;
-    }
     var pts = [{ x: a.x, y: a.y }];
     cells.forEach(function (p) { if (p.x !== a.x || p.y !== a.y) pts.push(p); });
     pts.push({ x: b.x, y: b.y });
-    return shortcut(simplify(pts), rects);
+    var occupancy = buildOccupancy(used, CELL);
+    var finalPts = shortcut(simplify(pts), rects, function (p, q) {
+      return !segmentBlocked(p, q, group, occupancy);
+    });
+    markPath(finalPts, used, group, CELL);
+    return finalPts;
   }
 
   root.RSL.Route = {

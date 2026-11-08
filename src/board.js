@@ -45,6 +45,17 @@
     if (!m) return true;
     return Number(m[2]) <= 1 + extras;
   }
+  /* 没有 DOM 元素时也能估算节点高度：S 元件端口多，不能按 112px 敷衍。 */
+  function estimateNodeHeight(n) {
+    if (n.kind === 'target') return DEFAULT_TARGET_H;
+    var info = window.RSL.Engine.info(n.kind);
+    var count = (info.ports.inputs || []).length;
+    if (n.kind === 'subst') {
+      var extras = substExtras(n.config);
+      count = (info.ports.inputs || []).filter(function (p) { return substPortVisible(p.id, extras); }).length;
+    }
+    return Math.max(NODE_MIN_H, PORT_TOP + Math.max(0, count - 1) * PORT_STEP + PORT_TAIL);
+  }
   function portTop(n, i) { return (n.kind === 'target' ? TARGET_PORT_TOP : PORT_TOP) + i * PORT_STEP; }
 
   function Board(opts) {
@@ -183,7 +194,7 @@
       minX = Math.min(minX, n.x);
       minY = Math.min(minY, n.y);
       maxX = Math.max(maxX, n.x + nodeWidth(n));
-      maxY = Math.max(maxY, n.y + (el ? el.offsetHeight : DEFAULT_NODE_H));
+      maxY = Math.max(maxY, n.y + (el ? el.offsetHeight : estimateNodeHeight(n)));
     });
     if (!isFinite(minX)) { this.setView(30, 30, 0.9); return; }
     var scale = clamp(Math.min((r.width - 100) / (maxX - minX), (r.height - 100) / (maxY - minY)), minScale, 1.05);
@@ -405,7 +416,7 @@
         if (n.kind === 'target') return false;
         var el = self._elById[n.id];
         var w = nodeWidth(n);
-        var h = el ? el.offsetHeight : DEFAULT_NODE_H;
+        var h = el ? el.offsetHeight : estimateNodeHeight(n);
         var nx = r.left + self.view.x + n.x * self.view.scale;
         var ny = r.top + self.view.y + n.y * self.view.scale;
         var nw = w * self.view.scale, nh = h * self.view.scale;
@@ -718,7 +729,7 @@
   /* Node rects: width from the shared constants, height measured from the
    * rendered element (text can wrap differently per formula). */
   Board.prototype._nodeRect = function (n, el) {
-    var h = el ? el.offsetHeight : (n.kind === 'target' ? DEFAULT_TARGET_H : DEFAULT_NODE_H);
+    var h = el ? el.offsetHeight : estimateNodeHeight(n);
     return { x: n.x, y: n.y, w: nodeWidth(n), h: h, id: n.id };
   };
 
@@ -1070,6 +1081,11 @@
     this._resolvePosition(n);
     setTimeout(function () { delete n._new; }, 320);
     this.select(n.id);
+    /* 渲染后拿到真实高度，再确认一次不压到邻居（高 S 元件尤其重要）。 */
+    if (this._overlaps(n, n.x, n.y)) {
+      this._resolvePosition(n);
+      this.render();
+    }
     this.onChange();
     return n;
   };
@@ -1108,11 +1124,26 @@
     }
   };
 
+  /* 减少 S 元件的代入组：把已连接到被隐藏组端口的导线一并移除。 */
+  Board.prototype.pruneSubstPorts = function (id, groups) {
+    var keep = 1 + Math.max(0, Math.min(4, groups));
+    this.edges = this.edges.filter(function (e) {
+      if (!e.to || e.to.node !== id) return true;
+      var m = /^(atom|formula)(\d+)$/.exec(e.to.port);
+      if (!m) return true;
+      return Number(m[2]) <= keep;
+    });
+  };
+
   Board.prototype.updateConfig = function (id, patch) {
     var n = this.node(id);
     if (!n) return;
     n.config = Object.assign({}, n.config, patch);
     this.render();
+    if (this._overlaps(n, n.x, n.y)) {
+      this._resolvePosition(n);
+      this.render();
+    }
     this.onChange();
   };
 

@@ -504,8 +504,14 @@
       }).join('') + '<span class="opt-gap"></span>' + ['x', 'y', 'z'].map(function (v) {
         return '<button class="opt opt-var' + (config.arg === v ? ' is-on' : '') + '" data-config="arg" data-value="' + v + '">' + v + '</button>';
       }).join('');
-    } else if (node.kind === 'subst' && substExtras(config) < 4) {
-      html = '<button class="opt opt-plus" data-config="dual" data-value="1" aria-label="加一组代入" title="加一组代入">＋</button>';
+    } else if (node.kind === 'subst') {
+      var extras = substExtras(config);
+      html = (extras >= 1
+        ? '<button class="opt opt-minus" data-config="removeGroup" data-value="1" aria-label="减少一组代入" title="减少一组代入">−</button>'
+        : '') +
+        (extras < 4
+          ? '<button class="opt opt-plus" data-config="dual" data-value="1" aria-label="加一组代入" title="加一组代入">＋</button>'
+          : '');
     } else if (node.kind === 'all-elim') {
       html = ['a', 'b', 'c', 'x', 'y', 'z'].map(function (v) {
         return '<button class="opt opt-var' + (config.term === v ? ' is-on' : '') + '" data-config="term" data-value="' + v + '">' + v + '</button>';
@@ -671,6 +677,19 @@
           if (current && current.kind === 'subst') {
             var extras = substExtras(current.config || {});
             if (extras < 4) state.board.updateConfig(state.selectedNode, { groups: extras + 1 });
+          }
+          state.selectedNode = state.board.selectedNode;
+          refresh();
+          return;
+        }
+        if (opt.dataset.config === 'removeGroup') {
+          var targetNode = state.board.node(state.selectedNode);
+          if (targetNode && targetNode.kind === 'subst') {
+            var extraGroups = substExtras(targetNode.config || {});
+            if (extraGroups > 0) {
+              state.board.pruneSubstPorts(targetNode.id, extraGroups - 1);
+              state.board.updateConfig(targetNode.id, { groups: extraGroups - 1 });
+            }
           }
           state.selectedNode = state.board.selectedNode;
           refresh();
