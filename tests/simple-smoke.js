@@ -220,7 +220,7 @@ runTest('simple-smoke', async ({ openPage }) => {
     var app=window.RSL.APP, L=app.state.levels;
     var idx=function(id){return L.findIndex(function(l){return l.id===id});};
     var base=L.filter(function(l){return l.chapterGroup==='Ⅰ'&&l.band==='base'});
-    var replay=L.filter(function(l){return l.chapterGroup==='Ⅰ'&&l.mode==='mm-proof'});
+    var replay=L.filter(function(l){return l.chapterGroup==='Ⅰ'&&l.track==='replay'});
     var chal=L.filter(function(l){return l.chapterGroup==='Ⅰ'&&l.band==='challenge'});
     base.forEach(function(l){app.state.solved[l.id]=true;});
     return {base:base.length, replay:replay.length, chal:chal.length,

@@ -162,49 +162,31 @@ function loadGoldenRuntime() {
 
 /* ---------- 采集 ---------- */
 
+function stepArity(level, label) {
+  const spec = (level.palette || []).filter((p) => p.kind === 'mmstep' && p.config && p.config.label === label)[0];
+  return spec && spec.config && typeof spec.config.arity === 'number' ? spec.config.arity : 0;
+}
+
 function buildGolden() {
   const RSL = loadGoldenRuntime();
-  const Logic = RSL.Logic || null;
-  const Term = RSL.Term || null;
+  const Term = RSL.Term;
   const Engine = RSL.Engine;
-  const Expr = RSL.MM.Expr;
-  const Graph = RSL.MM.Graph;
 
-  /*
-   * 公式归一化：旧 Engine 结果是 Logic AST（res.ast），新 Engine 结果是 token
-   * （res.tokens，RSL.Term）。Logic.key(expand(ast)) 与 Term.key(tokens) 是同一
-   * 「定义展开 + α 规范化」键格式，所以 golden 可以在两种表示之间对拍。
-   */
+  /* 公式统一是 token（RSL.Term）；golden 的 key/fmt 是 P0 用 Logic 采集的，
+     P1 已逐条对拍两者 0 差异，所以 expected 仍然有效。 */
   function formulaOfResult(res) {
     if (!res) return { key: null, fmt: null };
-    if (res.ast) return { key: Logic.key(Logic.expand(res.ast)), fmt: Logic.fmt(res.ast) };
     if (Array.isArray(res.tokens) && res.tokens.length) {
-      if (!Term) throw new Error('运行时结果只有 token，但没有加载 RSL.Term');
       return { key: Term.key(res.tokens), fmt: Term.fmt(res.tokens) };
     }
     return { key: null, fmt: null };
   }
 
-  /* 公式语料：优先用 Logic（P0 基线语义），P5 删除 Logic 后回退到 Term。 */
-  function formulaTools() {
-    if (Logic) {
-      return {
-        parse: (text) => Logic.parse(text),
-        fmt: (ast) => Logic.fmt(ast),
-        key: (ast) => Logic.key(Logic.expand(ast))
-      };
-    }
-    if (Term) {
-      return {
-        parse: (text) => Term.parse(text),
-        fmt: (tokens) => Term.fmt(tokens),
-        key: (tokens) => Term.key(tokens)
-      };
-    }
-    throw new Error('运行时既没有 RSL.Logic 也没有 RSL.Term，无法归一化公式');
-  }
-
-  const FT = formulaTools();
+  const FT = {
+    parse: (text) => Term.parse(text),
+    fmt: (tokens) => Term.fmt(tokens),
+    key: (tokens) => Term.key(tokens)
+  };
   const formulas = [];
 
   function pushFormulaText(src, text) {
@@ -228,7 +210,7 @@ function buildGolden() {
   const wiring = {};
   const wiringAnomalies = [];
   const levels = RSL.LEVELS
-    .filter((lv) => lv.mode !== 'mm-proof')
+    .filter((lv) => lv.track !== 'replay')
     .slice()
     .sort((a, b) => byKey(a.id, b.id));
   let wiringNodes = 0;
@@ -342,24 +324,23 @@ function buildGolden() {
       continue;
     }
 
-    /* 与参考提示一致：initial 给出目标 + 前提节点，plan 摆步骤节点并按 inputs 接线。 */
-    const init = Graph.initial(lv, proof);
-    const nodes = init.nodes.slice();
+    /* 与运行时同一份数据：initialNodes 提供目标 + 前提，reference 提供参考动作与坐标。
+       节点 id 沿用旧 Graph 的命名（h_<label> / s_<stepId>），golden 可以继续逐节点比对。 */
+    const nodes = lv.initialNodes.map((node) => JSON.parse(JSON.stringify(node)));
     const edges = [];
     const byStep = {};
-    const plan = Graph.plan(proof);
-    for (const action of plan) {
+    for (const action of lv.reference) {
       if (action.kind === 'hyp') {
-        byStep[action.stepId] = Graph.hypNodeId(action.label);
+        byStep[action.stepId] = 'h_' + action.label;
         continue;
       }
-      const nodeId = Graph.stepNodeId(action.stepId);
+      const nodeId = 'n_' + action.stepId;
       nodes.push({
         id: nodeId,
         kind: 'mmstep',
-        x: 0,
-        y: 0,
-        config: { label: action.label, arity: Graph.arityOf(proof, action.label) }
+        x: typeof action.x === 'number' ? action.x : 0,
+        y: typeof action.y === 'number' ? action.y : 0,
+        config: { label: action.label, arity: stepArity(lv, action.label) }
       });
       byStep[action.stepId] = nodeId;
       action.inputs.forEach((input, i) => {
@@ -370,36 +351,22 @@ function buildGolden() {
         });
       });
     }
-    const finalAction = plan.filter((action) => action.kind === 'assert').pop();
+    const finalAction = lv.reference.filter((action) => action.kind === 'assert').pop();
     if (!finalAction) {
-      replayAnomalies.push({ level: lv.id, error: 'plan has no assert step' });
-      replay[lv.id] = {
-        complete: false,
-        targetState: null,
-        errors: [{ nodeId: 'plan', message: 'plan has no assert step' }],
-        nodes: []
-      };
+      replayAnomalies.push({ level: lv.id, error: 'reference has no assert step' });
+      replay[lv.id] = { complete: false, targetState: null, errors: [{ nodeId: 'plan', message: 'reference has no assert step' }], nodes: [] };
       continue;
     }
-    edges.push({
-      id: 'e_final',
-      from: { node: byStep[finalAction.stepId], port: 'out' },
-      to: { node: 'target', port: 'proof' }
-    });
+    edges.push({ id: 'e_final', from: { node: byStep[finalAction.stepId], port: 'out' }, to: { node: 'target', port: 'proof' } });
     replayNodes += nodes.length;
     replayEdges += edges.length;
 
     let result;
     try {
-      result = Graph.evaluate(lv, proof, nodes, edges);
+      result = Engine.evaluate(lv, nodes, edges, { proof });
     } catch (err) {
       replayAnomalies.push({ level: lv.id, error: 'evaluate threw: ' + err.message });
-      replay[lv.id] = {
-        complete: false,
-        targetState: null,
-        errors: [{ nodeId: 'level', message: 'evaluate threw: ' + err.message }],
-        nodes: []
-      };
+      replay[lv.id] = { complete: false, targetState: null, errors: [{ nodeId: 'level', message: 'evaluate threw: ' + err.message }], nodes: [] };
       continue;
     }
 
@@ -416,7 +383,7 @@ function buildGolden() {
         kind: node.kind,
         label: cfg.label || '',
         state: res ? res.state : null,
-        formula: tokens ? Expr.toASCII(tokens) : null,
+        formula: tokens ? tokens.join(' ') : null,
         error: res && res.error ? res.error : null
       };
     });

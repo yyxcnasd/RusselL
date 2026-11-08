@@ -22,13 +22,14 @@ const OUT_LEVELS = path.join(root, 'src', 'levels-generated.js');
 
 /* ---------- 装载逻辑/现有工程 ---------- */
 function load() {
+  /* 加载顺序与 index.html 一致：term/modules 必须先于 engine（P1/P2 后 engine 只依赖它们）。 */
   return loadRuntime({
-    files: ['src/logic.js', 'src/library.js', 'src/levels.js'],
-    withEngine: true
+    files: ['src/logic.js', 'src/term.js', 'src/library.js', 'src/levels.js', 'src/modules.js', 'src/engine.js']
   });
 }
 const RSL = load();
 const L = RSL.Logic;
+const Term = RSL.Term;
 const Engine = RSL.Engine;
 
 /* ---------- set.mm 数据规范化 ---------- */
@@ -734,6 +735,32 @@ function curateAllowed(spec) {
   return spec;
 }
 
+/* ---------- 统一关卡 schema（P3） ----------
+ * allowed key → palette 条目；target 是目标焊盘，不进调色板。
+ * 旧字段 allowed/target 保留到 P5 删除，P3 只保证新旧字段同时存在且一致。
+ */
+function paletteFromAllowed(allowed) {
+  const out = [];
+  (allowed || []).forEach((key) => {
+    if (!key || key === 'target') return;
+    if (key.indexOf('axiom:') === 0) out.push({ kind: 'axiom', config: { axiomId: key.slice(6) } });
+    else if (key.indexOf('theorem:') === 0) out.push({ kind: 'theorem', config: { theoremCode: key.slice(8) } });
+    else if (key.indexOf('archive:') === 0) out.push({ kind: 'archive', config: { label: key.slice(8) } });
+    else out.push({ kind: key, config: {} });
+  });
+  return out;
+}
+
+/* 统一 schema（P3）：给接线关追加 targetTokens / palette / track。
+ * targetTokens 由唯一 token 核心（RSL.Term）在生成阶段编译，运行时不再需要 Logic.parse。
+ */
+function unifySpec(spec) {
+  spec.targetTokens = Term.parseAssertion(String(spec.target).trim());
+  spec.palette = paletteFromAllowed(spec.allowed);
+  spec.track = 'wiring';
+  return spec;
+}
+
 function decorateReasoning(spec, source, kindName) {
   if (!spec) return null;
   spec.allowed = allowedFromCircuit(spec.solution.nodes);
@@ -981,13 +1008,15 @@ let VRSL = null;
 function validate(spec) {
   if (!VRSL) {
     VRSL = loadRuntime({
-      files: ['src/logic.js', 'src/library.js', 'src/levels.js'],
-      withEngine: true
+      files: ['src/logic.js', 'src/term.js', 'src/library.js', 'src/levels.js', 'src/modules.js', 'src/engine.js']
     });
     /* 生成器在内存里构造 ARCHIVE，校验时直接挂到同一 RSL 上。 */
     VRSL.ARCHIVE = ARCHIVE;
   }
-  const target = { id: 'target', kind: 'target', x: 900, y: 300, target: spec.target, config: {} };
+  const target = {
+    id: 'target', kind: 'target', x: 900, y: 300,
+    target: spec.target, targetTokens: spec.targetTokens || null, config: {}
+  };
   const nodes = [target].concat(JSON.parse(JSON.stringify(spec.solution.nodes)));
   const edges = spec.solution.edges.map((e, i) => ({ id: 'e' + i, from: { ...e.from }, to: { ...e.to } }));
   const r = VRSL.Engine.evaluate(spec, nodes, edges);
@@ -1004,6 +1033,8 @@ const generated = [];
 for (const chapter of ['prop', 'pred', 'eq', 'set']) {
   generated.push(...buildChapter(chapter, CAND[chapter], all));
 }
+/* P3：每关追加统一 schema 字段（targetTokens / palette / track）。 */
+for (const spec of generated) unifySpec(spec);
 
 /* archive.js */
 const archiveList = Object.values(ARCHIVE).sort((a, b) => a.label.localeCompare(b.label));
@@ -1050,21 +1081,42 @@ fs.writeFileSync(OUT_LEVELS, levelsJs, 'utf8');
 const R = loadRuntime({
   files: [
     'src/logic.js',
+    'src/term.js',
     'src/archive.js',
     'src/library.js',
     'src/levels.js',
-    'src/levels-generated.js'
-  ],
-  withEngine: true
+    'src/levels-generated.js',
+    'src/modules.js',
+    'src/engine.js'
+  ]
 });
 let failures = 0;
 for (const lv of R.LEVELS) {
-  const target = { id: 'target', kind: 'target', x: 900, y: 300, target: lv.target, config: {} };
+  const target = {
+    id: 'target', kind: 'target', x: 900, y: 300,
+    target: lv.target, targetTokens: lv.targetTokens || null, config: {}
+  };
   const nodes = [target].concat(JSON.parse(JSON.stringify(lv.solution.nodes)));
   const edges = lv.solution.edges.map((e, i) => ({ id: 'e' + i, from: { ...e.from }, to: { ...e.to } }));
   const r = R.Engine.evaluate(lv, nodes, edges);
   if (!r.complete) { failures++; console.error('FINAL FAIL', lv.id, r.errors.map((e) => e.message).join('|')); }
 }
+/* P3 自检：统一 schema 字段必须齐全且与旧字段一致。
+   只检查生成关（13–60）；手工关在 src/levels.js 里，由 Catalog.build 在运行时编译补齐。 */
+let schemaFailures = 0;
+for (const lv of R.LEVELS) {
+  if (Number(String(lv.id).split('-')[1]) <= 12) continue;
+  if (!Array.isArray(lv.targetTokens) || lv.targetTokens[0] !== '|-' ||
+      !Array.isArray(lv.palette) || lv.track !== 'wiring') {
+    schemaFailures++;
+    console.error('SCHEMA FAIL', lv.id, 'missing targetTokens/palette/track');
+    continue;
+  }
+  const expected = paletteFromAllowed(lv.allowed).map((p) => JSON.stringify(p)).join('|');
+  const actual = lv.palette.map((p) => JSON.stringify(p)).join('|');
+  if (expected !== actual) { schemaFailures++; console.error('SCHEMA FAIL', lv.id, 'palette != allowed'); }
+}
+if (schemaFailures) failures += schemaFailures;
 console.log('archive entries:', archiveList.length);
 console.log('generated levels:', generated.length, 'total levels:', R.LEVELS.length, 'failures:', failures);
 process.exit(failures ? 1 : 0);

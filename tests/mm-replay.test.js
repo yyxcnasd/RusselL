@@ -11,7 +11,7 @@ const { loadRuntime } = require('../scripts/lib/load-runtime');
 const RSL = loadRuntime({
   localStorage: true,
   files: [
-    'src/logic.js',
+    'src/term.js',
     'src/archive.js',
     'src/library.js',
     'src/levels.js',
@@ -149,7 +149,7 @@ test('48 个重放关卡：目标来自 set.mm 结论、按章成组、组内步
     assert.strictEqual(level.id, 'MM-' + String(i + 1).padStart(2, '0'), 'id 必须连续编号');
     assert.ok(!ids.has(level.id), '重复关卡 id ' + level.id);
     ids.add(level.id);
-    assert.strictEqual(level.mode, 'mm-proof');
+    assert.strictEqual(level.track, 'replay');
     assert.ok(chapters.indexOf(level.chapter) >= 0, level.id + ' 的 chapter 必须是真实章节');
     assert.strictEqual(level.band, 'replay', level.id + ' 的 band 应为 replay');
     assert.strictEqual(level.requires.length, 0, level.id + ' 生成数据里不预置解锁链');
@@ -337,10 +337,10 @@ test('Catalog：关闭时 240 关；开启时 240 + 48 关并按统一难度交�
     assert.strictEqual(group.length, 72, chapter + ' 章应有 72 关');
     assert.strictEqual(group.filter((l) => l.band === 'base').length, 36, chapter + ' 基础段 36');
     assert.strictEqual(group.filter((l) => l.band === 'challenge').length, 36, chapter + ' 挑战段 36');
-    const replay = group.filter((l) => l.mode === 'mm-proof');
+    const replay = group.filter((l) => l.track === 'replay');
     assert.strictEqual(replay.length, 12, chapter + ' 章应有 12 个重放关');
     /* 前 12 关是手工/引导关 */
-    assert.ok(group.slice(0, 12).every((l) => l.mode !== 'mm-proof'), chapter + ' 前 12 关是手工关');
+    assert.ok(group.slice(0, 12).every((l) => l.track !== 'replay'), chapter + ' 前 12 关是手工关');
     /* 从第 13 关起按统一难度单调不减 */
     for (let i = 13; i < group.length; i += 1) {
       assert.ok(group[i].difficulty >= group[i - 1].difficulty - 1e-9,
@@ -348,7 +348,7 @@ test('Catalog：关闭时 240 关；开启时 240 + 48 关并按统一难度交�
     }
     /* 重放关交错在接线关之间，而不是独立一段 */
     const idx = [];
-    group.forEach((l, i) => { if (l.mode === 'mm-proof') idx.push(i); });
+    group.forEach((l, i) => { if (l.track === 'replay') idx.push(i); });
     const contiguous = idx.every((x, i) => i === 0 || x === idx[i - 1] + 1);
     assert.ok(!contiguous, chapter + ' 章的重放关应交错');
     /* 解锁链线性 */

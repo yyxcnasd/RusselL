@@ -31,9 +31,9 @@
 
   function evaluate(state) {
     var out = [];
-    /* mm-replay 重放关（mode:'mm-proof'）不计入 240 关的成就体系：它们默认关闭，
+    /* 重放关（track:'replay'）不计入 240 关的成就体系：
        且“通关”含义是重放而不是接线。这里统一过滤，保证开关开关不影响成就语义。 */
-    var boardLevels = (state.levels || []).filter(function (lv) { return lv.mode !== 'mm-proof'; });
+    var boardLevels = (state.levels || []).filter(function (lv) { return lv.track !== 'replay'; });
     var boardIds = Object.create(null);
     boardLevels.forEach(function (lv) { boardIds[lv.id] = true; });
     var solved = Object.keys(state.solved || {}).filter(function (id) { return boardIds[id]; }).length;

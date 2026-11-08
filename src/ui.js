@@ -2,14 +2,12 @@
  * 公理板 / AXIOM BOARD — RSL.UI
  *
  * DOM 基础件：元素表、公式 HTML、toast、面板（sheet）生命周期与滚动条、彩带。
- * 不持有游戏状态；只依赖 RSL.Logic 与 index.html 里固定的 id。
+ * 不持有游戏状态；只依赖 RSL.Term（token 公式渲染）与 index.html 里固定的 id。
  * 经典脚本，无 ES module。
  */
 (function (host) {
   'use strict';
   host.RSL = host.RSL || {};
-  var L = host.RSL.Logic;
-
   var ELEMENT_IDS = [
     'levelBtn', 'goal', 'goalFormula', 'themeBtn', 'soundBtn', 'helpBtn', 'achvBtn', 'hintBtn', 'checkBtn',
     'progressFill', 'board', 'boardWorld', 'wireLayer', 'nodeLayer', 'tray', 'popover', 'toast',
@@ -29,10 +27,6 @@
     });
   }
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
-  function parse(text) {
-    try { return L.parse(text); } catch (e) { return null; }
-  }
-
   /* =========================================================================
    * 1. 公式显示
    *
@@ -40,16 +34,11 @@
    * 比 Logic.fmt 的最小括号更易读；DOM 结构与 .formula .f-* 样式约定一致。
    * ========================================================================= */
 
-  function formulaHTML(ast) {
-    try { return L.toHTML(ast, { full: true }); }
-    catch (e) {
-      try { return esc(L.fmt(ast)); } catch (e2) { return ''; }
-    }
-  }
-
-  function goalHTML(text) {
-    var ast = parse(text);
-    return ast ? formulaHTML(ast) : esc(text);
+  /** 顶栏目标：token 公式（唯一渲染器 Term），去掉类型码（⊢ 由外壳画）。 */
+  function goalTokens(tokens) {
+    var T = host.RSL.Term;
+    if (!T || !Array.isArray(tokens) || !tokens.length) return esc('');
+    return T.toHTML(T.body(tokens), { full: true });
   }
 
   /** 纯文本公式（帮助卡片用）：字母当变量斜体，其余按文本显示。 */
@@ -250,8 +239,7 @@
     init: init,
     esc: esc,
     clamp: clamp,
-    formulaHTML: formulaHTML,
-    goalHTML: goalHTML,
+    goalTokens: goalTokens,
     helpFormula: helpFormula,
     toast: toast,
     openSheet: openSheet,
@@ -262,6 +250,4 @@
     onSheetClick: onSheetClick
   };
 
-  /* 兼容旧调用：board.js / 测试脚本里的 window.RSL.formatFormula。 */
-  host.RSL.formatFormula = formulaHTML;
 })(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this));

@@ -78,20 +78,20 @@
 
 /* 重放关的元件是 set.mm 断言，数量多（最多 53 条）：元件栏改成可横向滚动，
    编号/代号用等宽数字，避免把页面撑宽。 */
-.tray.is-mm{
+.tray.is-wide{
   justify-content:flex-start;
   overflow-x:auto;overflow-y:hidden;
   padding-inline:16px;
   scrollbar-width:thin;overscroll-behavior-x:contain;
 }
-.tray.is-mm .tile{
+.tray.is-wide .tile{
   width:56px;height:56px;flex:none;
 }
-.tray.is-mm .tile > span{
+.tray.is-wide .tile > span{
   font-size:12px;line-height:1.15;text-align:center;
   max-width:48px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
-.tray.is-mm .tile.is-code > span{font-size:12px}
+.tray.is-wide .tile.is-code > span{font-size:12px}
 
 /* 节点公式是 set.mm 原始 token 串（比 Logic AST 长得多）：小一号、最多 3 行，
    超出的部分省略（完整公式在节点 title 里）。注意不能给 .node 加 overflow:hidden——

@@ -1,7 +1,7 @@
 /*! Catalog 单元测试：src/catalog.js 的章节排序、解锁链、调色板条目。
  *
  * 用 scripts/lib/load-runtime.js 以 index.html 的经典脚本顺序加载
- * logic → archive → library → levels → levels-generated → catalog，
+ * logic → term → archive → library → levels → levels-generated → catalog，
  * 因此断言的是真实关卡数据（240 关）上的派生行为。
  */
 'use strict';
@@ -13,6 +13,7 @@ const { loadRuntime } = require('../scripts/lib/load-runtime');
 const RSL = loadRuntime({
   files: [
     'src/logic.js',
+    'src/term.js',
     'src/archive.js',
     'src/library.js',
     'src/levels.js',
@@ -328,4 +329,70 @@ test('chapterOf / levelById / CHAPTERS 元数据', () => {
 
   assert.equal(Catalog.levelById('CH1-01'), ORIG_BY_ID.get('CH1-01'), 'levelById 应返回 window.RSL.LEVELS 里的原始关卡');
   assert.equal(Catalog.levelById('NOPE'), null, '未知 id 返回 null');
+});
+
+/* ------------------------------------------------- 8. 统一关卡 schema（P3） */
+
+test('build(): 每关都有统一 schema（track / targetTokens / palette），旧字段仍在', () => {
+  const Term = RSL.Term;
+  for (const lv of LEVELS) {
+    assert.equal(lv.track, 'wiring', lv.id + ' track 应为 wiring');
+    assert.ok(Array.isArray(lv.targetTokens) && lv.targetTokens.length, lv.id + ' 缺少 targetTokens');
+    assert.equal(lv.targetTokens[0], '|-', lv.id + ' targetTokens 必须带 |- 类型码');
+    assert.ok(Array.isArray(lv.palette), lv.id + ' 缺少 palette');
+    /* 旧字段保留到 P5：target 字符串仍存在且与 token 等价。 */
+    assert.equal(typeof lv.target, 'string', lv.id + ' 仍需保留 target 旧字段');
+    assert.equal(
+      Term.key(Term.parseAssertion(lv.target)),
+      Term.key(lv.targetTokens),
+      lv.id + ' 的 targetTokens 与 target 应编译自同一公式'
+    );
+    /* palette 与 allowed 一一对应（target 除外，顺序一致）。 */
+    const fromAllowed = lv.allowed
+      .filter((key) => key !== 'target')
+      .map((key) => {
+        if (key.indexOf('axiom:') === 0) return { kind: 'axiom', config: { axiomId: key.slice(6) } };
+        if (key.indexOf('theorem:') === 0) return { kind: 'theorem', config: { theoremCode: key.slice(8) } };
+        if (key.indexOf('archive:') === 0) return { kind: 'archive', config: { label: key.slice(8) } };
+        return { kind: key, config: {} };
+      });
+    assert.equal(JSON.stringify(lv.palette), JSON.stringify(fromAllowed), lv.id + ' 的 palette 与 allowed 应一致');
+  }
+});
+
+test('difficultyOf: 接线用模块数 + 0.1×结构节点数，结果与 build 的 difficulty 一致', () => {
+  for (const lv of LEVELS) {
+    const expected = lv.solution.nodes.length + 0.1 * Catalog.tokenNodeCount(lv);
+    const rounded = Math.round(expected * 100) / 100;
+    assert.equal(lv.difficulty, rounded, lv.id + ' 的 difficulty 应等于统一公式');
+  }
+});
+
+test('partsForLevel: 优先读 palette，缺少 palette 时回退 allowed', () => {
+  const replayLike = {
+    palette: [
+      { kind: 'mmhyp', config: { label: 'wph' } },
+      { kind: 'mmstep', config: { label: 'mpbi', arity: 4 } }
+    ]
+  };
+  const parts = Catalog.partsForLevel(replayLike);
+  assert.equal(plain(parts.map((p) => p.key)).join(','), 'mmhyp:wph,mmstep:mpbi', 'palette 条目应解析成模块条目');
+  assert.equal(parts[0].kind, 'mmhyp');
+  assert.equal(parts[1].kind, 'mmstep');
+  assert.equal(parts[1].config.arity, 4, 'mmstep 条目保留 arity');
+  assert.ok(parts[1].name.indexOf('set.mm mpbi') >= 0, 'mmstep 名称带 set.mm label');
+
+  /* 只有 allowed 的历史关卡仍可解析（palette 缺省回退）。 */
+  const legacy = { allowed: ['target', 'atom', 'axiom:ax-1'] };
+  const legacyParts = Catalog.partsForLevel(legacy);
+  assert.equal(plain(legacyParts.map((p) => p.key)).join(','), 'atom,axiom:ax-1');
+  /* 240 个接线关：palette 解析结果与 allowed 解析结果逐字段一致（P3 切换不改变元件栏）。 */
+  for (const lv of LEVELS) {
+    const allowedOnly = { allowed: lv.allowed };
+    assert.equal(
+      JSON.stringify(Catalog.partsForLevel(lv)),
+      JSON.stringify(Catalog.partsForLevel(allowedOnly)),
+      lv.id + ' 的 palette 与 allowed 解析结果应一致'
+    );
+  }
 });

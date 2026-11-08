@@ -22,6 +22,50 @@ const MAX_PROOFS_BYTES = 2 * 1024 * 1024; // docs/MM-REPLAY.md §5 硬约束
 const { TARGETS, CHAPTERS, CHAPTER_NAMES } = require('./mm-targets.js');
 
 const Expr = require(path.join(ROOT, 'src', 'mm', 'expr.js'));
+/* 生成阶段用与运行时同一套布局/调色板算法，保证 P4 切换数据驱动时与 Graph.initial 完全一致。
+   只是生成器依赖；发布产物（src/mm/levels.js）不含 graph 依赖。 */
+const Graph = require(path.join(ROOT, 'src', 'mm', 'graph.js'));
+
+/** 统一 schema（P3）：把证明编译成关卡数据里的 palette / initialNodes / reference。 */
+function replaySchema(proof) {
+  const levelLike = { targetTokens: proof.conclusion };
+  const init = Graph.initial(levelLike, proof);
+  /* palette 数据里同时列出可放置断言与给定前提；给定前提标 given:true，
+     选关/棋盘只把断言放进元件栏（前提由 initialNodes 预置）。 */
+  const palette = Graph.palette(proof).map((p) => ({
+    kind: p.kind,
+    config: Object.assign({}, p.config)
+  })).concat(Graph.hypLabels(proof).map((h) => ({
+    kind: 'mmhyp',
+    config: { label: h.label },
+    given: true
+  })));
+  const initialNodes = init.nodes.map((node) => {
+    const copy = {
+      id: node.id,
+      kind: node.kind,
+      x: node.x,
+      y: node.y,
+      config: Object.assign({}, node.config)
+    };
+    if (Array.isArray(node.targetTokens)) copy.targetTokens = node.targetTokens.slice();
+    return copy;
+  });
+  /* 参考动作自带坐标：运行时不再需要 Graph.layout（生成期算一次，避免两套布局）。 */
+  const layout = Graph.layout(proof);
+  const reference = Graph.plan(proof).map((action) => {
+    const pos = (layout.positions && layout.positions[action.stepId]) || null;
+    const out = {
+      stepId: action.stepId,
+      kind: action.kind,
+      label: action.label,
+      inputs: action.inputs.slice()
+    };
+    if (pos) { out.x = pos.x; out.y = pos.y; }
+    return out;
+  });
+  return { palette, initialNodes, reference };
+}
 
 function main() {
   if (!fs.existsSync(REPORT)) throw new Error('缺少 ' + REPORT + '，先运行 node scripts/mm-verify.js');
@@ -81,9 +125,10 @@ function main() {
     const t = row.target;
     const proof = row.proof;
     perChapter[t.chapter] = (perChapter[t.chapter] || 0) + 1;
+    const schema = replaySchema(proof);
     return {
       id: 'MM-' + String(i + 1).padStart(2, '0'),
-      mode: 'mm-proof',
+      track: 'replay',
       chapter: t.chapter,
       band: 'replay',
       group: CHAPTER_NAMES[t.chapter] || t.chapter,
@@ -100,6 +145,9 @@ function main() {
         maxDepth: proof.stats.maxDepth,
         refs: proof.stats.refs.length
       },
+      palette: schema.palette,
+      initialNodes: schema.initialNodes,
+      reference: schema.reference,
       requires: [],
       order: i + 1,
       chapterOrder: perChapter[t.chapter]

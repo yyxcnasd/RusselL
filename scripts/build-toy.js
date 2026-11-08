@@ -10,10 +10,10 @@ const out = path.join(root, 'dist');
  * → UI 基础件 → 重放面板 → 编辑器 → 应用。
  */
 const RUNTIME_JS = [
-  'logic.js', 'term.js', 'archive.js', 'library.js', 'levels.js', 'levels-generated.js',
-  'mm/flags.js', 'mm/proofs.js', 'mm/levels.js', 'mm/expr.js', 'mm/verify.js',
+  'term.js', 'archive.js', 'library.js', 'levels.js', 'levels-generated.js',
+  'mm/flags.js', 'mm/proofs.js', 'mm/levels.js',
   'modules.js', 'engine.js', 'route.js', 'achievements.js', 'save.js',
-  'ui.js', 'mm/graph.js', 'audio.js', 'coach.js', 'catalog.js', 'screens.js',
+  'ui.js', 'audio.js', 'coach.js', 'catalog.js', 'screens.js',
   'board.js', 'main.js'
 ];
 

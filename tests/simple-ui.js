@@ -21,7 +21,7 @@ runTest('simple-ui', async ({ openPage }) => {
     for(var i=0;i<app.state.levels.length;i++){
       var lv=app.state.levels[i];
       app.loadLevel(i);
-      if(lv.mode==='mm-proof'){
+      if(lv.track==='replay'){
         mm.push({i:i, code:app.state.level.id,
                  goal:document.getElementById('goalFormula').textContent,
                  steps:(lv.stats&&lv.stats.steps)||0});

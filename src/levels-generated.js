@@ -131,7 +131,46 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "-.",
+   "S",
+   "->",
+   "(",
+   "(",
+   "-.",
+   "S",
+   "\\/",
+   "Q",
+   ")",
+   "\\/",
+   "R",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "3mix1"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "not",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-14",
@@ -278,7 +317,48 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "(",
+   "(",
+   "S",
+   "->",
+   "T",
+   ")",
+   "/\\",
+   "Q",
+   ")",
+   "/\\",
+   "R",
+   ")",
+   "->",
+   "Q",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "simp2"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-15",
@@ -425,7 +505,46 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "-.",
+   "(",
+   "(",
+   "C",
+   "\\/",
+   "Q",
+   ")",
+   "/\\",
+   "-.",
+   "(",
+   "C",
+   "\\/",
+   "Q",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "pm3.24"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "or",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-16",
@@ -572,7 +691,52 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "Q",
+   "<->",
+   "R",
+   ")",
+   "->",
+   "(",
+   "(",
+   "Q",
+   "<->",
+   "R",
+   ")",
+   "\\/",
+   "(",
+   "Q",
+   "<->",
+   "R",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "pm2.07"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "iff",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-17",
@@ -719,7 +883,54 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "-.",
+   "(",
+   "(",
+   "S",
+   "/\\",
+   "T",
+   ")",
+   "->",
+   "Q",
+   ")",
+   "->",
+   "(",
+   "-.",
+   "(",
+   "S",
+   "/\\",
+   "T",
+   ")",
+   "->",
+   "Q",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "pm2.5"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "and",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-18",
@@ -866,7 +1077,52 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "(",
+   "U",
+   "<->",
+   "V",
+   ")",
+   "/\\",
+   "(",
+   "Q",
+   "/\\",
+   "(",
+   "R",
+   "/\\",
+   "S",
+   ")",
+   ")",
+   ")",
+   "->",
+   "S",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "simprrr"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "iff",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-19",
@@ -1013,7 +1269,60 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "U",
+   "/\\",
+   "(",
+   "(",
+   "(",
+   "(",
+   "(",
+   "V",
+   "->",
+   "W",
+   ")",
+   "/\\",
+   "Q",
+   ")",
+   "/\\",
+   "R",
+   ")",
+   "/\\",
+   "S",
+   ")",
+   "/\\",
+   "T",
+   ")",
+   ")",
+   "->",
+   "Q",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "simpr12"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-20",
@@ -1160,7 +1469,55 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "-.",
+   "(",
+   "-.",
+   "(",
+   "T",
+   "\\/",
+   "U",
+   ")",
+   "\\/",
+   "-.",
+   "Q",
+   ")",
+   "->",
+   "(",
+   "(",
+   "T",
+   "\\/",
+   "U",
+   ")",
+   "/\\",
+   "Q",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "pm3.11"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "or",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-21",
@@ -1288,7 +1645,48 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "-.",
+   "(",
+   "-.",
+   "W",
+   "->",
+   "Q",
+   ")",
+   "->",
+   "(",
+   "-.",
+   "-.",
+   "W",
+   "->",
+   "Q",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "pm2.5"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "not",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-22",
@@ -1416,7 +1814,49 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "-.",
+   "-.",
+   "B",
+   "/\\",
+   "-.",
+   "Q",
+   ")",
+   "<->",
+   "-.",
+   "(",
+   "-.",
+   "B",
+   "\\/",
+   "Q",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "pm4.56"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "not",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-23",
@@ -1563,7 +2003,60 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "(",
+   "(",
+   "C",
+   "/\\",
+   "S",
+   ")",
+   "\\/",
+   "Q",
+   ")",
+   "\\/",
+   "R",
+   ")",
+   "<->",
+   "(",
+   "(",
+   "Q",
+   "\\/",
+   "(",
+   "C",
+   "/\\",
+   "S",
+   ")",
+   ")",
+   "\\/",
+   "R",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "3orcoma"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "and",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-24",
@@ -1710,7 +2203,60 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "(",
+   "(",
+   "(",
+   "(",
+   "U",
+   "\\/",
+   "V",
+   ")",
+   "/\\",
+   "Q",
+   ")",
+   "/\\",
+   "R",
+   ")",
+   "/\\",
+   "S",
+   ")",
+   "/\\",
+   "T",
+   ")",
+   "->",
+   "(",
+   "U",
+   "\\/",
+   "V",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "simpl1l"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "or",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-25",
@@ -1857,7 +2403,60 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "(",
+   "X",
+   "/\\",
+   "Y",
+   ")",
+   "<->",
+   "Q",
+   ")",
+   "<->",
+   "(",
+   "(",
+   "R",
+   "<->",
+   "Q",
+   ")",
+   "<->",
+   "(",
+   "(",
+   "X",
+   "/\\",
+   "Y",
+   ")",
+   "<->",
+   "R",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "biluk"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "and",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-26",
@@ -2004,7 +2603,54 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "-.",
+   "(",
+   "Z",
+   "<->",
+   "A",
+   ")",
+   "/\\",
+   "-.",
+   "Q",
+   ")",
+   "->",
+   "(",
+   "(",
+   "Z",
+   "<->",
+   "A",
+   ")",
+   "<->",
+   "Q",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "pm5.21"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "iff",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-27",
@@ -2151,7 +2797,60 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "(",
+   "T",
+   "/\\",
+   "U",
+   ")",
+   "/\\",
+   "(",
+   "(",
+   "(",
+   "(",
+   "V",
+   "<->",
+   "W",
+   ")",
+   "/\\",
+   "Q",
+   ")",
+   "/\\",
+   "R",
+   ")",
+   "/\\",
+   "S",
+   ")",
+   ")",
+   "->",
+   "R",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "simp3l3"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "iff",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-28",
@@ -2298,7 +2997,60 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "(",
+   "Y",
+   "\\/",
+   "Z",
+   ")",
+   "<->",
+   "Q",
+   ")",
+   "->",
+   "(",
+   "(",
+   "(",
+   "Y",
+   "\\/",
+   "Z",
+   ")",
+   "/\\",
+   "R",
+   ")",
+   "<->",
+   "(",
+   "Q",
+   "/\\",
+   "R",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "anbi1"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "or",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-29",
@@ -2445,7 +3197,60 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "(",
+   "(",
+   "A",
+   "->",
+   "B",
+   ")",
+   "\\/",
+   "Q",
+   ")",
+   "\\/",
+   "R",
+   ")",
+   "->",
+   "(",
+   "(",
+   "A",
+   "->",
+   "B",
+   ")",
+   "\\/",
+   "(",
+   "Q",
+   "\\/",
+   "R",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "pm2.32"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-30",
@@ -2592,7 +3397,68 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "(",
+   "(",
+   "T",
+   "->",
+   "U",
+   ")",
+   "/\\",
+   "Q",
+   ")",
+   "/\\",
+   "(",
+   "R",
+   "/\\",
+   "S",
+   ")",
+   ")",
+   "<->",
+   "(",
+   "(",
+   "(",
+   "(",
+   "T",
+   "->",
+   "U",
+   ")",
+   "/\\",
+   "R",
+   ")",
+   "/\\",
+   "S",
+   ")",
+   "/\\",
+   "Q",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "4anpull2"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-31",
@@ -2787,7 +3653,59 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "-.",
+   "(",
+   "P",
+   "->",
+   "(",
+   "P",
+   "\\/",
+   "P",
+   ")",
+   ")",
+   "->",
+   "Q",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "pm2.24"
+    }
+   },
+   {
+    "kind": "archive",
+    "config": {
+     "label": "pm2.07"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "or",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "detach",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-32",
@@ -3009,7 +3927,75 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "(",
+   "(",
+   "(",
+   "(",
+   "P",
+   "/\\",
+   "P",
+   ")",
+   "/\\",
+   "P",
+   ")",
+   "<->",
+   "P",
+   ")",
+   "->",
+   "(",
+   "S",
+   "\\/",
+   "T",
+   ")",
+   ")",
+   "/\\",
+   "-.",
+   "S",
+   ")",
+   "->",
+   "T",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "ornld"
+    }
+   },
+   {
+    "kind": "archive",
+    "config": {
+     "label": "3anidm"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "and",
+    "config": {}
+   },
+   {
+    "kind": "iff",
+    "config": {}
+   },
+   {
+    "kind": "detach",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-33",
@@ -3248,7 +4234,68 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "(",
+   "(",
+   "(",
+   "(",
+   "Z",
+   "->",
+   "A",
+   ")",
+   "/\\",
+   "(",
+   "B",
+   "/\\",
+   "C",
+   ")",
+   ")",
+   "/\\",
+   "R",
+   ")",
+   "/\\",
+   "S",
+   ")",
+   "/\\",
+   "T",
+   ")",
+   "->",
+   "(",
+   "Z",
+   "->",
+   "A",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "simp1ll"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "and",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-34",
@@ -3487,7 +4534,66 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "(",
+   "T",
+   "->",
+   "U",
+   ")",
+   "/\\",
+   "-.",
+   "(",
+   "V",
+   "/\\",
+   "W",
+   ")",
+   ")",
+   "<->",
+   "-.",
+   "(",
+   "(",
+   "T",
+   "->",
+   "U",
+   ")",
+   "->",
+   "(",
+   "V",
+   "/\\",
+   "W",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "annim"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "and",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-35",
@@ -3726,7 +4832,72 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "(",
+   "T",
+   "/\\",
+   "(",
+   "(",
+   "(",
+   "(",
+   "A",
+   "->",
+   "B",
+   ")",
+   "/\\",
+   "(",
+   "C",
+   "/\\",
+   "V",
+   ")",
+   ")",
+   "/\\",
+   "R",
+   ")",
+   "/\\",
+   "S",
+   ")",
+   ")",
+   "/\\",
+   "U",
+   ")",
+   "->",
+   "(",
+   "A",
+   "->",
+   "B",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "simp21l"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "and",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-36",
@@ -3965,7 +5136,73 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "-.",
+   "(",
+   "W",
+   "->",
+   "X",
+   ")",
+   "\\/",
+   "(",
+   "(",
+   "W",
+   "->",
+   "X",
+   ")",
+   "->",
+   "(",
+   "Y",
+   "/\\",
+   "Z",
+   ")",
+   ")",
+   ")",
+   "->",
+   "(",
+   "(",
+   "W",
+   "->",
+   "X",
+   ")",
+   "->",
+   "(",
+   "Y",
+   "/\\",
+   "Z",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "pm2.42"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "and",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-37",
@@ -4204,7 +5441,74 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "(",
+   "S",
+   "->",
+   "T",
+   ")",
+   "->",
+   "(",
+   "(",
+   "U",
+   "/\\",
+   "V",
+   ")",
+   "->",
+   "R",
+   ")",
+   ")",
+   "->",
+   "(",
+   "-.",
+   "(",
+   "(",
+   "S",
+   "->",
+   "T",
+   ")",
+   "->",
+   "-.",
+   "(",
+   "U",
+   "/\\",
+   "V",
+   ")",
+   ")",
+   "->",
+   "R",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "impt"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "and",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-38",
@@ -4443,7 +5747,80 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "(",
+   "X",
+   "->",
+   "Y",
+   ")",
+   "\\/",
+   "(",
+   "(",
+   "Z",
+   "/\\",
+   "A",
+   ")",
+   "/\\",
+   "R",
+   ")",
+   ")",
+   "<->",
+   "(",
+   "(",
+   "(",
+   "X",
+   "->",
+   "Y",
+   ")",
+   "\\/",
+   "(",
+   "Z",
+   "/\\",
+   "A",
+   ")",
+   ")",
+   "/\\",
+   "(",
+   "(",
+   "X",
+   "->",
+   "Y",
+   ")",
+   "\\/",
+   "R",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "ordi"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "and",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-39",
@@ -4682,7 +6059,76 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "-.",
+   "(",
+   "(",
+   "(",
+   "Y",
+   "->",
+   "Z",
+   ")",
+   "/\\",
+   "(",
+   "A",
+   "/\\",
+   "B",
+   ")",
+   ")",
+   "/\\",
+   "R",
+   ")",
+   "<->",
+   "(",
+   "(",
+   "-.",
+   "(",
+   "Y",
+   "->",
+   "Z",
+   ")",
+   "\\/",
+   "-.",
+   "(",
+   "A",
+   "/\\",
+   "B",
+   ")",
+   ")",
+   "\\/",
+   "-.",
+   "R",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "3ianor"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "and",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-40",
@@ -4921,7 +6367,80 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "(",
+   "U",
+   "->",
+   "V",
+   ")",
+   "/\\",
+   "(",
+   "(",
+   "W",
+   "/\\",
+   "X",
+   ")",
+   "/\\",
+   "R",
+   ")",
+   ")",
+   "<->",
+   "(",
+   "(",
+   "(",
+   "U",
+   "->",
+   "V",
+   ")",
+   "/\\",
+   "(",
+   "W",
+   "/\\",
+   "X",
+   ")",
+   ")",
+   "/\\",
+   "(",
+   "(",
+   "U",
+   "->",
+   "V",
+   ")",
+   "/\\",
+   "R",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "anandi"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "and",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-41",
@@ -5160,7 +6679,120 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "(",
+   "(",
+   "(",
+   "(",
+   "B",
+   "->",
+   "C",
+   ")",
+   "/\\",
+   "(",
+   "Y",
+   "/\\",
+   "Z",
+   ")",
+   ")",
+   "/\\",
+   "R",
+   ")",
+   "/\\",
+   "(",
+   "(",
+   "S",
+   "/\\",
+   "T",
+   ")",
+   "/\\",
+   "U",
+   ")",
+   ")",
+   "/\\",
+   "(",
+   "(",
+   "V",
+   "/\\",
+   "W",
+   ")",
+   "/\\",
+   "X",
+   ")",
+   ")",
+   "<->",
+   "(",
+   "(",
+   "(",
+   "(",
+   "B",
+   "->",
+   "C",
+   ")",
+   "/\\",
+   "T",
+   ")",
+   "/\\",
+   "X",
+   ")",
+   "/\\",
+   "(",
+   "(",
+   "(",
+   "(",
+   "Y",
+   "/\\",
+   "Z",
+   ")",
+   "/\\",
+   "S",
+   ")",
+   "/\\",
+   "(",
+   "U",
+   "/\\",
+   "W",
+   ")",
+   ")",
+   "/\\",
+   "(",
+   "R",
+   "/\\",
+   "V",
+   ")",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "an33rean"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "and",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-42",
@@ -5399,7 +7031,54 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "P",
+   "->",
+   "(",
+   "Q",
+   "->",
+   "(",
+   "R",
+   "->",
+   "P",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "idALT"
+    }
+   },
+   {
+    "kind": "archive",
+    "config": {
+     "label": "2a1"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "detach",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-43",
@@ -5638,7 +7317,152 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "(",
+   "(",
+   "(",
+   "(",
+   "V",
+   "->",
+   "W",
+   ")",
+   "/\\",
+   "(",
+   "X",
+   "/\\",
+   "Y",
+   ")",
+   ")",
+   "->",
+   "R",
+   ")",
+   "<->",
+   "(",
+   "(",
+   "V",
+   "->",
+   "W",
+   ")",
+   "->",
+   "(",
+   "(",
+   "X",
+   "/\\",
+   "Y",
+   ")",
+   "->",
+   "R",
+   ")",
+   ")",
+   ")",
+   "/\\",
+   "(",
+   "(",
+   "(",
+   "V",
+   "->",
+   "W",
+   ")",
+   "->",
+   "(",
+   "(",
+   "X",
+   "/\\",
+   "Y",
+   ")",
+   "->",
+   "R",
+   ")",
+   ")",
+   "<->",
+   "(",
+   "(",
+   "X",
+   "/\\",
+   "Y",
+   ")",
+   "->",
+   "(",
+   "(",
+   "V",
+   "->",
+   "W",
+   ")",
+   "->",
+   "R",
+   ")",
+   ")",
+   ")",
+   ")",
+   "/\\",
+   "(",
+   "(",
+   "(",
+   "X",
+   "/\\",
+   "Y",
+   ")",
+   "->",
+   "(",
+   "(",
+   "V",
+   "->",
+   "W",
+   ")",
+   "->",
+   "R",
+   ")",
+   ")",
+   "<->",
+   "(",
+   "(",
+   "(",
+   "X",
+   "/\\",
+   "Y",
+   ")",
+   "/\\",
+   "(",
+   "V",
+   "->",
+   "W",
+   ")",
+   ")",
+   "->",
+   "R",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "pm4.87"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "and",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-44",
@@ -5879,7 +7703,74 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "Q",
+   "<->",
+   "(",
+   "(",
+   "(",
+   "(",
+   "P",
+   "/\\",
+   "Q",
+   ")",
+   "->",
+   "(",
+   "R",
+   "\\/",
+   "P",
+   ")",
+   ")",
+   "\\/",
+   "R",
+   ")",
+   "->",
+   "Q",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "norasslem2"
+    }
+   },
+   {
+    "kind": "archive",
+    "config": {
+     "label": "animorlr"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "and",
+    "config": {}
+   },
+   {
+    "kind": "or",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "detach",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-45",
@@ -6137,7 +8028,70 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "(",
+   "(",
+   "P",
+   "->",
+   "(",
+   "P",
+   "->",
+   "Q",
+   ")",
+   ")",
+   "<->",
+   "(",
+   "P",
+   "->",
+   "Q",
+   ")",
+   ")",
+   "->",
+   "Q",
+   ")",
+   "->",
+   "Q",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "pm2.27"
+    }
+   },
+   {
+    "kind": "archive",
+    "config": {
+     "label": "pm5.4"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "iff",
+    "config": {}
+   },
+   {
+    "kind": "detach",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-46",
@@ -6396,7 +8350,99 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "Q",
+   "<->",
+   "(",
+   "(",
+   "Q",
+   "/\\",
+   "(",
+   "(",
+   "P",
+   "->",
+   "Q",
+   ")",
+   "<->",
+   "(",
+   "P",
+   "->",
+   "(",
+   "P",
+   "/\\",
+   "Q",
+   ")",
+   ")",
+   ")",
+   ")",
+   "\\/",
+   "(",
+   "R",
+   "/\\",
+   "-.",
+   "(",
+   "(",
+   "P",
+   "->",
+   "Q",
+   ")",
+   "<->",
+   "(",
+   "P",
+   "->",
+   "(",
+   "P",
+   "/\\",
+   "Q",
+   ")",
+   ")",
+   ")",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "dedlema"
+    }
+   },
+   {
+    "kind": "archive",
+    "config": {
+     "label": "anclb"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "and",
+    "config": {}
+   },
+   {
+    "kind": "iff",
+    "config": {}
+   },
+   {
+    "kind": "detach",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-47",
@@ -6663,7 +8709,66 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "Q",
+   "->",
+   "(",
+   "(",
+   "(",
+   "P",
+   "/\\",
+   "Q",
+   ")",
+   "/\\",
+   "R",
+   ")",
+   "->",
+   "(",
+   "P",
+   "/\\",
+   "R",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "ax-1"
+    }
+   },
+   {
+    "kind": "archive",
+    "config": {
+     "label": "3simpb"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "and",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "detach",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-48",
@@ -6930,7 +9035,70 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "Q",
+   "<->",
+   "(",
+   "(",
+   "(",
+   "P",
+   "->",
+   "R",
+   ")",
+   "->",
+   "(",
+   "(",
+   "P",
+   "/\\",
+   "Q",
+   ")",
+   "->",
+   "R",
+   ")",
+   ")",
+   "/\\",
+   "Q",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "ibar"
+    }
+   },
+   {
+    "kind": "archive",
+    "config": {
+     "label": "pm3.41"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "and",
+    "config": {}
+   },
+   {
+    "kind": "detach",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-49",
@@ -7197,7 +9365,61 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "cadd",
+   "(",
+   "P",
+   ",",
+   "Q",
+   ",",
+   "R",
+   ")",
+   "<->",
+   "(",
+   "P",
+   "\\/",
+   "Q",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "cad1"
+    }
+   },
+   {
+    "kind": "archive",
+    "config": {
+     "label": "pm2.67-2"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "or",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "detach",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-50",
@@ -7464,7 +9686,76 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "(",
+   "(",
+   "P",
+   "->",
+   "-.",
+   "Q",
+   ")",
+   "<->",
+   "-.",
+   "(",
+   "P",
+   "/\\",
+   "Q",
+   ")",
+   ")",
+   "->",
+   "Q",
+   ")",
+   "<->",
+   "Q",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "pm5.5"
+    }
+   },
+   {
+    "kind": "archive",
+    "config": {
+     "label": "imnan"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "not",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "and",
+    "config": {}
+   },
+   {
+    "kind": "iff",
+    "config": {}
+   },
+   {
+    "kind": "detach",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-51",
@@ -7748,7 +10039,77 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "Q",
+   "\\/",
+   "(",
+   "(",
+   "-.",
+   "P",
+   "->",
+   "-.",
+   "Q",
+   ")",
+   "<->",
+   "(",
+   "P",
+   "\\/",
+   "-.",
+   "Q",
+   ")",
+   ")",
+   ")",
+   "\\/",
+   "R",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "3mix2"
+    }
+   },
+   {
+    "kind": "archive",
+    "config": {
+     "label": "pm4.66"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "not",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "or",
+    "config": {}
+   },
+   {
+    "kind": "iff",
+    "config": {}
+   },
+   {
+    "kind": "detach",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-52",
@@ -8042,7 +10403,75 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "Q",
+   "<->",
+   "(",
+   "-.",
+   "(",
+   "(",
+   "Q",
+   "->",
+   "R",
+   ")",
+   "->",
+   "(",
+   "(",
+   "P",
+   "\\/",
+   "Q",
+   ")",
+   "->",
+   "(",
+   "R",
+   "\\/",
+   "P",
+   ")",
+   ")",
+   ")",
+   "\\/",
+   "Q",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "biortn"
+    }
+   },
+   {
+    "kind": "archive",
+    "config": {
+     "label": "pm2.36"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "or",
+    "config": {}
+   },
+   {
+    "kind": "detach",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-53",
@@ -8362,7 +10791,46 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "Q",
+   "<->",
+   "Q",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "biidd"
+    }
+   },
+   {
+    "kind": "archive",
+    "config": {
+     "label": "pm2.86"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "detach",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-54",
@@ -8692,7 +11160,59 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "Q",
+   "\\/",
+   "-.",
+   "Q",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "exmidd"
+    }
+   },
+   {
+    "kind": "archive",
+    "config": {
+     "label": "nan"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "and",
+    "config": {}
+   },
+   {
+    "kind": "not",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "iff",
+    "config": {}
+   },
+   {
+    "kind": "detach",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-55",
@@ -9004,7 +11524,74 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "Q",
+   "->",
+   "(",
+   "R",
+   "->",
+   "(",
+   "(",
+   "(",
+   "P",
+   "/\\",
+   "(",
+   "(",
+   "Q",
+   "/\\",
+   "R",
+   ")",
+   "/\\",
+   "S",
+   ")",
+   ")",
+   "/\\",
+   "T",
+   ")",
+   "->",
+   "S",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "2a1"
+    }
+   },
+   {
+    "kind": "archive",
+    "config": {
+     "label": "simp23"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "and",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "detach",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-56",
@@ -9316,7 +11903,74 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "Q",
+   "<->",
+   "(",
+   "(",
+   "(",
+   "T",
+   "/\\",
+   "(",
+   "(",
+   "(",
+   "P",
+   "/\\",
+   "Q",
+   ")",
+   "/\\",
+   "R",
+   ")",
+   "/\\",
+   "S",
+   ")",
+   ")",
+   "->",
+   "P",
+   ")",
+   "->",
+   "Q",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "biimt"
+    }
+   },
+   {
+    "kind": "archive",
+    "config": {
+     "label": "simprl1"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "and",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "detach",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-57",
@@ -9673,7 +12327,82 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "(",
+   "(",
+   "P",
+   "/\\",
+   "(",
+   "(",
+   "Q",
+   "/\\",
+   "R",
+   ")",
+   "/\\",
+   "S",
+   ")",
+   ")",
+   "<->",
+   "(",
+   "(",
+   "P",
+   "/\\",
+   "Q",
+   ")",
+   "/\\",
+   "(",
+   "R",
+   "/\\",
+   "S",
+   ")",
+   ")",
+   ")",
+   "\\/",
+   "Q",
+   ")",
+   "\\/",
+   "R",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "3mix1"
+    }
+   },
+   {
+    "kind": "archive",
+    "config": {
+     "label": "13an22anass"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "and",
+    "config": {}
+   },
+   {
+    "kind": "iff",
+    "config": {}
+   },
+   {
+    "kind": "detach",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-58",
@@ -10021,7 +12750,72 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "-.",
+   "-.",
+   "(",
+   "(",
+   "(",
+   "T",
+   "/\\",
+   "(",
+   "(",
+   "R",
+   "/\\",
+   "S",
+   ")",
+   "/\\",
+   "(",
+   "P",
+   "/\\",
+   "Q",
+   ")",
+   ")",
+   ")",
+   "/\\",
+   "U",
+   ")",
+   "->",
+   "Q",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "notnot"
+    }
+   },
+   {
+    "kind": "archive",
+    "config": {
+     "label": "simp23r"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "and",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "detach",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-59",
@@ -10405,7 +13199,82 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "Q",
+   "->",
+   "(",
+   "(",
+   "(",
+   "(",
+   "(",
+   "(",
+   "S",
+   "/\\",
+   "(",
+   "(",
+   "P",
+   "/\\",
+   "Q",
+   ")",
+   "/\\",
+   "R",
+   ")",
+   ")",
+   "/\\",
+   "T",
+   ")",
+   "/\\",
+   "U",
+   ")",
+   "/\\",
+   "V",
+   ")",
+   "->",
+   "P",
+   ")",
+   "/\\",
+   "Q",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "pm3.2"
+    }
+   },
+   {
+    "kind": "archive",
+    "config": {
+     "label": "simp121"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "and",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "detach",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH1-60",
@@ -10789,7 +13658,78 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "Q",
+   "\\/",
+   "(",
+   "(",
+   "(",
+   "U",
+   "/\\",
+   "V",
+   ")",
+   "/\\",
+   "(",
+   "(",
+   "S",
+   "/\\",
+   "(",
+   "(",
+   "P",
+   "/\\",
+   "Q",
+   ")",
+   "/\\",
+   "R",
+   ")",
+   ")",
+   "/\\",
+   "T",
+   ")",
+   ")",
+   "->",
+   "Q",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "olc"
+    }
+   },
+   {
+    "kind": "archive",
+    "config": {
+     "label": "simp322"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "and",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "detach",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-13",
@@ -10901,7 +13841,48 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "A.",
+   "x",
+   "F",
+   "(",
+   "x",
+   ")",
+   "<->",
+   "-.",
+   "E.",
+   "x",
+   "-.",
+   "F",
+   "(",
+   "x",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "alex"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "pred",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-14",
@@ -11013,7 +13994,50 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "A.",
+   "x",
+   "A.",
+   "y",
+   "F",
+   "(",
+   "x",
+   ")",
+   "->",
+   "A.",
+   "y",
+   "A.",
+   "x",
+   "F",
+   "(",
+   "x",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "ax-11"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "pred",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-15",
@@ -11125,7 +14149,54 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "A.",
+   "x",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "\\/",
+   "Q",
+   ")",
+   "<->",
+   "(",
+   "A.",
+   "x",
+   "F",
+   "(",
+   "x",
+   ")",
+   "\\/",
+   "Q",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "19.31v"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "pred",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-16",
@@ -11237,7 +14308,54 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "E.",
+   "x",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "/\\",
+   "Q",
+   ")",
+   "<->",
+   "E.",
+   "x",
+   "(",
+   "Q",
+   "/\\",
+   "F",
+   "(",
+   "x",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "exancom"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "pred",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-17",
@@ -11349,7 +14467,70 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "E.",
+   "x",
+   "E.",
+   "y",
+   "E.",
+   "z",
+   "(",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "/\\",
+   "Q",
+   ")",
+   "/\\",
+   "R",
+   ")",
+   "<->",
+   "E.",
+   "x",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "/\\",
+   "E.",
+   "y",
+   "(",
+   "Q",
+   "/\\",
+   "E.",
+   "z",
+   "R",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "3exdistr"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "pred",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-18",
@@ -11461,7 +14642,72 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "-.",
+   "(",
+   "E.",
+   "x",
+   "F",
+   "(",
+   "x",
+   ")",
+   "/\\",
+   "E.",
+   "x",
+   "Q",
+   ")",
+   "->",
+   "(",
+   "A.",
+   "x",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "\\/",
+   "Q",
+   ")",
+   "<->",
+   "(",
+   "A.",
+   "x",
+   "F",
+   "(",
+   "x",
+   ")",
+   "\\/",
+   "A.",
+   "x",
+   "Q",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "19.33b"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "pred",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-19",
@@ -11573,7 +14819,58 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "/\\",
+   "Q",
+   ")",
+   "/\\",
+   "R",
+   ")",
+   "<->",
+   "(",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "/\\",
+   "R",
+   ")",
+   "/\\",
+   "Q",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "3anan32"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "pred",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-20",
@@ -11685,7 +14982,53 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "-.",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "/\\",
+   "Q",
+   ")",
+   "->",
+   "(",
+   "-.",
+   "F",
+   "(",
+   "x",
+   ")",
+   "\\/",
+   "-.",
+   "Q",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "pm3.13"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "pred",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-21",
@@ -11797,7 +15140,54 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "-.",
+   "(",
+   "-.",
+   "F",
+   "(",
+   "x",
+   ")",
+   "->",
+   "-.",
+   "Q",
+   ")",
+   "<->",
+   "(",
+   "-.",
+   "F",
+   "(",
+   "x",
+   ")",
+   "/\\",
+   "Q",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "pm4.67"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "pred",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-22",
@@ -11909,7 +15299,58 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "R",
+   "/\\",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "->",
+   "Q",
+   ")",
+   ")",
+   "->",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "->",
+   "(",
+   "R",
+   "/\\",
+   "Q",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "pm5.31r"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "pred",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-23",
@@ -12021,7 +15462,58 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "(",
+   "(",
+   "R",
+   "/\\",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "/\\",
+   "Q",
+   ")",
+   ")",
+   "/\\",
+   "S",
+   ")",
+   "/\\",
+   "T",
+   ")",
+   "->",
+   "F",
+   "(",
+   "x",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "simpl2l"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "pred",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-24",
@@ -12133,7 +15625,55 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "->",
+   "Q",
+   ")",
+   "->",
+   "(",
+   "(",
+   "-.",
+   "F",
+   "(",
+   "x",
+   ")",
+   "->",
+   "Q",
+   ")",
+   "->",
+   "Q",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "pm2.61"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "pred",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-25",
@@ -12245,7 +15785,62 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "(",
+   "T",
+   "/\\",
+   "U",
+   ")",
+   "/\\",
+   "(",
+   "S",
+   "/\\",
+   "(",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "/\\",
+   "Q",
+   ")",
+   "/\\",
+   "R",
+   ")",
+   ")",
+   ")",
+   "->",
+   "F",
+   "(",
+   "x",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "simp3r1"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "pred",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-26",
@@ -12357,7 +15952,56 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "E.",
+   "x",
+   "F",
+   "(",
+   "x",
+   ")",
+   "/\\",
+   "A.",
+   "x",
+   "Q",
+   ")",
+   "->",
+   "E.",
+   "x",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "/\\",
+   "Q",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "19.29r"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "pred",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-27",
@@ -12469,7 +16113,65 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "\\/",
+   "(",
+   "Q",
+   "->",
+   "R",
+   ")",
+   ")",
+   "<->",
+   "(",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "\\/",
+   "Q",
+   ")",
+   "->",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "\\/",
+   "R",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "orimdi"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "pred",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-28",
@@ -12581,7 +16283,66 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "/\\",
+   "Q",
+   ")",
+   "/\\",
+   "(",
+   "R",
+   "/\\",
+   "S",
+   ")",
+   ")",
+   "<->",
+   "(",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "/\\",
+   "S",
+   ")",
+   "/\\",
+   "(",
+   "Q",
+   "/\\",
+   "R",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "an43"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "pred",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-29",
@@ -12693,7 +16454,66 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "/\\",
+   "(",
+   "(",
+   "Q",
+   "/\\",
+   "R",
+   ")",
+   "/\\",
+   "S",
+   ")",
+   ")",
+   "<->",
+   "(",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "/\\",
+   "Q",
+   ")",
+   "/\\",
+   "(",
+   "R",
+   "/\\",
+   "S",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "13an22anassOLD"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "pred",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-30",
@@ -12805,7 +16625,58 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "A.",
+   "x",
+   "A.",
+   "y",
+   "A.",
+   "z",
+   "A.",
+   "w",
+   "F",
+   "(",
+   "x",
+   ")",
+   "<->",
+   "A.",
+   "z",
+   "A.",
+   "w",
+   "A.",
+   "x",
+   "A.",
+   "y",
+   "F",
+   "(",
+   "x",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "alrot4"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "pred",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-31",
@@ -12937,7 +16808,59 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "A.",
+   "x",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "<->",
+   "(",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "\\/",
+   "Q",
+   ")",
+   "/\\",
+   "F",
+   "(",
+   "x",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "orabs"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "pred",
+    "config": {}
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-32",
@@ -13069,7 +16992,65 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "A.",
+   "x",
+   "(",
+   "-.",
+   "R",
+   "->",
+   "(",
+   "(",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "\\/",
+   "Q",
+   ")",
+   "\\/",
+   "R",
+   ")",
+   "->",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "\\/",
+   "Q",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "3orel3"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "pred",
+    "config": {}
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-33",
@@ -13201,7 +17182,64 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "A.",
+   "x",
+   "(",
+   "(",
+   "T",
+   "/\\",
+   "(",
+   "(",
+   "R",
+   "/\\",
+   "S",
+   ")",
+   "/\\",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "/\\",
+   "Q",
+   ")",
+   ")",
+   ")",
+   "->",
+   "F",
+   "(",
+   "x",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "simpr3l"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "pred",
+    "config": {}
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-34",
@@ -13333,7 +17371,68 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "A.",
+   "x",
+   "(",
+   "(",
+   "(",
+   "T",
+   "/\\",
+   "(",
+   "(",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "/\\",
+   "Q",
+   ")",
+   "/\\",
+   "R",
+   ")",
+   "/\\",
+   "S",
+   ")",
+   ")",
+   "/\\",
+   "U",
+   ")",
+   "->",
+   "F",
+   "(",
+   "x",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "simp21l"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "pred",
+    "config": {}
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-35",
@@ -13465,7 +17564,66 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "A.",
+   "x",
+   "(",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "->",
+   "(",
+   "Q",
+   "->",
+   "R",
+   ")",
+   ")",
+   "->",
+   "(",
+   "-.",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "->",
+   "-.",
+   "Q",
+   ")",
+   "->",
+   "R",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "impt"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "pred",
+    "config": {}
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-36",
@@ -13597,7 +17755,67 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "A.",
+   "x",
+   "(",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "/\\",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "<->",
+   "Q",
+   ")",
+   ")",
+   "<->",
+   "(",
+   "Q",
+   "/\\",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "<->",
+   "Q",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "pm5.36"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "pred",
+    "config": {}
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-37",
@@ -13729,7 +17947,71 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "A.",
+   "x",
+   "(",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "\\/",
+   "Q",
+   ")",
+   "->",
+   "(",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "\\/",
+   "(",
+   "Q",
+   "->",
+   "R",
+   ")",
+   ")",
+   "->",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "\\/",
+   "R",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "pm2.75"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "pred",
+    "config": {}
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-38",
@@ -13861,7 +18143,71 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "A.",
+   "x",
+   "(",
+   "(",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "/\\",
+   "Q",
+   ")",
+   "/\\",
+   "R",
+   ")",
+   "<->",
+   "(",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "/\\",
+   "Q",
+   ")",
+   "/\\",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "/\\",
+   "R",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "anandi3"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "pred",
+    "config": {}
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-39",
@@ -13993,7 +18339,72 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "A.",
+   "x",
+   "(",
+   "(",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "/\\",
+   "Q",
+   ")",
+   "/\\",
+   "(",
+   "R",
+   "/\\",
+   "S",
+   ")",
+   ")",
+   "<->",
+   "(",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "/\\",
+   "R",
+   ")",
+   "/\\",
+   "(",
+   "S",
+   "/\\",
+   "Q",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "an42"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "pred",
+    "config": {}
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-40",
@@ -14125,7 +18536,76 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "A.",
+   "x",
+   "(",
+   "(",
+   "Q",
+   "->",
+   "F",
+   "(",
+   "x",
+   ")",
+   ")",
+   "->",
+   "(",
+   "(",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "->",
+   "R",
+   ")",
+   "->",
+   "(",
+   "Q",
+   "->",
+   "S",
+   ")",
+   ")",
+   "<->",
+   "(",
+   "Q",
+   "->",
+   "(",
+   "R",
+   "->",
+   "S",
+   ")",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "imim21b"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "pred",
+    "config": {}
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-41",
@@ -14277,7 +18757,61 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "-.",
+   "F",
+   "(",
+   "a",
+   ")",
+   "->",
+   "-.",
+   "Q",
+   ")",
+   "<->",
+   "(",
+   "F",
+   "(",
+   "a",
+   ")",
+   "\\/",
+   "-.",
+   "Q",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "pm4.66"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "pred",
+    "config": {}
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-42",
@@ -14429,7 +18963,63 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "F",
+   "(",
+   "a",
+   ")",
+   "\\/",
+   "Q",
+   ")",
+   "->",
+   "(",
+   "(",
+   "-.",
+   "F",
+   "(",
+   "a",
+   ")",
+   "\\/",
+   "Q",
+   ")",
+   "->",
+   "Q",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "pm2.63"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "pred",
+    "config": {}
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-43",
@@ -14581,7 +19171,60 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "F",
+   "(",
+   "a",
+   ")",
+   "/\\",
+   "-.",
+   "Q",
+   ")",
+   "<->",
+   "-.",
+   "(",
+   "F",
+   "(",
+   "a",
+   ")",
+   "->",
+   "Q",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "annim"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "pred",
+    "config": {}
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-44",
@@ -14733,7 +19376,66 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "(",
+   "S",
+   "/\\",
+   "(",
+   "(",
+   "F",
+   "(",
+   "a",
+   ")",
+   "/\\",
+   "Q",
+   ")",
+   "/\\",
+   "R",
+   ")",
+   ")",
+   "/\\",
+   "T",
+   ")",
+   "->",
+   "F",
+   "(",
+   "a",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "simp2ll"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "pred",
+    "config": {}
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-45",
@@ -14885,7 +19587,70 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "(",
+   "T",
+   "/\\",
+   "U",
+   ")",
+   "/\\",
+   "(",
+   "(",
+   "(",
+   "F",
+   "(",
+   "a",
+   ")",
+   "/\\",
+   "Q",
+   ")",
+   "/\\",
+   "R",
+   ")",
+   "/\\",
+   "S",
+   ")",
+   ")",
+   "->",
+   "F",
+   "(",
+   "a",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "simp31l"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "pred",
+    "config": {}
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-46",
@@ -15037,7 +19802,70 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "(",
+   "F",
+   "(",
+   "a",
+   ")",
+   "/\\",
+   "Q",
+   ")",
+   "/\\",
+   "R",
+   ")",
+   "<->",
+   "-.",
+   "(",
+   "(",
+   "-.",
+   "F",
+   "(",
+   "a",
+   ")",
+   "\\/",
+   "-.",
+   "Q",
+   ")",
+   "\\/",
+   "-.",
+   "R",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "3anor"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "pred",
+    "config": {}
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-47",
@@ -15189,7 +20017,62 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "F",
+   "(",
+   "a",
+   ")",
+   "->",
+   "(",
+   "hadd",
+   "(",
+   "P",
+   ",",
+   "Q",
+   ",",
+   "R",
+   ")",
+   "<->",
+   "(",
+   "Q",
+   "<->",
+   "R",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "had1OLD"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "pred",
+    "config": {}
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-48",
@@ -15341,7 +20224,69 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "(",
+   "F",
+   "(",
+   "a",
+   ")",
+   "->",
+   "Q",
+   ")",
+   "->",
+   "Q",
+   ")",
+   "->",
+   "(",
+   "(",
+   "Q",
+   "->",
+   "F",
+   "(",
+   "a",
+   ")",
+   ")",
+   "->",
+   "F",
+   "(",
+   "a",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "looinv"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "pred",
+    "config": {}
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-49",
@@ -15493,7 +20438,73 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "F",
+   "(",
+   "a",
+   ")",
+   "/\\",
+   "(",
+   "Q",
+   "/\\",
+   "R",
+   ")",
+   ")",
+   "<->",
+   "(",
+   "(",
+   "F",
+   "(",
+   "a",
+   ")",
+   "/\\",
+   "Q",
+   ")",
+   "/\\",
+   "(",
+   "F",
+   "(",
+   "a",
+   ")",
+   "/\\",
+   "R",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "anandi"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "pred",
+    "config": {}
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-50",
@@ -15645,7 +20656,73 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "F",
+   "(",
+   "a",
+   ")",
+   "\\/",
+   "(",
+   "Q",
+   "/\\",
+   "R",
+   ")",
+   ")",
+   "<->",
+   "(",
+   "(",
+   "F",
+   "(",
+   "a",
+   ")",
+   "\\/",
+   "Q",
+   ")",
+   "/\\",
+   "(",
+   "F",
+   "(",
+   "a",
+   ")",
+   "\\/",
+   "R",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "ordi"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "pred",
+    "config": {}
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-51",
@@ -15884,7 +20961,61 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "-.",
+   "(",
+   "(",
+   "Z",
+   "->",
+   "A",
+   ")",
+   "->",
+   "(",
+   "B",
+   "/\\",
+   "C",
+   ")",
+   ")",
+   "->",
+   "(",
+   "R",
+   "->",
+   "(",
+   "Z",
+   "->",
+   "A",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "pm2.521g2"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "and",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-52",
@@ -16123,7 +21254,64 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "(",
+   "(",
+   "(",
+   "B",
+   "->",
+   "C",
+   ")",
+   "/\\",
+   "(",
+   "T",
+   "/\\",
+   "U",
+   ")",
+   ")",
+   "/\\",
+   "R",
+   ")",
+   "/\\",
+   "S",
+   ")",
+   "->",
+   "(",
+   "T",
+   "/\\",
+   "U",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "simpllr"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "and",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-53",
@@ -16362,7 +21550,64 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "(",
+   "S",
+   "/\\",
+   "(",
+   "(",
+   "(",
+   "U",
+   "->",
+   "V",
+   ")",
+   "/\\",
+   "(",
+   "W",
+   "/\\",
+   "X",
+   ")",
+   ")",
+   "/\\",
+   "R",
+   ")",
+   ")",
+   "/\\",
+   "T",
+   ")",
+   "->",
+   "R",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "simplr3"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "and",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-54",
@@ -16601,7 +21846,72 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "(",
+   "T",
+   "/\\",
+   "U",
+   ")",
+   "/\\",
+   "(",
+   "(",
+   "(",
+   "(",
+   "V",
+   "->",
+   "W",
+   ")",
+   "/\\",
+   "(",
+   "X",
+   "/\\",
+   "Y",
+   ")",
+   ")",
+   "/\\",
+   "R",
+   ")",
+   "/\\",
+   "S",
+   ")",
+   ")",
+   "->",
+   "(",
+   "V",
+   "->",
+   "W",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "simp3l1"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "and",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-55",
@@ -16840,7 +22150,67 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "-.",
+   "(",
+   "(",
+   "C",
+   "->",
+   "R",
+   ")",
+   "\\/",
+   "(",
+   "S",
+   "/\\",
+   "T",
+   ")",
+   ")",
+   "->",
+   "(",
+   "-.",
+   "(",
+   "C",
+   "->",
+   "R",
+   ")",
+   "\\/",
+   "-.",
+   "(",
+   "S",
+   "/\\",
+   "T",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "pm2.49"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "and",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-56",
@@ -17079,7 +22449,73 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "(",
+   "S",
+   "->",
+   "T",
+   ")",
+   "\\/",
+   "(",
+   "U",
+   "/\\",
+   "V",
+   ")",
+   ")",
+   "->",
+   "(",
+   "(",
+   "-.",
+   "(",
+   "U",
+   "/\\",
+   "V",
+   ")",
+   "\\/",
+   "R",
+   ")",
+   "->",
+   "(",
+   "(",
+   "S",
+   "->",
+   "T",
+   ")",
+   "\\/",
+   "R",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "pm2.8"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "and",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-57",
@@ -17318,7 +22754,72 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "(",
+   "(",
+   "A",
+   "->",
+   "B",
+   ")",
+   "/\\",
+   "(",
+   "C",
+   "/\\",
+   "S",
+   ")",
+   ")",
+   "->",
+   "R",
+   ")",
+   "->",
+   "(",
+   "(",
+   "A",
+   "->",
+   "B",
+   ")",
+   "->",
+   "(",
+   "(",
+   "C",
+   "/\\",
+   "S",
+   ")",
+   "->",
+   "R",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "pm3.3"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "and",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-58",
@@ -17557,7 +23058,78 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "A.",
+   "x",
+   "(",
+   "(",
+   "Y",
+   "->",
+   "Z",
+   ")",
+   "->",
+   "(",
+   "A",
+   "/\\",
+   "B",
+   ")",
+   ")",
+   "/\\",
+   "A.",
+   "x",
+   "(",
+   "(",
+   "A",
+   "/\\",
+   "B",
+   ")",
+   "->",
+   "R",
+   ")",
+   ")",
+   "->",
+   "A.",
+   "x",
+   "(",
+   "(",
+   "Y",
+   "->",
+   "Z",
+   ")",
+   "->",
+   "R",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "alsyl"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "and",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-59",
@@ -17796,7 +23368,96 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "(",
+   "(",
+   "(",
+   "T",
+   "->",
+   "U",
+   ")",
+   "->",
+   "(",
+   "V",
+   "/\\",
+   "W",
+   ")",
+   ")",
+   "/\\",
+   "(",
+   "R",
+   "->",
+   "(",
+   "V",
+   "/\\",
+   "W",
+   ")",
+   ")",
+   ")",
+   "/\\",
+   "(",
+   "S",
+   "->",
+   "(",
+   "V",
+   "/\\",
+   "W",
+   ")",
+   ")",
+   ")",
+   "->",
+   "(",
+   "(",
+   "(",
+   "(",
+   "T",
+   "->",
+   "U",
+   ")",
+   "\\/",
+   "R",
+   ")",
+   "\\/",
+   "S",
+   ")",
+   "->",
+   "(",
+   "V",
+   "/\\",
+   "W",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "3jao"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "and",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH2-60",
@@ -18035,7 +23696,100 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "(",
+   "(",
+   "R",
+   "->",
+   "S",
+   ")",
+   "/\\",
+   "(",
+   "T",
+   "/\\",
+   "U",
+   ")",
+   ")",
+   "\\/",
+   "(",
+   "-.",
+   "(",
+   "R",
+   "->",
+   "S",
+   ")",
+   "/\\",
+   "-.",
+   "(",
+   "T",
+   "/\\",
+   "U",
+   ")",
+   ")",
+   ")",
+   "\\/",
+   "(",
+   "(",
+   "(",
+   "R",
+   "->",
+   "S",
+   ")",
+   "/\\",
+   "-.",
+   "(",
+   "T",
+   "/\\",
+   "U",
+   ")",
+   ")",
+   "\\/",
+   "(",
+   "(",
+   "T",
+   "/\\",
+   "U",
+   ")",
+   "/\\",
+   "-.",
+   "(",
+   "R",
+   "->",
+   "S",
+   ")",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "4exmid"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "and",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-13",
@@ -18127,7 +23881,44 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "A.",
+   "y",
+   "A.",
+   "x",
+   "(",
+   "A.",
+   "z",
+   "(",
+   "z",
+   "=",
+   "x",
+   "<->",
+   "z",
+   "=",
+   "y",
+   ")",
+   "->",
+   "x",
+   "=",
+   "y",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "equvel"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-14",
@@ -18238,7 +24029,44 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "A.",
+   "z",
+   "A.",
+   "y",
+   "A.",
+   "x",
+   "(",
+   "x",
+   "=",
+   "y",
+   "->",
+   "(",
+   "x",
+   "e.",
+   "z",
+   "->",
+   "y",
+   "e.",
+   "z",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "ax8"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-15",
@@ -18349,7 +24177,44 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "A.",
+   "z",
+   "A.",
+   "y",
+   "A.",
+   "x",
+   "(",
+   "x",
+   "=",
+   "y",
+   "->",
+   "(",
+   "x",
+   "=",
+   "z",
+   "<->",
+   "y",
+   "=",
+   "z",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "equequ1"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-16",
@@ -18477,7 +24342,50 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "A.",
+   "y",
+   "y",
+   "=",
+   "x",
+   "->",
+   "(",
+   "A.",
+   "x",
+   "-.",
+   "R",
+   "->",
+   "A.",
+   "y",
+   "-.",
+   "R",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "axc11r"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "not",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-17",
@@ -18624,7 +24532,54 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "A.",
+   "x",
+   "x",
+   "=",
+   "y",
+   "->",
+   "(",
+   "(",
+   "Q",
+   "->",
+   "R",
+   ")",
+   "->",
+   "A.",
+   "x",
+   "(",
+   "Q",
+   "->",
+   "R",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "axc16"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-18",
@@ -18771,7 +24726,60 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "E.",
+   "x",
+   "A.",
+   "y",
+   "(",
+   "(",
+   "T",
+   "\\/",
+   "U",
+   ")",
+   "->",
+   "Q",
+   ")",
+   "<->",
+   "A.",
+   "y",
+   "E.",
+   "x",
+   "(",
+   "(",
+   "T",
+   "\\/",
+   "U",
+   ")",
+   "->",
+   "Q",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "19.12vvv"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "or",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-19",
@@ -18844,7 +24852,48 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "A.",
+   "x",
+   "x",
+   "=",
+   "y",
+   "->",
+   "(",
+   "(",
+   "P",
+   "->",
+   "A.",
+   "z",
+   "P",
+   ")",
+   "/\\",
+   "(",
+   "A.",
+   "z",
+   "P",
+   "->",
+   "P",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "axc16gb"
+    }
+   },
+   {
+    "kind": "replace",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-20",
@@ -18917,7 +24966,60 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "E.",
+   "x",
+   "(",
+   "P",
+   "\\/",
+   "Q",
+   ")",
+   "->",
+   "(",
+   "E.",
+   "x",
+   "P",
+   "\\/",
+   "Q",
+   ")",
+   ")",
+   "/\\",
+   "(",
+   "(",
+   "E.",
+   "x",
+   "P",
+   "\\/",
+   "Q",
+   ")",
+   "->",
+   "E.",
+   "x",
+   "(",
+   "P",
+   "\\/",
+   "Q",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "19.44v"
+    }
+   },
+   {
+    "kind": "replace",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-21",
@@ -18990,7 +25092,67 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "-.",
+   "A.",
+   "x",
+   "x",
+   "=",
+   "y",
+   "/\\",
+   "x",
+   "=",
+   "y",
+   ")",
+   "->",
+   "(",
+   "(",
+   "P",
+   "->",
+   "A.",
+   "x",
+   "(",
+   "x",
+   "=",
+   "y",
+   "->",
+   "P",
+   ")",
+   ")",
+   "/\\",
+   "(",
+   "A.",
+   "x",
+   "(",
+   "x",
+   "=",
+   "y",
+   "->",
+   "P",
+   ")",
+   "->",
+   "P",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "ax12b"
+    }
+   },
+   {
+    "kind": "replace",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-22",
@@ -19063,7 +25225,44 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "A.",
+   "x",
+   "(",
+   "x",
+   "=",
+   "y",
+   "->",
+   "(",
+   "P",
+   "->",
+   "A.",
+   "x",
+   "(",
+   "x",
+   "=",
+   "y",
+   "->",
+   "P",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "ax12v"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-23",
@@ -19191,7 +25390,40 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "E.",
+   "x",
+   "-.",
+   "B",
+   "<->",
+   "-.",
+   "B",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "19.9v"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "not",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-24",
@@ -19319,7 +25551,42 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "E.",
+   "x",
+   "(",
+   "-.",
+   "W",
+   "->",
+   "A.",
+   "x",
+   "-.",
+   "W",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "qexmid"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "not",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-25",
@@ -19466,7 +25733,50 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "A.",
+   "x",
+   "(",
+   "X",
+   "/\\",
+   "Y",
+   ")",
+   "->",
+   "A.",
+   "x",
+   "A.",
+   "x",
+   "(",
+   "X",
+   "/\\",
+   "Y",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "hba1"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "and",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-26",
@@ -19613,7 +25923,56 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "E.",
+   "x",
+   "(",
+   "(",
+   "U",
+   "<->",
+   "V",
+   ")",
+   "\\/",
+   "Q",
+   ")",
+   "<->",
+   "(",
+   "E.",
+   "x",
+   "(",
+   "U",
+   "<->",
+   "V",
+   ")",
+   "\\/",
+   "Q",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "19.44v"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "iff",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-27",
@@ -19760,7 +26119,56 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "A.",
+   "y",
+   "y",
+   "=",
+   "x",
+   "->",
+   "(",
+   "A.",
+   "x",
+   "(",
+   "Z",
+   "<->",
+   "A",
+   ")",
+   "->",
+   "A.",
+   "y",
+   "(",
+   "Z",
+   "<->",
+   "A",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "axc11r"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "iff",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-28",
@@ -19907,7 +26315,60 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "E.",
+   "x",
+   "A.",
+   "y",
+   "(",
+   "(",
+   "Y",
+   "\\/",
+   "Z",
+   ")",
+   "->",
+   "Q",
+   ")",
+   "<->",
+   "A.",
+   "y",
+   "E.",
+   "x",
+   "(",
+   "(",
+   "Y",
+   "\\/",
+   "Z",
+   ")",
+   "->",
+   "Q",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "19.12vv"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "or",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-29",
@@ -20054,7 +26515,60 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "x",
+   "=",
+   "y",
+   "->",
+   "(",
+   "A.",
+   "y",
+   "(",
+   "V",
+   "->",
+   "W",
+   ")",
+   "->",
+   "A.",
+   "x",
+   "(",
+   "x",
+   "=",
+   "y",
+   "->",
+   "(",
+   "V",
+   "->",
+   "W",
+   ")",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "ax-12"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-30",
@@ -20201,7 +26715,69 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "-.",
+   "A.",
+   "x",
+   "x",
+   "=",
+   "y",
+   "->",
+   "(",
+   "E.",
+   "x",
+   "(",
+   "x",
+   "=",
+   "y",
+   "/\\",
+   "(",
+   "A",
+   "->",
+   "B",
+   ")",
+   ")",
+   "<->",
+   "A.",
+   "x",
+   "(",
+   "x",
+   "=",
+   "y",
+   "->",
+   "(",
+   "A",
+   "->",
+   "B",
+   ")",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "equs5"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-31",
@@ -20294,7 +26870,36 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "a",
+   "=",
+   "y",
+   "->",
+   "y",
+   "=",
+   "a",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "equcomiv"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-32",
@@ -20387,7 +26992,42 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "A.",
+   "x",
+   "x",
+   "=",
+   "a",
+   "->",
+   "(",
+   "P",
+   "->",
+   "A.",
+   "x",
+   "P",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "axc16"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-33",
@@ -20480,7 +27120,42 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "A.",
+   "x",
+   "x",
+   "=",
+   "b",
+   "->",
+   "(",
+   "P",
+   "->",
+   "A.",
+   "x",
+   "P",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "axc16"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-34",
@@ -20573,7 +27248,42 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "a",
+   "=",
+   "z",
+   "->",
+   "(",
+   "y",
+   "=",
+   "z",
+   "->",
+   "y",
+   "=",
+   "a",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "equeuclr"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-35",
@@ -20666,7 +27376,40 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "A.",
+   "x",
+   "x",
+   "=",
+   "a",
+   "->",
+   "A.",
+   "z",
+   "t",
+   "=",
+   "u",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "aev"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-36",
@@ -20759,7 +27502,42 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "a",
+   "=",
+   "y",
+   "->",
+   "(",
+   "a",
+   "e.",
+   "z",
+   "->",
+   "y",
+   "e.",
+   "z",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "ax8v"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-37",
@@ -20852,7 +27630,42 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "a",
+   "=",
+   "y",
+   "->",
+   "(",
+   "z",
+   "e.",
+   "a",
+   "->",
+   "z",
+   "e.",
+   "y",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "ax9v"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-38",
@@ -20945,7 +27758,42 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "A.",
+   "x",
+   "(",
+   "x",
+   "=",
+   "a",
+   "->",
+   "P",
+   ")",
+   "->",
+   "E.",
+   "x",
+   "P",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "alequexv"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-39",
@@ -21038,7 +27886,40 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "-.",
+   "A.",
+   "x",
+   "(",
+   "x",
+   "e.",
+   "a",
+   "<->",
+   "-.",
+   "x",
+   "e.",
+   "x",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "ru0"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-40",
@@ -21131,7 +28012,44 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "A.",
+   "x",
+   "x",
+   "=",
+   "a",
+   "->",
+   "(",
+   "A.",
+   "x",
+   "P",
+   "->",
+   "A.",
+   "y",
+   "P",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "axc11"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-41",
@@ -21224,7 +28142,40 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "E.",
+   "z",
+   "E.",
+   "w",
+   "(",
+   "z",
+   "=",
+   "a",
+   "/\\",
+   "w",
+   "=",
+   "y",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "2ax6e"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-42",
@@ -21317,7 +28268,45 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "-.",
+   "a",
+   "=",
+   "y",
+   "->",
+   "(",
+   "E.",
+   "x",
+   "z",
+   "=",
+   "y",
+   "->",
+   "z",
+   "=",
+   "y",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "ax13lem2"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-43",
@@ -21410,7 +28399,44 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "A.",
+   "z",
+   "(",
+   "z",
+   "=",
+   "a",
+   "->",
+   "z",
+   "=",
+   "y",
+   ")",
+   "<->",
+   "a",
+   "=",
+   "y",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "equvelv"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-44",
@@ -21503,7 +28529,44 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "A.",
+   "z",
+   "(",
+   "z",
+   "=",
+   "b",
+   "->",
+   "z",
+   "=",
+   "y",
+   ")",
+   "<->",
+   "b",
+   "=",
+   "y",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "equvelv"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-45",
@@ -21596,7 +28659,48 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "A.",
+   "x",
+   "(",
+   "x",
+   "=",
+   "a",
+   "->",
+   "P",
+   ")",
+   "->",
+   "E.",
+   "x",
+   "(",
+   "x",
+   "=",
+   "a",
+   "/\\",
+   "P",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "equs4"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-46",
@@ -21689,7 +28793,50 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "E.",
+   "x",
+   "(",
+   "x",
+   "=",
+   "a",
+   "/\\",
+   "A.",
+   "y",
+   "P",
+   ")",
+   "->",
+   "A.",
+   "x",
+   "(",
+   "x",
+   "=",
+   "a",
+   "->",
+   "P",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "equs5aALT"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-47",
@@ -21782,7 +28929,50 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "E.",
+   "x",
+   "(",
+   "x",
+   "=",
+   "a",
+   "/\\",
+   "P",
+   ")",
+   "->",
+   "A.",
+   "x",
+   "(",
+   "x",
+   "=",
+   "a",
+   "->",
+   "E.",
+   "y",
+   "P",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "equs5e"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-48",
@@ -21875,7 +29065,50 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "E.",
+   "x",
+   "(",
+   "x",
+   "=",
+   "b",
+   "/\\",
+   "P",
+   ")",
+   "->",
+   "A.",
+   "x",
+   "(",
+   "x",
+   "=",
+   "b",
+   "->",
+   "E.",
+   "y",
+   "P",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "equs5e"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-49",
@@ -22006,7 +29239,36 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "a",
+   "=",
+   "b",
+   "<->",
+   "b",
+   "=",
+   "a",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "equcom"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-50",
@@ -22137,7 +29399,42 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "a",
+   "=",
+   "b",
+   "->",
+   "(",
+   "a",
+   "e.",
+   "z",
+   "->",
+   "b",
+   "e.",
+   "z",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "ax8v"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-51",
@@ -22268,7 +29565,42 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "a",
+   "=",
+   "b",
+   "->",
+   "(",
+   "z",
+   "e.",
+   "a",
+   "->",
+   "z",
+   "e.",
+   "b",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "ax-9"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-52",
@@ -22399,7 +29731,40 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "A.",
+   "x",
+   "x",
+   "=",
+   "b",
+   "<->",
+   "A.",
+   "y",
+   "y",
+   "=",
+   "a",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "aecom"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-53",
@@ -22530,7 +29895,42 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "a",
+   "=",
+   "b",
+   "->",
+   "(",
+   "a",
+   "=",
+   "z",
+   "->",
+   "b",
+   "=",
+   "z",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "ax7v"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-54",
@@ -22661,7 +30061,42 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "a",
+   "=",
+   "b",
+   "->",
+   "(",
+   "z",
+   "e.",
+   "a",
+   "<->",
+   "z",
+   "e.",
+   "b",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "elequ2"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-55",
@@ -22792,7 +30227,42 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "a",
+   "=",
+   "b",
+   "->",
+   "(",
+   "a",
+   "=",
+   "z",
+   "<->",
+   "b",
+   "=",
+   "z",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "equequ1"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-56",
@@ -22923,7 +30393,46 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "E.",
+   "x",
+   "(",
+   "x",
+   "=",
+   "b",
+   "/\\",
+   "P",
+   ")",
+   "->",
+   "(",
+   "a",
+   "=",
+   "b",
+   "->",
+   "P",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "ax12ev2"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-57",
@@ -23054,7 +30563,45 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "-.",
+   "a",
+   "=",
+   "b",
+   "->",
+   "(",
+   "z",
+   "=",
+   "b",
+   "->",
+   "A.",
+   "x",
+   "z",
+   "=",
+   "b",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "ax13lem1"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-58",
@@ -23185,7 +30732,47 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "-.",
+   "A.",
+   "x",
+   "x",
+   "=",
+   "a",
+   "->",
+   "(",
+   "b",
+   "e.",
+   "a",
+   "->",
+   "A.",
+   "x",
+   "b",
+   "e.",
+   "a",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "dveel2"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-59",
@@ -23316,7 +30903,56 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "-.",
+   "A.",
+   "z",
+   "z",
+   "=",
+   "a",
+   "->",
+   "(",
+   "-.",
+   "A.",
+   "z",
+   "z",
+   "=",
+   "b",
+   "->",
+   "(",
+   "a",
+   "=",
+   "b",
+   "->",
+   "A.",
+   "z",
+   "a",
+   "=",
+   "b",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "axc9"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH3-60",
@@ -23447,7 +31083,65 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "-.",
+   "a",
+   "=",
+   "b",
+   "->",
+   "(",
+   "b",
+   "=",
+   "z",
+   "->",
+   "P",
+   ")",
+   ")",
+   "<->",
+   "(",
+   "-.",
+   "a",
+   "=",
+   "b",
+   "->",
+   "(",
+   "-.",
+   "a",
+   "=",
+   "z",
+   "->",
+   "(",
+   "b",
+   "=",
+   "z",
+   "->",
+   "P",
+   ")",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "ax13b"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-13",
@@ -23520,7 +31214,28 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "A.",
+   "x",
+   "x",
+   "e.",
+   "V"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "vex"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-14",
@@ -23593,7 +31308,29 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "A.",
+   "x",
+   "-.",
+   "x",
+   "=",
+   "V"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "vneqv"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-15",
@@ -23666,7 +31403,28 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "A.",
+   "x",
+   "Fin4",
+   "=",
+   "Fin"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "fin41"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-16",
@@ -23739,7 +31497,40 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "-.",
+   "(",
+   "A",
+   "=",
+   "B",
+   "->",
+   "-.",
+   "A",
+   "=",
+   "C",
+   ")",
+   "->",
+   "B",
+   "=",
+   "C",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "eqtr2"
+    }
+   },
+   {
+    "kind": "replace",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-17",
@@ -23812,7 +31603,41 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "-.",
+   "-.",
+   "(",
+   "(",
+   "A",
+   "e.",
+   "B",
+   "/\\",
+   "B",
+   "e.",
+   "C",
+   ")",
+   "->",
+   "-.",
+   "C",
+   "e.",
+   "A",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "en3lp"
+    }
+   },
+   {
+    "kind": "replace",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-18",
@@ -23885,7 +31710,41 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "-.",
+   "A.",
+   "x",
+   "-.",
+   "A.",
+   "y",
+   "(",
+   "A.",
+   "z",
+   "-.",
+   "z",
+   "e.",
+   "y",
+   "->",
+   "y",
+   "e.",
+   "x",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "axprlem1"
+    }
+   },
+   {
+    "kind": "replace",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-19",
@@ -23958,7 +31817,46 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "A.",
+   "z",
+   "E.",
+   "x",
+   "A.",
+   "y",
+   "(",
+   "E.",
+   "x",
+   "(",
+   "y",
+   "e.",
+   "x",
+   "/\\",
+   "x",
+   "e.",
+   "z",
+   ")",
+   "->",
+   "y",
+   "e.",
+   "x",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "axunnd"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-20",
@@ -24031,7 +31929,52 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "-.",
+   "(",
+   "A",
+   "e.",
+   "On",
+   "->",
+   "-.",
+   "B",
+   "e.",
+   "On",
+   ")",
+   "->",
+   "(",
+   "(",
+   "A",
+   "e.",
+   "B",
+   "\\/",
+   "B",
+   "e.",
+   "A",
+   ")",
+   "\\/",
+   "A",
+   "=",
+   "B",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "oneltri"
+    }
+   },
+   {
+    "kind": "replace",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-21",
@@ -24123,7 +32066,46 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "A.",
+   "y",
+   "A.",
+   "x",
+   "E.",
+   "z",
+   "A.",
+   "w",
+   "(",
+   "(",
+   "w",
+   "=",
+   "x",
+   "\\/",
+   "w",
+   "=",
+   "y",
+   ")",
+   "->",
+   "w",
+   "e.",
+   "z",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "ax-pr"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-22",
@@ -24196,7 +32178,78 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "E.",
+   "x",
+   "A.",
+   "y",
+   "A.",
+   "z",
+   "(",
+   "A.",
+   "x",
+   "(",
+   "y",
+   "e.",
+   "z",
+   "/\\",
+   "z",
+   "e.",
+   "w",
+   ")",
+   "->",
+   "E.",
+   "w",
+   "A.",
+   "y",
+   "(",
+   "E.",
+   "w",
+   "(",
+   "(",
+   "y",
+   "e.",
+   "z",
+   "/\\",
+   "z",
+   "e.",
+   "w",
+   ")",
+   "/\\",
+   "-.",
+   "(",
+   "y",
+   "e.",
+   "w",
+   "->",
+   "-.",
+   "w",
+   "e.",
+   "x",
+   ")",
+   ")",
+   "<->",
+   "y",
+   "=",
+   "w",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "axacnd"
+    }
+   },
+   {
+    "kind": "replace",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-23",
@@ -24343,7 +32396,72 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "E.",
+   "x",
+   "(",
+   "E.",
+   "y",
+   "A.",
+   "z",
+   "(",
+   "(",
+   "X",
+   "/\\",
+   "Y",
+   ")",
+   "->",
+   "z",
+   "=",
+   "y",
+   ")",
+   "->",
+   "A.",
+   "z",
+   "(",
+   "z",
+   "e.",
+   "x",
+   "<->",
+   "E.",
+   "x",
+   "(",
+   "x",
+   "e.",
+   "y",
+   "/\\",
+   "(",
+   "X",
+   "/\\",
+   "Y",
+   ")",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "axrep1"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {}
+   },
+   {
+    "kind": "and",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-24",
@@ -24416,7 +32534,58 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "E.",
+   "x",
+   "(",
+   "y",
+   "e.",
+   "z",
+   "->",
+   "-.",
+   "(",
+   "y",
+   "e.",
+   "x",
+   "->",
+   "-.",
+   "A.",
+   "y",
+   "(",
+   "y",
+   "e.",
+   "x",
+   "->",
+   "E.",
+   "z",
+   "(",
+   "y",
+   "e.",
+   "z",
+   "/\\",
+   "z",
+   "e.",
+   "x",
+   ")",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "axinfnd"
+    }
+   },
+   {
+    "kind": "replace",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-25",
@@ -24489,7 +32658,76 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "(",
+   "x",
+   "=",
+   "y",
+   "->",
+   "(",
+   "E.",
+   "u",
+   "(",
+   "P",
+   "->",
+   "A.",
+   "v",
+   "(",
+   "Q",
+   "<->",
+   "E.",
+   "w",
+   "(",
+   "z",
+   "e.",
+   "x",
+   "/\\",
+   "R",
+   ")",
+   ")",
+   ")",
+   "<->",
+   "E.",
+   "u",
+   "(",
+   "P",
+   "->",
+   "A.",
+   "v",
+   "(",
+   "Q",
+   "<->",
+   "-.",
+   "A.",
+   "w",
+   "-.",
+   "(",
+   "z",
+   "e.",
+   "y",
+   "/\\",
+   "R",
+   ")",
+   ")",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "axreplem"
+    }
+   },
+   {
+    "kind": "replace",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-26",
@@ -24562,7 +32800,42 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "A.",
+   "x",
+   "(",
+   "A.",
+   "z",
+   "(",
+   "z",
+   "e.",
+   "x",
+   "<->",
+   "z",
+   "e.",
+   "y",
+   ")",
+   "->",
+   "x",
+   "=",
+   "y",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "ax-ext"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-27",
@@ -24635,7 +32908,42 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "A.",
+   "y",
+   "(",
+   "A.",
+   "z",
+   "(",
+   "z",
+   "e.",
+   "x",
+   "<->",
+   "z",
+   "e.",
+   "y",
+   ")",
+   "->",
+   "x",
+   "=",
+   "y",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "ax-ext"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-28",
@@ -24708,7 +33016,42 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "A.",
+   "x",
+   "(",
+   "x",
+   "=",
+   "y",
+   "<->",
+   "A.",
+   "z",
+   "(",
+   "z",
+   "e.",
+   "x",
+   "<->",
+   "z",
+   "e.",
+   "y",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "axextb"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-29",
@@ -24800,7 +33143,44 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "A.",
+   "y",
+   "A.",
+   "x",
+   "(",
+   "A.",
+   "z",
+   "(",
+   "z",
+   "e.",
+   "x",
+   "<->",
+   "z",
+   "e.",
+   "y",
+   ")",
+   "->",
+   "x",
+   "=",
+   "y",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "ax-ext"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-30",
@@ -24892,7 +33272,44 @@
     }
    ]
   },
-  "band": "base"
+  "band": "base",
+  "targetTokens": [
+   "|-",
+   "A.",
+   "x",
+   "A.",
+   "y",
+   "(",
+   "A.",
+   "z",
+   "(",
+   "z",
+   "e.",
+   "x",
+   "<->",
+   "z",
+   "e.",
+   "y",
+   ")",
+   "->",
+   "x",
+   "=",
+   "y",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "ax-ext"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-31",
@@ -24985,7 +33402,31 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "-.",
+   "a",
+   "e.",
+   "a"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "elirrvOLDOLD"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-32",
@@ -25078,7 +33519,32 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "E.",
+   "y",
+   "a",
+   "e.",
+   "y"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "elALT2"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-33",
@@ -25171,7 +33637,33 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "-.",
+   "A.",
+   "x",
+   "x",
+   "=",
+   "a"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "dtru"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-34",
@@ -25264,7 +33756,42 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "A.",
+   "x",
+   "x",
+   "=",
+   "b",
+   "->",
+   "(",
+   "P",
+   "->",
+   "A.",
+   "x",
+   "P",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "axc16b"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-35",
@@ -25357,7 +33884,41 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "A.",
+   "x",
+   "x",
+   "=",
+   "y",
+   "->",
+   "-.",
+   "A.",
+   "z",
+   "y",
+   "e.",
+   "a",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "nd4"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-36",
@@ -25450,7 +34011,41 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "A.",
+   "x",
+   "x",
+   "=",
+   "b",
+   "->",
+   "-.",
+   "A.",
+   "x",
+   "z",
+   "e.",
+   "b",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "nd2"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-37",
@@ -25543,7 +34138,42 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "A",
+   "=",
+   "B",
+   "->",
+   "(",
+   "b",
+   "e.",
+   "A",
+   "<->",
+   "b",
+   "e.",
+   "B",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "eleq2w2"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-38",
@@ -25636,7 +34266,44 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "E.",
+   "y",
+   "A.",
+   "x",
+   "(",
+   "x",
+   "e.",
+   "y",
+   "<->",
+   "(",
+   "x",
+   "e.",
+   "b",
+   "/\\",
+   "P",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "axsep"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-39",
@@ -25729,7 +34396,44 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "a",
+   "=",
+   "y",
+   "<->",
+   "A.",
+   "z",
+   "(",
+   "z",
+   "e.",
+   "a",
+   "<->",
+   "z",
+   "e.",
+   "y",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "axextb"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-40",
@@ -25822,7 +34526,48 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "E.",
+   "y",
+   "A.",
+   "z",
+   "(",
+   "z",
+   "e.",
+   "y",
+   "<->",
+   "E.",
+   "w",
+   "(",
+   "z",
+   "e.",
+   "w",
+   "/\\",
+   "w",
+   "e.",
+   "b",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "axun2"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-41",
@@ -25915,7 +34660,66 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "A.",
+   "w",
+   "E.",
+   "y",
+   "A.",
+   "z",
+   "(",
+   "A.",
+   "y",
+   "P",
+   "->",
+   "z",
+   "=",
+   "y",
+   ")",
+   "->",
+   "E.",
+   "y",
+   "A.",
+   "z",
+   "(",
+   "z",
+   "e.",
+   "y",
+   "<->",
+   "E.",
+   "w",
+   "(",
+   "w",
+   "e.",
+   "b",
+   "/\\",
+   "A.",
+   "y",
+   "P",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "ax-rep"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-42",
@@ -26008,7 +34812,70 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "-.",
+   "A.",
+   "x",
+   "x",
+   "=",
+   "b",
+   "->",
+   "(",
+   "-.",
+   "A.",
+   "x",
+   "x",
+   "=",
+   "z",
+   "->",
+   "E.",
+   "x",
+   "A.",
+   "y",
+   "(",
+   "A.",
+   "x",
+   "(",
+   "E.",
+   "z",
+   "x",
+   "e.",
+   "y",
+   "->",
+   "A.",
+   "y",
+   "x",
+   "e.",
+   "z",
+   ")",
+   "->",
+   "y",
+   "e.",
+   "x",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "axpowndlem2"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-43",
@@ -26101,7 +34968,78 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "a",
+   "=",
+   "y",
+   "->",
+   "(",
+   "E.",
+   "u",
+   "(",
+   "P",
+   "->",
+   "A.",
+   "v",
+   "(",
+   "Q",
+   "<->",
+   "E.",
+   "w",
+   "(",
+   "z",
+   "e.",
+   "a",
+   "/\\",
+   "R",
+   ")",
+   ")",
+   ")",
+   "<->",
+   "E.",
+   "u",
+   "(",
+   "P",
+   "->",
+   "A.",
+   "v",
+   "(",
+   "Q",
+   "<->",
+   "E.",
+   "w",
+   "(",
+   "z",
+   "e.",
+   "y",
+   "/\\",
+   "R",
+   ")",
+   ")",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "axreplem"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-44",
@@ -26194,7 +35132,77 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "-.",
+   "A.",
+   "y",
+   "y",
+   "=",
+   "a",
+   "->",
+   "(",
+   "-.",
+   "A.",
+   "y",
+   "y",
+   "=",
+   "z",
+   "->",
+   "(",
+   "-.",
+   "a",
+   "=",
+   "y",
+   "->",
+   "E.",
+   "x",
+   "A.",
+   "y",
+   "(",
+   "A.",
+   "x",
+   "(",
+   "E.",
+   "z",
+   "x",
+   "e.",
+   "y",
+   "->",
+   "A.",
+   "y",
+   "x",
+   "e.",
+   "z",
+   ")",
+   "->",
+   "y",
+   "e.",
+   "x",
+   ")",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "axpowndlem4"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-45",
@@ -26287,7 +35295,78 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "E.",
+   "y",
+   "A.",
+   "z",
+   "A.",
+   "w",
+   "(",
+   "(",
+   "z",
+   "e.",
+   "w",
+   "/\\",
+   "w",
+   "e.",
+   "c",
+   ")",
+   "->",
+   "E.",
+   "v",
+   "A.",
+   "u",
+   "(",
+   "E.",
+   "t",
+   "(",
+   "(",
+   "u",
+   "e.",
+   "w",
+   "/\\",
+   "w",
+   "e.",
+   "t",
+   ")",
+   "/\\",
+   "(",
+   "u",
+   "e.",
+   "t",
+   "/\\",
+   "t",
+   "e.",
+   "y",
+   ")",
+   ")",
+   "<->",
+   "u",
+   "=",
+   "v",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "ax-ac"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-46",
@@ -26380,7 +35459,88 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "A.",
+   "y",
+   "y",
+   "=",
+   "a",
+   "->",
+   "E.",
+   "x",
+   "A.",
+   "y",
+   "A.",
+   "z",
+   "(",
+   "A.",
+   "x",
+   "(",
+   "y",
+   "e.",
+   "z",
+   "/\\",
+   "z",
+   "e.",
+   "w",
+   ")",
+   "->",
+   "E.",
+   "w",
+   "A.",
+   "y",
+   "(",
+   "E.",
+   "w",
+   "(",
+   "(",
+   "y",
+   "e.",
+   "z",
+   "/\\",
+   "z",
+   "e.",
+   "w",
+   ")",
+   "/\\",
+   "(",
+   "y",
+   "e.",
+   "w",
+   "/\\",
+   "w",
+   "e.",
+   "x",
+   ")",
+   ")",
+   "<->",
+   "y",
+   "=",
+   "w",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "axacndlem3"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-47",
@@ -26473,7 +35633,88 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "A.",
+   "y",
+   "y",
+   "=",
+   "b",
+   "->",
+   "E.",
+   "x",
+   "A.",
+   "y",
+   "A.",
+   "z",
+   "(",
+   "A.",
+   "x",
+   "(",
+   "y",
+   "e.",
+   "z",
+   "/\\",
+   "z",
+   "e.",
+   "w",
+   ")",
+   "->",
+   "E.",
+   "w",
+   "A.",
+   "y",
+   "(",
+   "E.",
+   "w",
+   "(",
+   "(",
+   "y",
+   "e.",
+   "z",
+   "/\\",
+   "z",
+   "e.",
+   "w",
+   ")",
+   "/\\",
+   "(",
+   "y",
+   "e.",
+   "w",
+   "/\\",
+   "w",
+   "e.",
+   "x",
+   ")",
+   ")",
+   "<->",
+   "y",
+   "=",
+   "w",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "axacndlem3"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-48",
@@ -26566,7 +35807,106 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "E.",
+   "y",
+   "A.",
+   "z",
+   "E.",
+   "v",
+   "A.",
+   "u",
+   "(",
+   "(",
+   "y",
+   "e.",
+   "a",
+   "/\\",
+   "(",
+   "z",
+   "e.",
+   "y",
+   "->",
+   "(",
+   "(",
+   "v",
+   "e.",
+   "a",
+   "/\\",
+   "-.",
+   "y",
+   "=",
+   "v",
+   ")",
+   "/\\",
+   "z",
+   "e.",
+   "v",
+   ")",
+   ")",
+   ")",
+   "\\/",
+   "(",
+   "-.",
+   "y",
+   "e.",
+   "a",
+   "/\\",
+   "(",
+   "z",
+   "e.",
+   "a",
+   "->",
+   "(",
+   "(",
+   "v",
+   "e.",
+   "z",
+   "/\\",
+   "v",
+   "e.",
+   "y",
+   ")",
+   "/\\",
+   "(",
+   "(",
+   "u",
+   "e.",
+   "z",
+   "/\\",
+   "u",
+   "e.",
+   "y",
+   ")",
+   "->",
+   "u",
+   "=",
+   "v",
+   ")",
+   ")",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "ax-ac2"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-49",
@@ -26697,7 +36037,38 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "E.",
+   "x",
+   "(",
+   "x",
+   "=",
+   "a",
+   "->",
+   "b",
+   "e.",
+   "x",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "dvdemo1"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-50",
@@ -26828,7 +36199,41 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "A.",
+   "x",
+   "x",
+   "=",
+   "a",
+   "->",
+   "-.",
+   "A.",
+   "x",
+   "a",
+   "e.",
+   "b",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "nd1"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-51",
@@ -26959,7 +36364,41 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "A.",
+   "x",
+   "x",
+   "=",
+   "b",
+   "->",
+   "-.",
+   "A.",
+   "z",
+   "a",
+   "e.",
+   "b",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "nd3"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-52",
@@ -27090,7 +36529,42 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "a",
+   "=",
+   "b",
+   "->",
+   "(",
+   "a",
+   "e.",
+   "A",
+   "<->",
+   "b",
+   "e.",
+   "A",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "eleq1w"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-53",
@@ -27221,7 +36695,44 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "A.",
+   "z",
+   "(",
+   "z",
+   "e.",
+   "a",
+   "<->",
+   "z",
+   "e.",
+   "b",
+   ")",
+   "->",
+   "a",
+   "=",
+   "b",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "axextg"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-54",
@@ -27352,7 +36863,44 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "E.",
+   "z",
+   "(",
+   "(",
+   "z",
+   "e.",
+   "a",
+   "<->",
+   "z",
+   "e.",
+   "b",
+   ")",
+   "->",
+   "a",
+   "=",
+   "b",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "axexte"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-55",
@@ -27483,7 +37031,46 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "E.",
+   "z",
+   "A.",
+   "w",
+   "(",
+   "(",
+   "w",
+   "=",
+   "a",
+   "\\/",
+   "w",
+   "=",
+   "b",
+   ")",
+   "->",
+   "w",
+   "e.",
+   "z",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "axpr"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-56",
@@ -27614,7 +37201,53 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "a",
+   "e.",
+   "b",
+   "->",
+   "E.",
+   "x",
+   "(",
+   "x",
+   "e.",
+   "b",
+   "/\\",
+   "A.",
+   "z",
+   "(",
+   "z",
+   "e.",
+   "x",
+   "->",
+   "-.",
+   "z",
+   "e.",
+   "b",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "axregndlem2"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-57",
@@ -27745,7 +37378,59 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "-.",
+   "a",
+   "=",
+   "b",
+   "->",
+   "E.",
+   "x",
+   "A.",
+   "y",
+   "(",
+   "A.",
+   "x",
+   "(",
+   "E.",
+   "z",
+   "x",
+   "e.",
+   "y",
+   "->",
+   "A.",
+   "y",
+   "x",
+   "e.",
+   "z",
+   ")",
+   "->",
+   "y",
+   "e.",
+   "x",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "axpownd"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-58",
@@ -27876,7 +37561,60 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "E.",
+   "x",
+   "(",
+   "a",
+   "e.",
+   "b",
+   "->",
+   "(",
+   "a",
+   "e.",
+   "x",
+   "/\\",
+   "A.",
+   "y",
+   "(",
+   "y",
+   "e.",
+   "x",
+   "->",
+   "E.",
+   "z",
+   "(",
+   "y",
+   "e.",
+   "z",
+   "/\\",
+   "z",
+   "e.",
+   "x",
+   ")",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "axinfnd"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-59",
@@ -28007,7 +37745,70 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "-.",
+   "A.",
+   "x",
+   "x",
+   "=",
+   "a",
+   "->",
+   "(",
+   "-.",
+   "A.",
+   "x",
+   "x",
+   "=",
+   "b",
+   "->",
+   "E.",
+   "x",
+   "A.",
+   "y",
+   "(",
+   "A.",
+   "x",
+   "(",
+   "E.",
+   "z",
+   "x",
+   "e.",
+   "y",
+   "->",
+   "A.",
+   "y",
+   "x",
+   "e.",
+   "b",
+   ")",
+   "->",
+   "y",
+   "e.",
+   "x",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "axpowndlem2"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  },
  {
   "id": "CH4-60",
@@ -28138,7 +37939,71 @@
     }
    ]
   },
-  "band": "challenge"
+  "band": "challenge",
+  "targetTokens": [
+   "|-",
+   "(",
+   "-.",
+   "A.",
+   "y",
+   "y",
+   "=",
+   "b",
+   "->",
+   "E.",
+   "x",
+   "(",
+   "E.",
+   "y",
+   "A.",
+   "z",
+   "(",
+   "P",
+   "->",
+   "z",
+   "=",
+   "y",
+   ")",
+   "->",
+   "A.",
+   "z",
+   "(",
+   "z",
+   "e.",
+   "x",
+   "<->",
+   "E.",
+   "x",
+   "(",
+   "x",
+   "e.",
+   "a",
+   "/\\",
+   "A.",
+   "y",
+   "P",
+   ")",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "archive",
+    "config": {
+     "label": "axrepndlem1"
+    }
+   },
+   {
+    "kind": "all-intro",
+    "config": {}
+   },
+   {
+    "kind": "all-elim",
+    "config": {}
+   }
+  ],
+  "track": "wiring"
  }
 ];
   GENERATED.forEach(function (lv, i) {

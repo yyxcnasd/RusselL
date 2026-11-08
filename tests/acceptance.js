@@ -743,7 +743,7 @@ runTest('acceptance', async ({ openPage }) => {
   })`);
   ok(exported.ok, '点“保存”生成可解析的存档 Blob' + (exported.error ? '（' + exported.error + '）' : ''));
   const save = exported.data;
-  equal(save.version, 2, '导出 JSON version=2');
+  equal(save.version, 3, '导出 JSON version=3');
   ok(Array.isArray(save.solved), '导出 JSON solved 是数组');
   ok(Array.isArray(save.achievements), '导出 JSON achievements 是数组');
   ok(Array.isArray(save.usedKinds) && Array.isArray(save.cleanWins), '导出 JSON usedKinds/cleanWins 是数组');
@@ -758,7 +758,7 @@ runTest('acceptance', async ({ openPage }) => {
   const cleaned = await page.js(`(function(){
     var S=window.RSL.Save, out={};
     out.clean=S.clean({
-      version:99,
+      version:3,
       solved:['a',1,null],
       bestLen:{X:3},
       usedKinds:['subst',2],
@@ -770,7 +770,7 @@ runTest('acceptance', async ({ openPage }) => {
     try { S.clean([]); out.arrThrew=false; } catch(e){ out.arrThrew=true; }
     return out;
   })()`);
-  equal(cleaned.clean.version, 2, '导入清洗把 version 归一为 2');
+  equal(cleaned.clean.version, 3, '导入清洗把 version 归一为 3');
   equal(cleaned.clean.solved, ['a'], '导入清洗过滤非字符串 solved');
   equal(cleaned.clean.circuits, { ok: { nodes: [], edges: [] } }, '导入清洗丢弃坏电路与多余字段');
   equal(cleaned.clean.lastId, null, '导入清洗把非法 lastId 变为 null');

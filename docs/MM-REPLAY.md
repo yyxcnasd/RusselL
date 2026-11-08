@@ -25,7 +25,7 @@
 logic → archive → library → levels → levels-generated
       → mm/flags → mm/proofs → mm/levels        ← 新增，必须在 catalog 之前
       → engine → route → achievements → save → ui
-      → mm/graph                                ← 新增，在 ui 之后、catalog 之前
+      → term → modules → engine                  ← 唯一表达式/模块/求值层（运行时）
       → audio → coach → catalog → screens → board → main
 ```
 
@@ -198,20 +198,21 @@ Flags.source() -> 'query'|'storage'|'default'
 `Catalog.build()` 在关闭时回到**旧版 240 关布局**（基础 30 → 挑战 30，逐字段等于旧基线）；
 开启时把 48 个重放关并进对应章节参与统一难度排序（见 §10）。
 
-## 8. 棋盘式重放（`src/mm/graph.js` + `src/main.js`）
+## 8. 棋盘式重放（统一运行时）
 
 重放关和普通关走**同一块棋盘**：同样的贴纸节点、端口、导线、拖动与缩放。区别只在公式是
 set.mm token 串，节点类型是 `mmhyp` / `mmstep`。
 
-### 8.1 图与求值（`RSL.MM.Graph`）
+### 8.1 数据与求值（唯一管线）
 
 ```js
-Graph.initial(level, proof) -> { nodes, edges, layout }
-Graph.palette(proof)        -> [{ key:'mmstep:<label>', kind:'mmstep', symbol, name, config:{label, arity} }]
-Graph.plan(proof)           -> [{ stepId, kind:'hyp'|'assert', label, inputs:[stepId] }]
-Graph.layout(proof)         -> { positions:{stepId:{x,y}}, hypPos:{hypLabel:{x,y}}, target:{x,y} }
-Graph.evaluate(level, proof, nodes, edges) -> Engine 同形结果（results/target/complete/errors）
+level.palette      -> [{ kind:'mmstep', config:{label, arity} } | { kind:'mmhyp', config:{label}, given:true }]
+level.initialNodes -> [ {id,kind,x,y,config} ... ]            // 目标 + 前提，载入即预置
+level.reference    -> [ {stepId, kind:'hyp'|'assert', label, inputs, x, y} ... ]
+Engine.evaluate(level, nodes, edges, { proof })               // 与接线关同一个求值器
 ```
+
+生成期用 `RSL.MM.Graph` 算一次布局/参考动作，写进关卡数据；运行时不再依赖它。
 
 - `mmhyp` 节点：本关的 `$f` / `$e` 假设（以及证明里用到的假元假设），输出该假设的 token 公式。
   载入关卡时预先摆放成「给定输入」。

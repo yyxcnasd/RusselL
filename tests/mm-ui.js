@@ -22,7 +22,7 @@ const MM_OFF = fileUrl('index.html?mm=0');
 
 async function loadByCode(page, code) {
   const idx = await page.js(
-    'window.RSL.APP.state.levels.findIndex(function(l){return l.code === ' + JSON.stringify(code) + ' && l.mode === "mm-proof"})'
+    'window.RSL.APP.state.levels.findIndex(function(l){return l.code === ' + JSON.stringify(code) + ' && l.track === "replay"})'
   );
   ok(idx >= 0, '目录里能找到重放关 ' + code);
   await page.js('window.RSL.APP.loadLevel(' + idx + ')');
@@ -71,7 +71,7 @@ runTest('mm-ui', async ({ openPage }) => {
 
   /* 点目录里的重放卡片进关（真实用户路径） */
   const pm324 = await page.js(
-    'window.RSL.APP.state.levels.findIndex(function(l){return l.code === "pm3.24" && l.mode === "mm-proof"})'
+    'window.RSL.APP.state.levels.findIndex(function(l){return l.code === "pm3.24" && l.track === "replay"})'
   );
   await page.js('document.querySelector(".mm-level[data-level=\\"' + pm324 + '\\"]").click()');
   await page.waitFor('window.RSL.APP.state.level.code === "pm3.24"');
@@ -82,7 +82,7 @@ runTest('mm-ui', async ({ openPage }) => {
     return {
       kinds:kinds,
       tiles:document.querySelectorAll('.tile').length,
-      trayMm:document.getElementById('tray').classList.contains('is-mm'),
+      trayWide:document.getElementById('tray').classList.contains('is-wide'),
       hint:getComputedStyle(document.getElementById('hintBtn')).display,
       board:getComputedStyle(document.getElementById('board')).display,
       goal:document.getElementById('goalFormula').textContent.replace(/\\s+/g,''),
@@ -96,7 +96,7 @@ runTest('mm-ui', async ({ openPage }) => {
   ok(mounted.kinds.target === 1, '棋盘上有目标焊盘');
   ok(mounted.kinds.mmhyp >= 1, '棋盘上有本关前提节点（' + mounted.kinds.mmhyp + ' 个）');
   equal(mounted.tiles, 6, '元件栏是参考证明用到的 6 条断言');
-  ok(mounted.trayMm, '元件栏进入重放关样式（可横向滚动）');
+  ok(mounted.trayWide, '元件栏进入大代号样式（可横向滚动）');
   ok(mounted.hint !== 'none', '顶栏出现「参考」按钮');
   includes(mounted.goal, 'φ', '顶栏目标用 set.mm token 公式渲染');
   ok(/^M\d\d$/.test(mounted.levelNo), '关卡号显示 Mxx：' + mounted.levelNo);
@@ -228,14 +228,14 @@ runTest('mm-ui', async ({ openPage }) => {
   await page.waitFor('window.RSL.APP.state.level.code !== "pm3.24"');
   const restored = await page.js(`(function(){
     return {
-      trayMm:document.getElementById('tray').classList.contains('is-mm'),
+      trayWide:document.getElementById('tray').classList.contains('is-wide'),
       hint:getComputedStyle(document.getElementById('hintBtn')).display,
       simple:!!window.RSL.APP.state.board.simpleWires,
       check:document.getElementById('checkBtn').getAttribute('aria-label'),
       tiles:document.querySelectorAll('.tile').length
     };
   })()`);
-  equal(restored.trayMm, false, '普通关元件栏不是重放样式');
+  equal(restored.trayWide, false, '普通关元件栏不是大代号样式');
   equal(restored.hint, 'none', '普通关隐藏「参考」按钮');
   equal(restored.simple, false, '普通关恢复 A* 避障走线');
   equal(restored.check, '校验', '顶栏按钮是「校验」');

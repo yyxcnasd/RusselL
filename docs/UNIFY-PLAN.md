@@ -265,3 +265,25 @@ P2 双跑绿了才允许动 `main.js`。
 - 坏处：表达式/求值/模块仍是两套（`Formula` 只是隔离层），新功能仍要写两个实现；
   §6 的“只有一份求值器/注册表/渲染器”无法满足。
 - **定位**：只在 D5 时间盒触发时使用，不作为最终交付；长期仍应回到本方案 P1–P2。
+
+---
+
+## 10. 执行记录（方案 A 落地）
+
+P0–P6 已按本方案完成，实际结果：
+
+| 阶段 | 结果 |
+| --- | --- |
+| P0 golden | `scripts/golden.js` + `research/golden.json`（1.63 MiB，sha256 稳定），240 接线/48 重放逐节点 0 diff |
+| P1 term 核心 | `src/term.js`；`scripts/term-diff.js` 2769 条公式、13845 对 eq 与旧 Logic 0 diff |
+| P2 模块/求值 | `src/modules.js` + `src/engine.js`；`scripts/dual-run.js` 240 关 / 1512 节点 0 diff；旧引擎降为 `engine-legacy.js`（仅门禁） |
+| P3 数据/目录/存档 | 每关 `track/targetTokens/palette`，重放关 `initialNodes/reference`；Catalog 去 mode 分支；save v3 自动升级 v2 |
+| P4 流程融合 | 删除 `loadMmLevel/mmCheck/mmWin/openMmWin/formatTokens`；胜利、校验、参考推进只有一条路径 |
+| P5 渲染/棋盘融合 | 节点/目标/通关全部 `Term` 渲染；`logic.js`、`mm/expr.js`、`mm/verify.js`、`mm/graph.js` 退出运行时；走线按图规模而非关卡类型 |
+| P6 清理 | 运行时从 24 个脚本降到 20 个；`mm-proof` 分支清零；文档、测试与维护页同步 |
+
+保留的迁移门禁（不参与运行时）：`golden.js`、`term-diff.js`、`dual-run.js`、`engine-legacy.js`、
+`logic.js`。后续若要彻底删除旧实现，可先把这三个脚本改成只读 golden，再删 `engine-legacy.js` /
+`logic.js`。
+
+发布期间使用 `.maintenance` 标记把 Pages 切成维护页；全部验收通过后删除标记并重新构建恢复。

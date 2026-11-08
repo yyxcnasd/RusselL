@@ -86,7 +86,8 @@
 
   function bandCells(items) {
     return items.map(function (entry) {
-      return entry.lv.mode === 'mm-proof' ? mmInline(entry) : levelCell(entry);
+      var isReplay = entry.lv.track === 'replay';
+    return isReplay ? mmInline(entry) : levelCell(entry);
     }).join('');
   }
 
@@ -208,55 +209,27 @@
    * 4. 通关面板
    * ========================================================================= */
 
-  /** data: { target, len, ref, isLast } */
+  function winTargetHTML(data) {
+    var T = host.RSL.Term;
+    if (Array.isArray(data.tokens) && T) return T.toHTML(T.body(data.tokens), { full: true });
+    if (data.target && T) {
+      try { return T.toHTML(T.parse(data.target), { full: true }); } catch (e) { /* fallback */ }
+    }
+    return esc(data.targetUnicode || data.target || '');
+  }
+
+  /** data: { tokens, target, len, ref, isLast, caption } */
   function openWin(data) {
     var efficiency = Math.max(1, Math.min(100, Math.round(data.ref / Math.max(1, data.len) * 100)));
+    var caption = data.caption || '推理长度：模块数 / 参考电路模块数';
     UI.openSheet(closeButton() +
       '<div class="win">' +
         '<div class="win-check"><svg class="icon"><use href="#i-check"></use></svg></div>' +
-        '<div class="win-formula formula">' + UI.goalHTML(data.target) + '</div>' +
-        '<div class="win-len" title="推理长度：模块数 / 参考电路模块数">' +
+        '<div class="win-formula formula">' + winTargetHTML(data) + '</div>' +
+        '<div class="win-len" title="' + esc(caption) + '">' +
           '<span class="metric-glyph"><svg class="icon"><use href="#i-squares-2x2"></use></svg></span>' +
           '<b>' + data.len + '</b><span class="metric-ref">/ ' + data.ref + '</span>' +
           '<span class="metric-bar"><i style="width:' + efficiency + '%"></i></span>' +
-        '</div>' +
-        '<button class="primary next-btn" data-next="1">' + (data.isLast ? '选关' : '下一关') + '</button>' +
-      '</div>');
-    UI.confetti();
-  }
-
-  /* 重放关通关面板：目标来自 set.mm 原始结论（token 公式，不是游戏 AST）。 */
-  function openMmWin(data) {
-    var level = (data && data.level) || {};
-    var proof = data && data.proof;
-    var Expr = host.RSL.MM && host.RSL.MM.Expr;
-    var targetHTML = proof && Expr
-      ? Expr.toHTML(proof.conclusion, proof.vars || {})
-      : esc(level.targetUnicode || '');
-    var steps = (data && data.steps) || 0;
-    var progress = (data && data.progress) || null;
-    var metric;
-    var caption;
-    if (progress && progress.mode === 'build') {
-      metric = '<b>' + (progress.len || 0) + '</b><span class="metric-ref">步 / 参考 ' + (progress.ref || steps) + '</span>';
-      caption = '本关用了多少个证明步骤节点 / 参考证明的断言数';
-    } else if (progress && progress.mode === 'interactive') {
-      metric = '<b>' + (progress.actions || 0) + '</b><span class="metric-ref">步 · 自推 / 参考 ' + steps + '</span>';
-      caption = '不计提示的步骤数';
-    } else if (progress && typeof progress.step === 'number' && progress.step > 0) {
-      metric = '<b>' + progress.step + '</b><span class="metric-ref">/ ' + steps + ' 步</span>';
-      caption = '重放进度';
-    } else {
-      metric = '<b>' + steps + '</b><span class="metric-ref">步 · ' + esc(level.code || '') + '</span>';
-      caption = '证明 DAG 的步骤数';
-    }
-    UI.openSheet(closeButton() +
-      '<div class="win">' +
-        '<div class="win-check"><svg class="icon"><use href="#i-check"></use></svg></div>' +
-        '<div class="win-formula formula mm-win-target">' + targetHTML + '</div>' +
-        '<div class="win-len" title="' + esc(caption) + '">' +
-          '<span class="metric-glyph"><svg class="icon"><use href="#i-squares-2x2"></use></svg></span>' +
-          metric +
         '</div>' +
         '<button class="primary next-btn" data-next="1">' + (data.isLast ? '选关' : '下一关') + '</button>' +
       '</div>');
@@ -295,7 +268,6 @@
     openHelp: openHelp,
     openAchievements: openAchievements,
     openAchievement: openAchievement,
-    openWin: openWin,
-    openMmWin: openMmWin
+    openWin: openWin
   };
 })(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this));

@@ -148,7 +148,7 @@ runTest('capture-simple', async ({ openPage }) => {
   await mmPage.ready();
   equal(await mmPage.js('window.RSL.MM.Flags.enabled()'), true, '重放段默认开启');
   await mmPage.js('window.RSL.APP.state.forceUnlock = true');
-  const mmIndex = await mmPage.js('window.RSL.APP.state.levels.findIndex(function(l){return l.code==="pm3.24"&&l.mode==="mm-proof"})');
+  const mmIndex = await mmPage.js('window.RSL.APP.state.levels.findIndex(function(l){return l.code==="pm3.24"&&l.track==="replay"})');
   ok(mmIndex >= 0, '目录里能找到 pm3.24 重放关');
   await mmPage.js('window.RSL.APP.loadLevel(' + mmIndex + ')');
   await mmPage.waitFor('window.RSL.APP.state.level.code === "pm3.24"');

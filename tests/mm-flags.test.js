@@ -21,6 +21,7 @@ const { loadRuntime, createMemoryStorage } = require('../scripts/lib/load-runtim
 
 const DATA_FILES = [
   'src/logic.js',
+  'src/term.js',
   'src/archive.js',
   'src/library.js',
   'src/levels.js',
@@ -46,7 +47,7 @@ function makeStubLevels(count) {
   for (let i = 1; i <= count; i += 1) {
     out.push({
       id: 'MM-' + String(i).padStart(2, '0'),
-      mode: 'mm-proof',
+      track: 'replay',
       chapter: 'prop',
       band: 'replay',
       title: '重放 ' + i,
@@ -217,9 +218,9 @@ test('Catalog.build()：开启时把重放关按统一难度交错进章节（�
   }
 
   /* 重放关不是独立一段：它们按难度插在接线关之间（至少有一个不在末尾） */
-  const replay = prop.filter((lv) => lv.mode === 'mm-proof');
+  const replay = prop.filter((lv) => lv.track === 'replay');
   assert.equal(replay.length, 12, 'stub 的 12 个重放关都进命题章');
-  const lastReplayIdx = prop.map((lv) => lv.mode === 'mm-proof').lastIndexOf(true);
+  const lastReplayIdx = prop.map((lv) => lv.track === 'replay').lastIndexOf(true);
   assert.ok(lastReplayIdx < prop.length - 1, '重放关后面还应该有接线关（交错，不是独立段）');
   assert.ok(replay.every((lv) => lv.band === 'base' || lv.band === 'challenge'));
 
@@ -245,7 +246,7 @@ test('Catalog.build()：开启时章节内容不变，只改顺序/分段/解锁
     assert.equal(JSON.stringify(plain(hit.target)), JSON.stringify(old.target), old.id + ' 的 target 不应变');
     assert.equal(JSON.stringify(plain(hit.solution)), JSON.stringify(plain(old.solution)), old.id + ' 的参考电路不应变');
   }
-  assert.equal(built.filter((lv) => lv.mode !== 'mm-proof').length, 240, '接线关仍是 240 个');
+  assert.equal(built.filter((lv) => lv.track !== 'replay').length, 240, '接线关仍是 240 个');
   /* 没被重放关插入的章节保持旧版布局（基础 30 → 挑战 30） */
   const pred = built.filter((lv) => lv.chapterGroup === 'Ⅱ');
   assert.equal(pred.length, 60, '谓词章没有重放关时仍是 60 关');
@@ -262,7 +263,7 @@ test('Catalog.build()：重放关是副本，不写回 RSL.MM_LEVELS', () => {
   const stub = makeStubLevels(12);
   RSL.MM_LEVELS = stub;
   const built = Array.from(RSL.Catalog.build());
-  const replay = built.filter((lv) => lv.mode === 'mm-proof');
+  const replay = built.filter((lv) => lv.track === 'replay');
   assert.equal(replay.length, 12);
   assert.equal(stub[0].chapterGroup, undefined, '不应写回 chapterGroup');
   assert.equal(stub[0]._ord, undefined, '不应写回 _ord');
@@ -291,14 +292,14 @@ test('Catalog.build()：真实重放关卡按章交错，每章 12 关、章内�
     assert.equal(group.length, 72, chapter + ' 章应为 72 关');
     assert.equal(group.filter((lv) => lv.band === 'base').length, 36, chapter + ' 基础段 36');
     assert.equal(group.filter((lv) => lv.band === 'challenge').length, 36, chapter + ' 挑战段 36');
-    assert.equal(group.filter((lv) => lv.mode === 'mm-proof').length, 12, chapter + ' 应有 12 个重放关');
+    assert.equal(group.filter((lv) => lv.track === 'replay').length, 12, chapter + ' 应有 12 个重放关');
     for (let i = 13; i < group.length; i += 1) {
       assert.ok(group[i].difficulty >= group[i - 1].difficulty - 1e-9,
         chapter + ' 章内难度应单调不减（位置 ' + (i + 1) + '）');
     }
     /* 重放关与接线关交错：重放关的位置不连续成一段（章末可以是重放终章） */
     const replayIdx = [];
-    group.forEach((lv, i) => { if (lv.mode === 'mm-proof') replayIdx.push(i); });
+    group.forEach((lv, i) => { if (lv.track === 'replay') replayIdx.push(i); });
     const contiguous = replayIdx.every((x, i) => i === 0 || x === replayIdx[i - 1] + 1);
     assert.ok(!contiguous, chapter + ' 章的重放关应交错在接线关之间，而不是连续一段');
   }
@@ -332,4 +333,58 @@ test('flags.js：CommonJS 直接 require 可用并挂到 globalThis.RSL', () => 
   assert.ok(globalThis.RSL && globalThis.RSL.MM, 'Node 下应挂到 globalThis.RSL');
   assert.equal(globalThis.RSL.MM.Flags, Flags);
   delete globalThis.RSL;
+});
+
+/* ---------------------------------------- 8. 统一 schema：重放关（P3 数据驱动） */
+
+test('Catalog.build(): 真实重放关带 palette / initialNodes / reference，且与统计一致', {
+  skip: realAvailable ? false : 'src/mm/levels.js 尚未生成'
+}, () => {
+  const RSL = loadRuntime({ files: REAL_FILES });
+  const built = Array.from(RSL.Catalog.build());
+  const replay = built.filter((lv) => lv.track === 'replay');
+  assert.equal(replay.length, 48, '应有 48 个 track=replay 的关卡');
+  for (const lv of replay) {
+    assert.equal(lv.track, 'replay', lv.id + ' track 字段为 replay');
+    assert.ok(Array.isArray(lv.targetTokens) && lv.targetTokens[0] === '|-', lv.id + ' targetTokens 带 |-');
+    assert.ok(Array.isArray(lv.palette) && lv.palette.length > 0, lv.id + ' 缺少 palette');
+    assert.ok(lv.palette.some((p) => p.kind === 'mmstep'), lv.id + ' palette 应含 mmstep');
+    assert.ok(lv.palette.some((p) => p.kind === 'mmhyp' && p.given === true),
+      lv.id + ' palette 应含标记 given 的前提条目');
+    assert.ok(Array.isArray(lv.initialNodes) && lv.initialNodes.length >= 2, lv.id + ' 缺少 initialNodes');
+    assert.equal(lv.initialNodes.filter((n) => n.kind === 'target').length, 1, lv.id + ' 应有 1 个目标节点');
+    assert.ok(lv.initialNodes.filter((n) => n.kind === 'mmhyp').length >= 1, lv.id + ' 应有前提节点');
+    assert.ok(Array.isArray(lv.reference), lv.id + ' 缺少 reference');
+    if (lv.axiom) {
+      /* $a 公理：没有证明步骤，reference 是「全部 mandatory 前提 + 1 步公理套用」。 */
+      assert.ok(lv.reference.length >= 1, lv.id + ' 公理关也应有参考动作');
+    } else {
+      assert.equal(lv.reference.length, lv.stats.steps, lv.id + ' reference 动作数应等于证明步数');
+    }
+    /* 参考计划里的断言步骤都能在 palette 里找到对应模块。 */
+    const labels = new Set(lv.palette.filter((p) => p.kind === 'mmstep').map((p) => p.config.label));
+    for (const action of lv.reference.filter((a) => a.kind === 'assert')) {
+      assert.ok(labels.has(action.label), lv.id + ' 参考步骤 ' + action.label + ' 不在 palette 里');
+    }
+  }
+});
+
+test('Catalog.partsForLevel(): 重放关调色板来自 palette（断言 + 前提）', {
+  skip: realAvailable ? false : 'src/mm/levels.js 尚未生成'
+}, () => {
+  const RSL = loadRuntime({ files: REAL_FILES });
+  const built = Array.from(RSL.Catalog.build());
+  const level = built.find((lv) => lv.code === 'pm3.24' && lv.track === 'replay');
+  assert.ok(level, '应存在 pm3.24 重放关');
+  const parts = RSL.Catalog.partsForLevel(level);
+  assert.ok(parts.length >= 2, '重放关应有调色板条目');
+  assert.ok(parts.some((p) => p.kind === 'mmstep'), '应含断言模块');
+  assert.ok(!parts.some((p) => p.kind === 'mmhyp'), '给定前提不进入可放置元件（由 initialNodes 预置）');
+  /* 数据里仍保留 given 前提，供 P4/P5 需要时显示。 */
+  assert.ok(level.palette.some((p) => p.kind === 'mmhyp' && p.given === true), '数据里的 palette 应含 given 前提');
+  for (const part of parts) {
+    assert.ok(part.key && part.name && part.symbol, '条目应有 key/name/symbol');
+    assert.ok(part.key === 'mmstep:' + part.config.label || part.key === 'mmhyp:' + part.config.label,
+      '条目 key 应与 config.label 对应：' + part.key);
+  }
 });

@@ -6,7 +6,7 @@
 
   <p>
     <a href="https://yyxcnasd.github.io/RusselL/"><img alt="在线试玩" src="https://img.shields.io/badge/PLAY-ONLINE-e66f3f?style=for-the-badge"></a>
-    <img alt="版本" src="https://img.shields.io/badge/VERSION-v2.1.0-3f8e65?style=for-the-badge">
+    <img alt="版本" src="https://img.shields.io/badge/VERSION-v2.2.0-3f8e65?style=for-the-badge">
     <img alt="关卡" src="https://img.shields.io/badge/LEVELS-288-4f7fb5?style=for-the-badge">
     <img alt="重放" src="https://img.shields.io/badge/REPLAY-48-6b5bd2?style=for-the-badge">
     <img alt="档案" src="https://img.shields.io/badge/SET.MM-993-d3ad68?style=for-the-badge">

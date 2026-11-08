@@ -1,9 +1,16 @@
-/* Local save schema, validation, and storage. */
+/* Local save schema, validation, and storage.
+ *
+ * Schema v3（P3）：内容字段与 v2 相同，版本号升级为 3；clean() 接受 v2 并升级到 v3
+ * （目前 v2→v3 没有字段迁移，只是版本标记，后续 P5 会把电路里的公式换成 token）。
+ * localStorage 的 key 保持 'axiom-simple:v2'，避免已发布版本的存档丢失。
+ */
 (function () {
   'use strict';
   window.RSL = window.RSL || {};
 
   var KEY = 'axiom-simple:v2';
+  var SCHEMA_VERSION = 3;
+  var ACCEPTED_VERSIONS = [2, 3];
 
   function strings(v) {
     return Array.isArray(v) ? v.filter(function (x) { return typeof x === 'string'; }) : [];
@@ -14,7 +21,7 @@
 
   function payload(state) {
     return {
-      version: 2,
+      version: SCHEMA_VERSION,
       solved: Object.keys(state.solved || {}),
       bestLen: object(state.bestLen),
       usedKinds: Object.keys(state.usedKinds || {}),
@@ -38,10 +45,14 @@
     return out;
   }
 
+  /** v2 与 v3 的字段一致；版本号只用于标记，clean 统一输出 v3。 */
   function clean(raw) {
     if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('bad save');
+    if (raw.version !== undefined && ACCEPTED_VERSIONS.indexOf(raw.version) < 0) {
+      throw new Error('bad save version: ' + String(raw.version));
+    }
     return {
-      version: 2,
+      version: SCHEMA_VERSION,
       solved: strings(raw.solved),
       bestLen: object(raw.bestLen),
       usedKinds: strings(raw.usedKinds),
@@ -64,5 +75,12 @@
     catch (e) { return false; }
   }
 
-  window.RSL.Save = { key: KEY, payload: payload, clean: clean, load: load, store: store };
+  window.RSL.Save = {
+    key: KEY,
+    version: SCHEMA_VERSION,
+    payload: payload,
+    clean: clean,
+    load: load,
+    store: store
+  };
 })();

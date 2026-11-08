@@ -792,7 +792,7 @@
     this._wireEls = Object.create(null);
     var worldRect = this.world.getBoundingClientRect();
 
-    /* 重放关（mm-proof）：导线用简单正交折线，避免几百条线各跑一次 A*。 */
+    /* 大图：导线用简单正交折线，避免几百条线各跑一次 A*（由 main.js 按图规模开启）。 */
     if (this.simpleWires) {
       var usedSimple = Object.create(null);
       var simpleRoutes = Object.create(null);
@@ -948,7 +948,6 @@
     var outputs = info.ports.outputs || [];
     var isAssertion = outputs.some(function (p) { return p.type === 'assertion'; });
     var r = result && result.results[n.id];
-    var ast = n.kind !== 'target' && r && r.ast ? r.ast : null;
     var tokens = n.kind !== 'target' && r && r.tokens ? r.tokens : null;
     var formula = '';
     var plain = '';
@@ -958,11 +957,8 @@
       formula = window.RSL.Term
         ? window.RSL.Term.toNodeHTML(tokens, (result && result.vars) || null)
         : tokens.join(' ');
-    } else if (ast) {
-      var L = window.RSL.Logic;
-      formula = window.RSL.formatFormula ? window.RSL.formatFormula(ast) : L.toHTML(ast);
     }
-    if (isAssertion && !tokens) formula = '<span class="node-turnstile">⊢</span>' + formula;
+    if (isAssertion && !tokens) formula = '<span class="node-turnstile">⊢</span>';
     var inCount = inputPorts.length;
     return {
       info: info,
