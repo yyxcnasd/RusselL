@@ -64,9 +64,14 @@ function createBuilder() {
   const formulaCache = new Map();
   const termCache = new Map();
 
+  const used = [];
+  const usedSeen = new Set();
   function addNode(kind, config) {
     const id = 'n' + (++seq);
-    nodes.push({ id, kind, config: config || {}, x: 0, y: 0 });
+    const cfg = config || {};
+    const key = kind + ':' + JSON.stringify(cfg);
+    if (!usedSeen.has(key)) { usedSeen.add(key); used.push({ kind, config: cfg }); }
+    nodes.push({ id, kind, config: cfg, x: 0, y: 0 });
     return id;
   }
   function connect(from, fromPort, to, toPort) {
@@ -129,7 +134,7 @@ function createBuilder() {
     return id;
   }
 
-  return { nodes, edges, formula, termNode, addNode, connect, nextId: () => seq };
+  return { nodes, edges, formula, termNode, addNode, connect, nextId: () => seq, used: () => used };
 }
 
 /* ---------- 证明项 → 断言电路 ---------- */
@@ -141,12 +146,27 @@ function compileProof(proof, builder, ctx) {
     let id;
     switch (pt.op) {
       case 'axiom':
-        id = builder.addNode('axiom', { schema: pt.schema });
+      case 'lemma': {
+        const base = pt.op === 'axiom'
+          ? builder.addNode('axiom', { schema: pt.schema })
+          : (function () {
+            if (pt.n >= ctx.no) throw new Error('关卡 *' + PAD(ctx.no) + ' 不能引用自己或更晚的 *' + PAD(pt.n));
+            return builder.addNode('theorem', { n: pt.n });
+          })();
+        const atoms = pt.atoms || {};
+        const names = Object.keys(atoms);
+        if (!names.length) { id = base; break; }
+        if (names.length > 3) throw new Error('一个实例最多 3 组原子代入');
+        id = builder.addNode('subst', {});
+        builder.connect(base, 'out', id, 'assertion');
+        names.forEach((name, i) => {
+          const atomNode = builder.addNode('atom', { name });
+          const formulaNode = builder.formula(atoms[name]);
+          builder.connect(atomNode, 'out', id, 'atom' + (i + 1));
+          builder.connect(formulaNode, 'out', id, 'formula' + (i + 1));
+        });
         break;
-      case 'lemma':
-        if (pt.n >= ctx.no) throw new Error('关卡 *' + PAD(ctx.no) + ' 不能引用自己或更晚的 *' + PAD(pt.n));
-        id = builder.addNode('theorem', { n: pt.n });
-        break;
+      }
       case 'subst': {
         id = builder.addNode('subst', {});
         const src = resolve(pt.of);
@@ -266,6 +286,21 @@ function compileLevel(def, prevLevels) {
   const targetTokens = ['|-'].concat(def.target);
   nodes.find((n) => n.id === targetId).targetTokens = targetTokens;
 
+  const mergedPalette = [];
+  const seenPalette = new Set();
+  expandAllowed(def.allowed).forEach((entry) => {
+    const k = entry.kind + ':' + JSON.stringify(entry.config || {});
+    if (seenPalette.has(k)) return;
+    seenPalette.add(k);
+    mergedPalette.push(entry);
+  });
+  builder.used().forEach((entry) => {
+    const k = entry.kind + ':' + JSON.stringify(entry.config || {});
+    if (seenPalette.has(k)) return;
+    seenPalette.add(k);
+    mergedPalette.push(entry);
+  });
+
   const level = {
     id: 'L' + PAD(def.no),
     code: '*' + PAD(def.no),
@@ -276,7 +311,7 @@ function compileLevel(def, prevLevels) {
     teaches: def.teaches || '',
     hint: def.hint || '',
     targetTokens,
-    palette: expandAllowed(def.allowed),
+    palette: mergedPalette,
     initialNodes: [],
     solution: { nodes: nodes.filter((n) => n.id !== targetId), edges: builder.edges },
     difficulty: 0,
@@ -291,8 +326,18 @@ function compileLevel(def, prevLevels) {
   const result = Engine.evaluate(level, nodes, builder.edges, { levels: prevLevels, levelNo: def.no });
   if (!result.complete) {
     const first = (result.errors || [])[0];
+    let detail = '';
+    if (first) {
+      const bad = nodes.filter((n) => n.id === first.nodeId)[0];
+      const ins = builder.edges.filter((e) => e.to.node === first.nodeId);
+      detail = ' @' + (bad ? bad.kind + '/' + JSON.stringify(bad.config) : first.nodeId) +
+        ' inputs=' + ins.map((e) => {
+          const r = result.results[e.from.node];
+          return (r && r.tokens ? r.tokens.slice(0, 12).join(' ') : 'null');
+        }).join(' | ');
+    }
     throw new Error('关卡 *' + PAD(def.no) + '（' + def.title + '）参考证明未通关：' +
-      (first ? first.message : '未知错误') + '；目标 ' + Term.fmt(targetTokens));
+      (first ? first.message : '未知错误') + detail + '；目标 ' + Term.fmt(targetTokens));
   }
   return level;
 }
