@@ -128,6 +128,14 @@
   SUBST_INPUTS.push({ id: 'vleft', label: '旧变元', type: TERM });
   SUBST_INPUTS.push({ id: 'vright', label: '新变元', type: TERM });
 
+  function binaryCtor(op, note) {
+    return function (inputs) {
+      var a = need(inputs, 'a', '公式 A');
+      var b = need(inputs, 'b', '公式 B');
+      return { tokens: wffOf(['('].concat(asBody(a), [op], asBody(b), [')'])), note: note };
+    };
+  }
+
   var MODULES = {
     target: {
       label: '目标焊盘', kindLabel: 'TARGET', group: 'target', symbol: '◎', construct: true,
@@ -178,6 +186,50 @@
         if (!/^[FGH]$/.test(sym)) sym = 'F';
         return { tokens: wffOf([sym, '(', t1, ')']), note: sym + '(' + t1 + ')' };
       }
+    },
+    exists: {
+      label: '存在', kindLabel: 'EXISTS', group: 'build', symbol: '∃', construct: true,
+      ports: { inputs: [{ id: 'a', label: '公式 A', type: FORMULA }], outputs: [{ id: 'out', label: '∃x A', type: FORMULA }] },
+      config: { v: 'x' },
+      help: '给公式加 ∃x / ∃y / ∃z。',
+      apply: function (inputs, cfg) {
+        var a = need(inputs, 'a', '公式 A');
+        var v = (cfg.v || 'x').toLowerCase().slice(0, 1);
+        if (!/^[xyz]$/.test(v)) v = 'x';
+        return { tokens: wffOf(['E.', v].concat(asBody(a))), note: '∃' + v };
+      }
+    },
+    mem: {
+      label: '属于关系', kindLabel: 'MEM', group: 'build', symbol: '∈', construct: true,
+      ports: { inputs: [{ id: 'a', label: '个体 a', type: TERM }, { id: 'b', label: '个体 b', type: TERM }], outputs: [{ id: 'out', label: 'a ∈ b', type: FORMULA }] },
+      config: {},
+      help: '集合论的基本关系：a ∈ b。',
+      apply: function (inputs) {
+        var a = termOf(inputs, 'a', 'a');
+        var b = termOf(inputs, 'b', 'b');
+        return { tokens: wffOf([a, 'e.', b]), note: a + ' ∈ ' + b };
+      }
+    },
+    and: {
+      label: '合取', kindLabel: 'AND', group: 'build', symbol: '∧', construct: true,
+      ports: { inputs: [{ id: 'a', label: '公式 A', type: FORMULA }, { id: 'b', label: '公式 B', type: FORMULA }], outputs: [{ id: 'out', label: 'A∧B', type: FORMULA }] },
+      config: {},
+      help: '集合公理里用来陈述同时成立的条件。',
+      apply: binaryCtor('/\\', '合取')
+    },
+    or: {
+      label: '析取', kindLabel: 'OR', group: 'build', symbol: '∨', construct: true,
+      ports: { inputs: [{ id: 'a', label: '公式 A', type: FORMULA }, { id: 'b', label: '公式 B', type: FORMULA }], outputs: [{ id: 'out', label: 'A∨B', type: FORMULA }] },
+      config: {},
+      help: '集合公理里用来陈述“或”的条件。',
+      apply: binaryCtor('\\/', '析取')
+    },
+    iff: {
+      label: '等值', kindLabel: 'IFF', group: 'build', symbol: '↔', construct: true,
+      ports: { inputs: [{ id: 'a', label: '公式 A', type: FORMULA }, { id: 'b', label: '公式 B', type: FORMULA }], outputs: [{ id: 'out', label: 'A↔B', type: FORMULA }] },
+      config: {},
+      help: '集合恒等式常用等值来陈述。',
+      apply: binaryCtor('<->', '等值')
     },
     not: {
       label: '否定', kindLabel: 'NOT', group: 'build', symbol: '¬', construct: true,
@@ -293,6 +345,44 @@
         if (!/^[xyz]$/.test(v)) v = 'x';
         if (T.freeVars(wffOf(body)).indexOf(v) >= 0) fail('变元 ' + v + ' 在公式中自由出现，不能做全称引入');
         return { tokens: assertionOf(['('].concat(body, ['->', 'A.', v], body, [')'])), note: '∀I* · ' + v };
+      }
+    },
+    'exists-intro': {
+      label: '存在推广', kindLabel: '∃I', group: 'rule', symbol: '∃I', construct: false,
+      ports: { inputs: [{ id: 'assertion', label: '断言 A', type: ASSERTION }], outputs: [{ id: 'out', label: '∃x A', type: ASSERTION }] },
+      config: { v: 'x' },
+      help: '从已证的 A 得到 ∃x A。',
+      apply: function (inputs, cfg) {
+        var a = need(inputs, 'assertion', '断言 A');
+        if (T.typeOf(a) !== '|-') fail('输入必须是 ⊢ 断言');
+        var v = (cfg.v || 'x').toLowerCase().slice(0, 1);
+        if (!/^[xyz]$/.test(v)) v = 'x';
+        return { tokens: assertionOf(['E.', v].concat(asBody(a))), note: '∃I · ' + v };
+      }
+    },
+    'exists-elim': {
+      label: '存在消去', kindLabel: '∃E', group: 'rule', symbol: '∃E', construct: false,
+      ports: {
+        inputs: [
+          { id: 'exists', label: '断言 ∃x A', type: ASSERTION },
+          { id: 'implication', label: '断言 A→B', type: ASSERTION }
+        ],
+        outputs: [{ id: 'out', label: '断言 B', type: ASSERTION }]
+      },
+      config: {},
+      help: '∃x A 与 A→B 得到 B；x 不能在 B 中自由出现。',
+      apply: function (inputs) {
+        var ex = need(inputs, 'exists', '断言 ∃x A');
+        var imp = need(inputs, 'implication', '断言 A→B');
+        if (T.typeOf(ex) !== '|-' || T.typeOf(imp) !== '|-') fail('两路输入都必须是 ⊢ 断言');
+        var exTree = T.read(wffOf(asBody(ex)));
+        if (exTree.k !== 'exists') fail('第一路输入必须是 ∃x A');
+        var impTree = T.read(wffOf(asBody(imp)));
+        if (impTree.k !== 'imp') fail('第二路输入必须是 A→B');
+        if (!T.eq(wffOf(T.treeToBody(exTree.a)), wffOf(T.treeToBody(impTree.a)))) fail('第二路前件与 ∃ 的内层公式不一致');
+        var v = exTree.v;
+        if (T.freeVars(wffOf(T.treeToBody(impTree.b))).indexOf(v) >= 0) fail('变元 ' + v + ' 在结论 B 中自由出现');
+        return { tokens: assertionOf(asBody(impTree.b)), note: '∃E · ' + v };
       }
     },
     gen: {
