@@ -74,7 +74,46 @@ const LABELS = [
   { label: 'ax11dgen', title: '重复量词', teaches: '∀x∀xP→∀x∀xP：重复量词的自反。', hint: '直接用 *01 并在全称下实例化。' }
 ];
 
-LABELS.forEach((entry) => {
+const Gy = F.pred('G', Y);
+
+function addPred(no, title, teaches, hint, target, proof) {
+  levels.push({ no, chapter: 1, label: null, title, teaches, hint,
+    targetTokens: ['|-'].concat(target), proof, stats: {} });
+  targetByNo[no] = target;
+}
+
+addPred(29, '谓词自反', '∀x(F(x)→F(x))。', '同一律的谓词实例再全称推广。',
+  F.all('x', F.imp(Fx, Fx)),
+  P.gen(P.subst(P.thm(1), { atoms: { P: Fx } }), 'x'));
+addPred(30, '双层谓词自反', '∀x∀y(F(x)→F(x))。', '连续两次全称推广。',
+  F.all('x', F.all('y', F.imp(Fx, Fx))),
+  P.gen(P.gen(P.subst(P.thm(1), { atoms: { P: Fx } }), 'y'), 'x'));
+addPred(31, '存在自反谓词', '∃x(F(x)→F(x))。', '先证 F(x)→F(x)，再做存在推广。',
+  F.exists('x', F.imp(Fx, Fx)),
+  P.mp(P.existsGen(F.imp(Fx, Fx), 'x', 'x'),
+    P.subst(P.thm(1), { atoms: { P: Fx } })));
+addPred(32, '全称到个体', '∀x F(x) → F(y)。', '全称例化到 y。',
+  F.imp(F.all('x', Fx), Fy), P.allInst(Fx, 'x', 'y'));
+addPred(33, '个体到存在', 'F(y) → ∃x F(x)。', '存在推广，y 为见证。',
+  F.imp(Fy, F.exists('x', Fx)), P.existsGen(Fx, 'x', 'y'));
+addPred(34, '谓词演算实例', '∀x(F(x)→G(x)) → (F(y)→G(y))。', '对谓词蕴涵做全称例化。',
+  F.imp(F.all('x', F.imp(Fx, Gx)), F.imp(Fy, Gy)),
+  P.allInst(F.imp(Fx, Gx), 'x', 'y'));
+addPred(35, '谓词全称分配', '∀x(F(x)→G(x)) → (∀xF(x)→∀xG(x))。', 'A5 的谓词实例。',
+  F.imp(F.all('x', F.imp(Fx, Gx)), F.imp(F.all('x', Fx), F.all('x', Gx))),
+  P.subst(P.ax('A5'), { atoms: { P: Fx, Q: Gx } }));
+addPred(36, '全称到存在', '∀x F(x) → ∃x F(x)。', '全称例化 + 存在推广 + 三段论。',
+  F.imp(F.all('x', Fx), F.exists('x', Fx)),
+  (() => {
+    const all = P.allInst(Fx, 'x', 'x');
+    const ex = P.existsGen(Fx, 'x', 'x');
+    const chain = P.subst(P.thm(5), { atoms: {
+      P: F.all('x', Fx), Q: Fx, R: F.exists('x', Fx)
+    } });
+    return P.mp(ex, P.mp(all, chain));
+  })());
+
+LABELS.slice(8).forEach((entry) => {
   const no = levels.length + 25;
   const r = expand(entry.label, {}, [], levelMap);
   let nodes = 0;

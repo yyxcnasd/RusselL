@@ -113,6 +113,10 @@ function createBuilder() {
       id = addNode('imp', {});
       connect(a, 'out', id, 'a');
       connect(b, 'out', id, 'b');
+    } else if (body[0] === 'E.') {
+      const ax = formula(body.slice(2));
+      id = addNode('exists', { v: body[1] });
+      connect(ax, 'out', id, 'a');
     } else if (body[0] === 'A.') {
       const a = formula(body.slice(2));
       id = addNode('all', { v: body[1] });
