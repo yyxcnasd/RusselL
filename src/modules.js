@@ -107,9 +107,11 @@
 
   var SUBST_INPUTS = [{ id: 'assertion', label: '断言 A', type: ASSERTION }];
   ['1', '2', '3'].forEach(function (n, i) {
-    SUBST_INPUTS.push({ id: 'atom' + n, label: '原子 ' + (i + 1), type: ATOM });
+    SUBST_INPUTS.push({ id: 'atom' + n, label: '原子 ' + (i + 1), type: FORMULA });
     SUBST_INPUTS.push({ id: 'formula' + n, label: '公式 ' + (i + 1), type: FORMULA });
   });
+  SUBST_INPUTS.push({ id: 'vleft', label: '旧变元', type: TERM });
+  SUBST_INPUTS.push({ id: 'vright', label: '新变元', type: TERM });
 
   var MODULES = {
     target: {
@@ -214,11 +216,21 @@
       label: '代入', kindLabel: 'SUBST', group: 'rule', symbol: 'S', construct: false,
       ports: { inputs: SUBST_INPUTS, outputs: [{ id: 'out', label: 'A[P:=B]', type: ASSERTION }] },
       config: {},
-      help: '把断言里的原子 P/Q/R 同时换成公式（最多三组）。',
+      help: '把断言里的原子 P/Q/R 同时换成公式（最多三组）；也可接一组变元改名。',
       apply: function (inputs) {
         var assertion = assertionBody(inputs, 'assertion', '断言 A');
-        var map = Object.create(null);
+        var bodyTokens = assertion;
         var parts = [];
+        var vLeft = inputs.vleft, vRight = inputs.vright;
+        if (vLeft || vRight) {
+          if (!vLeft || !vRight) fail('变元改名需要同时接旧变元和新变元');
+          var fromVar = termOf({ vleft: vLeft }, 'vleft', 'x');
+          var toVar = termOf({ vright: vRight }, 'vright', 'y');
+          if (T.freeVars(wffOf(bodyTokens)).indexOf(fromVar) < 0) fail('断言里没有自由变元 ' + fromVar);
+          bodyTokens = asBody(T.substituteVar(wffOf(bodyTokens), fromVar, toVar));
+          parts.push(fromVar + ' → ' + toVar);
+        }
+        var map = Object.create(null);
         for (var i = 1; i <= 3; i += 1) {
           var atomVal = inputs['atom' + i];
           var formulaVal = inputs['formula' + i];
@@ -227,12 +239,13 @@
           if (!T.isAtom(atomVal)) fail('第 ' + i + ' 组的左边必须是单个原子 P/Q/R/S/T');
           var name = asBody(atomVal)[0];
           if (Object.prototype.hasOwnProperty.call(map, name)) fail('同一原子不能代入两次');
-          if (assertion.indexOf(name) < 0) fail('原子 ' + name + ' 没有出现在断言中');
+          if (bodyTokens.indexOf(name) < 0) fail('原子 ' + name + ' 没有出现在断言中');
           map[name] = asBody(formulaVal);
           parts.push(name + ' := ' + T.fmt(wffOf(map[name])));
         }
         if (!parts.length) fail('至少接一组代入');
-        return { tokens: assertionOf(asBody(T.substAtoms(assertion, map))), note: parts.join('，'), meta: { mapping: map } };
+        var resultBody = asBody(T.substAtoms(wffOf(bodyTokens), map));
+        return { tokens: assertionOf(resultBody), note: parts.join('，'), meta: { mapping: map } };
       }
     },
     mp: {

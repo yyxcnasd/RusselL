@@ -39,9 +39,6 @@
     sound: true,
     theme: 'light',
     parts: [],
-    proof: null,
-    referenceIndex: 0,
-    referenceNode: null
   };
   var els = null;
   var paletteHold = null;
@@ -180,7 +177,17 @@
 
   function buildLevels() { state.levels = Catalog.build(); }
 
-  function isUnlocked(index) { return Catalog.isUnlocked(state, state.levels, index); }
+  function isUnlocked(index) {
+    if (state.forceUnlock) return true;
+    if (index <= 0) return true;
+    var prev = state.levels[index - 1];
+    return !!(prev && state.solved[prev.id]);
+  }
+
+  /** 关卡目标的 canonical token（带 |-）。 */
+  function targetTokensOf(level) {
+    return level && Array.isArray(level.targetTokens) && level.targetTokens.length ? level.targetTokens : null;
+  }
 
   function freeSpot() {
     var nodes = state.board.items || [];
@@ -216,22 +223,11 @@
     state.selectedEdge = null;
 
     var level = state.level;
-    var proof = proofOf(level);
-    state.proof = proof;
-    state.referenceIndex = 0;
-    state.referenceNode = {};
-    state.parts = paletteParts(level);
+    state.parts = Catalog.partsForLevel(level);
+    if (els.hintBtn) els.hintBtn.style.display = 'none';
+    if (els.tray) els.tray.classList.remove('is-wide');
+    state.board.simpleWires = !!(level.solution && level.solution.nodes.length > 60);
 
-    var hasReference = !!(level.reference && level.reference.length);
-    if (els.hintBtn) els.hintBtn.style.display = hasReference ? '' : 'none';
-    if (els.tray) els.tray.classList.toggle('is-wide', hasReference);
-    /* 大图用简单正交折线，小图仍走 A* 避障：按预计节点数而不是关卡类型决定。 */
-    var planSize = (level.reference && level.reference.length)
-      || (proof && proof.steps && proof.steps.length)
-      || (level.solution ? level.solution.nodes.length : 0);
-    state.board.simpleWires = planSize > 60;
-
-    var mobile = window.innerWidth <= 700;
     var saved = state.circuits[level.id];
     var savedNodes = [];
     var savedEdges = [];
@@ -243,68 +239,41 @@
     }
 
     var tokens = targetTokensOf(level);
-    var nodes, edges, tx = 0, ty = 0;
+    var nodes, edges;
     if (savedNodes.length) {
-      /* 重进已通关关卡：目标焊盘放到存档电路右侧，避免窄屏上与节点重叠。 */
       var maxX = -Infinity, minY = Infinity, maxY = -Infinity;
       savedNodes.forEach(function (n) {
         maxX = Math.max(maxX, n.x + 232);
         minY = Math.min(minY, n.y);
         maxY = Math.max(maxY, n.y + 140);
       });
-      tx = maxX + 340;
-      ty = UI.clamp((minY + maxY) / 2 - 52, 120, 720);
-      nodes = [{ id: 'target', kind: 'target', x: tx, y: ty, target: level.target || '', targetTokens: tokens, config: {} }].concat(savedNodes);
+      var tx = maxX + 320;
+      var ty = UI.clamp((minY + maxY) / 2 - 52, 120, 720);
+      nodes = [{ id: 'target', kind: 'target', x: tx, y: ty, targetTokens: tokens, config: {} }].concat(savedNodes);
       edges = savedEdges;
-    } else if (Array.isArray(level.initialNodes) && level.initialNodes.length) {
-      nodes = JSON.parse(JSON.stringify(level.initialNodes));
-      edges = [];
-      nodes.forEach(function (n) {
-        if (n.kind === 'target') { n.target = n.target || level.target || ''; n.targetTokens = n.targetTokens || tokens; }
-      });
     } else {
-      tx = mobile ? 250 : (level.targetPos ? level.targetPos.x : 900);
-      ty = mobile ? 300 : (level.targetPos ? level.targetPos.y : 300);
-      nodes = [{ id: 'target', kind: 'target', x: tx, y: ty, target: level.target || '', targetTokens: tokens, config: {} }];
+      nodes = JSON.parse(JSON.stringify(level.initialNodes || []));
       edges = [];
+      if (!nodes.length) {
+        nodes = [{ id: 'target', kind: 'target', x: 860, y: 220, targetTokens: tokens, config: {} }];
+      }
+      nodes.forEach(function (n) {
+        if (n.kind === 'target') n.targetTokens = n.targetTokens || tokens;
+      });
     }
     state.board.setData(nodes, edges);
 
-    els.goalFormula.innerHTML = tokens ? UI.goalTokens(tokens) : UI.esc(level.targetUnicode || level.target || '');
-    var plain = level.targetUnicode || els.goalFormula.textContent || '';
-    els.goal.classList.toggle('is-long', String(plain).length > 52);
-    var no = hasReference
-      ? 'M' + String(level.chapterOrder || level.order || 0).padStart(2, '0')
-      : String(index + 1).padStart(2, '0');
-    els.levelBtn.textContent = no;
-    els.levelBtn.setAttribute('aria-label', '第 ' + no + ' 关，选择关卡');
+    els.goalFormula.innerHTML = tokens ? UI.goalTokens(tokens) : UI.esc(level.code || '');
+    els.goal.classList.toggle('is-long', (els.goalFormula.textContent || '').length > 52);
+    els.levelBtn.textContent = level.code || String(index + 1).padStart(2, '0');
+    els.levelBtn.setAttribute('aria-label', '第 ' + (index + 1) + ' 关，选择关卡');
     els.popover.hidden = true;
     buildTray();
     state.board.result = null;
     refresh();
-
-    var width = state.board.board.clientWidth || 1000;
-    var height = state.board.board.clientHeight || 600;
-    if (savedNodes.length) {
-      state.board.fit({ minScale: 0.32 });
-      if (mobile) ensureTargetVisible(tx, ty, 160, 104);
-    } else if (hasReference) {
-      /* 参考电路可能有 20 多列：整图 fit 会缩到看不清，用 minScale 兜底；参考推进时自动跟焦。 */
-      state.board.fit({ minScale: 0.3 });
-    } else if (mobile) {
-      var scale = UI.clamp((width - 34) / 410, 0.5, 0.72);
-      state.board.setView(18, 26, scale);
-    } else {
-      var desktopScale = UI.clamp((width - 120) / (tx + 280), 0.62, 1.0);
-      var viewX = width - 60 - (tx + 232) * desktopScale;
-      var viewY = Math.max(40, (height - 220) / 2 - ty * desktopScale * 0.15);
-      viewX = Math.min(viewX, width - 24 - (tx + 176) * desktopScale);
-      viewY = Math.min(viewY, height - 24 - (ty + 130) * desktopScale);
-      state.board.setView(viewX, viewY, desktopScale);
-    }
-    els.coach.hidden = !(index === 0 && state.board.items.length <= 1 && !state.hintDismissed);
+    state.board.fit({ minScale: 0.45 });
+    els.coach.hidden = true;
     saveProgress();
-    maybeShowCoach(state.level);
   }
 
   /* 把当前视图夹到“目标焊盘完整可见”的范围内，同时尽量保留 fit() 的取景。 */
@@ -338,7 +307,7 @@
   function refresh() {
     if (!state.level) return;
     var data = state.board.getData();
-    var ctx = state.proof ? { proof: state.proof } : null;
+    var ctx = { levels: state.levels, levelNo: state.level ? state.level.no : 0 };
     var result = window.RSL.Engine.evaluate(state.level, data.nodes, data.edges, ctx);
     state.results = result;
     state.board.paint(result);
@@ -460,15 +429,12 @@
       var ghostExtras = substExtras(part.config);
       ins = ins.filter(function (p) { return substPortVisible(p.id, ghostExtras); });
     }
-    if (part.kind === 'mmstep') {
-      ins = ins.slice(0, Math.max(0, Math.min(ins.length, (part.config && part.config.arity) || 0)));
-    }
     var outs = (info.ports.outputs || []);
     var config = part.config || {};
     var code = state.board._code({ kind: part.kind, config: config }) || part.symbol || '·';
     var formula = '<span class="blank">·</span>';
     try {
-      var preview = window.RSL.Engine.evaluate(state.level, [{ id: '__ghost', kind: part.kind, x: 0, y: 0, config: config }], [], state.proof ? { proof: state.proof } : null);
+      var preview = window.RSL.Engine.evaluate(state.level, [{ id: '__ghost', kind: part.kind, x: 0, y: 0, config: config }], [], { levels: state.levels, levelNo: state.level ? state.level.no : 0 });
       var result = preview.results && preview.results.__ghost;
       if (result && result.tokens && window.RSL.Term) {
         formula = window.RSL.Term.toNodeHTML(result.tokens);
@@ -591,7 +557,7 @@
     Audio.sfx('fail');
     if (result.errors && result.errors.length) {
       var msg = result.errors[0].message || '还没接完';
-      UI.toast(msg.length > 32 ? msg.slice(0, 32) + '…' : msg);
+      UI.toast(msg.length > 34 ? msg.slice(0, 34) + '…' : msg);
       return;
     }
     if (result.target && result.target.state === 'error') { UI.toast('不对'); return; }
@@ -604,14 +570,8 @@
     var previousBest = state.bestLen[level.id];
     state.solved[level.id] = true;
     var items = (state.board.items || []).filter(function (n) { return n.kind !== 'target'; });
-    /* 工作模块：不含关卡自带的给定前提（mmhyp）；普通关没有这种节点，计数不变。 */
-    var work = items.filter(function (n) { return n.kind !== 'mmhyp'; });
-    var len = work.length;
-    items.forEach(function (n) {
-      state.usedKinds[n.kind] = true;
-      if (n.kind === 'archive') state.usedArchive[level.id] = true;
-      if (n.kind === 'theorem') state.usedTheorem[level.id] = true;
-    });
+    var len = items.length;
+    items.forEach(function (n) { state.usedKinds[n.kind] = true; });
     if (!state.deletedThisLevel) state.cleanWins[level.id] = true;
     if (!state.circuits[level.id] || !previousBest || len < previousBest) {
       var data = state.board.getData();
@@ -638,16 +598,13 @@
     setTimeout(function () { els.levelBtn.classList.remove('just-solved'); }, 520);
 
     var isLast = state.index >= state.levels.length - 1;
-    var reference = (level.solution && level.solution.nodes.length)
-      || (state.proof && state.proof.stats && state.proof.stats.asserts)
-      || len;
+    var reference = (level.solution && level.solution.nodes.length) || len;
     Screens.openWin({
       tokens: targetTokensOf(level),
-      target: level.target,
       len: len,
       ref: reference,
       isLast: isLast,
-      caption: state.proof ? '用了多少个证明步骤节点 / 参考证明的断言数' : '推理长度：模块数 / 参考电路模块数'
+      caption: '推理长度：模块数 / 参考电路模块数'
     });
   }
 
@@ -658,165 +615,12 @@
   }
 
   /* =========================================================================
-   * 7b. 参考提示（普通关与重放关同一套）
-   *
-   * 关卡数据里带 reference（参考证明的动作序列）或 proof（自包含证明）时，顶栏
-   * 「参考」按钮按它摆节点/接线：小证明一次走完，大证明按批推进，最终把结论接到 ⊢。
-   * 关卡数据优先；proof 只是数据来源。
-   * ========================================================================= */
-
-  function proofOf(level) {
-    var proofs = window.RSL.MM_PROOFS || {};
-    return (level && level.proofId && proofs[level.proofId]) || null;
-  }
-
-  function targetTokensOf(level) {
-    if (level && Array.isArray(level.targetTokens) && level.targetTokens.length) return level.targetTokens;
-    if (level && level.target) {
-      try { return window.RSL.Term.parse(level.target); } catch (e) { return null; }
-    }
-    return null;
-  }
-
-  function partOfSpec(spec) {
-    var kind = spec.kind;
-    var cfg = spec.config || {};
-    var info = window.RSL.Engine.info(kind);
-    var key = kind;
-    var symbol = info.symbol || '·';
-    var name = info.label || kind;
-    if (kind === 'axiom' && cfg.axiomId) {
-      var ax = window.RSL.Engine.getAxiom(cfg.axiomId);
-      if (ax) { symbol = ax.symbol || ax.code; name = (ax.type === 'definition' ? '定义 ' : ax.type === 'theorem' ? '定理 ' : '公理 ') + ax.code + ' · ' + ax.name; }
-      key += ':' + cfg.axiomId;
-    } else if (kind === 'archive' && cfg.label) {
-      var ar = window.RSL.Engine.getArchive(cfg.label);
-      if (ar) { symbol = cfg.label.slice(0, 6); name = 'set.mm ' + cfg.label + ' · ' + (ar.name || ''); }
-      key += ':' + cfg.label;
-    } else if (kind === 'theorem' && cfg.theoremCode) {
-      var th = window.RSL.Engine.getLevelTheorem(cfg.theoremCode);
-      if (th) { symbol = '*' + String(th.code || '').split('-').pop(); name = '已证 ' + th.code; }
-      key += ':' + cfg.theoremCode;
-    } else if (cfg.label) {
-      key += ':' + cfg.label;
-      symbol = cfg.label;
-      name = cfg.label;
-    }
-    return { key: key, kind: kind, symbol: symbol, name: name, config: cfg };
-  }
-
-  function paletteParts(level) {
-    return Catalog.partsForLevel(level);
-  }
-
-  function referencePlan(level) {
-    return Array.isArray(level.reference) ? level.reference : [];
-  }
-
-  function stepArity(level, label) {
-    var spec = (level.palette || []).filter(function (p) {
-      return p.kind === 'mmstep' && p.config && p.config.label === label;
-    })[0];
-    return spec && spec.config && typeof spec.config.arity === 'number' ? spec.config.arity : 0;
-  }
-
-  function hypNodeId(level, label) {
-    var given = (level.initialNodes || []).filter(function (n) {
-      return n.kind === 'mmhyp' && n.config && n.config.label === label;
-    })[0];
-    return given ? given.id : 'hyp_' + label;
-  }
-
-  /** 把某个节点带进视口中心（参考摆放的节点可能在画布外）。 */
-  function ensureNodeVisible(node) {
-    if (!node || !state.board) return;
-    var board = state.board;
-    var width = board.board.clientWidth || 1000;
-    var height = board.board.clientHeight || 600;
-    var v = board.view;
-    var sx = v.x + node.x * v.scale;
-    var sy = v.y + node.y * v.scale;
-    var margin = 140;
-    if (sx >= margin && sx <= width - margin && sy >= margin && sy <= height - margin) return;
-    board.setView(width / 2 - node.x * v.scale, height / 2 - node.y * v.scale, v.scale);
-  }
-
-  /** 参考证明的下一步：摆放步骤节点并接上前提（最后一步接到 ⊢）。 */
-  function referenceStep() {
-    var level = state.level;
-    var proof = state.proof;
-    if (!level) return;
-    var plan = referencePlan(level);
-    if (!plan.length) { UI.toast('这一关没有参考'); return; }
-    if (state.results && state.results.complete) { UI.toast('已经完成'); return; }
-    if (state.referenceIndex >= plan.length) { UI.toast('参考已经走完'); return; }
-
-    var remaining = plan.length - state.referenceIndex;
-    /* 小证明（含公理图式）一次摆完；大证明按批推进，避免几百次全量重绘。 */
-    var batch = plan.length <= 6 ? remaining : Math.max(1, Math.min(48, Math.ceil(remaining / 6)));
-    var byStep = state.referenceNode || (state.referenceNode = {});
-    var data = state.board.getData();
-    var nodes = data.nodes;
-    var edges = data.edges;
-    var added = 0;
-    var lastNodeId = null;
-    var guard = 0;
-
-    while (state.referenceIndex < plan.length && added < batch && guard < 600) {
-      guard += 1;
-      var action = plan[state.referenceIndex];
-      state.referenceIndex += 1;
-      if (action.kind === 'hyp') {
-        byStep[action.stepId] = hypNodeId(level, action.label);
-        continue;
-      }
-      var pos = (typeof action.x === 'number' && typeof action.y === 'number')
-        ? { x: action.x, y: action.y }
-        : freeSpot();
-      var nodeId = 'ref_' + action.stepId;
-      nodes.push({
-        id: nodeId, kind: 'mmstep', x: pos.x, y: pos.y,
-        config: {
-          label: action.label,
-          arity: action.arity != null ? action.arity : stepArity(level, action.label)
-        }
-      });
-      byStep[action.stepId] = nodeId;
-      action.inputs.forEach(function (inpStepId, i) {
-        var src = byStep[inpStepId];
-        if (!src) return;
-        edges.push({
-          id: 'ref_e_' + action.stepId + '_' + i,
-          from: { node: src, port: 'out' },
-          to: { node: nodeId, port: 'e' + (i + 1) }
-        });
-      });
-      added += 1;
-      lastNodeId = nodeId;
-    }
-
-    if (state.referenceIndex >= plan.length && lastNodeId) {
-      edges.push({
-        id: 'ref_e_final',
-        from: { node: lastNodeId, port: 'out' },
-        to: { node: 'target', port: 'proof' }
-      });
-    }
-    state.board.setData(nodes, edges);
-    refresh();
-    if (lastNodeId) ensureNodeVisible(state.board.node(lastNodeId));
-    if (added > 1) UI.toast('参考：+' + added + ' 步');
-    if (state.results && state.results.complete && !state.solved[level.id]) win();
-  }
-
-  /* =========================================================================
    * 8. 全局事件
    * ========================================================================= */
 
   function bind() {
     els.levelBtn.addEventListener('click', Screens.openLevels);
     els.checkBtn.addEventListener('click', check);
-    if (els.hintBtn) els.hintBtn.addEventListener('click', function () { Audio.sfx('click'); referenceStep(); });
     els.helpBtn.addEventListener('click', Screens.openHelp);
     els.achvBtn.addEventListener('click', Screens.openAchievements);
     els.saveFile.addEventListener('change', function () {

@@ -10,11 +10,9 @@ const out = path.join(root, 'dist');
  * → UI 基础件 → 重放面板 → 编辑器 → 应用。
  */
 const RUNTIME_JS = [
-  'term.js', 'archive.js', 'library.js', 'levels.js', 'levels-generated.js',
-  'mm/flags.js', 'mm/proofs.js', 'mm/levels.js',
-  'modules.js', 'engine.js', 'route.js', 'achievements.js', 'save.js',
-  'ui.js', 'audio.js', 'coach.js', 'catalog.js', 'screens.js',
-  'board.js', 'main.js'
+  'term.js', 'levels.js', 'campaign-meta.js', 'modules.js', 'engine.js',
+  'route.js', 'achievements.js', 'save.js', 'ui.js', 'audio.js', 'coach.js',
+  'catalog.js', 'screens.js', 'board.js', 'main.js'
 ];
 
 const ALLOWED = new Set(['.html','.htm','.css','.js','.json','.wasm','.data','.md','.csv','.tsv','.png','.jpg','.jpeg','.gif','.svg','.webp','.ico','.woff2','.woff','.ttf','.eot','.mp3','.wav','.ogg','.m4a','.mp4','.webm']);
