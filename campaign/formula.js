@@ -16,6 +16,6 @@ function and(a, b) { return ['('].concat(a, ['/\\'], b, [')']); }
 function or(a, b) { return ['('].concat(a, ['\\/'], b, [')']); }
 function iff(a, b) { return ['('].concat(a, ['<->'], b, [')']); }
 function notNot(a) { return not(not(a)); }
-function iff(a, b) { return imp(imp(a, b), imp(b, a)); }
+function iff(a, b) { return ['('].concat(a, ['<->'], b, [')']); }
 
 module.exports = { atom, term, pred, not, imp, all, exists, mem, and, or, iff, notNot };

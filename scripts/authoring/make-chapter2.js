@@ -33,18 +33,22 @@ function addManual(no, title, teaches, hint, target, proof) {
 }
 
 /* 手写入门：全称推广 / 嵌套推广 / 全称闭包 */
-addManual(25, '存在自反', '存在一个自身相等的个体：∃x(x=x)。', '先证 x=x，再做存在推广。',
-  F.exists('x', eq(X, X)),
-  P.existsI(P.eqRefl('x'), 'x'));
-addManual(26, '存在的同一律', '∃x(P→P)：把同一律放进存在量词。', '对 *01 做存在推广。',
-  F.exists('x', F.imp(F.atom('P'), F.atom('P'))),
-  P.existsI(P.thm(1), 'x'));
-addManual(27, '全称下的存在', '∀y∃x(x=x)：任意 y 下都存在自反个体。', '先存在推广，再全称推广。',
-  F.all('y', F.exists('x', eq(X, X))),
-  P.gen(P.existsI(P.eqRefl('x'), 'x'), 'y'));
-addManual(28, '存在的全称', '∃x∀y(y=y)：存在一个个体，使任意 y 都自反。', '先全称推广 y=y，再做存在推广。',
-  F.exists('x', F.all('y', eq(Y, Y))),
-  P.existsI(P.gen(P.eqRefl('y'), 'y'), 'x'));
+const Fx = F.pred('F', F.term('x'));
+const Fy = F.pred('F', F.term('y'));
+const Gx = F.pred('G', F.term('x'));
+
+addManual(25, '全称例化', '真正的 ∀E：∀x F(x) → F(y)。', '用全称例化公理，把 x 换成 y。',
+  F.imp(F.all('x', Fx), Fy),
+  P.allInst(Fx, 'x', 'y'));
+addManual(26, '存在推广', 'F(y) → ∃x F(x)。', '用存在推广公理，y 作为见证。',
+  F.imp(Fy, F.exists('x', Fx)),
+  P.existsGen(Fx, 'x', 'y'));
+addManual(27, '全称分配（谓词）', '∀x(F(x)→G(x)) → (∀xF(x) → ∀xG(x))。', 'A5 的谓词实例。',
+  F.imp(F.all('x', F.imp(Fx, Gx)), F.imp(F.all('x', Fx), F.all('x', Gx))),
+  P.subst(P.ax('A5'), { atoms: { P: Fx, Q: Gx } }));
+addManual(28, '全称换名', '∀x F(x) → ∀y F(y) 的实例化形式：∀x F(x) → F(y)。', '用全称例化。',
+  F.imp(F.all('x', Fx), Fy),
+  P.allInst(Fx, 'x', 'y'));
 
 /* 后 20 关：set.mm 纯 ∀ 定理（顺序由易到难） */
 const LABELS = [

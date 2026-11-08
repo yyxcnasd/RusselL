@@ -358,6 +358,48 @@
         return { tokens: assertionOf(['('].concat(body, ['->', 'A.', v], body, [')'])), note: '∀I* · ' + v };
       }
     },
+    'all-inst': {
+      label: '全称例化公理', kindLabel: '∀E*', group: 'rule', symbol: '∀E*', construct: false,
+      ports: {
+        inputs: [{ id: 'formula', label: '公式 A', type: FORMULA }, { id: 'term', label: '个体 t', type: TERM }],
+        outputs: [{ id: 'out', label: '∀x A → A[t/x]', type: ASSERTION }]
+      },
+      config: { v: 'x' },
+      help: '真正的全称消去：把绑定变元换成个体 t，得到 ∀x A → A[t/x]。',
+      apply: function (inputs, cfg) {
+        var a = need(inputs, 'formula', '公式 A');
+        var t = termOf(inputs, 'term', 'y');
+        var v = (cfg.v || 'x').toLowerCase().slice(0, 1);
+        if (!/^[xyzuvw]$/.test(v)) v = 'x';
+        var body = asBody(a);
+        var inst = asBody(T.substituteVar(wffOf(body), v, t));
+        return {
+          tokens: assertionOf(['('].concat(['A.', v], body, ['->'], inst, [')'])),
+          note: '∀E* · ' + v + '→' + t
+        };
+      }
+    },
+    'exists-gen': {
+      label: '存在推广公理', kindLabel: '∃I*', group: 'rule', symbol: '∃I*', construct: false,
+      ports: {
+        inputs: [{ id: 'formula', label: '公式 A', type: FORMULA }, { id: 'term', label: '个体 t', type: TERM }],
+        outputs: [{ id: 'out', label: 'A[t/x] → ∃x A', type: ASSERTION }]
+      },
+      config: { v: 'x' },
+      help: '真正的存在推广：A[t/x] → ∃x A。',
+      apply: function (inputs, cfg) {
+        var a = need(inputs, 'formula', '公式 A');
+        var t = termOf(inputs, 'term', 'y');
+        var v = (cfg.v || 'x').toLowerCase().slice(0, 1);
+        if (!/^[xyzuvw]$/.test(v)) v = 'x';
+        var body = asBody(a);
+        var inst = asBody(T.substituteVar(wffOf(body), v, t));
+        return {
+          tokens: assertionOf(['('].concat(inst, ['->'], ['E.', v], body, [')'])),
+          note: '∃I* · ' + v + '←' + t
+        };
+      }
+    },
     'exists-intro': {
       label: '存在推广', kindLabel: '∃I', group: 'rule', symbol: '∃I', construct: false,
       ports: { inputs: [{ id: 'assertion', label: '断言 A', type: ASSERTION }], outputs: [{ id: 'out', label: '∃x A', type: ASSERTION }] },

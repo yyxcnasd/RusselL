@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 'use strict';
-/* 第Ⅳ章（综合，24 关）：量词 + 等词的组合，证明由等词替换/全称推广与前面章节组合。 */
+/* 第Ⅳ章（集合论，24 关）：∈ + 外延/空集/配对/并集，手写目标/顺序/提示。 */
 const fs = require('fs');
 const path = require('path');
 const ROOT = path.resolve(__dirname, '..', '..');
@@ -9,108 +9,108 @@ const P = require('../../campaign/proof.js');
 
 const X = F.term('x'), Y = F.term('y'), Z = F.term('z');
 const eq = (a, b) => F.pred('=', a, b);
-const Fx = F.pred('F', X), Fy = F.pred('F', Y), Fz = F.pred('F', Z);
-const Gx = F.pred('G', X), Gy = F.pred('G', Y), Gz = F.pred('G', Z);
-const Hx = F.pred('H', X), Hy = F.pred('H', Y);
-const ab = { mode: 'abstract', v: 'z' };
-const rep = { mode: 'replace' };
-const L = (x, y, f, opts) => P.leibniz(x, y, f, opts || ab);
+const mem = (a, b) => F.mem(a, b);
 const genN = (proof, vars) => vars.slice().reverse().reduce((acc, v) => P.gen(acc, v), proof);
+const rep = { mode: 'replace' };
+const L = (x, y, f) => P.leibniz(x, y, f, rep);
 
 const levels = [];
 function add(no, title, teaches, hint, target, proof) {
   levels.push({ no, chapter: 3, title, teaches, hint, targetTokens: ['|-'].concat(target), proof, stats: {} });
 }
 
-add(73, '等词对称的全称闭包', '∀x(x=y→y=x)。', '对 *51 全称推广 x。',
-  F.all('x', F.imp(eq(X, Y), eq(Y, X))), P.gen(P.thm(51), 'x'));
+add(73, '属于自反', '任何集合都包含自己的每个元素：x∈y→x∈y。', '用同一律实例再全称推广。',
+  F.all('x', F.imp(mem(X, Y), mem(X, Y))), P.gen(P.subst(P.thm(1), { atoms: { P: mem(X, Y) } }), 'x'));
 
-add(74, '谓词替换的全称闭包', '∀x∀y(x=y→F(x)→F(y))。', '对 *53 连续推广 x、y。',
-  F.all('x', F.all('y', F.imp(eq(X, Y), F.imp(Fx, Fy)))), genN(P.thm(53), ['x', 'y']));
+add(74, '集合自反', '∀x x=x。', '等词自反 + 全称推广。', F.all('x', eq(X, X)), P.gen(P.eqRefl('x'), 'x'));
 
-add(75, '传递性的全称闭包', '∀x∀y∀z(x=y→(y=z→x=z))。', '对 *52 推广 x、y、z。',
-  F.all('x', F.all('y', F.all('z', F.imp(eq(X, Y), F.imp(eq(Y, Z), eq(X, Z)))))),
-  genN(P.thm(52), ['x', 'y', 'z']));
+add(75, '等词自反式', '∀x∀y(x=y→x=y)。', '对同一律实例全称推广。',
+  F.all('x', F.all('y', F.imp(eq(X, Y), eq(X, Y)))),
+  genN(P.subst(P.thm(1), { atoms: { P: eq(X, Y) } }), ['x', 'y']));
 
-add(76, '等词进入全称公式', '∀z(x=y→(z=x→z=y))。', '先替换再全称推广。',
-  F.all('z', F.imp(eq(X, Y), F.imp(eq(Z, X), eq(Z, Y)))), P.gen(L('x', 'y', eq(Z, X), rep), 'z'));
+add(76, '属于替换（左）', 'x=y 时 x∈z 与 y∈z 不可区分。', 'Leibniz 直接替换模式。',
+  F.all('x', F.all('y', F.imp(eq(X, Y), F.imp(mem(X, Z), mem(Y, Z))))),
+  genN(L('x', 'y', mem(X, Z)), ['x', 'y']));
 
-add(77, '等词进入全称（反向）', '∀z(y=x→(z=y→z=x))。', '用反向替换再推广。',
-  F.all('z', F.imp(eq(Y, X), F.imp(eq(Z, Y), eq(Z, X)))), P.gen(L('y', 'x', eq(Z, Y), rep), 'z'));
+add(77, '属于替换（同集）', 'x=y 时 x∈y 与 y∈y 不可区分。', 'Leibniz 替换。',
+  F.all('x', F.all('y', F.imp(eq(X, Y), F.imp(mem(X, Y), mem(Y, Y))))),
+  genN(L('x', 'y', mem(X, Y)), ['x', 'y']));
 
-add(78, '三层全称等词', '∀x∀y∀z(x=y→(z=x→z=y))。', '对 *76 再推广 x、y。',
-  F.all('x', F.all('y', F.all('z', F.imp(eq(X, Y), F.imp(eq(Z, X), eq(Z, Y)))))),
-  genN(P.gen(L('x', 'y', eq(Z, X), rep), 'z'), ['x', 'y']));
+add(78, '属于替换（反向）', 'x=y 时 y∈x 与 y∈y 不可区分。', 'Leibniz 替换。',
+  F.all('x', F.all('y', F.imp(eq(X, Y), F.imp(mem(Y, X), mem(Y, Y))))),
+  genN(L('x', 'y', mem(Y, X)), ['x', 'y']));
 
-add(79, '谓词集合替换', 'x=y→(∀z(z=x→F(z))→∀z(z=y→F(z)))。', '把 ∀z(z=x→F(z)) 作为直接替换的公式。',
-  F.imp(eq(X, Y), F.imp(F.all('z', F.imp(eq(Z, X), Fz)), F.all('z', F.imp(eq(Z, Y), Fz)))),
-  L('x', 'y', F.all('z', F.imp(eq(Z, X), Fz)), rep));
+add(79, '空集', '存在不含任何元素的集合：∃z∀x¬(x∈z)。', '直接使用空集公理。',
+  F.exists('z', F.all('x', F.not(mem(X, Z)))), P.setEmpty());
 
-add(80, '谓词集合替换（反向）', 'x=y→(∀z(F(z)→z=x)→∀z(F(z)→z=y))。', '替换方向换成 y。',
-  F.imp(eq(X, Y), F.imp(F.all('z', F.imp(Fz, eq(Z, X))), F.all('z', F.imp(Fz, eq(Z, Y))))),
-  L('x', 'y', F.all('z', F.imp(Fz, eq(Z, X))), rep));
+add(80, '外延公理（全称）', '∀x∀y((∀z(z∈x↔z∈y))→x=y)。', '外延公理 + 全称推广。',
+  F.all('x', F.all('y', F.imp(F.all('z', F.iff(mem(Z, X), mem(Z, Y))), eq(X, Y)))),
+  genN(P.setExt('x', 'y'), ['x', 'y']));
 
-add(81, '全称等词化简', 'x=y→(∀z(z=x→z=z)→∀z(z=y→z=z))。', '用直接替换。',
-  F.imp(eq(X, Y), F.imp(F.all('z', F.imp(eq(Z, X), eq(Z, Z))), F.all('z', F.imp(eq(Z, Y), eq(Z, Z))))),
-  L('x', 'y', F.all('z', F.imp(eq(Z, X), eq(Z, Z))), rep));
+add(81, '外延公理（实例）', '(∀z(z∈x↔z∈y))→x=y。', '直接使用外延公理。',
+  F.imp(F.all('z', F.iff(mem(Z, X), mem(Z, Y))), eq(X, Y)), P.setExt('x', 'y'));
 
-add(82, '全称前件替换', 'x=y→(∀z(z=z→z=x)→∀z(z=z→z=y))。', '用直接替换。',
-  F.imp(eq(X, Y), F.imp(F.all('z', F.imp(eq(Z, Z), eq(Z, X))), F.all('z', F.imp(eq(Z, Z), eq(Z, Y))))),
-  L('x', 'y', F.all('z', F.imp(eq(Z, Z), eq(Z, X))), rep));
+add(82, '配对公理（全称）', '∀x∀y∃u∀z((z=x∨z=y)↔z∈u)。', '配对公理 + 全称推广。',
+  F.all('x', F.all('y', F.exists('u', F.all('z', F.iff(F.or(eq(Z, X), eq(Z, Y)), mem(Z, F.term('u'))))))),
+  genN(P.setPair('x', 'y'), ['x', 'y']));
 
-add(83, '全称自反式', '∀z(z=z)。', '自反后用全称推广。',
-  F.all('z', eq(Z, Z)), P.gen(P.eqRefl('z'), 'z'));
+add(83, '配对公理（实例）', '∃u∀z((z=x∨z=y)↔z∈u)。', '直接使用配对公理。',
+  F.exists('u', F.all('z', F.iff(F.or(eq(Z, X), eq(Z, Y)), mem(Z, F.term('u'))))), P.setPair('x', 'y'));
 
-add(84, '复合谓词的全称替换', '∀x∀y(x=y→(F(x)→G(x))→(F(y)→G(y)))。', '对 *57 推广两次。',
-  F.all('x', F.all('y', F.imp(eq(X, Y), F.imp(F.imp(Fx, Gx), F.imp(Fy, Gy))))),
-  genN(P.thm(57), ['x', 'y']));
+add(84, '并集公理（全称）', '∀x∃y∀z((∃u(z∈u∧u∈x))↔z∈y)。', '并集公理 + 全称推广。',
+  F.all('x', F.exists('y', F.all('z', F.iff(
+    F.exists('u', F.and(mem(Z, F.term('u')), mem(F.term('u'), X))), mem(Z, F.term('y')))))),
+  P.gen(P.setUnion('x'), 'x'));
 
-add(85, '原子等词替换', 'x=y→((z=x)→(z=y))。', '等词替换的直接实例。',
-  F.imp(eq(X, Y), F.imp(eq(Z, X), eq(Z, Y))), L('x', 'y', eq(Z, X), rep));
+add(85, '并集公理（实例）', '∃y∀z((∃u(z∈u∧u∈x))↔z∈y)。', '直接使用并集公理。',
+  F.exists('y', F.all('z', F.iff(
+    F.exists('u', F.and(mem(Z, F.term('u')), mem(F.term('u'), X))), mem(Z, F.term('y'))))),
+  P.setUnion('x'));
 
-add(86, '原子等词替换（右）', 'x=y→((x=z)→(y=z))。', '替换自由 x。',
-  F.imp(eq(X, Y), F.imp(eq(X, Z), eq(Y, Z))), L('x', 'y', eq(X, Z), rep));
+add(86, '等词进入属于', 'x=y→(x=z→y=z)。', 'Leibniz 替换。',
+  F.all('x', F.all('y', F.imp(eq(X, Y), F.imp(eq(X, Z), eq(Y, Z))))),
+  genN(L('x', 'y', eq(X, Z)), ['x', 'y']));
 
-add(87, '谓词前后件混合', 'x=y→((F(z)→G(x))→(F(z)→G(y)))。', '把 F(z)→G(x) 作为公式。',
-  F.imp(eq(X, Y), F.imp(F.imp(Fz, Gx), F.imp(Fz, Gy))), L('x', 'y', F.imp(Fz, Gx), rep));
+add(87, '等词进入属于（全称）', '∀y∀z(y=z→(x∈y→x∈z))。', 'Leibniz 替换后全称推广。',
+  F.all('y', F.all('z', F.imp(eq(Y, Z), F.imp(mem(X, Y), mem(X, Z))))),
+  genN(L('y', 'z', mem(X, Y)), ['y', 'z']));
 
-add(88, '谓词后件不变', 'x=y→((F(x)→G(z))→(F(y)→G(z)))。', '替换自由 x，保持 G(z) 不变。',
-  F.imp(eq(X, Y), F.imp(F.imp(Fx, Gz), F.imp(Fy, Gz))), L('x', 'y', F.imp(Fx, Gz), rep));
+add(88, '等词进入属于（反向）', '∀y∀z(y=z→(y∈x→z∈x))。', 'Leibniz 替换。',
+  F.all('y', F.all('z', F.imp(eq(Y, Z), F.imp(mem(Y, X), mem(Z, X))))),
+  genN(L('y', 'z', mem(Y, X)), ['y', 'z']));
 
-add(89, '自反式的全称实例', '∀x(x=x→x=x)。', '对同一律实例推广。',
+add(89, '外延（y,z）', '∀y∀z((∀x(x∈y↔x∈z))→y=z)。', '外延公理换变量。',
+  F.all('y', F.all('z', F.imp(F.all('x', F.iff(mem(X, Y), mem(X, Z))), eq(Y, Z)))),
+  genN(P.setExt('y', 'z'), ['y', 'z']));
+
+add(90, '配对（y,x）', '∀y∀x∃u∀z((z=y∨z=x)↔z∈u)。', '配对公理换变量。',
+  F.all('y', F.all('x', F.exists('u', F.all('z', F.iff(F.or(eq(Z, Y), eq(Z, X)), mem(Z, F.term('u'))))))),
+  genN(P.setPair('y', 'x'), ['y', 'x']));
+
+add(91, '并集（y）', '∀y∃u∀z((∃v(z∈v∧v∈y))↔z∈u)。', '并集公理换变量。',
+  F.all('y', F.exists('u', F.all('z', F.iff(
+    F.exists('v', F.and(mem(Z, F.term('v')), mem(F.term('v'), Y))), mem(Z, F.term('u')))))),
+  P.gen(P.setUnion('y'), 'y'));
+
+add(92, '三层属于替换', '∀x∀y∀z(x=y→(x∈z→y∈z))。', 'Leibniz 替换 + 三次全称推广。',
+  F.all('x', F.all('y', F.all('z', F.imp(eq(X, Y), F.imp(mem(X, Z), mem(Y, Z)))))),
+  genN(L('x', 'y', mem(X, Z)), ['x', 'y', 'z']));
+
+add(93, '三层等词链', '∀y∀z(y=z→(x∈y→x∈z)) 的三层写法。', 'Leibniz 替换。',
+  F.all('y', F.all('z', F.all('x', F.imp(eq(Y, Z), F.imp(mem(X, Y), mem(X, Z)))))),
+  genN(L('y', 'z', mem(X, Y)), ['y', 'z', 'x']));
+
+add(94, '等词自反式', '∀x(x=x→x=x)。', '同一律实例 + 全称推广。',
   F.all('x', F.imp(eq(X, X), eq(X, X))),
   P.gen(P.subst(P.thm(1), { atoms: { P: eq(X, X) } }), 'x'));
 
-add(90, '等词否定替换', 'x=y→(¬(z=x)→¬(z=y))。', '直接替换。',
-  F.imp(eq(X, Y), F.imp(F.not(eq(Z, X)), F.not(eq(Z, Y)))), L('x', 'y', F.not(eq(Z, X)), rep));
+add(95, '属于同一', '∀x(x∈x→x∈x)。', '同一律实例 + 全称推广。',
+  F.all('x', F.imp(mem(X, X), mem(X, X))),
+  P.gen(P.subst(P.thm(1), { atoms: { P: mem(X, X) } }), 'x'));
 
-add(91, '三谓词替换', 'x=y→((F(x)→H(x))→(F(y)→H(y)))。', '抽象公式取 F(z)→H(z)。',
-  F.imp(eq(X, Y), F.imp(F.imp(Fx, Hx), F.imp(Fy, Hy))), L('x', 'y', F.imp(Fz, F.pred('H', Z))));
-
-add(92, '四层全称替换', '∀x∀y∀z(x=y→(z=x→z=y)) 的另一种证明。', '先替换再连续推广。',
-  F.all('x', F.all('y', F.all('z', F.imp(eq(X, Y), F.imp(eq(Z, X), eq(Z, Y)))))),
-  genN(P.gen(L('x', 'y', eq(Z, X), rep), 'z'), ['x', 'y']));
-
-add(93, '全称等词双向替换', 'x=y→(∀z(z=x→F(z))→∀z(z=y→F(z))) 的反向形式。', '先对称再替换，最后用三段论。',
-  F.imp(eq(X, Y), F.imp(F.all('z', F.imp(eq(Z, Y), Fz)), F.all('z', F.imp(eq(Z, X), Fz)))),
-  (() => {
-    const chain = P.subst(P.thm(5), { atoms: {
-      P: eq(X, Y), Q: eq(Y, X), R: F.imp(F.all('z', F.imp(eq(Z, Y), Fz)), F.all('z', F.imp(eq(Z, X), Fz)))
-    } });
-    return P.mp(L('y', 'x', F.all('z', F.imp(eq(Z, Y), Fz)), rep), P.mp(P.thm(51), chain));
-  })());
-
-add(94, '等词传递（前件形态）', 'x=z→(x=y→y=z)。', '用替换得到 x=y→(x=z→y=z)，再置换前件。',
-  F.imp(eq(X, Z), F.imp(eq(X, Y), eq(Y, Z))),
-  P.mp(L('x', 'y', eq(X, Z), rep),
-    P.subst(P.thm(8), { atoms: { P: eq(X, Y), Q: eq(X, Z), R: eq(Y, Z) } })));
-
-add(95, '全称等词的恒等替换', 'x=y→(∀z(z=z)→∀z(z=z)) 的深层形式。', '取不含占位变元 z 的公式。',
-  F.imp(eq(X, Y), F.imp(F.all('z', F.imp(eq(Z, Z), eq(Z, Z))), F.all('z', F.imp(eq(Z, Z), eq(Z, Z))))),
-  L('x', 'y', F.all('z', F.imp(eq(Z, Z), eq(Z, Z)))));
-
-add(96, '综合：G 的等词替换', '∀x∀y(x=y→(G(x)→G(y)))。', '用 G(z) 的抽象替换再全称推广。',
-  F.all('x', F.all('y', F.imp(eq(X, Y), F.imp(Gx, Gy)))), genN(L('x', 'y', Gz), ['x', 'y']));
+add(96, '综合：外延与配对', '∀x∀y∃u∀z((z=x∨z=y)↔z∈u) 的另一个变量版本。', '配对公理换变量并全称推广。',
+  F.all('x', F.all('z', F.exists('u', F.all('w', F.iff(F.or(eq(F.term('w'), X), eq(F.term('w'), Z)), mem(F.term('w'), F.term('u'))))))),
+  genN(P.setPair('x', 'z'), ['x', 'z']));
 
 fs.writeFileSync(path.join(ROOT, 'campaign', 'chapter4.json'), JSON.stringify(levels, null, 2) + '\n', 'utf8');
 console.log('written campaign/chapter4.json', levels.length, 'levels');

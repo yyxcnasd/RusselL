@@ -18,6 +18,8 @@ module.exports = {
   leibniz: (x, y, formula, opts) => ({ op: 'leibniz', x, y, formula,
     mode: (opts && opts.mode) || 'abstract', v: (opts && opts.v) || 'z' }),
   existsI: (of, v) => ({ op: 'existsI', of, v }),
+  allInst: (formula, v, t) => ({ op: 'allInst', formula, v, t }),
+  existsGen: (formula, v, t) => ({ op: 'existsGen', formula, v, t }),
   existsE: (ex, imp) => ({ op: 'existsE', ex, imp }),
   andI: (a, b) => ({ op: 'andI', a, b }),
   andE: (of, side) => ({ op: 'andE', of, side }),

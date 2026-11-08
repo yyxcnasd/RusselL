@@ -117,6 +117,12 @@ function createBuilder() {
       const a = formula(body.slice(2));
       id = addNode('all', { v: body[1] });
       connect(a, 'out', id, 'a');
+    } else if (body.length === 3 && body[1] === 'e.') {
+      const t1 = termNode(body[0]);
+      const t2 = termNode(body[2]);
+      id = addNode('mem', {});
+      connect(t1, 'out', id, 'a');
+      connect(t2, 'out', id, 'b');
     } else if (body.length === 3 && body[1] === '=') {
       const t1 = termNode(body[0]);
       const t2 = termNode(body[2]);
@@ -200,6 +206,18 @@ function compileProof(proof, builder, ctx) {
       case 'gen': {
         id = builder.addNode('gen', { v: pt.v });
         builder.connect(resolve(pt.of), 'out', id, 'assertion');
+        break;
+      }
+      case 'allInst': {
+        id = builder.addNode('all-inst', { v: pt.v });
+        builder.connect(builder.formula(pt.formula), 'out', id, 'formula');
+        builder.connect(builder.termNode(pt.t), 'out', id, 'term');
+        break;
+      }
+      case 'existsGen': {
+        id = builder.addNode('exists-gen', { v: pt.v });
+        builder.connect(builder.formula(pt.formula), 'out', id, 'formula');
+        builder.connect(builder.termNode(pt.t), 'out', id, 'term');
         break;
       }
       case 'existsI': {
