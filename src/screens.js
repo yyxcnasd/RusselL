@@ -153,6 +153,7 @@
         '<div class="save-row">' +
           '<button class="save-btn" data-save-export title="保存存档" aria-label="保存存档"><svg class="icon"><use href="#i-arrow-down-tray"></use></svg></button>' +
           '<button class="save-btn" data-save-import title="加载存档" aria-label="加载存档"><svg class="icon"><use href="#i-arrow-up-tray"></use></svg></button>' +
+          '<button class="save-btn" data-solution title="载入本关参考解" aria-label="载入本关参考解"><svg class="icon"><use href="#i-bolt"></use></svg></button>' +
         '</div>' +
       '</div>' +
       '<p class="credit">Designed by yyxcnasd</p>');
@@ -242,6 +243,11 @@
     if (target.closest && target.closest('[data-back]')) { openAchievements(); return; }
     if (target.closest && target.closest('[data-save-export]')) { ctx.exportSave(); return; }
     if (target.closest && target.closest('[data-save-import]')) { ctx.requestImport(); return; }
+    if (target.closest && target.closest('[data-solution]')) {
+      UI.closeSheet();
+      ctx.loadSolution();
+      return;
+    }
     var cell = target.closest && target.closest('[data-level]');
     if (cell) {
       var index = parseInt(cell.dataset.level, 10);

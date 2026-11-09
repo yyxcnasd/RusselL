@@ -79,6 +79,23 @@ runTest('game-ui', async ({ openPage }) => {
   ok(!/[\u4e00-\u9fa5]/.test(help.text), '帮助图例不含汉字');
   await page.shot('help');
   await page.js('window.RSL.UI.closeSheet()');
+
+  /* 帮助面板的闪电按钮能装入当前关的参考解，并直接通过 Engine */
+  await page.js('document.querySelector("#helpBtn").click()');
+  await page.waitFor('document.querySelector("[data-solution]") !== null');
+  await page.js('document.querySelector("[data-solution]").click()');
+  const solution = await page.js(`(function(){
+    var app = window.RSL.APP;
+    var data = app.state.board.getData();
+    return {
+      nodes: data.nodes.length,
+      expected: app.state.level.solution.nodes.length + 1,
+      complete: !!(app.state.results && app.state.results.complete)
+    };
+  })()`);
+  equal(solution.nodes, solution.expected, '参考解装入全部节点');
+  equal(solution.complete, true, '参考解通过 Engine 校验');
+
   await page.js('document.querySelector("#achvBtn").click()');
   await page.waitFor('document.querySelectorAll(".achv").length === 20');
   equal(await page.js('document.querySelectorAll(".achv").length'), 20, '成就面板 20 格');
