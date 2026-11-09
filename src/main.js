@@ -330,26 +330,6 @@
     saveProgress();
   }
 
-  /* 每关都带一份 Engine 验证过的参考电路；帮助面板的闪电按钮把它装进棋盘，
-   * 不直接判定通关，玩家仍要自己按校验。 */
-  function loadSolution() {
-    var level = state.level;
-    if (!level || !level.solution || !level.solution.nodes) {
-      UI.toast('本关没有参考解');
-      return false;
-    }
-    var target = (level.initialNodes || []).filter(function (n) { return n.kind === 'target'; })[0];
-    if (!target) return false;
-    var nodes = [JSON.parse(JSON.stringify(target))].concat(
-      JSON.parse(JSON.stringify(level.solution.nodes))
-    );
-    var edges = JSON.parse(JSON.stringify(level.solution.edges || []));
-    state.board.setData(nodes, edges);
-    refresh();
-    UI.toast('已载入参考解');
-    return true;
-  }
-
   /* =========================================================================
    * 5. 调色板（点击放置 + 拖放）
    * ========================================================================= */
@@ -809,8 +789,7 @@
       nextLevel: nextLevel,
       isUnlocked: isUnlocked,
       exportSave: exportSave,
-      requestImport: function () { els.saveFile.click(); },
-      loadSolution: loadSolution
+      requestImport: function () { els.saveFile.click(); }
     });
 
     bind();
@@ -835,7 +814,6 @@
       state: state,
       loadLevel: loadLevel,
       refresh: refresh,
-      loadSolution: loadSolution,
       isUnlocked: isUnlocked,
       openAchievements: Screens.openAchievements,
       openLevels: Screens.openLevels,
