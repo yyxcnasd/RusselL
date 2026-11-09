@@ -1,17 +1,15 @@
 /* 公理板 — port-to-port orthogonal wiring.
  *
- * This is a deliberate from-scratch replacement for the old grid A* router.
- * Wires always leave an output port to the right and enter an input port from
- * the left. Routing is a small set of deterministic candidates:
+ * Routing is a small orthogonal visibility graph:
+ *   - candidate x/y lanes come from the 12px clearance boundary of every node
+ *     rectangle (plus a parallel-track offset), the port stubs and the outer
+ *     bounding box;
+ *   - free lane intersections are connected horizontally/vertically when the
+ *     segment is clear, then Dijkstra with a bend penalty picks the path;
+ *   - the path is cleaned of collinear runs before it becomes SVG.
  *
- *   - local Z: exit stub -> vertical lane between the two columns -> approach
- *   - source/target-stub Z: vertical at the stub when the middle is blocked
- *   - outer corridor: above/below all node rectangles when columns overlap
- *   - simple fallback: last resort, no obstacle avoidance
- *
- * Candidates are checked against node rectangles; vertical lanes are tracked
- * so parallel wires get their own 10px track instead of crossing each other.
- * No grid, no staircase, no hidden straights.
+ * There is no 12px grid, so the result has long clean runs instead of
+ * staircase artefacts. Diagonal/chamfer styling is only applied at render.
  */
 (function () {
   'use strict';
@@ -21,6 +19,7 @@
   var STUB = 24;
   var TRACK = 10;
   var PAD = 12;
+  var BEND = 80;
 
   function abs(v) { return v < 0 ? -v : v; }
   function sign(v) { return v > 0 ? 1 : (v < 0 ? -1 : 0); }
@@ -34,7 +33,6 @@
     return out;
   }
 
-  /* Remove duplicate points and collinear points (including reversals). */
   function clean(pts) {
     if (!pts || pts.length < 2) return pts ? pts.slice() : [];
     var src = unique(pts);
@@ -93,8 +91,7 @@
       var t = tracks.v[i];
       if (t.group === group) continue;
       if (abs(t.x - seg.x) >= TRACK) continue;
-      var ov = Math.min(t.y2, seg.y2) - Math.max(t.y1, seg.y1);
-      if (ov > 3) return false;
+      if (Math.min(t.y2, seg.y2) - Math.max(t.y1, seg.y1) > 3) return false;
     }
     return true;
   }
@@ -107,51 +104,18 @@
     });
   }
 
-  function bendCount(pts) {
-    var n = 0;
-    for (var i = 1; i < pts.length - 1; i++) {
-      var a = pts[i - 1], b = pts[i], c = pts[i + 1];
-      if (abs(a.x - b.x) < 0.6 && abs(b.x - c.x) > 0.6) n += 1;
-      else if (abs(a.y - b.y) < 0.6 && abs(b.y - c.y) > 0.6) n += 1;
+  function trackPenalty(seg, tracks, group) {
+    if (!tracks || !tracks.v) return 0;
+    for (var i = 0; i < tracks.v.length; i++) {
+      var t = tracks.v[i];
+      if (t.group === group) continue;
+      if (abs(t.x - seg.x) >= TRACK) continue;
+      if (Math.min(t.y2, seg.y2) - Math.max(t.y1, seg.y1) > 3) return 260;
     }
-    return n;
+    return 0;
   }
 
-  function pathLength(pts) {
-    var d = 0;
-    for (var i = 1; i < pts.length; i++) {
-      d += abs(pts[i].x - pts[i - 1].x) + abs(pts[i].y - pts[i - 1].y);
-    }
-    return d;
-  }
-
-  function makeLocal(a, sa, sb, b, laneX) {
-    if (sa.x === a.x && sb.x === b.x) {
-      return clean([a, { x: laneX, y: a.y }, { x: laneX, y: b.y }, b]);
-    }
-    return clean([a, sa, { x: laneX, y: a.y }, { x: laneX, y: b.y }, sb, b]);
-  }
-
-  function makeStubZ(a, sa, sb, b, which) {
-    if (which === 'left') {
-      return clean([a, sa, { x: sa.x, y: b.y }, sb, b]);
-    }
-    return clean([a, sa, { x: sb.x, y: a.y }, sb, b]);
-  }
-
-  function makeOuter(a, sa, sb, b, yLane, xLeft, xRight) {
-    return clean([
-      a, sa, { x: xRight, y: a.y }, { x: xRight, y: yLane },
-      { x: xLeft, y: yLane }, { x: xLeft, y: b.y }, sb, b
-    ]);
-  }
-
-  /* 竖线贴着两端 stub 走：适合正前方有节点、需要先上下离开再横穿的情况。 */
-  function makeStubOuter(a, sa, sb, b, yLane) {
-    return clean([a, sa, { x: sa.x, y: yLane }, { x: sb.x, y: yLane }, sb, b]);
-  }
-
-  /* Draw a simple deterministic Z for huge reference circuits. */
+  /* Deterministic simple Z for drag previews and huge reference circuits. */
   function simpleRoute(a, b) {
     var dx = b.x - a.x;
     var stub = STUB;
@@ -166,43 +130,41 @@
     return clean([a, sa, { x: midX, y: a.y }, { x: midX, y: b.y }, sb, b]);
   }
 
-  function bestCandidate(candidates, obstacles, tracks, group) {
-    var best = null, bestScore = Infinity;
-    candidates.forEach(function (pts) {
-      if (!pts || pts.length < 2) return;
-      var c = clean(pts);
-      if (!pathClear(c, obstacles)) return;
-      var ok = verticals(c).every(function (s) { return trackFree(s, tracks, group); });
-      if (!ok) return;
-      var score = pathLength(c) + bendCount(c) * 40;
-      if (score < bestScore) { bestScore = score; best = c; }
+  function uniqueSorted(vals) {
+    vals = vals.slice().sort(function (x, y) { return x - y; });
+    var out = [];
+    vals.forEach(function (v) {
+      if (!out.length || abs(v - out[out.length - 1]) > 0.6) out.push(v);
     });
-    return best;
+    return out;
   }
 
-  function bounding(rects, a, b) {
-    var x0 = Math.min(a.x, b.x), x1 = Math.max(a.x, b.x);
-    var y0 = Math.min(a.y, b.y), y1 = Math.max(a.y, b.y);
-    rects.forEach(function (r) {
-      x0 = Math.min(x0, r.x); y0 = Math.min(y0, r.y);
-      x1 = Math.max(x1, r.x + r.w); y1 = Math.max(y1, r.y + r.h);
-    });
-    return { x0: x0, y0: y0, x1: x1, y1: y1 };
+  function pointFree(x, y, rects) {
+    for (var i = 0; i < rects.length; i++) {
+      var r = rects[i];
+      if (x > r.x - PAD && x < r.x + r.w + PAD &&
+          y > r.y - PAD && y < r.y + r.h + PAD) return false;
+    }
+    return true;
   }
 
-  /**
-   * route(a, b, rects, opts?)
-   *   a, b     output/input port centres
-   *   rects    node rectangles (may include the two endpoint nodes)
-   *   opts     { fromId, toId, tracks, group }
-   */
+  function relevantRects(rects, a, b) {
+    var minX = Math.min(a.x, b.x) - 120, maxX = Math.max(a.x, b.x) + 120;
+    var minY = Math.min(a.y, b.y) - 120, maxY = Math.max(a.y, b.y) + 120;
+    return rects.filter(function (r) {
+      return r.x + r.w > minX && r.x < maxX && r.y + r.h > minY && r.y < maxY;
+    });
+  }
+
   function route(a, b, rects, opts) {
     rects = rects || [];
     opts = opts || {};
     var fromId = opts.fromId, toId = opts.toId;
-    var obstacles = rects.filter(function (r) { return r.id !== fromId && r.id !== toId; });
     var tracks = opts.tracks || null;
     var group = opts.group || '';
+    var obstacles = relevantRects(rects.filter(function (r) {
+      return r.id !== fromId && r.id !== toId;
+    }), a, b);
 
     var dx = b.x - a.x;
     var stub = STUB;
@@ -213,41 +175,140 @@
     var sa = { x: a.x + stub, y: a.y };
     var sb = { x: b.x - stub, y: b.y };
 
-    var candidates = [];
-    if (b.x > a.x && sb.x > sa.x + 6) {
-      var center = (sa.x + sb.x) / 2;
-      var room = (sb.x - sa.x) / 2 - 6;
-      var offsets = [0, TRACK, -TRACK, 2 * TRACK, -2 * TRACK, 3 * TRACK, -3 * TRACK,
-        4 * TRACK, -4 * TRACK, 6 * TRACK, -6 * TRACK];
-      offsets.forEach(function (off) {
-        if (abs(off) > room + TRACK) return;
-        candidates.push(makeLocal(a, sa, sb, b, center + off));
-      });
-      /* 中间竖直车道被挡时，让竖线贴着某一端 stub 走，中间留长横线 */
-      candidates.push(makeStubZ(a, sa, sb, b, 'left'));
-      candidates.push(makeStubZ(a, sa, sb, b, 'right'));
-      var midY = (a.y + b.y) / 2;
-      candidates.push(clean([a, sa, { x: sa.x, y: midY }, { x: sb.x, y: midY }, sb, b]));
-    }
+    var xs = [a.x, sa.x, sb.x, b.x];
+    var ys = [a.y, b.y];
+    var minX = Math.min(a.x, b.x), maxX = Math.max(a.x, b.x);
+    var minY = Math.min(a.y, b.y), maxY = Math.max(a.y, b.y);
+    obstacles.forEach(function (r) {
+      var x0 = r.x - PAD, x1 = r.x + r.w + PAD;
+      var y0 = r.y - PAD, y1 = r.y + r.h + PAD;
+      xs.push(x0, x1, x0 - TRACK, x1 + TRACK);
+      ys.push(y0, y1, y0 - TRACK, y1 + TRACK);
+      minX = Math.min(minX, x0); maxX = Math.max(maxX, x1);
+      minY = Math.min(minY, y0); maxY = Math.max(maxY, y1);
+    });
+    xs.push(minX - STUB, maxX + STUB);
+    ys.push(minY - STUB, maxY + STUB);
+    xs = uniqueSorted(xs);
+    ys = uniqueSorted(ys);
 
-    var box = bounding(obstacles.length ? obstacles : rects, a, b);
-    var yTop = box.y0 - PAD - STUB;
-    var yBottom = box.y1 + PAD + STUB;
-    var xLeft = box.x0 - PAD - STUB;
-    var xRight = box.x1 + PAD + STUB;
-    candidates.push(makeStubOuter(a, sa, sb, b, yTop));
-    candidates.push(makeStubOuter(a, sa, sb, b, yBottom));
-    candidates.push(makeOuter(a, sa, sb, b, yTop, xLeft, xRight));
-    candidates.push(makeOuter(a, sa, sb, b, yBottom, xLeft, xRight));
-
-    var picked = bestCandidate(candidates, obstacles, tracks, group);
-    if (!picked) {
-      /* 最后兜底：贴 stub 的外圈，再退回最朴素的 Z。 */
-      picked = makeStubOuter(a, sa, sb, b, yBottom);
-      if (!pathClear(picked, obstacles)) picked = simpleRoute(a, b);
+    var nx = xs.length, ny = ys.length;
+    var total = nx * ny;
+    var free = new Uint8Array(total);
+    for (var ix = 0; ix < nx; ix++) {
+      for (var iy = 0; iy < ny; iy++) {
+        free[ix * ny + iy] = pointFree(xs[ix], ys[iy], obstacles) ? 1 : 0;
+      }
     }
-    registerTracks(picked, tracks, group);
-    return picked;
+    function idx(arr, v) {
+      for (var i = 0; i < arr.length; i++) if (abs(arr[i] - v) < 0.6) return i;
+      return -1;
+    }
+    var sx = idx(xs, sa.x), sy = idx(ys, sa.y);
+    var ex = idx(xs, sb.x), ey = idx(ys, sb.y);
+    if (sx < 0 || sy < 0 || ex < 0 || ey < 0) {
+      var fb = simpleRoute(a, b);
+      registerTracks(fb, tracks, group);
+      return fb;
+    }
+    free[sx * ny + sy] = 1;
+    free[ex * ny + ey] = 1;
+
+    var DX = [1, 0, -1, 0], DY = [0, 1, 0, -1];
+    var states = total * 4;
+    var dist = new Float64Array(states);
+    dist.fill(Infinity);
+    var prev = new Int32Array(states);
+    prev.fill(-1);
+    var heapS = [], heapF = [];
+    function push(state, score) {
+      heapS.push(state); heapF.push(score);
+      var n = heapS.length - 1;
+      while (n > 0) {
+        var p = (n - 1) >> 1;
+        if (heapF[p] <= heapF[n]) break;
+        var s = heapS[p]; heapS[p] = heapS[n]; heapS[n] = s;
+        var f = heapF[p]; heapF[p] = heapF[n]; heapF[n] = f;
+        n = p;
+      }
+    }
+    function pop() {
+      var top = heapS[0], lastS = heapS.pop(), lastF = heapF.pop();
+      if (heapS.length) {
+        heapS[0] = lastS; heapF[0] = lastF;
+        var n = 0;
+        while (true) {
+          var l = n * 2 + 1, r = l + 1, m = n;
+          if (l < heapS.length && heapF[l] < heapF[m]) m = l;
+          if (r < heapS.length && heapF[r] < heapF[m]) m = r;
+          if (m === n) break;
+          var ss = heapS[m]; heapS[m] = heapS[n]; heapS[n] = ss;
+          var ff = heapF[m]; heapF[m] = heapF[n]; heapF[n] = ff;
+          n = m;
+        }
+      }
+      return top;
+    }
+    function heur(x, y) { return abs(x - sb.x) + abs(y - sb.y); }
+
+    var startCell = sx * ny + sy, endCell = ex * ny + ey;
+    for (var d0 = 0; d0 < 4; d0++) {
+      var st = startCell * 4 + d0;
+      dist[st] = 0;
+      push(st, heur(sa.x, sa.y));
+    }
+    var found = -1, guard = 0, cap = Math.min(220000, states);
+    while (heapS.length && guard++ < cap) {
+      var state = pop();
+      var dir = state & 3, cell = state >> 2;
+      if (cell === endCell) { found = state; break; }
+      var cx = (cell / ny) | 0, cy = cell % ny;
+      var g = dist[state];
+      for (var nd = 0; nd < 4; nd++) {
+        var nIx = cx + DX[nd], nIy = cy + DY[nd];
+        if (nIx < 0 || nIy < 0 || nIx >= nx || nIy >= ny) continue;
+        var ncell = nIx * ny + nIy;
+        if (!free[ncell]) continue;
+        var p = { x: xs[cx], y: ys[cy] }, q = { x: xs[nIx], y: ys[nIy] };
+        if (!segmentClear(p, q, obstacles)) continue;
+        var len = abs(q.x - p.x) + abs(q.y - p.y);
+        var cost = len + (nd !== dir ? BEND : 0);
+        if (nd === 1 || nd === 3) cost += trackPenalty({ x: p.x, y1: Math.min(p.y, q.y), y2: Math.max(p.y, q.y) }, tracks, group);
+        var nstate = ncell * 4 + nd;
+        var ng = g + cost;
+        if (ng < dist[nstate]) {
+          dist[nstate] = ng;
+          prev[nstate] = state;
+          push(nstate, ng + heur(q.x, q.y));
+        }
+      }
+    }
+    var pts;
+    if (found < 0) {
+      pts = simpleRoute(a, b);
+      if (!pathClear(pts, obstacles)) {
+        pts = clean([
+          a, sa, { x: sa.x, y: minY - STUB }, { x: sb.x, y: minY - STUB }, sb, b
+        ]);
+      }
+    } else {
+      var cells = [];
+      var cur = found;
+      while (cur >= 0) {
+        var c2 = cur >> 2;
+        cells.push({ x: xs[(c2 / ny) | 0], y: ys[c2 % ny] });
+        cur = prev[cur];
+      }
+      cells.reverse();
+      pts = clean(cells);
+      if (stub > 0) {
+        pts = [{ x: a.x, y: a.y }].concat(pts);
+        pts.push({ x: b.x, y: b.y });
+      }
+      pts = clean(pts);
+    }
+    registerTracks(pts, tracks, group);
+    return pts;
   }
 
   /* PCB-style 45° chamfers; short runs get half-length cuts. */
