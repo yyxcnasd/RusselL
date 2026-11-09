@@ -116,6 +116,45 @@
     UI.openSheet(closeButton() + '<div class="chapters">' + levelsHTML() + '</div>', 'sheet-levels');
   }
 
+  function rankScore(score) {
+    var s = Math.max(0, score | 0);
+    var solved = Math.floor(s / 100000);
+    return solved + ' 关 · ' + (s % 100000);
+  }
+
+  function openLeaderboard(data, state) {
+    host.RSL.Audio.sfx('click');
+    var body;
+    if (!data) {
+      body = '<p class="rank-empty">排行榜暂时不可用，稍后再试。</p>';
+    } else {
+      var rows = (data.list || []).map(function (row) {
+        return '<li class="rank-row">' +
+          '<span class="rank-no">' + row.rank + '</span>' +
+          '<img class="rank-avatar" src="' + UI.esc(row.avatar) + '" alt="" loading="lazy">' +
+          '<span class="rank-name">' + UI.esc(row.nickname) + '</span>' +
+          '<span class="rank-score">' + rankScore(row.score) + '</span>' +
+        '</li>';
+      }).join('');
+      if (!rows) rows = '<li class="rank-empty">还没有人上榜。你可以是第一个。</li>';
+      var mine = data.mine;
+      var meLine = mine && mine.ranked
+        ? '我的名次：第 ' + mine.rank + ' 名 · ' + rankScore(mine.score)
+        : '我还没有上榜。先通过一关，成绩会自动提交。';
+      body = '<p class="rank-me">' + meLine + '</p>' +
+        '<ol class="rank-list">' + rows + '</ol>';
+    }
+    var p = host.RSL.Leaderboard ? host.RSL.Leaderboard.parts(state) : null;
+    var foot = p ? '当前成绩：' + p.solved + ' 关 · 效率分 ' + p.quality + '。通关数优先，同关数比模块效率。' : '';
+    UI.openSheet(closeButton() +
+      '<div class="rank-sheet">' +
+        '<div class="rank-title">排行榜</div>' +
+        '<p class="rank-sub">通关数第一，模块效率第二</p>' +
+        body +
+        '<p class="rank-note">' + foot + '</p>' +
+      '</div>');
+  }
+
   /* =========================================================================
    * 2. 帮助
    * ========================================================================= */
@@ -298,6 +337,7 @@
     openHelp: openHelp,
     openHint: openHint,
     openFollowPrompt: openFollowPrompt,
+    openLeaderboard: openLeaderboard,
     openAchievements: openAchievements,
     openAchievement: openAchievement,
     openWin: openWin

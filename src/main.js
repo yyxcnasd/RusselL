@@ -590,6 +590,7 @@
     }
     if (!state.bestLen[level.id] || len < state.bestLen[level.id]) state.bestLen[level.id] = len;
     saveProgress();
+    if (window.RSL.Leaderboard) window.RSL.Leaderboard.submit(state);
     checkAchievements();
     Audio.sfx('win');
     updateProgress();
@@ -625,6 +626,7 @@
     els.helpBtn.addEventListener('click', Screens.openHelp);
     els.achvBtn.addEventListener('click', Screens.openAchievements);
     if (els.hintBtn) els.hintBtn.addEventListener('click', showHint);
+    if (els.rankBtn) els.rankBtn.addEventListener('click', openLeaderboard);
     els.saveFile.addEventListener('change', function () {
       importSave(els.saveFile.files && els.saveFile.files[0]);
       els.saveFile.value = '';
@@ -767,10 +769,18 @@
 
   function showHint() {
     var level = state.level;
-    if (!level || !window.RSL.Hints) return;
+    if (!level || !window.RSL.Hints || !window.RSL.Hints.isToyHost()) return;
     window.RSL.Hints.checkGate().then(function (gate) {
       if (gate.allowed) Screens.openHint(level, gate);
       else Screens.openFollowPrompt(gate);
+    });
+  }
+
+  function openLeaderboard() {
+    if (!window.RSL.Leaderboard || !window.RSL.Leaderboard.isToy()) return;
+    UI.toast('读取排行榜…');
+    window.RSL.Leaderboard.load().then(function (data) {
+      Screens.openLeaderboard(data, state);
     });
   }
 
@@ -784,6 +794,9 @@
   async function init() {
     els = UI.init();
     if (!window.RSL.Term || !window.RSL.Engine) { document.body.innerHTML = '<div class="fatal">公式引擎未加载</div>'; return; }
+    var toyMode = !!(window.RSL.Hints && window.RSL.Hints.isToyHost());
+    if (els.hintBtn) els.hintBtn.hidden = !toyMode;
+    if (els.rankBtn) els.rankBtn.hidden = !toyMode;
     loadProgress();
     loadSettings();
     applyTheme();
@@ -822,7 +835,8 @@
       isUnlocked: isUnlocked,
       exportSave: exportSave,
       requestImport: function () { els.saveFile.click(); },
-      followAuthor: followAuthor
+      followAuthor: followAuthor,
+      openLeaderboard: openLeaderboard
     });
 
     bind();

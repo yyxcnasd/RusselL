@@ -18,6 +18,7 @@
     <a href="#两个版本">两个版本</a> ·
     <a href="#怎么玩">怎么玩</a> ·
     <a href="#提示">提示</a> ·
+    <a href="#排行榜">排行榜</a> ·
     <a href="#关卡结构">关卡结构</a> ·
     <a href="#演算与元件">演算与元件</a> ·
     <a href="#成就存档与进度">成就与存档</a> ·
@@ -56,7 +57,15 @@
 顶栏的闪电按钮会给出当前关的一段文字提示，内容按关卡单独写，只说明下一步往哪想，不会替你接线，也不会预填参考解。
 
 - **Bilibili Toy**：需要先关注 UP 主「夜与星尘_NaSd」。没有关注时，弹出的窗口只说明关注后才能用提示，并给一个去关注的入口。
-- **GitHub Pages / 本地**：没有站内关注状态可查，提示直接打开。
+- **GitHub Pages / 本地**：不显示提示按钮，避免把站内关注功能带到网页版。
+
+## 排行榜
+
+B 站 Toy 版有排行榜入口，和帮助、提示按钮并排在顶栏。GitHub Pages / 本地没有 Toy 的登录态，不显示这个入口。
+
+分数把「通过关数」放在第一关键字：`通关数 × 100000 + 效率分`。效率分逐关计算，取 `min(1, 参考模块数 / 你的模块数) × 800` 后求和；你用的模块越少，效率分越高，优于参考解也只计满 800。这样同样通关数下继续比模块效率，而多通过一关永远优先于任何效率差距。
+
+通关时自动提交成绩；榜单显示前 20 名和我的名次。排行榜数据由 Toy 平台按账号保存，换设备登录同一账号也能看到。
 
 ## 关卡结构
 
@@ -115,6 +124,7 @@ python -m http.server 8000
 node scripts/build-campaign.js   # 编译 114 关（96 主线 + 18 教学），逐关用真实 Engine 验证
 npm test                         # 关卡 schema、模块表、参考证明、定理引用越界
 npm run test:wire                # 走线/几何纯函数
+npm run test:leaderboard         # 排行榜分数算法
 npm run test:ui                  # Edge headless 浏览器回归
 npm run test:acceptance          # dist 构建产物与完整 114 关验收
 npm run build:toy                # 生成可发布的 dist/ 游戏本体
@@ -135,6 +145,7 @@ node scripts/export-solutions.js # 重新生成 docs/SOLUTIONS.md（114 关参�
 | `src/wire.js` | 纯几何走线：端口到端口的确定性 Z/U 线、并行车道、45° 倒角 |
 | `src/hints.js` | 逐关提示文字、Toy 关注状态检查与关注入口 |
 | `src/cloudsave.js` | Toy 云存档：分片读写、自动同步；网页版本地存档 |
+| `src/leaderboard.js` | Toy 排行榜：通关数优先、模块效率加权的分数与榜单 |
 | `src/board.js` | 棋盘编辑器：缩放平移、节点/导线交互、渲染 |
 | `src/main.js` | 应用状态、存档、关卡流程、合并元件与配置弹层 |
 | `src/ui.js` | DOM 基础件、公式显示、toast、面板与焦点管理 |

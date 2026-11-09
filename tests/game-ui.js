@@ -80,8 +80,10 @@ runTest('game-ui', async ({ openPage }) => {
   await page.shot('help');
   await page.js('window.RSL.UI.closeSheet()');
 
-  /* 提示按钮：网页版直接打开当前关的定制提示；114 关提示都不为空 */
-  await page.js('document.querySelector("#hintBtn").click()');
+  /* 网页版禁用提示/排行榜；提示内容仍逐关存在 */
+  equal(await page.js('document.querySelector("#hintBtn").hidden'), true, '网页版隐藏提示按钮');
+  equal(await page.js('document.querySelector("#rankBtn").hidden'), true, '网页版隐藏排行榜按钮');
+  await page.js('window.RSL.Screens.openHint(window.RSL.APP.state.level, { mode: "toy" })');
   await page.waitFor('document.querySelector(".hint-sheet") !== null');
   const hint = await page.js(`(function(){
     var texts = window.RSL.APP.state.levels.map(function (l) {
@@ -99,11 +101,15 @@ runTest('game-ui', async ({ openPage }) => {
   await page.js('window.RSL.UI.closeSheet()');
 
   /* Toy 内未关注时只弹关注提示，不显示本关提示文字 */
-  await page.js(`window.toy = {
-    getAuthorRelation: function () {
-      return Promise.resolve({ status: 'ok', data: { isFollowing: false, isAuthor: false } });
-    }
-  }; document.querySelector('#hintBtn').click();`);
+  await page.js(`window.__realHintHost = window.RSL.Hints.isToyHost;
+    window.RSL.Hints.isToyHost = function () { return true; };
+    window.toy = {
+      getAuthorRelation: function () {
+        return Promise.resolve({ status: 'ok', data: { isFollowing: false, isAuthor: false } });
+      }
+    };
+    document.querySelector('#hintBtn').hidden = false;
+    document.querySelector('#hintBtn').click();`);
   await page.waitFor('document.querySelector(".hint-follow") !== null');
   const followGate = await page.js(`(function(){
     return {
@@ -113,7 +119,11 @@ runTest('game-ui', async ({ openPage }) => {
   })()`);
   equal(followGate.hasHint, true, '未关注时显示关注提示');
   ok(/关注/.test(followGate.text), '关注提示包含关注动作');
-  await page.js('window.RSL.UI.closeSheet(); delete window.toy;');
+  await page.js(`window.RSL.UI.closeSheet();
+    delete window.toy;
+    window.RSL.Hints.isToyHost = window.__realHintHost;
+    delete window.__realHintHost;
+    document.querySelector('#hintBtn').hidden = true;`);
 
   /* Toy 帮助页不显示上传/下载，改为云存档说明 */
   await page.js(`window.__realToyHost = window.RSL.CloudSave.isToyHost;
@@ -131,6 +141,27 @@ runTest('game-ui', async ({ openPage }) => {
   await page.js(`window.RSL.UI.closeSheet();
     window.RSL.CloudSave.isToyHost = window.__realToyHost;
     delete window.__realToyHost;`);
+
+  /* 排行榜渲染：名次、昵称、分数和我的名次 */
+  await page.js(`window.RSL.Screens.openLeaderboard({
+    list: [
+      { rank: 1, nickname: '甲', avatar: '', score: 201200 },
+      { rank: 2, nickname: '乙', avatar: '', score: 200800 }
+    ],
+    mine: { ranked: true, rank: 3, score: 114800 }
+  }, window.RSL.APP.state);`);
+  await page.waitFor('document.querySelectorAll(".rank-row").length === 2');
+  const rank = await page.js(`(function(){
+    return {
+      rows: document.querySelectorAll('.rank-row').length,
+      me: document.querySelector('.rank-me').textContent,
+      first: document.querySelector('.rank-row .rank-score').textContent
+    };
+  })()`);
+  equal(rank.rows, 2, '排行榜显示名次行');
+  ok(/第 3 名/.test(rank.me), '排行榜显示我的名次');
+  ok(/2 关/.test(rank.first), '排行榜分数按通关数显示');
+  await page.js('window.RSL.UI.closeSheet()');
 
   await page.js('document.querySelector("#achvBtn").click()');
   await page.waitFor('document.querySelectorAll(".achv").length === 20');

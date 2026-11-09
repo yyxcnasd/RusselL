@@ -10,7 +10,7 @@ const out = path.join(root, 'dist');
  */
 const RUNTIME_JS = [
   'term.js', 'levels.js', 'campaign-meta.js', 'modules.js', 'engine.js',
-  'wire.js', 'achievements.js', 'save.js', 'hints.js', 'cloudsave.js', 'ui.js', 'audio.js',
+  'wire.js', 'achievements.js', 'save.js', 'hints.js', 'cloudsave.js', 'leaderboard.js', 'ui.js', 'audio.js',
   'catalog.js', 'screens.js', 'board.js', 'main.js'
 ];
 

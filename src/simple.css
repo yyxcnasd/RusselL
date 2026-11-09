@@ -840,6 +840,22 @@ body.is-holding *{cursor:grabbing!important}
 .hint-follow:active{transform:translateY(1px)}
 .hint-follow:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
+.rank-sheet{padding:2px 2px 4px;max-width:520px}
+.rank-title{font-family:var(--font);font-size:20px;font-weight:600;color:var(--ink)}
+.rank-sub{margin:5px 0 0;font-size:12px;color:var(--muted)}
+.rank-me{margin:16px 0 0;font-size:13px;color:var(--ink)}
+.rank-list{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.rank-row{
+  display:grid;grid-template-columns:22px 28px minmax(0,1fr) auto;gap:10px;align-items:center;
+  padding:8px 10px;border-radius:10px;background:var(--soft);
+}
+.rank-no{font-size:12px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
+.rank-avatar{width:26px;height:26px;border-radius:50%;object-fit:cover;background:var(--line)}
+.rank-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:var(--ink)}
+.rank-score{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.rank-empty{margin:16px 0 0;padding:16px;border-radius:10px;background:var(--soft);font-size:13px;color:var(--muted);line-height:1.6}
+.rank-note{margin:14px 0 0;font-size:11px;line-height:1.6;color:var(--muted)}
+
 .credit{margin:18px 0 0;text-align:center;color:var(--muted);font-size:12px}
 
 /* =========================================================================
