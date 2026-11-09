@@ -24,7 +24,7 @@ term → levels → campaign-meta → modules → engine → wire → achievemen
 | `src/engine.js` | **唯一求值器**：拓扑、逐节点 apply、目标精确比较、来源反作弊、定理引用越界校验 |
 | `src/catalog.js` | 关卡目录：章节、band、解锁链、`palette` → 元件栏条目 |
 | `src/screens.js` | 选关/帮助/提示/成就/通关面板 |
-| `src/hints.js` | 逐关提示文字；Toy 内查询作者关注状态，未关注时只返回关注入口 |
+| `src/hints.js` | 三页提示：方向 / 思路 / 参考接线；Toy 内按点赞视频与关注状态解锁 |
 | `src/cloudsave.js` | Toy 云存档：按账号分片写入、自动同步；网页版仍用 localStorage |
 | `src/leaderboard.js` | Toy 排行榜：通关数优先 + 模块效率加权的单整数分数、提交与榜单读取 |
 | `src/board.js` / `src/main.js` | 棋盘交互与关卡流程（一条 `loadLevel/refresh/check/win`） |

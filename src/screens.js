@@ -197,24 +197,64 @@
       '<p class="credit">Designed by yyxcnasd</p>');
   }
 
-  function openHint(level, gate) {
-    host.RSL.Audio.sfx('click');
-    var text = host.RSL.Hints ? host.RSL.Hints.text(level) : (level.hint || level.teaches || '');
-    UI.openSheet(closeButton() +
-      '<div class="hint-sheet">' +
-        '<div class="hint-kicker">' + UI.esc(level.code) + '</div>' +
-        '<p class="hint-text">' + UI.esc(text) + '</p>' +
-      '</div>');
+  var hintState = null;
+
+  function hintAccessOk(kind, access) {
+    if (!access) return false;
+    return !!(access.preview || access.author || (kind === 'like' ? access.liked : access.followed));
   }
 
-  function openFollowPrompt(gate) {
-    host.RSL.Audio.sfx('click');
-    var author = host.RSL.Hints ? host.RSL.Hints.author.name : 'UP 主';
-    UI.openSheet(closeButton() +
+  function hintPageHTML() {
+    var level = hintState.level;
+    var page = hintState.page;
+    var access = hintState.access;
+    var pages = host.RSL.Hints.pages(level);
+    var locked = page === 1 ? !hintAccessOk('like', access) : (page === 2 ? !hintAccessOk('follow', access) : false);
+    var body;
+    if (locked) {
+      if (hintState.loading || !access) {
+        body = '<p class="hint-text">检查…</p>';
+      } else {
+        body = '<div class="hint-lock">' +
+          '<p class="hint-text">' + (page === 1 ? '点赞视频后解锁' : '关注 UP 主后解锁') + '</p>' +
+          '<button class="hint-follow" data-' + (page === 1 ? 'like-video' : 'hint-follow') + '>' +
+          (page === 1 ? '去点赞' : '关注') + '</button>' +
+        '</div>';
+      }
+    } else {
+      body = '<div class="hint-page' + (page === 2 ? ' is-recipe' : '') + '">' + UI.esc(pages[page]) + '</div>';
+    }
+    return closeButton() +
       '<div class="hint-sheet">' +
-        '<p class="hint-text">关注 @' + UI.esc(author) + ' 后可用。</p>' +
-        '<div class="hint-actions"><button class="hint-follow" data-follow>关注</button></div>' +
-      '</div>');
+        '<div class="hint-kicker">' + UI.esc(level.code) + '</div>' +
+        body +
+        '<div class="hint-nav">' +
+          '<button data-hint-prev aria-label="上一页"' + (page === 0 ? ' disabled' : '') + '>‹</button>' +
+          '<span>' + (page + 1) + ' / 3</span>' +
+          '<button data-hint-next aria-label="下一页"' + (page === 2 ? ' disabled' : '') + '>›</button>' +
+        '</div>' +
+      '</div>';
+  }
+
+  function renderHint() {
+    UI.openSheet(hintPageHTML());
+  }
+
+  function loadHintAccess() {
+    if (hintState.loading || hintState.access) return;
+    hintState.loading = true;
+    renderHint();
+    host.RSL.Hints.access().then(function (access) {
+      hintState.access = access || {};
+      hintState.loading = false;
+      if (hintState && UI.isSheetOpen()) renderHint();
+    });
+  }
+
+  function openHint(level) {
+    host.RSL.Audio.sfx('click');
+    hintState = { level: level, page: 0, access: null, loading: false };
+    renderHint();
   }
 
   /* =========================================================================
@@ -301,7 +341,27 @@
     if (target.closest && target.closest('[data-back]')) { openAchievements(); return; }
     if (target.closest && target.closest('[data-save-export]')) { ctx.exportSave(); return; }
     if (target.closest && target.closest('[data-save-import]')) { ctx.requestImport(); return; }
-    if (target.closest && target.closest('[data-follow]')) {
+    if (target.closest && target.closest('[data-hint-prev]')) {
+      if (hintState && hintState.page > 0) {
+        hintState.page -= 1;
+        renderHint();
+      }
+      return;
+    }
+    if (target.closest && target.closest('[data-hint-next]')) {
+      if (hintState && hintState.page < 2) {
+        hintState.page += 1;
+        renderHint();
+        if (hintState.page > 0) loadHintAccess();
+      }
+      return;
+    }
+    if (target.closest && target.closest('[data-like-video]')) {
+      UI.closeSheet();
+      if (ctx.likeVideo) ctx.likeVideo();
+      return;
+    }
+    if (target.closest && target.closest('[data-hint-follow]')) {
       UI.closeSheet();
       if (ctx.followAuthor) ctx.followAuthor();
       return;
@@ -320,7 +380,6 @@
     openLevels: openLevels,
     openHelp: openHelp,
     openHint: openHint,
-    openFollowPrompt: openFollowPrompt,
     openLeaderboard: openLeaderboard,
     openAchievements: openAchievements,
     openAchievement: openAchievement,

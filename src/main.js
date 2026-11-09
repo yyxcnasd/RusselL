@@ -770,10 +770,7 @@
   function showHint() {
     var level = state.level;
     if (!level || !window.RSL.Hints || !window.RSL.Hints.isToyHost()) return;
-    window.RSL.Hints.checkGate().then(function (gate) {
-      if (gate.allowed) Screens.openHint(level, gate);
-      else Screens.openFollowPrompt(gate);
-    });
+    Screens.openHint(level);
   }
 
   function openLeaderboard() {
@@ -788,6 +785,13 @@
     if (!window.RSL.Hints) return;
     window.RSL.Hints.follow().catch(function () {
       UI.toast('打开关注页失败，请稍后重试');
+    });
+  }
+
+  function likeVideo() {
+    if (!window.RSL.Hints) return;
+    window.RSL.Hints.likeVideo().catch(function () {
+      UI.toast('打开视频失败，请稍后重试');
     });
   }
 
@@ -829,6 +833,7 @@
       exportSave: exportSave,
       requestImport: function () { els.saveFile.click(); },
       followAuthor: followAuthor,
+      likeVideo: likeVideo,
       openLeaderboard: openLeaderboard
     });
 

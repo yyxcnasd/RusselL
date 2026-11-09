@@ -83,42 +83,68 @@ runTest('game-ui', async ({ openPage }) => {
   /* 网页版禁用提示/排行榜；提示内容仍逐关存在 */
   equal(await page.js('document.querySelector("#hintBtn").hidden'), true, '网页版隐藏提示按钮');
   equal(await page.js('document.querySelector("#rankBtn").hidden'), true, '网页版隐藏排行榜按钮');
-  await page.js('window.RSL.Screens.openHint(window.RSL.APP.state.level, { mode: "toy" })');
+  await page.js('window.RSL.Screens.openHint(window.RSL.APP.state.level)');
   await page.waitFor('document.querySelector(".hint-sheet") !== null');
   const hint = await page.js(`(function(){
     var texts = window.RSL.APP.state.levels.map(function (l) {
       return window.RSL.Hints.text(l);
     });
     return {
-      text: document.querySelector('.hint-text').textContent.trim(),
+      text: document.querySelector('.hint-page').textContent.trim(),
+      nav: document.querySelector('.hint-nav').textContent.trim(),
       missing: texts.filter(function (t) { return !t; }).length,
       unique: new Set(texts).size
     };
   })()`);
-  ok(hint.text.length > 0, '提示面板显示本关提示');
+  ok(hint.text.length > 0, '提示面板显示第一层提示');
+  ok(/1\s*\/\s*3/.test(hint.nav), '提示面板有三页导航');
   equal(hint.missing, 0, '114 关都有定制提示');
   equal(hint.unique, 114, '114 关提示内容互不重复');
   await page.js('window.RSL.UI.closeSheet()');
 
-  /* Toy 内未关注时只弹关注提示，不显示本关提示文字 */
+  /* 未点赞/未关注：第 2、3 页分别锁定 */
   await page.js(`window.__realHintHost = window.RSL.Hints.isToyHost;
     window.RSL.Hints.isToyHost = function () { return true; };
     window.toy = {
       getAuthorRelation: function () {
         return Promise.resolve({ status: 'ok', data: { isFollowing: false, isAuthor: false } });
+      },
+      getVideoUserActions: function () {
+        return Promise.resolve({ items: [{ status: 'ok', liked: false }] });
       }
     };
     document.querySelector('#hintBtn').hidden = false;
     document.querySelector('#hintBtn').click();`);
-  await page.waitFor('document.querySelector(".hint-follow") !== null');
-  const followGate = await page.js(`(function(){
-    return {
-      hasHint: !!document.querySelector('.hint-text'),
-      text: document.querySelector('.hint-text').textContent
-    };
-  })()`);
-  equal(followGate.hasHint, true, '未关注时显示关注提示');
-  ok(/关注/.test(followGate.text), '关注提示包含关注动作');
+  await page.waitFor('document.querySelector(".hint-page") !== null');
+  await page.js('document.querySelector("[data-hint-next]").click()');
+  await page.waitFor('document.querySelector(".hint-lock") !== null');
+  const likeLock = await page.js(`document.querySelector('.hint-lock .hint-text').textContent`);
+  ok(/点赞/.test(likeLock), '提示2需要点赞视频');
+  await page.js('document.querySelector("[data-hint-next]").click()');
+  await page.waitFor('document.querySelector("[data-hint-follow]") !== null');
+  const followLock = await page.js(`document.querySelector('.hint-lock .hint-text').textContent`);
+  ok(/关注/.test(followLock), '提示3需要关注 UP 主');
+  await page.js('window.RSL.UI.closeSheet()');
+
+  /* 已点赞 + 已关注：三页全部可读 */
+  await page.js(`window.toy = {
+    getAuthorRelation: function () {
+      return Promise.resolve({ status: 'ok', data: { isFollowing: true, isAuthor: false } });
+    },
+    getVideoUserActions: function () {
+      return Promise.resolve({ items: [{ status: 'ok', liked: true }] });
+    }
+  };
+  document.querySelector('#hintBtn').click();`);
+  await page.waitFor('document.querySelector(".hint-page") !== null');
+  await page.js('document.querySelector("[data-hint-next]").click()');
+  await page.waitFor('document.querySelector(".hint-page") !== null');
+  const tier2 = await page.js(`document.querySelector('.hint-page').textContent`);
+  ok(/参考解/.test(tier2), '提示2提供详细思路');
+  await page.js('document.querySelector("[data-hint-next]").click()');
+  await page.waitFor('document.querySelector(".hint-page.is-recipe") !== null');
+  const tier3 = await page.js(`document.querySelector('.hint-page.is-recipe').textContent`);
+  ok(/模块：/.test(tier3) && /接线：/.test(tier3), '提示3给出完整接线清单');
   await page.js(`window.RSL.UI.closeSheet();
     delete window.toy;
     window.RSL.Hints.isToyHost = window.__realHintHost;
