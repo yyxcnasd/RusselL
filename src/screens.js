@@ -204,7 +204,9 @@
   function openHint(level, gate) {
     host.RSL.Audio.sfx('click');
     var text = host.RSL.Hints ? host.RSL.Hints.text(level) : (level.hint || level.teaches || '');
-    var note = gate && gate.mode === 'toy' ? 'B 站 Toy · 已关注 UP 主' : '网页版 · 提示直接可用';
+    var note = gate && gate.mode === 'toy'
+      ? (gate.reason === 'preview' ? '预览模式 · 作者可直接查看' : 'B 站 Toy · 已关注 UP 主')
+      : '网页版 · 提示直接可用';
     UI.openSheet(closeButton() +
       '<div class="hint-sheet">' +
         '<div class="hint-kicker">HINT · ' + UI.esc(level.code) + '</div>' +

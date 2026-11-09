@@ -42,6 +42,10 @@
     return /bilibili\.com$/i.test(location.hostname) || /^\/toy\//i.test(location.pathname);
   }
 
+  function isPreview() {
+    return /^\/toy\/preview\//i.test(location.pathname);
+  }
+
   function loadSdk() {
     if (root.toy) return Promise.resolve(true);
     if (!isToyHost()) return Promise.resolve(false);
@@ -70,6 +74,7 @@
   }
 
   function checkGate() {
+    if (isPreview()) return Promise.resolve({ mode: 'toy', allowed: true, reason: 'preview' });
     return loadSdk().then(function (hasToy) {
       if (!hasToy || !root.toy || typeof root.toy.getAuthorRelation !== 'function') {
         return { mode: 'web', allowed: true };
@@ -103,6 +108,7 @@
     checkGate: checkGate,
     follow: follow,
     loadSdk: loadSdk,
-    isToyHost: isToyHost
+    isToyHost: isToyHost,
+    isPreview: isPreview
   };
 })();
