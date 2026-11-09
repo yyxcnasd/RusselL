@@ -656,21 +656,19 @@ body.is-holding *{cursor:grabbing!important}
  * 16 选关面板 levels
  * ========================================================================= */
 
-.sheet.sheet-levels{width:min(800px,100%)}
+.sheet.sheet-levels{width:min(720px,100%)}
 
-.chapters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start;padding-top:2px}
+.chapters{display:flex;flex-direction:column;gap:18px;padding-top:2px}
 
-/* 章节是 sheet 内的一块平涂软卡，和帮助/成就面板用同一套材质。 */
-.chapter{
-  background:var(--soft);border-radius:var(--radius);
-  padding:13px 15px 15px;
-}
+/* 章节直接排在 sheet 上：只有分隔线和标题，不再套第二层底色。 */
+.chapter{padding:0}
+.chapter + .chapter{border-top:1px solid var(--line);padding-top:16px}
 .chapter-head{display:flex;align-items:center;gap:10px;padding:0 2px 8px}
-.chapter-roman{font-family:var(--math);font-size:26px;line-height:1;color:var(--accent);min-width:38px}
+.chapter-roman{font-family:var(--math);font-size:28px;line-height:1;color:var(--accent);min-width:40px}
 .chapter-count{font-size:11px;font-weight:600;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
 .chapter-progress{flex:1;height:2px;border-radius:2px;background:var(--line);overflow:hidden}
 .chapter-progress i{display:block;height:100%;background:var(--accent);border-radius:2px}
-.chapter.is-current{box-shadow:inset 0 0 0 1.5px var(--accent-soft)}
+.chapter.is-current .chapter-roman{color:var(--accent);text-decoration:underline;text-underline-offset:5px}
 .chapter.is-locked{opacity:.55}
 .chapter.is-locked .chapter-roman{color:var(--muted)}
 
@@ -684,19 +682,19 @@ body.is-holding *{cursor:grabbing!important}
 .band.is-locked .band-glyph{opacity:.4}
 .band-count{font-size:10px;color:var(--muted);opacity:.8;font-variant-numeric:tabular-nums;margin-left:auto}
 
-.levels{display:grid;grid-template-columns:repeat(6,42px);gap:8px;justify-content:space-between}
+.levels{display:grid;grid-template-columns:repeat(12,42px);gap:7px;justify-content:space-between}
 .band .levels{padding-top:2px}
-.band.tutorial .levels{grid-template-columns:repeat(5,54px);gap:8px;align-items:center;justify-content:space-between}
+.band.tutorial .levels{grid-template-columns:repeat(5,54px);gap:8px;align-items:center;justify-content:start}
 
 /* 关卡格只保留四种语义：默认 / 已通关 / 当前 / 锁定。 */
 .level-cell{
   position:relative;width:42px;height:42px;border-radius:11px;
-  background:var(--card);color:var(--muted);
+  background:var(--soft);color:var(--muted);
   font-size:13px;font-weight:600;
   transition:background .12s var(--ease),color .12s var(--ease),transform .12s var(--ease),box-shadow .12s var(--ease);
 }
 /* hover/active 写在状态类之前：同一权重下状态颜色优先 */
-.level-cell:hover{transform:translateY(-1px);color:var(--ink);background:var(--card);box-shadow:var(--sticker-hover)}
+.level-cell:hover{transform:translateY(-1px);color:var(--ink);background:var(--soft-hover);box-shadow:var(--sticker-hover)}
 .level-cell:active{transform:translateY(1px)}
 .level-cell:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .level-cell.is-solved{background:var(--accent-soft);color:var(--ink)}
@@ -996,9 +994,10 @@ body.is-holding *{cursor:grabbing!important}
   .band.tutorial .levels{grid-template-columns:repeat(5,48px);gap:7px}
   .level-cell.is-tutorial{width:48px;height:34px;font-size:14px}
 
-  .chapters{grid-template-columns:1fr;gap:14px;padding-top:2px}
+  .chapters{gap:14px;padding-top:2px}
   .band.tutorial .levels{justify-content:start}
-  .chapter{padding:13px 13px 14px;border-radius:var(--radius)}
+  .chapter{padding:0}
+  .chapter + .chapter{padding-top:14px}
   .chapter-head{gap:9px;padding-bottom:6px}
   .chapter-roman{font-size:22px;min-width:30px}
   .chapter-count{font-size:11px}

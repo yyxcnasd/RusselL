@@ -174,6 +174,41 @@
     return simplify(out);
   }
 
+  /* 合并过短线段：把“竖-横-竖”这类小于最小长度的折跳改成一个干净的 L 角。
+   * 端口附近的短 stub（26px）不受影响，只清理 <14px 的碎折。 */
+  function mergeShort(pts, rects, freeCheck, minLen) {
+    if (!pts || pts.length < 3) return pts;
+    var limit = minLen || 14;
+    var out = pts.slice();
+    function clear(p, q) {
+      return segmentClear(p, q, rects) && (!freeCheck || freeCheck(p, q));
+    }
+    function lpath(p, q) {
+      if (p.x === q.x || p.y === q.y) return clear(p, q) ? [p, q] : null;
+      var c1 = { x: q.x, y: p.y };
+      if (clear(p, c1) && clear(c1, q)) return [p, c1, q];
+      var c2 = { x: p.x, y: q.y };
+      if (clear(p, c2) && clear(c2, q)) return [p, c2, q];
+      return null;
+    }
+    for (var pass = 0; pass < 8; pass++) {
+      var changed = false;
+      for (var i = 1; i < out.length - 1; i++) {
+        var a = out[i - 1], b = out[i], c = out[i + 1];
+        var ab = abs(a.x - b.x) + abs(a.y - b.y);
+        var bc = abs(c.x - b.x) + abs(c.y - b.y);
+        if (ab >= limit && bc >= limit) continue;
+        var lp = lpath(a, c);
+        if (!lp) continue;
+        out = out.slice(0, i - 1).concat(lp, out.slice(i + 2));
+        changed = true;
+        break;
+      }
+      if (!changed) break;
+    }
+    return simplify(out);
+  }
+
   /* Deterministic outer detour when the lane graph cannot reach b. */
   function fallbackRoute(a, b, rects, fromId, toId) {
     var obstacles = rects.filter(function (r) { return r.id !== fromId && r.id !== toId; });
@@ -457,10 +492,11 @@
       cur = prev[cur];
     }
     cells.reverse();
+    var extraFree = function (p, q) { return !segmentBlocked(p, q, group, occupancy); };
     var pts = simplify(cells);
-    pts = despike(pts, rects, function (p, q) {
-      return !segmentBlocked(p, q, group, occupancy);
-    });
+    pts = despike(pts, rects, extraFree);
+    pts = mergeShort(pts, rects, extraFree);
+    pts = despike(pts, rects, extraFree);
     markPath(pts, used, group, ROUTE.cell);
     return pts;
   }
@@ -474,6 +510,7 @@
     pathClear: pathClear,
     shortcut: shortcut,
     despike: despike,
+    mergeShort: mergeShort,
     markPath: markPath,
     fallbackRoute: fallbackRoute,
     route: route

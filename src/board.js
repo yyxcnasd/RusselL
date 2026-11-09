@@ -888,6 +888,7 @@
       var local = closeWirePoints(x.a, x.b, ra, rb);
       if (local) {
         var others = rects.filter(function (r) { return r.id !== e.from.node && r.id !== e.to.node; });
+        local = Route.mergeShort(local, rects);
         if (Route.pathClear(local, others)) {
           Route.markPath(local, used, group, ROUTE.cell);
           routes[e.id] = local;
