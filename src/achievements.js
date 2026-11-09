@@ -48,8 +48,8 @@
     var kinds = state.usedKinds || {};
     if (kinds.subst) add('rule-subst');
     if (kinds.mp) add('rule-mp');
-    if (kinds.gen || kinds.shift || kinds['all-elim']) add('rule-gen');
-    if (kinds['eq-refl'] || kinds.leibniz || kinds['eq-subst']) add('rule-eq');
+    if (kinds.gen || kinds.shift || kinds['all-inst']) add('rule-gen');
+    if (kinds['eq-refl'] || kinds.leibniz) add('rule-eq');
     if (kinds.theorem) add('lemma');
 
     var clean = Object.keys(state.cleanWins || {}).length;
