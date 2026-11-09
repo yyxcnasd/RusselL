@@ -227,7 +227,7 @@
       '<div class="hint-sheet">' +
         '<div class="hint-kicker">HINT</div>' +
         '<p class="hint-text">' + lead + '</p>' +
-        '<p class="hint-note">关注 ' + UI.esc(author) + '，回到这里再点一次闪电图标。</p>' +
+        '<p class="hint-note">关注 ' + UI.esc(author) + '，回到这里再点一次灯泡图标。</p>' +
         '<div class="hint-actions"><button class="hint-follow" data-follow>去关注</button></div>' +
       '</div>' +
       '<p class="credit">Designed by yyxcnasd</p>');
