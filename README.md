@@ -97,7 +97,7 @@ GitHub Pages 不会发布游戏脚本。删掉标记后重新构建即可恢复�
 ```bash
 node scripts/build-campaign.js   # 编译 114 关（96 主线 + 18 教学），逐关用真实 Engine 验证
 npm test                         # 关卡 schema、模块表、参考证明、定理引用越界
-npm run test:route               # 走线/几何纯函数
+npm run test:wire               # 走线/几何纯函数
 npm run test:ui                  # Edge headless 浏览器回归
 npm run test:acceptance          # dist 构建产物与维护页验收
 npm run build:toy                # 生成 dist/（维护模式下只有维护页）
@@ -114,7 +114,7 @@ npm run build:toy                # 生成 dist/（维护模式下只有维护页
 | `src/term.js` | 唯一表达式核心：canonical token、解析/格式化、代入、捕获规避变元替换 |
 | `src/modules.js` | 唯一模块注册表：构造、公理、推理规则与定理 |
 | `src/engine.js` | 唯一求值器：拓扑、逐节点求值、目标比较、定理引用校验 |
-| `src/route.js` | 纯几何走线：稀疏车道图、45° 倒角、去尖刺 |
+| `src/wire.js` | 纯几何走线：端口到端口的确定性 Z/U 线、并行车道、45° 倒角 |
 | `src/board.js` | 棋盘编辑器：缩放平移、节点/导线交互、渲染 |
 | `src/main.js` | 应用状态、存档、关卡流程、合并元件与配置弹层 |
 | `src/ui.js` | DOM 基础件、公式显示、toast、面板与焦点管理 |

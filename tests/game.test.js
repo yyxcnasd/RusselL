@@ -12,7 +12,7 @@ const scripts = Array.from(html.matchAll(/<script src="src\/([^"]+)"/g)).map((m)
 const RSL = loadRuntime({
   files: [
     'src/term.js', 'src/levels.js', 'src/campaign-meta.js',
-    'src/modules.js', 'src/engine.js', 'src/route.js',
+    'src/modules.js', 'src/engine.js', 'src/wire.js',
     'src/achievements.js', 'src/save.js', 'src/catalog.js'
   ]
 });

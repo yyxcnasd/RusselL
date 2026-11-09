@@ -13,7 +13,7 @@
 `index.html` 与 `scripts/build-toy.js` 的 `RUNTIME_JS` 必须一致：
 
 ```
-term → levels → campaign-meta → modules → engine → route → achievements → save
+term → levels → campaign-meta → modules → engine → wire → achievements → save
      → ui → audio → catalog → screens → board → main
 ```
 

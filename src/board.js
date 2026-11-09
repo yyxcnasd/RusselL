@@ -1,13 +1,12 @@
 /* 公理板 — minimal graph board: DOM, interaction and state only.
- * Pure geometry / wire routing lives in src/route.js (window.RSL.Route).
+ * Pure geometry / wire routing lives in src/wire.js (window.RSL.Wire).
  * Classic script, no modules; keep the DOM class names and the Board API stable.
  */
 (function () {
   'use strict';
   window.RSL = window.RSL || {};
-  var Route = window.RSL.Route;
-  if (!Route) throw new Error('RSL.Route missing: load src/route.js before src/board.js');
-  var ROUTE = Route.ROUTE;
+  var Wire = window.RSL.Wire;
+  if (!Wire) throw new Error('RSL.Wire missing: load src/wire.js before src/board.js');
 
   /* Geometry shared by layout, routing rects and port markers. */
   var NODE_W = 232;          // .node width in simple.css (border-box)
@@ -90,7 +89,6 @@
     this._dropTarget = false;              // 模块是否悬停在下边栏删除区
     this._elById = Object.create(null);   // id -> node element, rebuilt by render()
     this._wireEls = Object.create(null);  // edge id -> { path, hit }, rebuilt by full _updateWires
-    this._lastUsed = null;
     this._cheapDirty = false;             // cheap drag preview needs a full pass before settling
     this._bind();
     this._applyView();
@@ -501,7 +499,7 @@
       var q = this._client(e.clientX, e.clientY);
       this.draft.x = q.x; this.draft.y = q.y;
       var a = this._portPoint(this.draft.from.node, this.draft.from.port);
-      if (a) this._draftPath(a, q, this._draftRects);
+      if (a) this._draftPath(a, q);
     }
   };
 
@@ -696,7 +694,6 @@
 
   Board.prototype._cancelDraft = function () {
     this.draft = null;
-    this._draftRects = null;
     this.board.classList.remove('is-wiring');
     var d = this.wires.querySelector('.wire-draft');
     if (d) d.remove();
@@ -707,27 +704,19 @@
     if (!a) return;
     var p = this._client(cx, cy);
     this.draft = { from: { node: id, port: port }, x: p.x, y: p.y };
-    this._draftRects = this._rects();
     this.board.classList.add('is-wiring');
-    this._draftPath(a, p, this._draftRects);
+    this._draftPath(a, p);
   };
 
-  Board.prototype._draftPath = function (a, b, rects) {
+  Board.prototype._draftPath = function (a, b) {
     var d = this.wires.querySelector('.wire-draft');
     if (!d) {
       d = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       d.setAttribute('class', 'wire-draft');
       this.wires.appendChild(d);
     }
-    var fromId = this.draft && this.draft.from ? this.draft.from.node : null;
-    var group = this.draft && this.draft.from ? (this.draft.from.node + '|' + this.draft.from.port) : '';
-    var s = wireStubPoints(a, b);
-    var pts = Route.route(s.a, s.b, rects || this._rects(), this._lastUsed || {}, group, { fromId: fromId, toId: null });
-    if (s.stub > 0) {
-      pts.unshift({ x: a.x, y: a.y });
-      pts.push({ x: b.x, y: b.y });
-    }
-    d.setAttribute('d', Route.pathPoints(pts));
+    var pts = Wire.simpleRoute(a, b);
+    d.setAttribute('d', Wire.pathPoints(pts));
   };
 
   /* Node rects: width from the shared constants, height measured from the
@@ -740,12 +729,6 @@
   Board.prototype._rects = function () {
     var self = this;
     return this.items.map(function (n) { return self._nodeRect(n, self._elById[n.id]); });
-  };
-
-  /* Compatibility shim for callers that still route through the board
-   * (tests/simple-routing.js). Pure implementation is Route.route. */
-  Board.prototype._route = function (a, b, rects, used, fromId, toId, group) {
-    return Route.route(a, b, rects, used, group, { fromId: fromId, toId: toId });
   };
 
   Board.prototype._wireState = function (e) {
@@ -772,65 +755,20 @@
     return path;
   }
 
-  /* Full routing pass: sparse lane routing for every edge, ordered by span
-   * so short wires lay down first. Rebuilds the SVG layer. */
-  /* 简单正交折线：参考电路可能有几百条导线，不需要逐条寻路。 */
-  /* 端点很近时缩短出线/入线 stub，避免两个 stub 互相越过。 */
-  function wireStubPoints(a, b) {
-    var stub = ROUTE.stub;
-    var dx = b.x - a.x;
-    if (dx >= 0) {
-      stub = Math.min(stub, Math.max(0, dx / 2 - 4));
-      if (dx < 16) stub = 0;
-    }
-    return {
-      a: { x: a.x + stub, y: a.y },
-      b: { x: b.x - stub, y: b.y },
-      stub: stub
-    };
-  }
-
-  /* 端口离得很近（或目标在左侧）时不再交给 A*：用固定车道画一条短 Z/U 线，
-   * 避免布线在端口之间来回绕。返回 null 表示按常规 stub + 车道图处理。 */
-  function closeWirePoints(a, b, ra, rb) {
-    if (!ra || !rb) return null;
-    var gap = rb.x - (ra.x + ra.w);
-    var dx = b.x - a.x;
-    if (dx >= ROUTE.stub * 2 + 16 && gap >= ROUTE.stub * 2 + 8) return null;
-    var PAD = 14;
-    if (b.x > a.x && gap >= 10) {
-      var step = Math.max(6, Math.min(18, (b.x - a.x) / 3));
-      var xr = a.x + step, xl = b.x - step;
-      if (xr >= xl) { xr = xl = Math.round((a.x + b.x) / 2); }
-      var my = Math.round((a.y + b.y) / 2);
-      return [
-        { x: a.x, y: a.y }, { x: xr, y: a.y }, { x: xr, y: my },
-        { x: xl, y: my }, { x: xl, y: b.y }, { x: b.x, y: b.y }
-      ];
-    }
-    var yTop = Math.min(ra.y, rb.y) - PAD;
-    var yBottom = Math.max(ra.y + ra.h, rb.y + rb.h) + PAD;
-    var yLane = (Math.abs(a.y - yTop) + Math.abs(b.y - yTop) <=
-                 Math.abs(a.y - yBottom) + Math.abs(b.y - yBottom)) ? yTop : yBottom;
-    var xRight = Math.max(ra.x + ra.w, rb.x + rb.w) + PAD;
-    var xLeft = Math.min(ra.x, rb.x) - PAD;
-    return [
-      { x: a.x, y: a.y }, { x: xRight, y: a.y }, { x: xRight, y: yLane },
-      { x: xLeft, y: yLane }, { x: xLeft, y: b.y }, { x: b.x, y: b.y }
-    ];
-  }
-
-  function simpleWirePoints(a, b) {
-    var s = wireStubPoints(a, b);
-    var x1 = s.a.x, x2 = s.b.x;
-    if (x2 < x1) x2 = x1;
-    var mx = Math.round((x1 + x2) / 2);
-    var pts = [{ x: a.x, y: a.y }];
-    if (s.stub > 0) pts.push({ x: x1, y: a.y });
-    pts.push({ x: mx, y: a.y }, { x: mx, y: b.y });
-    if (s.stub > 0) pts.push({ x: x2, y: b.y });
-    pts.push({ x: b.x, y: b.y });
-    return pts;
+  /* Full routing pass: one deterministic port-to-port route per edge, short
+   * wires first. Parallel vertical lanes are tracked so neighbouring wires do
+   * not sit on top of each other. Rebuilds the SVG layer. */
+  function drawWire(ns, self, e, pts) {
+    var d = Wire.pathPoints(pts);
+    var path = makePath(ns, d, 'wire' + (self.selectedEdge === e.id ? ' is-selected' : '') + (e._new ? ' is-new' : ''));
+    path.setAttribute('data-state', self._wireState(e));
+    path.setAttribute('data-role', self._wireRole(e));
+    path.dataset.edge = e.id;
+    self.wires.appendChild(path);
+    var hit = makePath(ns, d, 'wire-hit');
+    hit.dataset.edge = e.id;
+    self.wires.appendChild(hit);
+    self._wireEls[e.id] = { path: path, hit: hit };
   }
 
   Board.prototype._updateWires = function (mode, movedIds) {
@@ -842,37 +780,19 @@
     this._wireEls = Object.create(null);
     var worldRect = this.world.getBoundingClientRect();
 
-    /* 大图：导线用简单正交折线，避免几百条线逐条寻路（由 main.js 按图规模开启）。 */
+    /* 参考电路可能有几百条线：用没有障碍搜索的简单 Z，避免逐条候选检查。 */
     if (this.simpleWires) {
-      var usedSimple = Object.create(null);
-      var simpleRoutes = Object.create(null);
       this.edges.forEach(function (e) {
         var a = self._portPoint(e.from.node, e.from.port, worldRect);
         var b = self._portPoint(e.to.node, e.to.port, worldRect);
         if (!a || !b) return;
-        simpleRoutes[e.id] = simpleWirePoints(a, b);
+        drawWire(ns, self, e, Wire.simpleRoute(a, b));
       });
-      this.edges.forEach(function (e) {
-        if (!simpleRoutes[e.id]) return;
-        var d = Route.pathPoints(simpleRoutes[e.id]);
-        var path = makePath(ns, d, 'wire' + (self.selectedEdge === e.id ? ' is-selected' : '') + (e._new ? ' is-new' : ''));
-        path.setAttribute('data-state', self._wireState(e));
-        path.setAttribute('data-role', self._wireRole(e));
-        path.dataset.edge = e.id;
-        self.wires.appendChild(path);
-        var hit = makePath(ns, d, 'wire-hit');
-        hit.dataset.edge = e.id;
-        self.wires.appendChild(hit);
-        self._wireEls[e.id] = { path: path, hit: hit };
-      });
-      this._lastUsed = usedSimple;
       return;
     }
 
     var rects = this._rects();
-    var used = Object.create(null);
-    var routes = Object.create(null);
-    var worldRect = this.world.getBoundingClientRect();
+    var tracks = { v: [] };
     var entries = [];
     this.edges.forEach(function (e) {
       var a = self._portPoint(e.from.node, e.from.port, worldRect);
@@ -882,60 +802,27 @@
     });
     entries.sort(function (e1, e2) { return e1.dist - e2.dist; });
     entries.forEach(function (x) {
-      var e = x.e;
-      var group = e.from.node + '|' + e.from.port;
-      var ra = rects.filter(function (r) { return r.id === e.from.node; })[0];
-      var rb = rects.filter(function (r) { return r.id === e.to.node; })[0];
-      var local = closeWirePoints(x.a, x.b, ra, rb);
-      if (local) {
-        var others = rects.filter(function (r) { return r.id !== e.from.node && r.id !== e.to.node; });
-        local = Route.mergeShort(local, rects);
-        if (Route.pathClear(local, others)) {
-          Route.markPath(local, used, group, ROUTE.cell);
-          routes[e.id] = local;
-          return;
-        }
-      }
-      var s = wireStubPoints(x.a, x.b);
-      var endPt = s.b;
-      if (s.stub > 0) {
-        var approachX = x.b.x - ROUTE.stub - 70;
-        if (approachX > s.a.x + 8) endPt = { x: approachX, y: s.b.y };
-      }
-      var pts = Route.route(s.a, endPt, rects, used, group, { fromId: e.from.node, toId: e.to.node });
-      if (endPt !== s.b) pts.push({ x: s.b.x, y: s.b.y });
-      if (s.stub > 0) {
-        pts.unshift({ x: x.a.x, y: x.a.y });
-        pts.push({ x: x.b.x, y: x.b.y });
-      }
-      Route.markPath(pts, used, group, ROUTE.cell);
-      routes[e.id] = pts;
+      x.e._wirePts = Wire.route(x.a, x.b, rects, {
+        fromId: x.e.from.node,
+        toId: x.e.to.node,
+        tracks: tracks,
+        group: x.e.from.node + '|' + x.e.from.port
+      });
     });
     this.edges.forEach(function (e) {
-      if (!routes[e.id]) return;
-      var d = Route.pathPoints(routes[e.id]);
-      var path = makePath(ns, d, 'wire' + (self.selectedEdge === e.id ? ' is-selected' : '') + (e._new ? ' is-new' : ''));
-      path.setAttribute('data-state', self._wireState(e));
-      path.setAttribute('data-role', self._wireRole(e));
-      path.dataset.edge = e.id;
-      self.wires.appendChild(path);
-      var hit = makePath(ns, d, 'wire-hit');
-      hit.dataset.edge = e.id;
-      self.wires.appendChild(hit);
-      self._wireEls[e.id] = { path: path, hit: hit };
+      if (!e._wirePts) return;
+      drawWire(ns, self, e, e._wirePts);
+      delete e._wirePts;
     });
-    this._lastUsed = used;
     if (this.draft) {
       var from = this._portPoint(this.draft.from.node, this.draft.from.port);
-      if (from) this._draftPath(from, { x: this.draft.x, y: this.draft.y }, this._draftRects);
+      if (from) this._draftPath(from, { x: this.draft.x, y: this.draft.y });
     }
   };
 
-  /* Drag-time preview: cheap orthogonal polylines for the wires that touch the
-   * moved nodes, patched straight into the existing SVG paths (no routing, no DOM
-   * re-creation). pointerup runs render() -> full route again. */
+  /* Drag-time preview: cheap orthogonal Z for wires touching the moved nodes. */
   Board.prototype._updateWiresCheap = function (movedIds) {
-    if (!this._lastUsed || !this._wireEls) return this._updateWires();
+    if (!this._wireEls) return this._updateWires();
     var self = this;
     this._cheapDirty = true;
     var moved = null;
@@ -951,13 +838,7 @@
       var a = self._portPoint(e.from.node, e.from.port, worldRect);
       var b = self._portPoint(e.to.node, e.to.port, worldRect);
       if (!a || !b) return;
-      var s = wireStubPoints(a, b);
-      var pts = Route.simplePoints(s.a.x, s.a.y, s.b.x, s.b.y);
-      if (s.stub > 0) {
-        pts.unshift({ x: a.x, y: a.y });
-        pts.push({ x: b.x, y: b.y });
-      }
-      var d = Route.pathPoints(pts);
+      var d = Wire.pathPoints(Wire.simpleRoute(a, b));
       els.path.setAttribute('d', d);
       els.hit.setAttribute('d', d);
     });
