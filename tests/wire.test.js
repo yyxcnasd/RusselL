@@ -106,6 +106,33 @@ test('close ports do not produce a detour loop', () => {
   assert.ok(segs.every((n) => n >= 8 || n === 0), 'no micro jogs: ' + segs.join(','));
 });
 
+test('route never crosses any node in a crowded layout', () => {
+  const rects = [];
+  let seed = 7;
+  const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+  for (let i = 0; i < 24; i++) {
+    rects.push({
+      id: 'r' + i,
+      x: 120 + Math.floor(rnd() * 560),
+      y: 80 + Math.floor(rnd() * 520),
+      w: 80 + Math.floor(rnd() * 90),
+      h: 44 + Math.floor(rnd() * 80)
+    });
+  }
+  for (let i = 0; i < 18; i++) {
+    const a = { x: 20, y: 60 + i * 36 };
+    const b = { x: 1100, y: 80 + ((i * 67) % 520) };
+    const obstacles = rects.filter((r) =>
+      !(a.x > r.x && a.x < r.x + r.w && a.y > r.y && a.y < r.y + r.h) &&
+      !(b.x > r.x && b.x < r.x + r.w && b.y > r.y && b.y < r.y + r.h));
+    const pts = Wire.route(a, b, obstacles, { fromId: 'a' + i, toId: 'b' + i });
+    orthogonal(pts, 'crowded route ' + i);
+    for (const r of obstacles) {
+      assert.equal(crossesRect(pts, r), false, `wire ${i} crossed ${r.id}`);
+    }
+  }
+});
+
 test('parallel wires get separate vertical tracks', () => {
   const tracks = { v: [] };
   const p1 = Wire.route({ x: 0, y: 100 }, { x: 500, y: 200 }, [], { fromId: 'a1', toId: 'b1', tracks, group: 'g1' });

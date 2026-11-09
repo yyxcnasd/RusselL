@@ -162,9 +162,10 @@
     var fromId = opts.fromId, toId = opts.toId;
     var tracks = opts.tracks || null;
     var group = opts.group || '';
-    var obstacles = relevantRects(rects.filter(function (r) {
+    var allObstacles = rects.filter(function (r) {
       return r.id !== fromId && r.id !== toId;
-    }), a, b);
+    });
+    var obstacles = opts._all ? allObstacles : relevantRects(allObstacles, a, b);
 
     var dx = b.x - a.x;
     var stub = STUB;
@@ -214,7 +215,46 @@
     free[sx * ny + sy] = 1;
     free[ex * ny + ey] = 1;
 
-    var DX = [1, 0, -1, 0], DY = [0, 1, 0, -1];
+    /* 每一行/列把相邻的“空闲点”直接连起来，而不是只连网格邻居：
+     * 这样被节点挡住的一串中间点不会把可见的边界车道割断。 */
+    var hNext = new Int32Array(total).fill(-1);
+    var hPrev = new Int32Array(total).fill(-1);
+    var vNext = new Int32Array(total).fill(-1);
+    var vPrev = new Int32Array(total).fill(-1);
+    var iy, ix;
+    for (iy = 0; iy < ny; iy++) {
+      var prevFree = -1;
+      for (ix = 0; ix < nx; ix++) {
+        var cellRow = ix * ny + iy;
+        if (!free[cellRow]) continue;
+        if (prevFree >= 0) {
+          var pPrev = { x: xs[prevFree], y: ys[iy] };
+          var pNow = { x: xs[ix], y: ys[iy] };
+          if (segmentClear(pPrev, pNow, obstacles)) {
+            hNext[prevFree * ny + iy] = cellRow;
+            hPrev[cellRow] = prevFree * ny + iy;
+          }
+        }
+        prevFree = ix;
+      }
+    }
+    for (ix = 0; ix < nx; ix++) {
+      var prevY = -1;
+      for (iy = 0; iy < ny; iy++) {
+        var cellCol = ix * ny + iy;
+        if (!free[cellCol]) continue;
+        if (prevY >= 0) {
+          var qPrev = { x: xs[ix], y: ys[prevY] };
+          var qNow = { x: xs[ix], y: ys[iy] };
+          if (segmentClear(qPrev, qNow, obstacles)) {
+            vNext[ix * ny + prevY] = cellCol;
+            vPrev[cellCol] = ix * ny + prevY;
+          }
+        }
+        prevY = iy;
+      }
+    }
+
     var states = total * 4;
     var dist = new Float64Array(states);
     dist.fill(Infinity);
@@ -263,14 +303,14 @@
       var dir = state & 3, cell = state >> 2;
       if (cell === endCell) { found = state; break; }
       var cx = (cell / ny) | 0, cy = cell % ny;
+      var p = { x: xs[cx], y: ys[cy] };
       var g = dist[state];
+      var nb = [hNext[cell], vNext[cell], hPrev[cell], vPrev[cell]];
       for (var nd = 0; nd < 4; nd++) {
-        var nIx = cx + DX[nd], nIy = cy + DY[nd];
-        if (nIx < 0 || nIy < 0 || nIx >= nx || nIy >= ny) continue;
-        var ncell = nIx * ny + nIy;
-        if (!free[ncell]) continue;
-        var p = { x: xs[cx], y: ys[cy] }, q = { x: xs[nIx], y: ys[nIy] };
-        if (!segmentClear(p, q, obstacles)) continue;
+        var ncell = nb[nd];
+        if (ncell < 0) continue;
+        var nIx = (ncell / ny) | 0, nIy = ncell % ny;
+        var q = { x: xs[nIx], y: ys[nIy] };
         var len = abs(q.x - p.x) + abs(q.y - p.y);
         var cost = len + (nd !== dir ? BEND : 0);
         if (nd === 1 || nd === 3) cost += trackPenalty({ x: p.x, y1: Math.min(p.y, q.y), y2: Math.max(p.y, q.y) }, tracks, group);
@@ -306,6 +346,12 @@
         pts.push({ x: b.x, y: b.y });
       }
       pts = clean(pts);
+    }
+    if (!pathClear(pts, allObstacles)) {
+      if (!opts._all) {
+        opts._all = true;
+        return route(a, b, rects, opts);
+      }
     }
     registerTracks(pts, tracks, group);
     return pts;

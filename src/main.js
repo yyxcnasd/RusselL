@@ -231,7 +231,6 @@
     state.parts = Catalog.partsForLevel(level);
     if (els.hintBtn) els.hintBtn.style.display = 'none';
     if (els.tray) els.tray.classList.remove('is-wide');
-    state.board.simpleWires = !!(level.solution && level.solution.nodes.length > 60);
 
     var saved = state.circuits[level.id];
     var savedNodes = [];

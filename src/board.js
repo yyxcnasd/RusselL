@@ -749,17 +749,6 @@
     this._wireEls = Object.create(null);
     var worldRect = this.world.getBoundingClientRect();
 
-    /* 参考电路可能有几百条线：用没有障碍搜索的简单 Z，避免逐条候选检查。 */
-    if (this.simpleWires) {
-      this.edges.forEach(function (e) {
-        var a = self._portPoint(e.from.node, e.from.port, worldRect);
-        var b = self._portPoint(e.to.node, e.to.port, worldRect);
-        if (!a || !b) return;
-        drawWire(ns, self, e, Wire.simpleRoute(a, b));
-      });
-      return;
-    }
-
     var rects = this._rects();
     var tracks = { v: [] };
     var entries = [];
