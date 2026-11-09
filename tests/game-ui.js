@@ -141,6 +141,25 @@ runTest('game-ui', async ({ openPage }) => {
     ok(turns > 0 && turns <= 12, '近距离端口连线保持短折线（线 ' + (i + 1) + '：' + turns + ' 段）');
   });
 
+  /* 同一张电路在缩放前后必须得到同一条端口坐标与同一条 SVG 路径 */
+  const zoomStable = await page.js(`(function(){
+    document.getElementById('tutorialTip').hidden = true;
+    var app = window.RSL.APP;
+    var lv = app.state.level;
+    var target = JSON.parse(JSON.stringify(lv.initialNodes[0]));
+    var nodes = [target, {id:'dbgzoom',kind:'atom',x:120,y:200,config:{name:'P'}}];
+    var edges = [{id:'dbgzoome',from:{node:'dbgzoom',port:'out'},to:{node:target.id,port:'proof'}}];
+    app.state.board.setData(nodes, edges);
+    var path = function(){ var p=document.querySelector('.wire'); return p && p.getAttribute('d'); };
+    var base = path();
+    app.state.board.setView(30,30,0.65);
+    var small = path();
+    app.state.board.setView(30,30,1.25);
+    var large = path();
+    return !!base && base === small && base === large;
+  })()`);
+  equal(zoomStable, true, '缩放前后导线路径保持一致');
+
   /* 最后一关：*96 与目标 */
   await page.js('window.RSL.APP.loadLevel(window.RSL.APP.state.levels.map(function(l){return l.code}).indexOf("*96"))');
   await page.sleep(300);

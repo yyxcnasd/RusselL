@@ -494,7 +494,23 @@
       var q = this._client(e.clientX, e.clientY);
       this.draft.x = q.x; this.draft.y = q.y;
       var a = this._portPoint(this.draft.from.node, this.draft.from.port);
-      if (a) this._draftPath(a, q);
+      if (a) {
+        var snapPoint = q, snapId = null;
+        if (e.pointerType !== 'touch') {
+          var under = document.elementFromPoint(e.clientX, e.clientY);
+          var inPort = under && under.closest && under.closest('.port-in');
+          if (inPort) {
+            var mod = inPort.closest('.node');
+            var sp = this._portPoint(mod.dataset.id, inPort.dataset.port);
+            if (sp) {
+              snapPoint = sp; snapId = mod.dataset.id;
+              this.draft.snap = { node: mod.dataset.id, port: inPort.dataset.port };
+            }
+          }
+        }
+        if (!snapId) this.draft.snap = null;
+        this._draftPath(a, snapPoint, snapId);
+      }
     }
   };
 
@@ -672,19 +688,25 @@
     var a = this._portPoint(id, port);
     if (!a) return;
     var p = this._client(cx, cy);
-    this.draft = { from: { node: id, port: port }, x: p.x, y: p.y };
+    this.draft = { from: { node: id, port: port }, x: p.x, y: p.y, snap: null };
     this.board.classList.add('is-wiring');
-    this._draftPath(a, p);
+    this._draftPath(a, p, null);
   };
 
-  Board.prototype._draftPath = function (a, b) {
+  Board.prototype._draftPath = function (a, b, toId) {
     var d = this.wires.querySelector('.wire-draft');
     if (!d) {
       d = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       d.setAttribute('class', 'wire-draft');
       this.wires.appendChild(d);
     }
-    var pts = Wire.simpleRoute(a, b);
+    var tracks = this._wireTracks ? { v: this._wireTracks.v.slice() } : null;
+    var pts = Wire.route(a, b, this._rects(), {
+      fromId: this.draft && this.draft.from ? this.draft.from.node : null,
+      toId: toId || null,
+      tracks: tracks,
+      group: this.draft && this.draft.from ? (this.draft.from.node + '|' + this.draft.from.port) : ''
+    });
     d.setAttribute('d', Wire.pathPoints(pts));
   };
 
@@ -767,6 +789,7 @@
         group: x.e.from.node + '|' + x.e.from.port
       });
     });
+    this._wireTracks = tracks;
     this.edges.forEach(function (e) {
       if (!e._wirePts) return;
       drawWire(ns, self, e, e._wirePts);
@@ -774,11 +797,17 @@
     });
     if (this.draft) {
       var from = this._portPoint(this.draft.from.node, this.draft.from.port);
-      if (from) this._draftPath(from, { x: this.draft.x, y: this.draft.y });
+      var to = { x: this.draft.x, y: this.draft.y }, toId = null;
+      if (this.draft.snap) {
+        var snapped = this._portPoint(this.draft.snap.node, this.draft.snap.port);
+        if (snapped) { to = snapped; toId = this.draft.snap.node; }
+      }
+      if (from) this._draftPath(from, to, toId);
     }
   };
 
-  /* Drag-time preview: cheap orthogonal Z for wires touching the moved nodes. */
+  /* Drag-time preview uses the same router as the settled wires (no simple Z),
+   * so a dragged card does not suddenly jump to a different path on release. */
   Board.prototype._updateWiresCheap = function (movedIds) {
     if (!this._wireEls) return this._updateWires();
     var self = this;
@@ -788,26 +817,42 @@
       moved = Object.create(null);
       movedIds.forEach(function (id) { moved[id] = true; });
     }
-    var worldRect = this.world.getBoundingClientRect();
+    var rects = this._rects();
+    var tracks = this._wireTracks ? { v: this._wireTracks.v.slice() } : null;
     this.edges.forEach(function (e) {
       if (moved && !(moved[e.from.node] || moved[e.to.node])) return;
       var els = self._wireEls[e.id];
       if (!els) return;
-      var a = self._portPoint(e.from.node, e.from.port, worldRect);
-      var b = self._portPoint(e.to.node, e.to.port, worldRect);
+      var a = self._portPoint(e.from.node, e.from.port);
+      var b = self._portPoint(e.to.node, e.to.port);
       if (!a || !b) return;
-      var d = Wire.pathPoints(Wire.simpleRoute(a, b));
+      var pts = Wire.route(a, b, rects, {
+        fromId: e.from.node,
+        toId: e.to.node,
+        tracks: tracks,
+        group: e.from.node + '|' + e.from.port
+      });
+      var d = Wire.pathPoints(pts);
       els.path.setAttribute('d', d);
       els.hit.setAttribute('d', d);
     });
   };
 
+  /* 端口坐标必须来自布局而不是屏幕矩形：缩放/平移时 DOM rect 会带亚像素误差，
+   * 同一张电路在不同 scale 下会得到略微不同的端口，进而触发不同的布线。 */
   Board.prototype._portPoint = function (nodeId, portId, worldRect) {
     var nodeEl = this._elById[nodeId] || this.nodes.querySelector('[data-id="' + nodeId + '"]');
     if (!nodeEl) return null;
     var ports = nodeEl._rsl && nodeEl._rsl.ports;
     var p = ports ? ports[portId] : nodeEl.querySelector('.port[data-port="' + portId + '"]');
     if (!p) return null;
+    var n = this.node(nodeId);
+    if (n && p.offsetParent === nodeEl) {
+      return {
+        x: n.x + nodeEl.clientLeft + p.offsetLeft + p.offsetWidth / 2,
+        y: n.y + nodeEl.clientTop + p.offsetTop
+      };
+    }
     var wr = worldRect || this.world.getBoundingClientRect();
     var pr = p.getBoundingClientRect();
     return { x: (pr.left + pr.width / 2 - wr.left) / this.view.scale, y: (pr.top + pr.height / 2 - wr.top) / this.view.scale };
