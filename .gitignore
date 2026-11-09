@@ -18,3 +18,6 @@ dist/
 
 # generated Toy upload package (rebuild with scripts/build-toy + make-toy-assets)
 release/RusselL-toy.zip
+promo-toy/
+promo-toy-4k/
+release/RussuelL-Toy-Promo-4K60.mp4
