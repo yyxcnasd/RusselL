@@ -657,12 +657,12 @@ body.is-holding *{cursor:grabbing!important}
  * ========================================================================= */
 
 .sheet.sheet-levels{
-  width:min(680px,100%);
+  width:min(960px,100%);
   background:var(--bg);border:1px solid var(--line);
   box-shadow:var(--sheet-shadow);
 }
 
-.chapters{display:flex;flex-direction:column;gap:16px;padding-top:2px}
+.chapters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start;padding-top:2px}
 
 /* 章节是白色贴纸卡，棋盘底色做背景：大罗马数字 + 细进度线 + 计数。 */
 .chapter{
@@ -689,9 +689,9 @@ body.is-holding *{cursor:grabbing!important}
 .band.is-locked .band-glyph{opacity:.4}
 .band-count{font-size:10px;color:var(--muted);opacity:.8;font-variant-numeric:tabular-nums;margin-left:auto}
 
-.levels{display:grid;grid-template-columns:repeat(12,42px);gap:7px;justify-content:start}
+.levels{display:grid;grid-template-columns:repeat(6,42px);gap:8px;justify-content:space-between}
 .band .levels{padding-top:2px}
-.band.tutorial .levels{grid-template-columns:repeat(5,52px);gap:8px;align-items:center}
+.band.tutorial .levels{grid-template-columns:repeat(5,54px);gap:8px;align-items:center;justify-content:space-between}
 
 /* 关卡格只保留四种语义：默认 / 已通关 / 当前 / 锁定。 */
 .level-cell{
@@ -708,8 +708,8 @@ body.is-holding *{cursor:grabbing!important}
 .level-cell.is-current{background:var(--stamp-bg);color:var(--stamp-fg)}
 /* 教学关：拉长成小胶囊，罗马数字用界面字体 */
 .level-cell.is-tutorial{
-  width:52px;height:34px;border-radius:var(--radius-pill);
-  font-family:var(--font);font-style:normal;font-size:14px;font-weight:600;
+  width:54px;height:36px;border-radius:var(--radius-pill);
+  font-family:var(--font);font-style:normal;font-size:15px;font-weight:600;
   letter-spacing:.08em;background:var(--accent-soft);color:var(--accent);
 }
 .level-cell.is-tutorial:hover{background:var(--accent-soft);box-shadow:var(--sticker)}
@@ -999,9 +999,10 @@ body.is-holding *{cursor:grabbing!important}
   .levels{grid-template-columns:repeat(6,42px);gap:8px}
   .level-cell{width:42px;height:42px;border-radius:12px}
   .band.tutorial .levels{grid-template-columns:repeat(5,48px);gap:7px}
-  .level-cell.is-tutorial{width:48px;height:34px;font-size:13px}
+  .level-cell.is-tutorial{width:48px;height:34px;font-size:14px}
 
-  .chapters{gap:14px;padding-top:2px}
+  .chapters{grid-template-columns:1fr;gap:14px;padding-top:2px}
+  .band.tutorial .levels{justify-content:start}
   .chapter{padding:13px 13px 14px;border-radius:var(--radius)}
   .chapter-head{gap:9px;padding-bottom:6px}
   .chapter-roman{font-size:22px;min-width:30px}
@@ -1031,8 +1032,8 @@ body.is-holding *{cursor:grabbing!important}
   .letter-grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
   .letter-grid .opt{height:44px;font-size:18px}
   .levels{grid-template-columns:repeat(4,42px)}
-  .band.tutorial .levels{grid-template-columns:repeat(5,44px);gap:6px}
-  .level-cell.is-tutorial{width:44px;height:32px;font-size:12px}
+  .band.tutorial .levels{grid-template-columns:repeat(5,46px);gap:6px}
+  .level-cell.is-tutorial{width:46px;height:32px;font-size:13px}
   .sheet{padding:50px 16px 18px}
   .help-cards{grid-template-columns:1fr}
   .win-formula{font-size:19px}

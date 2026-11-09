@@ -118,6 +118,29 @@ runTest('game-ui', async ({ openPage }) => {
   })()`);
   equal(persist.proofEdge, true, '重进关卡时终点连线恢复');
 
+  /* 近距离端口：扇入到相邻输入端的线应是短的 Z 折线，而不是绕圈的乱线 */
+  const closeWires = await page.js(`(function(){
+    document.getElementById('tutorialTip').hidden = true;
+    var app = window.RSL.APP;
+    var nodes = [
+      {id:'a',kind:'atom',x:60,y:80,config:{name:'P'}},
+      {id:'c',kind:'atom',x:60,y:250,config:{name:'Q'}},
+      {id:'b',kind:'imp',x:340,y:150,config:{}}
+    ];
+    var edges = [
+      {id:'e1',from:{node:'a',port:'out'},to:{node:'b',port:'a'}},
+      {id:'e2',from:{node:'c',port:'out'},to:{node:'b',port:'b'}}
+    ];
+    app.state.board.setData(nodes, edges);
+    var res = window.RSL.Engine.evaluate(app.state.level, nodes, edges, {levels: app.state.levels, levelNo: 1});
+    app.state.board.paint(res);
+    return Array.from(document.querySelectorAll('.wire')).map(function(p){return p.getAttribute('d');});
+  })()`);
+  closeWires.forEach(function (d, i) {
+    const turns = (String(d).match(/L/g) || []).length;
+    ok(turns > 0 && turns <= 12, '近距离端口连线保持短折线（线 ' + (i + 1) + '：' + turns + ' 段）');
+  });
+
   /* 最后一关：*96 与目标 */
   await page.js('window.RSL.APP.loadLevel(window.RSL.APP.state.levels.map(function(l){return l.code}).indexOf("*96"))');
   await page.sleep(300);

@@ -432,6 +432,7 @@
     pathClear: pathClear,
     shortcut: shortcut,
     despike: despike,
+    markPath: markPath,
     fallbackRoute: fallbackRoute,
     route: route
   };

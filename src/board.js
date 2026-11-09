@@ -790,6 +790,36 @@
     };
   }
 
+  /* 端口离得很近（或目标在左侧）时不再交给 A*：用固定车道画一条短 Z/U 线，
+   * 避免 A* 在两个 stub 之间来回绕。返回 null 表示按常规 stub + A* 处理。 */
+  function closeWirePoints(a, b, ra, rb) {
+    if (!ra || !rb) return null;
+    var gap = rb.x - (ra.x + ra.w);
+    var dx = b.x - a.x;
+    if (dx >= ROUTE.stub * 2 + 16 && gap >= ROUTE.stub * 2 + 8) return null;
+    var PAD = 14;
+    if (b.x > a.x && gap >= 10) {
+      var step = Math.max(6, Math.min(18, (b.x - a.x) / 3));
+      var xr = a.x + step, xl = b.x - step;
+      if (xr >= xl) { xr = xl = Math.round((a.x + b.x) / 2); }
+      var my = Math.round((a.y + b.y) / 2);
+      return [
+        { x: a.x, y: a.y }, { x: xr, y: a.y }, { x: xr, y: my },
+        { x: xl, y: my }, { x: xl, y: b.y }, { x: b.x, y: b.y }
+      ];
+    }
+    var yTop = Math.min(ra.y, rb.y) - PAD;
+    var yBottom = Math.max(ra.y + ra.h, rb.y + rb.h) + PAD;
+    var yLane = (Math.abs(a.y - yTop) + Math.abs(b.y - yTop) <=
+                 Math.abs(a.y - yBottom) + Math.abs(b.y - yBottom)) ? yTop : yBottom;
+    var xRight = Math.max(ra.x + ra.w, rb.x + rb.w) + PAD;
+    var xLeft = Math.min(ra.x, rb.x) - PAD;
+    return [
+      { x: a.x, y: a.y }, { x: xRight, y: a.y }, { x: xRight, y: yLane },
+      { x: xLeft, y: yLane }, { x: xLeft, y: b.y }, { x: b.x, y: b.y }
+    ];
+  }
+
   function simpleWirePoints(a, b) {
     var s = wireStubPoints(a, b);
     var x1 = s.a.x, x2 = s.b.x;
@@ -852,8 +882,19 @@
     entries.sort(function (e1, e2) { return e1.dist - e2.dist; });
     entries.forEach(function (x) {
       var e = x.e;
-      var s = wireStubPoints(x.a, x.b);
       var group = e.from.node + '|' + e.from.port;
+      var ra = rects.filter(function (r) { return r.id === e.from.node; })[0];
+      var rb = rects.filter(function (r) { return r.id === e.to.node; })[0];
+      var local = closeWirePoints(x.a, x.b, ra, rb);
+      if (local) {
+        var others = rects.filter(function (r) { return r.id !== e.from.node && r.id !== e.to.node; });
+        if (Route.pathClear(local, others)) {
+          Route.markPath(local, used, group, ROUTE.cell);
+          routes[e.id] = local;
+          return;
+        }
+      }
+      var s = wireStubPoints(x.a, x.b);
       var pts = Route.route(s.a, s.b, rects, used, group, { fromId: e.from.node, toId: e.to.node });
       if (s.stub > 0) {
         pts.unshift({ x: x.a.x, y: x.a.y });
