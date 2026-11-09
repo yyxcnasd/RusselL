@@ -40,6 +40,7 @@ function fromTutorial(lv, chapter) {
     title: lv.title,
     teaches: lv.teaches,
     hint: lv.hint,
+    tip: lv.tip || null,
     target: lv.targetTokens.slice(1),
     proof: lv.proof
   };

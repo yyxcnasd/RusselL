@@ -11,7 +11,7 @@
   var ELEMENT_IDS = [
     'levelBtn', 'goal', 'goalFormula', 'themeBtn', 'soundBtn', 'helpBtn', 'achvBtn', 'hintBtn', 'checkBtn',
     'progressFill', 'board', 'boardWorld', 'wireLayer', 'nodeLayer', 'tray', 'popover', 'toast',
-    'overlay', 'sheet', 'saveFile', 'sheetBar'
+    'tutorialTip', 'overlay', 'sheet', 'saveFile', 'sheetBar'
   ];
 
   var els = {};
@@ -72,9 +72,10 @@
     });
   }
 
-  function openSheet(html) {
+  function openSheet(html, className) {
     if (!isSheetOpen()) lastFocus = document.activeElement;
     els.overlay.hidden = false;
+    els.sheet.className = 'sheet' + (className ? ' ' + className : '');
     els.sheet.innerHTML = html;
     els.sheet.scrollTop = 0;
     setBackgroundInert(true);
@@ -84,6 +85,7 @@
 
   function closeSheet() {
     els.overlay.hidden = true;
+    els.sheet.className = 'sheet';
     els.sheet.innerHTML = '';
     hideSheetBar();
     setBackgroundInert(false);

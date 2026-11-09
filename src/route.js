@@ -53,43 +53,71 @@
   }
 
   /* PCB-style 45° chamfers: cut each right-angle corner by a fixed amount.
-   * Points stay integral; only the rendered path string gets the chamfer. */
+   * Points stay integral; only the rendered path string gets the chamfer.
+   * Short runs keep their sharp corner / get a half-length cut so two nearby
+   * corners can never overlap into a spike. */
   function pathPoints(pts) {
     if (!pts || !pts.length) return '';
-    var out = [pts[0]];
-    for (var i = 1; i < pts.length - 1; i++) {
-      var a = out[out.length - 1], b = pts[i], c = pts[i + 1];
+    var src = [pts[0]];
+    for (var k = 1; k < pts.length; k++) {
+      var prev = src[src.length - 1];
+      if (pts[k].x !== prev.x || pts[k].y !== prev.y) src.push(pts[k]);
+    }
+    if (src.length === 1) return 'M' + src[0].x + ' ' + src[0].y;
+    var out = [src[0]];
+    for (var i = 1; i < src.length - 1; i++) {
+      var a = out[out.length - 1], b = src[i], c = src[i + 1];
       var horizontal = abs(a.y - b.y) < 1 && abs(b.y - c.y) > 1;
       var vertical = abs(a.x - b.x) < 1 && abs(b.x - c.x) > 1;
-      var cut = 9;
-      if ((horizontal || vertical) &&
-          abs(a.x - b.x) + abs(a.y - b.y) > cut * 2 &&
-          abs(c.x - b.x) + abs(c.y - b.y) > cut * 2) {
+      var ab = abs(a.x - b.x) + abs(a.y - b.y);
+      var bc = abs(c.x - b.x) + abs(c.y - b.y);
+      var cut = Math.min(9, Math.floor(ab / 2), Math.floor(bc / 2));
+      if ((horizontal || vertical) && cut >= 3 && ab > cut * 2 && bc > cut * 2) {
         out.push({ x: b.x - cellSign(b.x - a.x) * cut, y: b.y - cellSign(b.y - a.y) * cut });
         out.push({ x: b.x + cellSign(c.x - b.x) * cut, y: b.y + cellSign(c.y - b.y) * cut });
       } else out.push(b);
     }
-    out.push(pts[pts.length - 1]);
+    out.push(src[src.length - 1]);
     var d = 'M' + out[0].x + ' ' + out[0].y;
     for (var j = 1; j < out.length; j++) d += 'L' + out[j].x + ' ' + out[j].y;
     return d;
   }
 
-  /* Drop points that do not change the direction of travel. */
+  /* Drop points that do not change the direction of travel; collinear
+   * reversals (A→B→A) are dropped as well, otherwise they render as spikes. */
   function simplify(pts) {
     if (!pts || pts.length <= 2) return pts;
     var out = [pts[0]];
     for (var i = 1; i < pts.length - 1; i++) {
       var a = out[out.length - 1], b = pts[i], c = pts[i + 1];
+      if (a.x === b.x && a.y === b.y) continue;
       var abx = b.x - a.x, aby = b.y - a.y, bcx = c.x - b.x, bcy = c.y - b.y;
-      if ((abx === 0 && bcx === 0 && Math.sign(aby) === Math.sign(bcy)) ||
-          (aby === 0 && bcy === 0 && Math.sign(abx) === Math.sign(bcx))) continue;
       if (abx === 0 && bcx === 0) continue;
       if (aby === 0 && bcy === 0) continue;
       out.push(b);
     }
+    if (out[out.length - 1].x === pts[pts.length - 1].x &&
+        out[out.length - 1].y === pts[pts.length - 1].y) return out;
     out.push(pts[pts.length - 1]);
     return out;
+  }
+
+  /* Remove tiny H/V jogs left between two nearby corners (common right at a
+   * port or where several routes negotiate the same corridor). */
+  function despike(pts, rects, freeCheck) {
+    if (!pts || pts.length < 3) return pts;
+    var out = [pts[0]];
+    for (var i = 1; i < pts.length - 1; i++) {
+      var a = out[out.length - 1], b = pts[i], c = pts[i + 1];
+      var ab = abs(a.x - b.x) + abs(a.y - b.y);
+      var bc = abs(c.x - b.x) + abs(c.y - b.y);
+      var small = ab < ROUTE.stub || bc < ROUTE.stub;
+      var aligned = a.x === c.x || a.y === c.y;
+      if (small && aligned && segmentClear(a, c, rects) && (!freeCheck || freeCheck(a, c))) continue;
+      out.push(b);
+    }
+    out.push(pts[pts.length - 1]);
+    return simplify(out);
   }
 
   function segmentClear(p, q, rects) {
@@ -388,6 +416,9 @@
     var finalPts = shortcut(simplify(pts), rects, function (p, q) {
       return !segmentBlocked(p, q, group, occupancy);
     });
+    finalPts = despike(finalPts, rects, function (p, q) {
+      return !segmentBlocked(p, q, group, occupancy);
+    });
     markPath(finalPts, used, group, CELL);
     return finalPts;
   }
@@ -400,6 +431,7 @@
     segmentClear: segmentClear,
     pathClear: pathClear,
     shortcut: shortcut,
+    despike: despike,
     fallbackRoute: fallbackRoute,
     route: route
   };

@@ -19,12 +19,22 @@ runTest('game-ui', async ({ openPage }) => {
       hasLogic: !!window.RSL.Logic
     };
   })()`);
-  equal(home.levels, 115, '游戏加载 96 主线 + 19 教学关');
+  equal(home.levels, 114, '游戏加载 96 主线 + 18 教学关');
   equal(home.code, 'i', '首关是教学关 i');
-  includes(home.goal.replace(/\s+/g, ''), 'P→P', '教学关目标 P→P');
+  includes(home.goal.replace(/\s+/g, ''), 'P→(Q→P)', '教学关目标 A1 实例');
   ok(home.tiles > 0, '元件栏有构造/规则/公理');
   equal(home.hasTerm, true, '唯一表达式核心已加载');
   equal(home.hasLogic, false, '旧 Logic 不再加载');
+
+  /* 教学关浮窗：只给代号与规则式，不出现汉字 */
+  const tip = await page.js(`(function(){
+    var el = document.getElementById('tutorialTip');
+    return {hidden: el.hidden, text: (el.textContent || '').replace(/\\s+/g, ' ').trim()};
+  })()`);
+  equal(tip.hidden, false, '教学关显示浮窗');
+  ok(tip.text.indexOf('A1') === 0, '浮窗显示本关元件代号');
+  ok(!/[\u4e00-\u9fa5]/.test(tip.text), '教学浮窗不含汉字');
+  await page.shot('tutorial-i');
 
   /* 节点代号与端口：A2 不能显示成 A1；S 不显示旧变元改名端口 */
   const labels = await page.js(`(function(){
@@ -45,7 +55,7 @@ runTest('game-ui', async ({ openPage }) => {
 
   /* 选关面板：4 章 ×（教学 + 12 普通 + 12 进阶） */
   await page.js('document.querySelector("#levelBtn").click()');
-  await page.waitFor('document.querySelectorAll("[data-level]").length === 115');
+  await page.waitFor('document.querySelectorAll("[data-level]").length === 114');
   const sheet = await page.js(`(function(){
     var labels = Array.from(document.querySelectorAll('[data-level]')).map(function(b){return b.getAttribute('aria-label')});
     return {chapters: document.querySelectorAll('.chapter').length,
@@ -54,15 +64,19 @@ runTest('game-ui', async ({ openPage }) => {
   })()`);
   equal(sheet.chapters, 4, '选关有 4 章');
   equal(sheet.tutorials, 4, '每章有教学分带');
-  includes(sheet.labels.join('|'), '*25', '第Ⅱ章首关是 *25');
+  includes(sheet.labels.join('|'), 'Level 25', '第Ⅱ章首关是 *25');
   await page.shot('levels');
   await page.js('window.RSL.UI.closeSheet()');
 
-  /* 帮助与成就面板 */
+  /* 帮助只保留推理规则图例，不列变元/连接词/公理 */
   await page.js('document.querySelector("#helpBtn").click()');
-  await page.waitFor('document.querySelectorAll(".help-card").length >= 6');
-  const helpCards = await page.js('document.querySelectorAll(".help-card").length');
-  ok(helpCards >= 6 && helpCards <= 10, '帮助面板只保留精简图例（' + helpCards + ' 张）');
+  await page.waitFor('document.querySelectorAll(".help-card").length === 9');
+  const help = await page.js(`(function(){
+    return {labels: Array.from(document.querySelectorAll('.help-card b')).map(function(b){return b.textContent}),
+            text: document.querySelector('.help-cards').textContent};
+  })()`);
+  equal(help.labels.join(','), 'S,M,∀I,∀*,∀E*,∃I*,∃E,=I,=L', '帮助只列推理规则');
+  ok(!/[\u4e00-\u9fa5]/.test(help.text), '帮助图例不含汉字');
   await page.shot('help');
   await page.js('window.RSL.UI.closeSheet()');
   await page.js('document.querySelector("#achvBtn").click()');
@@ -85,7 +99,24 @@ runTest('game-ui', async ({ openPage }) => {
   await page.js('document.querySelector(".tile[data-key=\\"atom:*\\"]").click()');
   await page.sleep(150);
   const popover = await page.js('document.querySelectorAll(".letter-grid .opt").length');
-  ok(popover >= 3, '原子配置弹层可切换字母');
+  equal(popover, 7, '原子切换器显示完整 P–V，而不是只显示本关用到的字母');
+
+  /* 终点连线持久化：旧存档里的 target id 也要在重进时接回 ⊢ */
+  const persist = await page.js(`(function(){
+    var app = window.RSL.APP;
+    var idx = app.state.levels.map(function(l){return l.code}).indexOf('*01');
+    var lv = app.state.levels[idx];
+    app.state.circuits[lv.id] = {
+      nodes: JSON.parse(JSON.stringify(lv.solution.nodes)),
+      edges: JSON.parse(JSON.stringify(lv.solution.edges))
+    };
+    app.loadLevel(idx);
+    var data = app.state.board.getData();
+    return {proofEdge: data.edges.some(function(e){
+      return e.to && e.to.node === 'target' && e.to.port === 'proof';
+    })};
+  })()`);
+  equal(persist.proofEdge, true, '重进关卡时终点连线恢复');
 
   /* 最后一关：*96 与目标 */
   await page.js('window.RSL.APP.loadLevel(window.RSL.APP.state.levels.map(function(l){return l.code}).indexOf("*96"))');

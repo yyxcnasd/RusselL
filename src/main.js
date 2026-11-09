@@ -198,6 +198,22 @@
     return { x: left + 30, y: top + 30 };
   }
 
+  function hideTutorialTip() {
+    if (!els.tutorialTip) return;
+    els.tutorialTip.hidden = true;
+    els.tutorialTip.innerHTML = '';
+  }
+
+  function showTutorialTip(level) {
+    if (!els.tutorialTip) return;
+    if (!level || !level.tip) { hideTutorialTip(); return; }
+    var tip = level.tip;
+    els.tutorialTip.innerHTML =
+      '<span class="tip-code">' + UI.esc(tip.code || '') + '</span>' +
+      '<span class="tip-flow">' + UI.esc(tip.flow || '') + '</span>';
+    els.tutorialTip.hidden = false;
+  }
+
   /* 载入关卡：初始图/元件来自关卡数据（targetTokens / palette / initialNodes / solution），
      proof 只用于参考提示，不是另一套流程。 */
   function loadLevel(index) {
@@ -225,6 +241,16 @@
         if (n && n.kind && n.kind !== 'target') savedNodes.push(JSON.parse(JSON.stringify(n)));
       });
       savedEdges = JSON.parse(JSON.stringify(saved.edges));
+      /* 旧存档里的终点连线可能还指向编译产物里的 target id；载入时统一接到
+         重新创建的 'target' 节点，避免“每次重进都要重连终点”。 */
+      var ids = { target: true };
+      savedNodes.forEach(function (n) { ids[n.id] = true; });
+      savedEdges.forEach(function (e) {
+        if (e && e.to && !ids[e.to.node] && e.to.port === 'proof') e.to.node = 'target';
+      });
+      savedEdges = savedEdges.filter(function (e) {
+        return e && e.from && e.to && ids[e.from.node] && ids[e.to.node];
+      });
     }
 
     var tokens = targetTokensOf(level);
@@ -261,6 +287,7 @@
     state.board.result = null;
     refresh();
     state.board.fit({ minScale: 0.45 });
+    showTutorialTip(level);
     saveProgress();
   }
 
@@ -460,24 +487,11 @@
    * 6. 模块参数弹层
    * ========================================================================= */
 
-  /* 原子命题固定按 P–V 排列；合并成单个元件后，具体字母在配置弹层里选。 */
+  /* 托盘合并后，切换器显示完整取值集合，而不是只显示本关参考证明用到的。 */
   var ATOM_CHOICES = 'PQRSTUV'.split('');
-  function atomChoices() { return ATOM_CHOICES; }
-
-  /* 合并 tile 的可选配置（来自本关参考证明实际用到的变体）。 */
-  function mergedVariants(kind) {
-    var part = state.parts.filter(function (p) { return p.kind === kind; })[0];
-    return part && part.variants ? part.variants : null;
-  }
-  function variantChoices(kind, field, fallback) {
-    var vs = mergedVariants(kind) || [];
-    var out = [];
-    vs.forEach(function (v) {
-      var val = (v.config || {})[field];
-      if (val && out.indexOf(val) < 0) out.push(val);
-    });
-    return out.length ? out : (fallback || []);
-  }
+  var TERM_CHOICES = 'xyzuvw'.split('');
+  var PRED_CHOICES = ['F', 'G', 'H', '='];
+  var VAR_CHOICES = 'xyzuvw'.split('');
 
   function renderPopover() {
     var node = state.selectedNode ? state.board.node(state.selectedNode) : null;
@@ -487,24 +501,20 @@
     var config = node.config || {};
     var html = '';
     if (node.kind === 'atom') {
-      var atoms = variantChoices('atom', 'name', atomChoices());
-      html = '<div class="letter-grid">' + atoms.map(function (x) {
+      html = '<div class="letter-grid">' + ATOM_CHOICES.map(function (x) {
         return '<button class="opt opt-var' + (config.name === x ? ' is-on' : '') + '" data-config="name" data-value="' + x + '">' + x + '</button>';
       }).join('') + '</div>';
     } else if (node.kind === 'term') {
-      var terms = variantChoices('term', 'name', ['x', 'y', 'z', 'u', 'v', 'w']);
-      html = '<div class="letter-grid">' + terms.map(function (x) {
+      html = '<div class="letter-grid">' + TERM_CHOICES.map(function (x) {
         return '<button class="opt opt-var' + (config.name === x ? ' is-on' : '') + '" data-config="name" data-value="' + x + '">' + x + '</button>';
       }).join('') + '</div>';
     } else if (node.kind === 'pred') {
-      var preds = variantChoices('pred', 'symbol', ['F', 'G', 'H', '=']);
-      html = preds.map(function (x) {
+      html = PRED_CHOICES.map(function (x) {
         return '<button class="opt opt-code' + (config.symbol === x ? ' is-on' : '') + '" data-config="symbol" data-value="' + x + '">' + x + '</button>';
       }).join('');
     } else if (node.kind === 'all' || node.kind === 'exists') {
-      var vars = variantChoices(node.kind, 'v', ['x', 'y', 'z']);
       html = '<span class="opt opt-sym is-on">' + (node.kind === 'all' ? '∀' : '∃') + '</span>' +
-        '<span class="opt-gap"></span>' + vars.map(function (v) {
+        '<span class="opt-gap"></span>' + VAR_CHOICES.map(function (v) {
           return '<button class="opt opt-var' + (config.v === v ? ' is-on' : '') + '" data-config="v" data-value="' + v + '">' + v + '</button>';
         }).join('');
     } else if (node.kind === 'subst') {
@@ -515,13 +525,8 @@
         (extras < 4
           ? '<button class="opt opt-plus" data-config="dual" data-value="1" aria-label="加一组代入" title="加一组代入">＋</button>'
           : '');
-    } else if (node.kind === 'all-inst' || node.kind === 'exists-gen') {
-      var genVars = ['x', 'y', 'z'].map(function (v) {
-        return '<button class="opt opt-var' + (config.v === v ? ' is-on' : '') + '" data-config="v" data-value="' + v + '">' + v + '</button>';
-      }).join('');
-      html = genVars;
-    } else if (node.kind === 'gen' || node.kind === 'shift') {
-      html = ['x', 'y', 'z'].map(function (v) {
+    } else if (node.kind === 'all-inst' || node.kind === 'exists-gen' || node.kind === 'gen' || node.kind === 'shift') {
+      html = VAR_CHOICES.map(function (v) {
         return '<button class="opt opt-var' + (config.v === v ? ' is-on' : '') + '" data-config="v" data-value="' + v + '">' + v + '</button>';
       }).join('');
     }
@@ -567,6 +572,8 @@
     if (!state.deletedThisLevel) state.cleanWins[level.id] = true;
     if (!state.circuits[level.id] || !previousBest || len < previousBest) {
       var data = state.board.getData();
+      var targetNode = data.nodes.filter(function (n) { return n.kind === 'target'; })[0];
+      var targetId = targetNode ? targetNode.id : null;
       state.circuits[level.id] = {
         nodes: data.nodes.filter(function (n) { return n.kind !== 'target'; }).map(function (n) {
           var copy = JSON.parse(JSON.stringify(n));
@@ -575,6 +582,7 @@
         }),
         edges: JSON.parse(JSON.stringify(data.edges)).map(function (e) {
           delete e._new;
+          if (targetId && e.to && e.to.node === targetId) e.to.node = 'target';
           return e;
         })
       };
@@ -636,6 +644,7 @@
 
     document.addEventListener('pointerdown', function (e) {
       Audio.ensure();
+      hideTutorialTip();
       var onSurface = e.target.closest && (e.target.closest('.tile') || e.target.closest('#board'));
       if (paletteHold && paletteHold.sticky && !onSurface) {
         var rect = els.board.getBoundingClientRect();

@@ -370,6 +370,7 @@ function compileLevel(def, prevLevels) {
     title: def.title,
     teaches: def.teaches || '',
     hint: def.hint || '',
+    tip: isTutorial ? (def.tip || null) : null,
     targetTokens,
     palette: mergedPalette,
     initialNodes: [],

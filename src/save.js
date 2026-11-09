@@ -37,7 +37,12 @@
     Object.keys(src).forEach(function (id) {
       var c = src[id];
       if (!c || !Array.isArray(c.nodes) || !Array.isArray(c.edges)) return;
-      out[id] = { nodes: c.nodes.slice(0, 200), edges: c.edges.slice(0, 400) };
+      var edges = c.edges.slice(0, 400);
+      /* 终点连线必须保留，不能被 400 条上限截掉 */
+      c.edges.forEach(function (e) {
+        if (e && e.to && e.to.port === 'proof' && edges.indexOf(e) < 0) edges.push(e);
+      });
+      out[id] = { nodes: c.nodes.slice(0, 200), edges: edges };
     });
     return out;
   }

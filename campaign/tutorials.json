@@ -2,89 +2,13 @@
   {
     "chapter": 0,
     "label": "i",
-    "title": "原子与同一律",
-    "teaches": "把原子 P 接到 → 的两端，得到 P→P；参考证明只用 A1/A2 + 分离。",
-    "hint": "拖两个原子 P，用 → 连起来；再用公理 A1/A2 与分离拼出同一律。",
-    "targetTokens": [
-      "|-",
-      "(",
-      "P",
-      "->",
-      "P",
-      ")"
-    ],
-    "proof": {
-      "op": "mp",
-      "a": {
-        "op": "subst",
-        "of": {
-          "op": "axiom",
-          "schema": "A1"
-        },
-        "atoms": {
-          "P": [
-            "P"
-          ],
-          "Q": [
-            "P"
-          ]
-        },
-        "vars": null
-      },
-      "b": {
-        "op": "mp",
-        "a": {
-          "op": "subst",
-          "of": {
-            "op": "axiom",
-            "schema": "A1"
-          },
-          "atoms": {
-            "P": [
-              "P"
-            ],
-            "Q": [
-              "(",
-              "P",
-              "->",
-              "P",
-              ")"
-            ]
-          },
-          "vars": null
-        },
-        "b": {
-          "op": "subst",
-          "of": {
-            "op": "axiom",
-            "schema": "A2"
-          },
-          "atoms": {
-            "P": [
-              "P"
-            ],
-            "Q": [
-              "(",
-              "P",
-              "->",
-              "P",
-              ")"
-            ],
-            "R": [
-              "P"
-            ]
-          },
-          "vars": null
-        }
-      }
-    }
-  },
-  {
-    "chapter": 0,
-    "label": "ii",
     "title": "公理 A1",
-    "teaches": "直接接公理 A1，得到 P→(Q→P)。",
-    "hint": "从元件栏取公理，选 A1，直接接到目标。",
+    "teaches": "A1 · P → (Q → P)",
+    "hint": "A1 · P → (Q → P)",
+    "tip": {
+      "code": "A1",
+      "flow": "P → (Q → P)"
+    },
     "targetTokens": [
       "|-",
       "(",
@@ -104,10 +28,90 @@
   },
   {
     "chapter": 0,
+    "label": "ii",
+    "title": "公理 A2",
+    "teaches": "A2 · (P→(Q→R)) → ((P→Q)→(P→R))",
+    "hint": "A2 · (P→(Q→R)) → ((P→Q)→(P→R))",
+    "tip": {
+      "code": "A2",
+      "flow": "(P→(Q→R)) → ((P→Q)→(P→R))"
+    },
+    "targetTokens": [
+      "|-",
+      "(",
+      "(",
+      "P",
+      "->",
+      "(",
+      "Q",
+      "->",
+      "R",
+      ")",
+      ")",
+      "->",
+      "(",
+      "(",
+      "P",
+      "->",
+      "Q",
+      ")",
+      "->",
+      "(",
+      "P",
+      "->",
+      "R",
+      ")",
+      ")",
+      ")"
+    ],
+    "proof": {
+      "op": "axiom",
+      "schema": "A2"
+    }
+  },
+  {
+    "chapter": 0,
     "label": "iii",
+    "title": "公理 A3",
+    "teaches": "A3 · (¬P→¬Q) → (Q→P)",
+    "hint": "A3 · (¬P→¬Q) → (Q→P)",
+    "tip": {
+      "code": "A3",
+      "flow": "(¬P→¬Q) → (Q→P)"
+    },
+    "targetTokens": [
+      "|-",
+      "(",
+      "(",
+      "-.",
+      "P",
+      "->",
+      "-.",
+      "Q",
+      ")",
+      "->",
+      "(",
+      "Q",
+      "->",
+      "P",
+      ")",
+      ")"
+    ],
+    "proof": {
+      "op": "axiom",
+      "schema": "A3"
+    }
+  },
+  {
+    "chapter": 0,
+    "label": "iv",
     "title": "代入",
-    "teaches": "用代入规则把 A1 里的 P、Q 换成别的原子。",
-    "hint": "接 A1，再用 S 把 P↦Q、Q↦R。",
+    "teaches": "S · A[P↦B] ⇒ A′",
+    "hint": "S · A[P↦B] ⇒ A′",
+    "tip": {
+      "code": "S",
+      "flow": "A[P↦B] ⇒ A′"
+    },
     "targetTokens": [
       "|-",
       "(",
@@ -139,10 +143,14 @@
   },
   {
     "chapter": 0,
-    "label": "iv",
+    "label": "v",
     "title": "分离",
-    "teaches": "用分离把 (A→B) 与 A 接成 B；这里用它拼 (P→Q)→(P→Q)。",
-    "hint": "按参考证明接 A1、A2 与分离，得到蕴涵式自身的同一律。",
+    "teaches": "M · A · A→B ⇒ B",
+    "hint": "M · A · A→B ⇒ B",
+    "tip": {
+      "code": "M",
+      "flow": "A · A→B ⇒ B"
+    },
     "targetTokens": [
       "|-",
       "(",
@@ -155,7 +163,7 @@
       "(",
       "P",
       "->",
-      "Q",
+      "P",
       ")",
       ")"
     ],
@@ -169,190 +177,45 @@
         },
         "atoms": {
           "P": [
-            "(",
-            "P",
-            "->",
-            "Q",
-            ")"
+            "P"
           ],
           "Q": [
-            "(",
-            "P",
-            "->",
-            "Q",
-            ")"
+            "Q"
           ]
         },
         "vars": null
       },
       "b": {
-        "op": "mp",
-        "a": {
-          "op": "subst",
-          "of": {
-            "op": "axiom",
-            "schema": "A1"
-          },
-          "atoms": {
-            "P": [
-              "(",
-              "P",
-              "->",
-              "Q",
-              ")"
-            ],
-            "Q": [
-              "(",
-              "(",
-              "P",
-              "->",
-              "Q",
-              ")",
-              "->",
-              "(",
-              "P",
-              "->",
-              "Q",
-              ")",
-              ")"
-            ]
-          },
-          "vars": null
+        "op": "subst",
+        "of": {
+          "op": "axiom",
+          "schema": "A2"
         },
-        "b": {
-          "op": "subst",
-          "of": {
-            "op": "axiom",
-            "schema": "A2"
-          },
-          "atoms": {
-            "P": [
-              "(",
-              "P",
-              "->",
-              "Q",
-              ")"
-            ],
-            "Q": [
-              "(",
-              "(",
-              "P",
-              "->",
-              "Q",
-              ")",
-              "->",
-              "(",
-              "P",
-              "->",
-              "Q",
-              ")",
-              ")"
-            ],
-            "R": [
-              "(",
-              "P",
-              "->",
-              "Q",
-              ")"
-            ]
-          },
-          "vars": null
-        }
+        "atoms": {
+          "P": [
+            "P"
+          ],
+          "Q": [
+            "Q"
+          ],
+          "R": [
+            "P"
+          ]
+        },
+        "vars": null
       }
     }
   },
   {
     "chapter": 1,
     "label": "i",
-    "title": "全称构造与推广",
-    "teaches": "用 ∀ 构造全称式，再用全称推广得到 ∀x(P→P)。",
-    "hint": "先拼出 P→P，再取全称推广选 x。",
-    "targetTokens": [
-      "|-",
-      "A.",
-      "x",
-      "(",
-      "P",
-      "->",
-      "P",
-      ")"
-    ],
-    "proof": {
-      "op": "gen",
-      "of": {
-        "op": "mp",
-        "a": {
-          "op": "subst",
-          "of": {
-            "op": "axiom",
-            "schema": "A1"
-          },
-          "atoms": {
-            "P": [
-              "P"
-            ],
-            "Q": [
-              "P"
-            ]
-          },
-          "vars": null
-        },
-        "b": {
-          "op": "mp",
-          "a": {
-            "op": "subst",
-            "of": {
-              "op": "axiom",
-              "schema": "A1"
-            },
-            "atoms": {
-              "P": [
-                "P"
-              ],
-              "Q": [
-                "(",
-                "P",
-                "->",
-                "P",
-                ")"
-              ]
-            },
-            "vars": null
-          },
-          "b": {
-            "op": "subst",
-            "of": {
-              "op": "axiom",
-              "schema": "A2"
-            },
-            "atoms": {
-              "P": [
-                "P"
-              ],
-              "Q": [
-                "(",
-                "P",
-                "->",
-                "P",
-                ")"
-              ],
-              "R": [
-                "P"
-              ]
-            },
-            "vars": null
-          }
-        }
-      },
-      "v": "x"
-    }
-  },
-  {
-    "chapter": 1,
-    "label": "ii",
-    "title": "全称引入规则",
-    "teaches": "A→∀xA（x 不在 A 中自由出现）。",
-    "hint": "接全称引入规则，公式取 P，变元选 x。",
+    "title": "全称引入",
+    "teaches": "∀* · A ⇒ A → ∀x A",
+    "hint": "∀* · A ⇒ A → ∀x A",
+    "tip": {
+      "code": "∀*",
+      "flow": "A ⇒ A → ∀x A"
+    },
     "targetTokens": [
       "|-",
       "(",
@@ -373,10 +236,14 @@
   },
   {
     "chapter": 1,
-    "label": "iii",
+    "label": "ii",
     "title": "全称例化",
-    "teaches": "∀x A → A[t/x]：把全称式里的 x 换成个体。",
-    "hint": "接全称例化公理，公式取 P，项取 x。",
+    "teaches": "∀E* · ∀x A ⇒ A[t/x]",
+    "hint": "∀E* · ∀x A ⇒ A[t/x]",
+    "tip": {
+      "code": "∀E*",
+      "flow": "∀x A ⇒ A[t/x]"
+    },
     "targetTokens": [
       "|-",
       "(",
@@ -398,333 +265,114 @@
   },
   {
     "chapter": 1,
-    "label": "iv",
-    "title": "存在构造与推广",
-    "teaches": "用 ∃ 构造存在式，再用存在推广得到 ∃x(P→P)。",
-    "hint": "先拼 P→P，再用存在推广收成 ∃x(P→P)。",
+    "label": "iii",
+    "title": "全称推广",
+    "teaches": "∀I · A ⇒ ∀x A",
+    "hint": "∀I · A ⇒ ∀x A",
+    "tip": {
+      "code": "∀I",
+      "flow": "A ⇒ ∀x A"
+    },
     "targetTokens": [
       "|-",
-      "E.",
+      "A.",
       "x",
       "(",
       "P",
       "->",
+      "(",
+      "Q",
+      "->",
+      "P",
+      ")",
+      ")"
+    ],
+    "proof": {
+      "op": "gen",
+      "of": {
+        "op": "axiom",
+        "schema": "A1"
+      },
+      "v": "x"
+    }
+  },
+  {
+    "chapter": 1,
+    "label": "iv",
+    "title": "存在推广",
+    "teaches": "∃I* · A[t/x] ⇒ ∃x A",
+    "hint": "∃I* · A[t/x] ⇒ ∃x A",
+    "tip": {
+      "code": "∃I*",
+      "flow": "A[t/x] ⇒ ∃x A"
+    },
+    "targetTokens": [
+      "|-",
+      "(",
+      "P",
+      "->",
+      "E.",
+      "x",
       "P",
       ")"
     ],
     "proof": {
-      "op": "mp",
-      "a": {
-        "op": "mp",
-        "a": {
-          "op": "subst",
-          "of": {
-            "op": "axiom",
-            "schema": "A1"
-          },
-          "atoms": {
-            "P": [
-              "P"
-            ],
-            "Q": [
-              "P"
-            ]
-          },
-          "vars": null
-        },
-        "b": {
-          "op": "mp",
-          "a": {
-            "op": "subst",
-            "of": {
-              "op": "axiom",
-              "schema": "A1"
-            },
-            "atoms": {
-              "P": [
-                "P"
-              ],
-              "Q": [
-                "(",
-                "P",
-                "->",
-                "P",
-                ")"
-              ]
-            },
-            "vars": null
-          },
-          "b": {
-            "op": "subst",
-            "of": {
-              "op": "axiom",
-              "schema": "A2"
-            },
-            "atoms": {
-              "P": [
-                "P"
-              ],
-              "Q": [
-                "(",
-                "P",
-                "->",
-                "P",
-                ")"
-              ],
-              "R": [
-                "P"
-              ]
-            },
-            "vars": null
-          }
-        }
-      },
-      "b": {
-        "op": "existsGen",
-        "formula": [
-          "(",
-          "P",
-          "->",
-          "P",
-          ")"
-        ],
-        "v": "x",
-        "t": "x"
-      }
+      "op": "existsGen",
+      "formula": [
+        "P"
+      ],
+      "v": "x",
+      "t": "x"
     }
   },
   {
     "chapter": 1,
     "label": "v",
-    "title": "连接词构造",
-    "teaches": "用 ∧ 构造合取式，并用同一律证明 P∧Q→P∧Q。",
-    "hint": "用 ∧ 接 P、Q，再拼同一律。",
+    "title": "全称分配公理",
+    "teaches": "A5 · ∀x(P→Q) ⇒ ∀xP → ∀xQ",
+    "hint": "A5 · ∀x(P→Q) ⇒ ∀xP → ∀xQ",
+    "tip": {
+      "code": "A5",
+      "flow": "∀x(P→Q) ⇒ ∀xP → ∀xQ"
+    },
     "targetTokens": [
       "|-",
       "(",
+      "A.",
+      "x",
       "(",
       "P",
-      "/\\",
+      "->",
       "Q",
       ")",
       "->",
       "(",
+      "A.",
+      "x",
       "P",
-      "/\\",
+      "->",
+      "A.",
+      "x",
       "Q",
       ")",
       ")"
     ],
     "proof": {
-      "op": "mp",
-      "a": {
-        "op": "subst",
-        "of": {
-          "op": "axiom",
-          "schema": "A1"
-        },
-        "atoms": {
-          "P": [
-            "(",
-            "P",
-            "/\\",
-            "Q",
-            ")"
-          ],
-          "Q": [
-            "(",
-            "P",
-            "/\\",
-            "Q",
-            ")"
-          ]
-        },
-        "vars": null
-      },
-      "b": {
-        "op": "mp",
-        "a": {
-          "op": "subst",
-          "of": {
-            "op": "axiom",
-            "schema": "A1"
-          },
-          "atoms": {
-            "P": [
-              "(",
-              "P",
-              "/\\",
-              "Q",
-              ")"
-            ],
-            "Q": [
-              "(",
-              "(",
-              "P",
-              "/\\",
-              "Q",
-              ")",
-              "->",
-              "(",
-              "P",
-              "/\\",
-              "Q",
-              ")",
-              ")"
-            ]
-          },
-          "vars": null
-        },
-        "b": {
-          "op": "subst",
-          "of": {
-            "op": "axiom",
-            "schema": "A2"
-          },
-          "atoms": {
-            "P": [
-              "(",
-              "P",
-              "/\\",
-              "Q",
-              ")"
-            ],
-            "Q": [
-              "(",
-              "(",
-              "P",
-              "/\\",
-              "Q",
-              ")",
-              "->",
-              "(",
-              "P",
-              "/\\",
-              "Q",
-              ")",
-              ")"
-            ],
-            "R": [
-              "(",
-              "P",
-              "/\\",
-              "Q",
-              ")"
-            ]
-          },
-          "vars": null
-        }
-      }
+      "op": "axiom",
+      "schema": "A5",
+      "v": "x"
     }
   },
   {
     "chapter": 2,
     "label": "i",
-    "title": "等词构造",
-    "teaches": "用谓词元件选“=”并接两个个体，得到 x=y。",
-    "hint": "取谓词元件，符号选 =，接 x、y；再拼同一律。",
-    "targetTokens": [
-      "|-",
-      "(",
-      "x",
-      "=",
-      "y",
-      "->",
-      "x",
-      "=",
-      "y",
-      ")"
-    ],
-    "proof": {
-      "op": "mp",
-      "a": {
-        "op": "subst",
-        "of": {
-          "op": "axiom",
-          "schema": "A1"
-        },
-        "atoms": {
-          "P": [
-            "x",
-            "=",
-            "y"
-          ],
-          "Q": [
-            "x",
-            "=",
-            "y"
-          ]
-        },
-        "vars": null
-      },
-      "b": {
-        "op": "mp",
-        "a": {
-          "op": "subst",
-          "of": {
-            "op": "axiom",
-            "schema": "A1"
-          },
-          "atoms": {
-            "P": [
-              "x",
-              "=",
-              "y"
-            ],
-            "Q": [
-              "(",
-              "x",
-              "=",
-              "y",
-              "->",
-              "x",
-              "=",
-              "y",
-              ")"
-            ]
-          },
-          "vars": null
-        },
-        "b": {
-          "op": "subst",
-          "of": {
-            "op": "axiom",
-            "schema": "A2"
-          },
-          "atoms": {
-            "P": [
-              "x",
-              "=",
-              "y"
-            ],
-            "Q": [
-              "(",
-              "x",
-              "=",
-              "y",
-              "->",
-              "x",
-              "=",
-              "y",
-              ")"
-            ],
-            "R": [
-              "x",
-              "=",
-              "y"
-            ]
-          },
-          "vars": null
-        }
-      }
-    }
-  },
-  {
-    "chapter": 2,
-    "label": "ii",
     "title": "等词自反",
-    "teaches": "直接接等词自反，得到 x=x。",
-    "hint": "取等词自反，个体选 x。",
+    "teaches": "=I · t = t",
+    "hint": "=I · t = t",
+    "tip": {
+      "code": "=I",
+      "flow": "t = t"
+    },
     "targetTokens": [
       "|-",
       "x",
@@ -738,10 +386,14 @@
   },
   {
     "chapter": 2,
-    "label": "iii",
+    "label": "ii",
     "title": "Leibniz 替换",
-    "teaches": "x=y 时把 F(x) 换成 F(y)。",
-    "hint": "接等词替换（抽象模式），公式取 F(z)，个体 x、y。",
+    "teaches": "=L · x=y ⇒ F(x) → F(y)",
+    "hint": "=L · x=y ⇒ F(x) → F(y)",
+    "tip": {
+      "code": "=L",
+      "flow": "x=y ⇒ F(x) → F(y)"
+    },
     "targetTokens": [
       "|-",
       "(",
@@ -778,10 +430,14 @@
   },
   {
     "chapter": 2,
-    "label": "iv",
+    "label": "iii",
     "title": "Leibniz 反向",
-    "teaches": "y=x 时把 F(y) 换成 F(x)。",
-    "hint": "接等词替换，个体顺序改成 y、x。",
+    "teaches": "=L · y=x ⇒ F(y) → F(x)",
+    "hint": "=L · y=x ⇒ F(y) → F(x)",
+    "tip": {
+      "code": "=L",
+      "flow": "y=x ⇒ F(y) → F(x)"
+    },
     "targetTokens": [
       "|-",
       "(",
@@ -818,10 +474,14 @@
   },
   {
     "chapter": 2,
-    "label": "v",
-    "title": "等词对称",
-    "teaches": "用 Leibniz + 等词自反把 x=y 反过来。",
-    "hint": "假设 x=y，用 Leibniz 把 x=x 换成 y=x；再用 A1/A2 把 x=x 提到前件。",
+    "label": "iv",
+    "title": "等词替换（直接模式）",
+    "teaches": "=L · x=y ⇒ (x=z → y=z)",
+    "hint": "=L · x=y ⇒ (x=z → y=z)",
+    "tip": {
+      "code": "=L",
+      "flow": "x=y ⇒ (x=z → y=z)"
+    },
     "targetTokens": [
       "|-",
       "(",
@@ -829,190 +489,40 @@
       "=",
       "y",
       "->",
+      "(",
+      "x",
+      "=",
+      "z",
+      "->",
       "y",
       "=",
-      "x",
+      "z",
+      ")",
       ")"
     ],
     "proof": {
-      "op": "mp",
-      "a": {
-        "op": "mp",
-        "a": {
-          "op": "eqRefl",
-          "t": "x"
-        },
-        "b": {
-          "op": "subst",
-          "of": {
-            "op": "axiom",
-            "schema": "A1"
-          },
-          "atoms": {
-            "P": [
-              "x",
-              "=",
-              "x"
-            ],
-            "Q": [
-              "x",
-              "=",
-              "y"
-            ]
-          },
-          "vars": null
-        }
-      },
-      "b": {
-        "op": "mp",
-        "a": {
-          "op": "leibniz",
-          "x": "x",
-          "y": "y",
-          "formula": [
-            "z",
-            "=",
-            "x"
-          ],
-          "mode": "abstract",
-          "v": "z"
-        },
-        "b": {
-          "op": "subst",
-          "of": {
-            "op": "axiom",
-            "schema": "A2"
-          },
-          "atoms": {
-            "P": [
-              "x",
-              "=",
-              "y"
-            ],
-            "Q": [
-              "x",
-              "=",
-              "x"
-            ],
-            "R": [
-              "y",
-              "=",
-              "x"
-            ]
-          },
-          "vars": null
-        }
-      }
+      "op": "leibniz",
+      "x": "x",
+      "y": "y",
+      "formula": [
+        "x",
+        "=",
+        "z"
+      ],
+      "mode": "replace",
+      "v": "z"
     }
   },
   {
     "chapter": 3,
     "label": "i",
-    "title": "属于关系",
-    "teaches": "用 ∈ 元件把两个个体接成 x∈y，并用同一律证明它自身。",
-    "hint": "取 ∈ 元件，接 x、y；再拼同一律。",
-    "targetTokens": [
-      "|-",
-      "(",
-      "x",
-      "e.",
-      "y",
-      "->",
-      "x",
-      "e.",
-      "y",
-      ")"
-    ],
-    "proof": {
-      "op": "mp",
-      "a": {
-        "op": "subst",
-        "of": {
-          "op": "axiom",
-          "schema": "A1"
-        },
-        "atoms": {
-          "P": [
-            "x",
-            "e.",
-            "y"
-          ],
-          "Q": [
-            "x",
-            "e.",
-            "y"
-          ]
-        },
-        "vars": null
-      },
-      "b": {
-        "op": "mp",
-        "a": {
-          "op": "subst",
-          "of": {
-            "op": "axiom",
-            "schema": "A1"
-          },
-          "atoms": {
-            "P": [
-              "x",
-              "e.",
-              "y"
-            ],
-            "Q": [
-              "(",
-              "x",
-              "e.",
-              "y",
-              "->",
-              "x",
-              "e.",
-              "y",
-              ")"
-            ]
-          },
-          "vars": null
-        },
-        "b": {
-          "op": "subst",
-          "of": {
-            "op": "axiom",
-            "schema": "A2"
-          },
-          "atoms": {
-            "P": [
-              "x",
-              "e.",
-              "y"
-            ],
-            "Q": [
-              "(",
-              "x",
-              "e.",
-              "y",
-              "->",
-              "x",
-              "e.",
-              "y",
-              ")"
-            ],
-            "R": [
-              "x",
-              "e.",
-              "y"
-            ]
-          },
-          "vars": null
-        }
-      }
-    }
-  },
-  {
-    "chapter": 3,
-    "label": "ii",
     "title": "外延公理",
-    "teaches": "两个集合元素完全相同则相等。",
-    "hint": "直接接外延公理，集合取 x、y。",
+    "teaches": "EXT · ∀z(z∈x↔z∈y) ⇒ x=y",
+    "hint": "EXT · ∀z(z∈x↔z∈y) ⇒ x=y",
+    "tip": {
+      "code": "EXT",
+      "flow": "∀z(z∈x↔z∈y) ⇒ x=y"
+    },
     "targetTokens": [
       "|-",
       "(",
@@ -1041,10 +551,14 @@
   },
   {
     "chapter": 3,
-    "label": "iii",
+    "label": "ii",
     "title": "空集公理",
-    "teaches": "存在不含任何元素的集合。",
-    "hint": "直接接空集公理。",
+    "teaches": "∅ · ∃z∀x ¬(x∈z)",
+    "hint": "∅ · ∃z∀x ¬(x∈z)",
+    "tip": {
+      "code": "∅",
+      "flow": "∃z∀x ¬(x∈z)"
+    },
     "targetTokens": [
       "|-",
       "E.",
@@ -1062,10 +576,14 @@
   },
   {
     "chapter": 3,
-    "label": "iv",
+    "label": "iii",
     "title": "配对公理",
-    "teaches": "任给两个集合，存在恰好以它们为元素的集合。",
-    "hint": "直接接配对公理，集合取 x、y。",
+    "teaches": "{,} · ∃u∀z((z=x∨z=y) ↔ z∈u)",
+    "hint": "{,} · ∃u∀z((z=x∨z=y) ↔ z∈u)",
+    "tip": {
+      "code": "{,}",
+      "flow": "∃u∀z((z=x∨z=y) ↔ z∈u)"
+    },
     "targetTokens": [
       "|-",
       "E.",
@@ -1096,10 +614,14 @@
   },
   {
     "chapter": 3,
-    "label": "v",
+    "label": "iv",
     "title": "并集公理",
-    "teaches": "存在一个集合，恰好包含给定集合的元素的元素。",
-    "hint": "直接接并集公理，集合取 x。",
+    "teaches": "∪ · ∃y∀z((∃u(z∈u∧u∈x)) ↔ z∈y)",
+    "hint": "∪ · ∃y∀z((∃u(z∈u∧u∈x)) ↔ z∈y)",
+    "tip": {
+      "code": "∪",
+      "flow": "∃y∀z((∃u(z∈u∧u∈x)) ↔ z∈y)"
+    },
     "targetTokens": [
       "|-",
       "E.",

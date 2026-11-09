@@ -38,7 +38,7 @@
     var cls = 'level-cell is-tutorial' + (i === ctx.state.index ? ' is-current' : '') +
       (ctx.state.solved[lv.id] ? ' is-solved' : '') +
       (unlocked ? '' : ' is-locked');
-    var label = '教学 ' + lv.code + '（' + (lv.title || '') + '）' + (unlocked ? '' : '，未解锁');
+    var label = 'Tutorial ' + lv.code + (unlocked ? '' : ', locked');
     return '<button class="' + cls + '" data-level="' + i + '" aria-label="' + esc(label) + '"' +
       (unlocked ? '' : ' disabled') + '>' + esc(lv.code) + '</button>';
   }
@@ -54,7 +54,7 @@
       (ctx.state.solved[lv.id] ? ' is-solved' : '') +
       (unlocked ? '' : ' is-locked');
     var no = Number(lv.no) || (i + 1);
-    var label = '第 ' + no + ' 关（*' + String(no).padStart(2, '0') + '）' + (unlocked ? '' : '，未解锁');
+    var label = 'Level ' + String(no).padStart(2, '0') + (unlocked ? '' : ', locked');
     return '<button class="' + cls + '" data-level="' + i + '" aria-label="' + label + '"' +
       (unlocked ? '' : ' disabled') + style + '>' +
       String(no).padStart(2, '0') +
@@ -66,7 +66,7 @@
     if (!items.length) return '';
     var solved = items.filter(function (x) { return ctx.state.solved[x.lv.id]; }).length;
     var firstLocked = !ctx.isUnlocked(items[0].i);
-    var glyph = kind === 'challenge' ? 'i-star' : 'i-book-open';
+    var glyph = kind === 'tutorial' ? 'i-play' : (kind === 'challenge' ? 'i-star' : 'i-book-open');
     return '<div class="band ' + kind + (firstLocked ? ' is-locked' : '') + '">' +
       '<div class="band-head">' +
         '<span class="band-glyph"><svg class="icon"><use href="#' + glyph + '"></use></svg></span>' +
@@ -114,7 +114,7 @@
 
   function openLevels() {
     host.RSL.Audio.sfx('click');
-    UI.openSheet(closeButton() + '<div class="chapters">' + levelsHTML() + '</div>');
+    UI.openSheet(closeButton() + '<div class="chapters">' + levelsHTML() + '</div>', 'sheet-levels');
   }
 
   /* =========================================================================
@@ -141,22 +141,22 @@
           helpStep('i-play') +
         '</div>' +
         '<div class="help-cards">' +
-          helpCard('P x F ∈', 'P…V · x…w · F(x) · x∈y', '原子 / 个体 / 谓词 / 属于') +
-          helpCard('¬ → ∧ ∨ ↔', '连接词', '公式构造') +
-          helpCard('∀ ∃', '∀x A · ∃x A', '量词') +
-          helpCard('Ax', 'A1–A5', '公理图式') +
-          helpCard('S M', '代入 · 分离', '基本推理') +
-          helpCard('∀I ∀* ∀E* ∃I* ∃E', '全称 / 存在规则', '量词规则') +
-          helpCard('=I =L', '等词替换', '等词规则') +
-          helpCard('EXT ∅ {,} ∪', '外延 / 空集 / 配对 / 并集', '集合公理') +
-          helpCard('*NN', '已证定理', '定理引用') +
+          helpCard('S', 'A[P↦B] ⇒ A′') +
+          helpCard('M', 'A · A→B ⇒ B') +
+          helpCard('∀I', 'A ⇒ ∀x A') +
+          helpCard('∀*', 'A ⇒ A→∀x A') +
+          helpCard('∀E*', '∀x A ⇒ A[t/x]') +
+          helpCard('∃I*', 'A[t/x] ⇒ ∃x A') +
+          helpCard('∃E', '∃x A · A→B ⇒ B') +
+          helpCard('=I', 't = t') +
+          helpCard('=L', 'x=y ⇒ A(x)→A(y)') +
         '</div>' +
         '<div class="save-row">' +
           '<button class="save-btn" data-save-export title="保存存档" aria-label="保存存档"><svg class="icon"><use href="#i-arrow-down-tray"></use></svg></button>' +
           '<button class="save-btn" data-save-import title="加载存档" aria-label="加载存档"><svg class="icon"><use href="#i-arrow-up-tray"></use></svg></button>' +
         '</div>' +
       '</div>' +
-      '<p class="credit">Design by yyxcnasd</p>');
+      '<p class="credit">Designed by yyxcnasd</p>');
   }
 
   /* =========================================================================

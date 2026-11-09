@@ -42,13 +42,13 @@ test('模块注册表：构造 + 公理 + 基本推理 + 定理，没有旧模�
   });
 });
 
-test('115 关 = 96 主线（4 章 × 24）+ 19 教学关，每关有 canonical targetTokens / palette / 参考电路', () => {
+test('114 关 = 96 主线（4 章 × 24）+ 18 教学关，每关有 canonical targetTokens / palette / 参考电路', () => {
   const levels = RSL.LEVELS;
-  assert.strictEqual(levels.length, 115);
+  assert.strictEqual(levels.length, 114);
   const numbered = levels.filter((lv) => !lv.tutorial);
   const tutorials = levels.filter((lv) => lv.tutorial);
   assert.strictEqual(numbered.length, 96);
-  assert.strictEqual(tutorials.length, 19);
+  assert.strictEqual(tutorials.length, 18);
   for (let c = 0; c < 4; c += 1) {
     assert.strictEqual(numbered.filter((lv) => lv.chapter === c).length, 24, '章 ' + (c + 1));
     const tut = tutorials.filter((lv) => lv.chapter === c);
@@ -63,6 +63,8 @@ test('115 关 = 96 主线（4 章 × 24）+ 19 教学关，每关有 canonical t
   tutorials.forEach((lv) => {
     assert.strictEqual(lv.no, null, lv.id + ' 教学关不占编号');
     assert.ok(/^[ivx]+$/.test(lv.code), lv.id + ' 小写罗马数字');
+    assert.ok(lv.tip && lv.tip.code && lv.tip.flow, lv.id + ' 教学浮窗提示');
+    assert.ok(lv.stats.steps <= 20, lv.id + ' 教学关保持短小（≤20 步）');
   });
   levels.forEach((lv) => {
     assert.ok(Array.isArray(lv.targetTokens) && lv.targetTokens[0] === '|-', lv.id + ' 目标断言');
@@ -78,7 +80,7 @@ test('115 关 = 96 主线（4 章 × 24）+ 19 教学关，每关有 canonical t
   });
 });
 
-test('115 关参考证明全部通过真实引擎（逐节点求值）', () => {
+test('114 关参考证明全部通过真实引擎（逐节点求值）', () => {
   const levels = RSL.LEVELS;
   const failures = [];
   levels.forEach((lv) => {

@@ -1,6 +1,6 @@
 # 公理板 · AXIOM BOARD
 
-一个纯静态的逻辑证明游戏：不用打字、靠拖线搭证明。**96 主线关 + 19 教学关**：四章 × 24 主线，
+一个纯静态的逻辑证明游戏：不用打字、靠拖线搭证明。**96 主线关 + 18 教学关**：四章 × 24 主线，
 每章先放小写罗马数字的教学关（不计入 *NN 编号），再分普通（*01–*12）与进阶（*13–*24）。
 
 - **第Ⅰ章 命题演算**：A1/A2/A3 + 分离，从同一律走到皮尔士律。
@@ -37,7 +37,7 @@
 改完关卡后：
 
 ```bash
-node scripts/build-campaign.js     # 生成 src/levels.js，并验证 115 关
+node scripts/build-campaign.js     # 生成 src/levels.js，并验证 114 关
 npm test                           # 参考证明 + 模块表 + 关卡 schema
 npm run test:route                 # 路线/解锁纯函数
 npm run test:ui                    # 浏览器端到端（教学/选关/帮助/成就/合并元件）
@@ -55,7 +55,7 @@ GitHub Pages 不会发布游戏脚本；删掉标记后重新推送即可恢复�
 src/term.js       唯一表达式核心（canonical token）
 src/modules.js    唯一模块注册表
 src/engine.js     唯一求值器
-src/levels.js     生成产物（115 关棋盘数据，勿手改）
+src/levels.js     生成产物（114 关棋盘数据，勿手改）
 src/campaign-meta.js 章节元数据
 src/{ui,screens,board,main}.js  UI 与棋盘
 campaign/         手写关卡与参考证明（内容源；tutorials.json 是教学关）
@@ -63,4 +63,4 @@ scripts/build-campaign.js       关卡编译器
 scripts/authoring/              演绎定理/加难/教学关生成脚本（仅作者用）
 ```
 
-Design by yyxcnasd. 音乐 “lvl 3 - the grassland” by YannZ, CC BY 4.0（见 `CREDITS.md`）。
+Designed by yyxcnasd. 音乐 “lvl 3 - the grassland” by YannZ, CC BY 4.0（见 `CREDITS.md`）。

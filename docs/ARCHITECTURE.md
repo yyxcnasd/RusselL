@@ -25,7 +25,7 @@ term → levels → campaign-meta → modules → engine → route → achieveme
 | `src/catalog.js` | 关卡目录：章节、band、解锁链、`palette` → 元件栏条目 |
 | `src/screens.js` | 选关/帮助/成就/通关面板 |
 | `src/board.js` / `src/main.js` | 棋盘交互与关卡流程（一条 `loadLevel/refresh/check/win`） |
-| `src/levels.js` | 编译器产物：96 主线 + 19 教学关（`targetTokens / palette / initialNodes / solution`） |
+| `src/levels.js` | 编译器产物：96 主线 + 18 教学关（`targetTokens / palette / initialNodes / solution`） |
 | `campaign/` | 手写内容源：目标、顺序、提示、允许模块、参考证明项；`tutorials.json` 是教学关 |
 
 ## 3. 数据流
@@ -56,9 +56,9 @@ campaign/*.json + scripts/build-campaign.js
 
 | 命令 | 内容 |
 | --- | --- |
-| `npm test` | 115 关 schema（96 主线 + 19 教学）、模块表、参考证明逐关真实 Engine 求值、`*NN` 越界拒绝 |
-| `npm run test:ui` | Edge headless：加载 115 关、选关/教学分带/合并元件、帮助/成就面板、无 JS 错误 |
-| `npm run test:acceptance` | dist 清单与源码一致；正式模式 dist 加载 115 关；维护模式只发布维护页 |
+| `npm test` | 114 关 schema（96 主线 + 18 教学）、模块表、参考证明逐关真实 Engine 求值、`*NN` 越界拒绝 |
+| `npm run test:ui` | Edge headless：加载 114 关、选关/教学分带/合并元件、帮助/成就面板、无 JS 错误 |
+| `npm run test:acceptance` | dist 清单与源码一致；正式模式 dist 加载 114 关；维护模式只发布维护页 |
 
 ## 6. 维护模式
 
