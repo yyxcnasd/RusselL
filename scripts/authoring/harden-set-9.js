@@ -93,24 +93,15 @@ const proof92 = P.gen(P.gen(P.gen(
   'z'), 'y'), 'x');
 const target92 = F.all('x', F.all('y', F.all('z', F.imp(H92, F.iff(A92, B92)))));
 
-/* *93：y=z → (x∈y↔x∈z)。反向需要 z=y；用 *56（全称对称）两次 A4 例化得到
- * u=z→z=u，再用代入规则改名 u→y；随后 Leibniz 两个方向 + HS + ↔I，DT 消去假设。 */
-const wff = (b) => ['wff'].concat(b);
-const sub = (body, v, t) => T.body(T.substituteVar(wff(body), v, t));
-const body56 = F.all('y', F.imp(eq(X, Y), eq(Y, X)));
-const U = F.term('u');
-const inst1 = sub(body56, 'x', 'u');                 // ∀y(u=y→y=u)
-const body1 = inst1.slice(2);
-const inst2 = sub(body1, 'y', 'z');                  // u=z→z=u
-const ax1 = D.leaf(P.allInst(body56, 'x', 'u'), F.imp(F.all('x', body56), inst1));
-const thm56 = D.leaf(P.thm(56), F.all('x', body56));
-const s1 = D.mpp(ax1, thm56);
-const ax2 = D.leaf(P.allInst(body1, 'y', 'z'), F.imp(inst1, inst2));
-const s2 = D.mpp(ax2, s1);
-const symYZ = D.leaf(P.subst(s2.t, { vars: { u: 'y' } }), F.imp(eq(Y, Z), eq(Z, Y)));
-
+/* *93：y=z → (x∈y↔x∈z)。反向需要 z=y：用 Leibniz(抽象模式) 从 y=z 与 y=y
+ * 得到 z=y；随后 Leibniz 两个方向 + HS + ↔I，DT 消去假设。 */
 const H93 = eq(Y, Z), A93 = mem(X, Y), B93 = mem(X, Z);
 const h93 = D.hyp(H93);
+const symLeaf = D.leaf(P.leibniz('y', 'z', eq(Z, Y), { mode: 'abstract', v: 'z' }),
+  F.imp(H93, F.imp(eq(Y, Y), eq(Z, Y))));
+const yRefl = D.leaf(P.eqRefl('y'), eq(Y, Y));
+const symYZ = D.leaf(D.dt(D.mpp(D.mpp(symLeaf, h93), yRefl), H93).t, F.imp(H93, eq(Z, Y)));
+
 const fwd93 = D.mpp(D.leaf(P.leibniz('y', 'z', mem(X, Y), { mode: 'replace' }),
   F.imp(H93, F.imp(A93, B93))), h93);
 const revLeaf93 = D.leaf(P.leibniz('z', 'y', mem(X, Z), { mode: 'replace' }),
