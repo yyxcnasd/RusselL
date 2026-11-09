@@ -87,20 +87,15 @@ python -m http.server 8000
 
 然后访问 `http://localhost:8000`。
 
-## 维护模式
-
-仓库根目录有 `.maintenance` 时，`node scripts/build-toy.js` 只发布维护页（`scripts/maintenance.html`），
-GitHub Pages 不会发布游戏脚本。删掉标记后重新构建即可恢复。本地开发和测试不受影响，直接打开源码 `index.html` 即可。
-
 ## 开发
 
 ```bash
 node scripts/build-campaign.js   # 编译 114 关（96 主线 + 18 教学），逐关用真实 Engine 验证
 npm test                         # 关卡 schema、模块表、参考证明、定理引用越界
-npm run test:wire               # 走线/几何纯函数
+npm run test:wire                # 走线/几何纯函数
 npm run test:ui                  # Edge headless 浏览器回归
-npm run test:acceptance          # dist 构建产物与维护页验收
-npm run build:toy                # 生成 dist/（维护模式下只有维护页）
+npm run test:acceptance          # dist 构建产物与完整 114 关验收
+npm run build:toy                # 生成可发布的 dist/ 游戏本体
 ```
 
 关卡内容手写在 `campaign/` 下，`src/levels.js` 是编译器产物，不要手改。作者脚本在 `scripts/authoring/`：

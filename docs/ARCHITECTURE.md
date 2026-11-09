@@ -57,9 +57,6 @@ campaign/*.json + scripts/build-campaign.js
 | 命令 | 内容 |
 | --- | --- |
 | `npm test` | 114 关 schema（96 主线 + 18 教学）、模块表、参考证明逐关真实 Engine 求值、`*NN` 越界拒绝 |
+| `npm run test:wire` | 端口布线纯函数：直线、障碍绕行、近端口、并行车道 |
 | `npm run test:ui` | Edge headless：加载 114 关、选关/教学分带/合并元件、帮助/成就面板、无 JS 错误 |
-| `npm run test:acceptance` | dist 清单与源码一致；正式模式 dist 加载 114 关；维护模式只发布维护页 |
-
-## 6. 维护模式
-
-仓库根有 `.maintenance` 时 `build-toy.js` 只产出维护页（9 个文件，不含游戏脚本）；删除标记重新构建即恢复。
+| `npm run test:acceptance` | dist 清单与源码一致；dist 直接加载完整 114 关 |
