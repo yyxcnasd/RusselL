@@ -133,6 +133,19 @@ test('route never crosses any node in a crowded layout', () => {
   }
 });
 
+test('start upper-right of target still avoids both endpoint cards', () => {
+  const source = { id: 'src', x: 368, y: 60, w: 232, h: 120 };
+  const target = { id: 'dst', x: 100, y: 450, w: 232, h: 120 };
+  const a = { x: 600, y: 100 };   // source output, right edge
+  const b = { x: 100, y: 500 };   // target input, left edge
+  const pts = Wire.route(a, b, [source, target], { fromId: 'src', toId: 'dst' });
+  samePoints([pts[0], pts[pts.length - 1]], [a, b]);
+  orthogonal(pts, 'upper-right route');
+  assert.equal(crossesRect(pts, source), false, 'wire must not cut through its own source card');
+  assert.equal(crossesRect(pts, target), false, 'wire must not cut through the target card');
+  assert.ok(pts[1].x >= a.x, 'wire must leave the output port to the right');
+});
+
 test('parallel wires get separate vertical tracks', () => {
   const tracks = { v: [] };
   const p1 = Wire.route({ x: 0, y: 100 }, { x: 500, y: 200 }, [], { fromId: 'a1', toId: 'b1', tracks, group: 'g1' });

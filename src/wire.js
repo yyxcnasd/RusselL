@@ -162,10 +162,10 @@
     var fromId = opts.fromId, toId = opts.toId;
     var tracks = opts.tracks || null;
     var group = opts.group || '';
-    var allObstacles = rects.filter(function (r) {
-      return r.id !== fromId && r.id !== toId;
-    });
-    var obstacles = opts._all ? allObstacles : relevantRects(allObstacles, a, b);
+    var endpointIds = {};
+    if (fromId != null) endpointIds[fromId] = true;
+    if (toId != null) endpointIds[toId] = true;
+    var otherObstacles = rects.filter(function (r) { return !endpointIds[r.id]; });
 
     var dx = b.x - a.x;
     var stub = STUB;
@@ -175,6 +175,13 @@
     }
     var sa = { x: a.x + stub, y: a.y };
     var sb = { x: b.x - stub, y: b.y };
+
+    /* 正常 stub 长度足够时，起点/终点自己的节点也算障碍：
+     * 否则从右上方的输出端可以直接向左穿过自己的卡片。
+     * stub 很短（端口几乎贴着）时才允许忽略端点节点。 */
+    var graphRects = (stub >= PAD + 4) ? rects : otherObstacles;
+    var obstacles = opts._all ? graphRects : relevantRects(graphRects, a, b);
+    var validateObstacles = otherObstacles;
 
     var xs = [a.x, sa.x, sb.x, b.x];
     var ys = [a.y, b.y];
@@ -347,7 +354,7 @@
       }
       pts = clean(pts);
     }
-    if (!pathClear(pts, allObstacles)) {
+    if (!pathClear(pts, validateObstacles)) {
       if (!opts._all) {
         opts._all = true;
         return route(a, b, rects, opts);
