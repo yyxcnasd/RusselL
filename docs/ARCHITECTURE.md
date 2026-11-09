@@ -20,7 +20,7 @@ term → levels → campaign-meta → modules → engine → route → achieveme
 | 文件 | 职责 |
 | --- | --- |
 | `src/term.js` | **唯一表达式核心**：canonical set.mm token（首 token 类型码）；解析/格式化、key/eq、原子代入、捕获规避变元替换、read 派生结构 |
-| `src/modules.js` | **唯一模块注册表**：6 构造 + 公理 A1–A5 + 代入/分离/全称推广/全称引入/全称例化/等词自反/Leibniz/定理 `*NN` |
+| `src/modules.js` | **唯一模块注册表**：6 构造 + 公理 A1–A5 + 集合公理（外延/空集/配对/并集）+ 代入/分离/全称推广/全称引入/全称例化/存在推广/存在消去/等词自反/Leibniz/连接词公理形式/定理 `*NN`；完整清单以 `MODULES` 为准 |
 | `src/engine.js` | **唯一求值器**：拓扑、逐节点 apply、目标精确比较、来源反作弊、定理引用越界校验 |
 | `src/catalog.js` | 关卡目录：章节、band、解锁链、`palette` → 元件栏条目 |
 | `src/screens.js` | 选关/帮助/成就/通关面板 |
@@ -44,7 +44,8 @@ campaign/*.json + scripts/build-campaign.js
 
 ## 4. 作者链路
 
-- `campaign/chapter1..4.json` 由 `scripts/authoring/make-chapter1..4.js` 生成；目标/顺序/标题/提示是手写的。
+- `campaign/chapter1..4.json` 是内容源：目标/顺序/标题/提示手写；`scripts/authoring/make-chapter*.js` 是初始生成器，
+  `harden-*.js` 用演绎定理引擎把个别关卡升级为组合证明（改完后必须重跑 `build-campaign` 与测试）。
 - 命题章参考证明来自 set.mm 真实证明：`scripts/authoring/setmm-expand.js` 把 `ax-1/ax-2/ax-3/ax-4/ax-5/sp/ax-gen/ax-mp`
   和推理式引理（a1i/mpd/com12…）递归展开/翻译成新演算，并用更早关卡作 `*NN`。
 - 谓词章同理映射 `ax-4 → A5`、`sp → A4`、`ax-5 → 全称引入规则`、`ax-gen → 全称推广`。

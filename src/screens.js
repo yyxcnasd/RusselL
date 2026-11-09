@@ -167,6 +167,8 @@
           helpCard('∀I', '', 'A ⇒ ∀x A') +
           helpCard('∀*', '', 'A ⇒ A→∀x A') +
           helpCard('∀E', '', '∀x A ⇒ A[t/x]') +
+          helpCard('∃I*', '', 'A[t/x] ⇒ ∃x A') +
+          helpCard('∃E', '', '∃x A, A→B ⇒ B') +
           helpCard('=I', '', 't = t') +
           helpCard('=L', '', 'x=y, A(x) ⇒ A(y)') +
           helpCard('*NN', '', '已证定理') +

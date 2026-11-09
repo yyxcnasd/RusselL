@@ -66,10 +66,17 @@
     return info && info.label ? info.label : kind;
   }
 
+  /* 元件栏顺序：构造 → 公理 → 基本推理 → 连接词公理形式 → 集合论 → 定理。
+     只影响显示排序；未列出的 kind 落到 0，请随模块表一起维护。 */
   var RANK = {
-    atom: 0, term: 1, pred: 2, not: 3, imp: 4, all: 5,
-    axiom: 6, subst: 7, mp: 8, gen: 9, 'all-elim': 10, 'all-dist': 11,
-    'eq-refl': 12, 'eq-subst': 13, theorem: 14
+    atom: 0, term: 1, pred: 2, not: 3, imp: 4, all: 5, exists: 6, mem: 7,
+    and: 8, or: 9, iff: 10,
+    axiom: 20, subst: 21, mp: 22, gen: 23, shift: 24, 'all-inst': 25,
+    'exists-gen': 26, 'exists-elim': 27, leibniz: 28, 'eq-refl': 29,
+    'and-intro-ax': 30, 'and-elim-ax': 31, 'or-intro-ax': 32, 'or-elim-ax': 33,
+    'iff-intro-ax': 34, 'iff-elim-ax': 35, 'all-dist': 36,
+    'set-ext': 40, 'set-empty': 41, 'set-pair': 42, 'set-union': 43,
+    theorem: 50
   };
 
   function partsForLevel(level) {
