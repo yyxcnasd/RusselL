@@ -40,7 +40,7 @@
 
   function loadSdk() {
     if (root.toy) return Promise.resolve(true);
-    if (!/bilibili\.com$/i.test(location.hostname)) return Promise.resolve(false);
+    if (!isToyHost()) return Promise.resolve(false);
     if (sdkPromise) return sdkPromise;
     sdkPromise = new Promise(function (resolve) {
       var s = document.createElement('script');
@@ -91,6 +91,6 @@
     checkGate: checkGate,
     follow: follow,
     loadSdk: loadSdk,
-    isToyHost: function () { return /bilibili\.com$/i.test(location.hostname); }
+    isToyHost: function () { return /bilibili\.com$/i.test(location.hostname) || /^\/toy\//i.test(location.pathname); }
   };
 })();

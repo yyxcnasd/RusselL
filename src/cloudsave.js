@@ -20,7 +20,7 @@
   var pending = null;
 
   function isToyHost() {
-    return /bilibili\.com$/i.test(location.hostname);
+    return root.RSL.Hints ? root.RSL.Hints.isToyHost() : /bilibili\.com$/i.test(location.hostname);
   }
 
   function toy() {
