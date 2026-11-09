@@ -367,11 +367,6 @@ function compileProof(proof, builder, ctx) {
         builder.connect(resolve(pt.of), 'out', id, 'assertion');
         break;
       }
-      case 'allDist': {
-        id = builder.addNode('all-dist', {});
-        builder.connect(resolve(pt.of), 'out', id, 'assertion');
-        break;
-      }
       case 'eqRefl': {
         id = builder.addNode('eq-refl', { t: pt.t });
         break;

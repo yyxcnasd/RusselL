@@ -13,7 +13,6 @@ module.exports = {
   mp: (a, b) => ({ op: 'mp', a, b }),
   gen: (of, v) => ({ op: 'gen', of, v }),
   allE: (of, t) => ({ op: 'allE', of, t }),
-  allDist: (of) => ({ op: 'allDist', of }),
   eqRefl: (t) => ({ op: 'eqRefl', t }),
   eqSubst: (eq, of, dir) => ({ op: 'eqSubst', eq, of, dir: dir || 'l2r' }),
   leibniz: (x, y, formula, opts) => ({ op: 'leibniz', x, y, formula,

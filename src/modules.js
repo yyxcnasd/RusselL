@@ -1,14 +1,12 @@
 /*!
  * 公理板 / AXIOM BOARD — RSL.Modules
  *
- * 唯一模块注册表（大重构后）：非定理模块收敛为「6 个构造 + 1 个公理 + 7 个推理规则」，
- * 其余一切结论都只能作为更早关卡证过的定理（*NN）使用。
- *
- *   构造：atom 原子 / term 个体变元 / pred 谓词或等词 / not ¬ / imp → / all ∀
- *   公理：axiom，config.schema ∈ A1 | A2 | A3
- *   推理：subst 代入 / mp 分离 / gen 全称推广 / all-elim 全称例化 /
- *         all-dist 全称分配 / eq-refl 等词自反 / eq-subst 等词替换
- *   定理：theorem，config.n = 关卡号，显示 *NN；只允许引用更早关卡（引擎校验）
+ * 唯一模块注册表：构造（原子/个体/谓词与等词/∈/¬/→/∀/∃/∧/∨/↔）、
+ * 公理图式 A1–A5、集合公理（外延/空集/配对/并集）、基本推理与连接词公理形式
+ * （subst、mp、gen、shift、all-inst、exists-gen、exists-elim、leibniz、eq-refl，
+ * 以及 ∧、∨、↔ 的引入/消去公理形式），以及定理 theorem（*NN，只允许引用更早关卡）。
+ * 能由更基本规则推出的重复规则不注册在这里：all-elim/exists-intro/and/or/iff 推理规则
+ * 已删除，all-dist 也已删除（等价于 A5 公理 + 分离）。
  *
  * 公式一律是 RSL.Term token 数组。失败抛 Error（消息即玩家看到的错误）。
  */
@@ -75,13 +73,6 @@
     var v = need(inputs, id, what);
     if (T.typeOf(v) !== '|-') fail('输入必须是 ⊢ 断言');
     return asBody(v);
-  }
-
-  /** 在全称式里读出入：{ v, body }；否则报错。 */
-  function forallParts(bodyTokens, what) {
-    var tree = T.read(wffOf(bodyTokens));
-    if (tree.k !== 'all') fail((what || '输入') + '必须是全称量化式 ∀x A');
-    return { v: tree.v, body: T.treeToBody(tree.a) };
   }
 
   function termName(tokens, what) {
@@ -515,22 +506,6 @@
       }
     },
 
-    'all-dist': {
-      label: '全称分配', kindLabel: '∀→', group: 'rule', symbol: '∀→', construct: false,
-      ports: { inputs: [{ id: 'assertion', label: '断言 ∀x(A→B)', type: ASSERTION }], outputs: [{ id: 'out', label: '∀x A→∀x B', type: ASSERTION }] },
-      config: {},
-      help: '把全称式里的蕴涵分配到两侧：∀x(A→B) ⇒ ∀xA→∀xB。',
-      apply: function (inputs) {
-        var a = assertionBody(inputs, 'assertion', '断言 ∀x(A→B)');
-        var got = forallParts(a, '输入');
-        var tree = T.read(wffOf(got.body));
-        if (tree.k !== 'imp') fail('全称分配的输入必须是 ∀x(A→B)');
-        var x = got.v;
-        var left = ['A.', x].concat(T.treeToBody(tree.a));
-        var right = ['A.', x].concat(T.treeToBody(tree.b));
-        return { tokens: assertionOf(['('].concat(left, ['->'], right, [')'])), note: '全称分配' };
-      }
-    },
     leibniz: {
       label: '等词替换公理', kindLabel: '=L', group: 'rule', symbol: '=L', construct: false,
       ports: {

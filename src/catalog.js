@@ -74,7 +74,7 @@
     axiom: 20, subst: 21, mp: 22, gen: 23, shift: 24, 'all-inst': 25,
     'exists-gen': 26, 'exists-elim': 27, leibniz: 28, 'eq-refl': 29,
     'and-intro-ax': 30, 'and-elim-ax': 31, 'or-intro-ax': 32, 'or-elim-ax': 33,
-    'iff-intro-ax': 34, 'iff-elim-ax': 35, 'all-dist': 36,
+    'iff-intro-ax': 34, 'iff-elim-ax': 35,
     'set-ext': 40, 'set-empty': 41, 'set-pair': 42, 'set-union': 43,
     theorem: 50
   };
