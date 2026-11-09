@@ -25,8 +25,8 @@ term → levels → campaign-meta → modules → engine → route → achieveme
 | `src/catalog.js` | 关卡目录：章节、band、解锁链、`palette` → 元件栏条目 |
 | `src/screens.js` | 选关/帮助/成就/通关面板 |
 | `src/board.js` / `src/main.js` | 棋盘交互与关卡流程（一条 `loadLevel/refresh/check/win`） |
-| `src/levels.js` | 编译器产物：96 关 `targetTokens / palette / initialNodes / solution` |
-| `campaign/` | 手写内容源：目标、顺序、提示、允许模块、参考证明项 |
+| `src/levels.js` | 编译器产物：96 主线 + 19 教学关（`targetTokens / palette / initialNodes / solution`） |
+| `campaign/` | 手写内容源：目标、顺序、提示、允许模块、参考证明项；`tutorials.json` 是教学关 |
 
 ## 3. 数据流
 
@@ -44,7 +44,9 @@ campaign/*.json + scripts/build-campaign.js
 
 ## 4. 作者链路
 
-- `campaign/chapter1..4.json` 是内容源：目标/顺序/标题/提示手写；`scripts/authoring/make-chapter*.js` 是初始生成器，
+- `campaign/chapter1..4.json` 是 96 主线关的内容源：目标/顺序/标题/提示手写；`campaign/tutorials.json`
+  是各章教学关（小写罗马数字，不占 *NN 编号）；`campaign/index.js` 按“教学 → 普通 → 进阶”拼成完整关卡表。
+  `scripts/authoring/make-chapter*.js` 是初始生成器，`make-tutorials.js` 生成教学关，
   `harden-*.js` 用演绎定理引擎把个别关卡升级为组合证明（改完后必须重跑 `build-campaign` 与测试）。
 - 命题章参考证明来自 set.mm 真实证明：`scripts/authoring/setmm-expand.js` 把 `ax-1/ax-2/ax-3/ax-4/ax-5/sp/ax-gen/ax-mp`
   和推理式引理（a1i/mpd/com12…）递归展开/翻译成新演算，并用更早关卡作 `*NN`。
@@ -55,8 +57,8 @@ campaign/*.json + scripts/build-campaign.js
 
 | 命令 | 内容 |
 | --- | --- |
-| `npm test` | 96 关 schema、模块表、参考证明逐关真实 Engine 求值、`*NN` 越界拒绝 |
-| `npm run test:ui` | Edge headless：加载 96 关、*01/*96、选关 96 格、帮助/成就面板、无 JS 错误 |
+| `npm test` | 115 关 schema（96 主线 + 19 教学）、模块表、参考证明逐关真实 Engine 求值、`*NN` 越界拒绝 |
+| `npm run test:ui` | Edge headless：加载 115 关、选关/教学分带/合并元件、帮助/成就面板、无 JS 错误 |
 | `npm run test:acceptance` | dist 清单与源码一致；正式模式 dist 加载 96 关；维护模式只发布维护页 |
 
 ## 6. 维护模式

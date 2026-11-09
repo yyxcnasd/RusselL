@@ -31,17 +31,19 @@
 
   function evaluate(state) {
     var levels = state.levels || [];
-    var solved = levels.filter(function (lv) { return state.solved[lv.id]; });
+    var numbered = levels.filter(function (lv) { return !lv.tutorial; });
+    var solvedAll = levels.filter(function (lv) { return state.solved[lv.id]; });
+    var solved = numbered.filter(function (lv) { return state.solved[lv.id]; });
     var out = [];
     function add(id) { out.push(id); }
-    if (solved.length >= 1) add('first');
-    if (solved.length >= 3) add('three');
-    if (solved.length >= 10) add('ten');
+    if (solvedAll.length >= 1) add('first');
+    if (solvedAll.length >= 3) add('three');
+    if (solvedAll.length >= 10) add('ten');
     if (solved.length >= 48) add('half');
-    if (levels.length && solved.length === levels.length) add('all');
+    if (numbered.length && solved.length === numbered.length) add('all');
 
     for (var c = 0; c < 4; c += 1) {
-      var group = levels.filter(function (lv) { return Number(lv.chapter) === c; });
+      var group = numbered.filter(function (lv) { return Number(lv.chapter) === c; });
       if (group.length && group.every(function (lv) { return state.solved[lv.id]; })) add('chap-' + (c + 1));
     }
 
@@ -52,9 +54,9 @@
     if (kinds['eq-refl'] || kinds.leibniz) add('rule-eq');
     if (kinds.theorem) add('lemma');
 
-    var clean = Object.keys(state.cleanWins || {}).length;
+    var clean = numbered.filter(function (lv) { return state.cleanWins && state.cleanWins[lv.id]; }).length;
     if (clean >= 3) add('clean-three');
-    if (levels.length && clean >= levels.length) add('perfect');
+    if (numbered.length && clean >= numbered.length) add('perfect');
 
     var efficient = levels.some(function (lv) {
       if (Number(lv.no) <= 48) return false;

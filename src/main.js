@@ -294,7 +294,7 @@
 
   function buildTray() {
     var VARIABLES = { atom: 1, pred: 1, term: 1 };
-    var SYMBOLS = { not: 1, imp: 1, or: 1, and: 1, iff: 1, quant: 1 };
+    var SYMBOLS = { not: 1, imp: 1, or: 1, and: 1, iff: 1, all: 1, exists: 1, mem: 1 };
     els.tray.innerHTML = state.parts.map(function (part) {
       var symbol = part.symbol || '·';
       var variant = VARIABLES[part.kind] ? ' is-var' : (SYMBOLS[part.kind] ? ' is-symbol' : ' is-code');
@@ -479,39 +479,54 @@
    * 6. 模块参数弹层
    * ========================================================================= */
 
-  /* 原子命题固定按 P–Z、A–O 排列：P/Q/R/S/T 在视觉最前，U…Z 紧随其后。
-     关卡里只使用 PQRSTUVWXYZABC 这 14 个命题变元。 */
-  var ATOM_CHOICES = 'PQRSTUVWXYZABC'.split('');
+  /* 原子命题固定按 P–V 排列；合并成单个元件后，具体字母在配置弹层里选。 */
+  var ATOM_CHOICES = 'PQRSTUV'.split('');
   function atomChoices() { return ATOM_CHOICES; }
+
+  /* 合并 tile 的可选配置（来自本关参考证明实际用到的变体）。 */
+  function mergedVariants(kind) {
+    var part = state.parts.filter(function (p) { return p.kind === kind; })[0];
+    return part && part.variants ? part.variants : null;
+  }
+  function variantChoices(kind, field, fallback) {
+    var vs = mergedVariants(kind) || [];
+    var out = [];
+    vs.forEach(function (v) {
+      var val = (v.config || {})[field];
+      if (val && out.indexOf(val) < 0) out.push(val);
+    });
+    return out.length ? out : (fallback || []);
+  }
 
   function renderPopover() {
     var node = state.selectedNode ? state.board.node(state.selectedNode) : null;
-    els.popover.classList.toggle('is-grid', !!node && node.kind === 'atom');
+    var isGrid = !!node && (node.kind === 'atom' || node.kind === 'term');
+    els.popover.classList.toggle('is-grid', isGrid);
     if (!node || node.kind === 'target') { els.popover.hidden = true; return; }
     var result = state.results && state.results.results[node.id];
     var config = node.config || {};
     var html = '';
     if (node.kind === 'atom') {
-      html = '<div class="letter-grid">' + atomChoices().map(function (x) {
+      var atoms = variantChoices('atom', 'name', atomChoices());
+      html = '<div class="letter-grid">' + atoms.map(function (x) {
         return '<button class="opt opt-var' + (config.name === x ? ' is-on' : '') + '" data-config="name" data-value="' + x + '">' + x + '</button>';
       }).join('') + '</div>';
-    } else if (node.kind === 'replace' && result && result.meta && result.meta.options) {
-      html = result.meta.options.slice(0, 8).map(function (o) {
-        var inner = o.tokens && window.RSL.Term ? window.RSL.Term.toHTML(o.tokens, { full: true }) : '';
-        return '<button class="opt formula-opt' + (result.meta.optionId === o.id ? ' is-on' : '') + '" data-option="' + UI.esc(o.id) + '">' + inner + '</button>';
+    } else if (node.kind === 'term') {
+      var terms = variantChoices('term', 'name', ['x', 'y', 'z', 'u', 'v', 'w']);
+      html = '<div class="letter-grid">' + terms.map(function (x) {
+        return '<button class="opt opt-var' + (config.name === x ? ' is-on' : '') + '" data-config="name" data-value="' + x + '">' + x + '</button>';
+      }).join('') + '</div>';
+    } else if (node.kind === 'pred') {
+      var preds = variantChoices('pred', 'symbol', ['F', 'G', 'H', '=']);
+      html = preds.map(function (x) {
+        return '<button class="opt opt-code' + (config.symbol === x ? ' is-on' : '') + '" data-config="symbol" data-value="' + x + '">' + x + '</button>';
       }).join('');
-    } else if (node.kind === 'quant') {
-      html = '<button class="opt opt-sym' + (config.kind === 'all' ? ' is-on' : '') + '" data-config="kind" data-value="all">∀</button>' +
-        '<button class="opt opt-sym' + (config.kind === 'exists' ? ' is-on' : '') + '" data-config="kind" data-value="exists">∃</button>' +
-        '<span class="opt-gap"></span>' + ['x', 'y', 'z'].map(function (v) {
+    } else if (node.kind === 'all' || node.kind === 'exists') {
+      var vars = variantChoices(node.kind, 'v', ['x', 'y', 'z']);
+      html = '<button class="opt opt-sym is-on" data-config="v" data-value="' + (config.v || vars[0]) + '">' + (node.kind === 'all' ? '∀' : '∃') + '</button>' +
+        '<span class="opt-gap"></span>' + vars.map(function (v) {
           return '<button class="opt opt-var' + (config.v === v ? ' is-on' : '') + '" data-config="v" data-value="' + v + '">' + v + '</button>';
         }).join('');
-    } else if (node.kind === 'pred') {
-      html = ['F', 'G', 'H'].map(function (x) {
-        return '<button class="opt opt-code' + (config.name === x ? ' is-on' : '') + '" data-config="name" data-value="' + x + '">' + x + '</button>';
-      }).join('') + '<span class="opt-gap"></span>' + ['x', 'y', 'z'].map(function (v) {
-        return '<button class="opt opt-var' + (config.arg === v ? ' is-on' : '') + '" data-config="arg" data-value="' + v + '">' + v + '</button>';
-      }).join('');
     } else if (node.kind === 'subst') {
       var extras = substExtras(config);
       html = (extras >= 1
@@ -520,17 +535,14 @@
         (extras < 4
           ? '<button class="opt opt-plus" data-config="dual" data-value="1" aria-label="加一组代入" title="加一组代入">＋</button>'
           : '');
-    } else if (node.kind === 'all-elim') {
-      html = ['a', 'b', 'c', 'x', 'y', 'z'].map(function (v) {
-        return '<button class="opt opt-var' + (config.term === v ? ' is-on' : '') + '" data-config="term" data-value="' + v + '">' + v + '</button>';
-      }).join('');
-    } else if (node.kind === 'all-intro' || node.kind === 'exists-intro') {
-      html = ['x', 'y', 'z'].map(function (v) {
+    } else if (node.kind === 'all-inst' || node.kind === 'exists-gen') {
+      var genVars = ['x', 'y', 'z'].map(function (v) {
         return '<button class="opt opt-var' + (config.v === v ? ' is-on' : '') + '" data-config="v" data-value="' + v + '">' + v + '</button>';
       }).join('');
-    } else if (node.kind === 'exists-elim') {
-      html = ['y', 'z'].map(function (v) {
-        return '<button class="opt opt-var' + (config.y === v ? ' is-on' : '') + '" data-config="y" data-value="' + v + '">' + v + '</button>';
+      html = genVars;
+    } else if (node.kind === 'gen' || node.kind === 'shift') {
+      html = ['x', 'y', 'z'].map(function (v) {
+        return '<button class="opt opt-var' + (config.v === v ? ' is-on' : '') + '" data-config="v" data-value="' + v + '">' + v + '</button>';
       }).join('');
     }
     if (!html) { els.popover.hidden = true; els.popover.classList.remove('is-grid'); return; }

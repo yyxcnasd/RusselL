@@ -32,6 +32,17 @@
    * 1. 选关
    * ========================================================================= */
 
+  function tutorialCell(entry) {
+    var lv = entry.lv, i = entry.i;
+    var unlocked = ctx.isUnlocked(i);
+    var cls = 'level-cell is-tutorial' + (i === ctx.state.index ? ' is-current' : '') +
+      (ctx.state.solved[lv.id] ? ' is-solved' : '') +
+      (unlocked ? '' : ' is-locked');
+    var label = '教学 ' + lv.code + '（' + (lv.title || '') + '）' + (unlocked ? '' : '，未解锁');
+    return '<button class="' + cls + '" data-level="' + i + '" aria-label="' + esc(label) + '"' +
+      (unlocked ? '' : ' disabled') + '>' + esc(lv.code) + '</button>';
+  }
+
   function levelCell(entry) {
     var lv = entry.lv, i = entry.i;
     var unlocked = ctx.isUnlocked(i);
@@ -87,6 +98,7 @@
 
   function bandCells(items) {
     return items.map(function (entry) {
+      if (entry.lv.tutorial) return tutorialCell(entry);
       var isReplay = entry.lv.track === 'replay';
     return isReplay ? mmInline(entry) : levelCell(entry);
     }).join('');
@@ -103,6 +115,7 @@
       if (!items.length) return '';
       var solved = items.filter(function (x) { return ctx.state.solved[x.lv.id]; }).length;
       var isCurrent = items.some(function (x) { return x.i === ctx.state.index; });
+      var tut = items.filter(function (x) { return x.lv.band === 'tutorial'; });
       var base = items.filter(function (x) { return x.lv.band === 'base'; });
       var chal = items.filter(function (x) { return x.lv.band === 'challenge'; });
       var chapterLocked = !ctx.isUnlocked(items[0].i);
@@ -112,6 +125,7 @@
           '<span class="chapter-progress" aria-hidden="true"><i style="width:' + (solved / items.length * 100) + '%"></i></span>' +
           '<span class="chapter-count">' + solved + ' / ' + items.length + '</span>' +
         '</div>' +
+        bandHTML(tut, 'tutorial') +
         bandHTML(base, 'base') +
         bandHTML(chal, 'challenge') +
       '</section>';

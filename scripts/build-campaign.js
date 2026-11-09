@@ -27,7 +27,7 @@ const PAD = (n) => String(n).padStart(2, '0');
 const keyOf = (body) => body.join('\u0000');
 
 /* ---------- 允许模块 → 元件栏条目 ---------- */
-const ATOMS = ['P', 'Q', 'R', 'S', 'T'];
+const ATOMS = ['P', 'Q', 'R', 'S', 'T', 'U', 'V'];
 const TERMS = ['x', 'y', 'z'];
 const PREDS = ['F', 'G', 'H', '='];
 const QUANT_VARS = ['x', 'y', 'z'];
@@ -439,8 +439,10 @@ function layout(nodes, edges, targetId) {
 
 /* ---------- 主流程 ---------- */
 function compileLevel(def, prevLevels) {
+  const isTutorial = !!def.tutorial;
+  const displayCode = isTutorial ? def.label : '*' + PAD(def.no);
   const builder = createBuilder();
-  const finalId = compileProof(def.proof, builder, { no: def.no });
+  const finalId = compileProof(def.proof, builder, { no: isTutorial ? 1 : def.no });
   const targetId = builder.addNode('target', {});
   builder.connect(finalId, 'out', targetId, 'proof');
   const nodes = builder.nodes;
@@ -460,9 +462,10 @@ function compileLevel(def, prevLevels) {
   });
 
   const level = {
-    id: 'L' + PAD(def.no),
-    code: '*' + PAD(def.no),
-    no: def.no,
+    id: isTutorial ? 'T' + def.chapter + def.label : 'L' + PAD(def.no),
+    code: displayCode,
+    no: isTutorial ? null : def.no,
+    tutorial: isTutorial,
     chapter: def.chapter,
     chapterGroup: campaign.chapters[def.chapter].id,
     title: def.title,
@@ -481,7 +484,8 @@ function compileLevel(def, prevLevels) {
   level.stats.steps = countSteps(level.solution.nodes);
   level.difficulty = countSteps(level.solution.nodes) + 0.1 * (def.target.length / 4);
 
-  const result = Engine.evaluate(level, nodes, builder.edges, { levels: prevLevels, levelNo: def.no });
+  const currentNo = isTutorial ? 1 : def.no;
+  const result = Engine.evaluate(level, nodes, builder.edges, { levels: prevLevels, levelNo: currentNo });
   if (!result.complete) {
     const first = (result.errors || [])[0];
     let detail = '';
@@ -494,7 +498,7 @@ function compileLevel(def, prevLevels) {
           return (r && r.tokens ? r.tokens.slice(0, 12).join(' ') : 'null');
         }).join(' | ');
     }
-    throw new Error('关卡 *' + PAD(def.no) + '（' + def.title + '）参考证明未通关：' +
+    throw new Error('关卡 ' + displayCode + '（' + def.title + '）参考证明未通关：' +
       (first ? first.message : '未知错误') + detail + '；目标 ' + Term.fmt(targetTokens));
   }
   return level;
@@ -519,10 +523,10 @@ function main() {
     errors.slice(0, 10).forEach((e) => console.error('  ' + e));
     process.exit(1);
   }
-  /* 静态检查：定理引用必须指向更早关卡 */
+  /* 静态检查：定理引用必须指向更早关卡（教学关无编号，禁止引用定理） */
   levels.forEach((lv, i) => {
     (lv.palette || []).forEach((e) => {
-      if (e.kind === 'theorem' && !(e.config.n < lv.no)) {
+      if (e.kind === 'theorem' && (lv.tutorial || !(e.config.n < lv.no))) {
         throw new Error(lv.code + ' 引用了不早于自己的 *' + PAD(e.config.n));
       }
     });

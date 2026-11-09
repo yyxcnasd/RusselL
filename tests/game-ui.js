@@ -19,22 +19,26 @@ runTest('game-ui', async ({ openPage }) => {
       hasLogic: !!window.RSL.Logic
     };
   })()`);
-  equal(home.levels, 96, '游戏加载 96 关');
-  equal(home.code, '*01', '首关显示 *01');
-  includes(home.goal.replace(/\s+/g, ''), 'P→P', '首关目标 P→P');
+  equal(home.levels, 115, '游戏加载 96 主线 + 19 教学关');
+  equal(home.code, 'i', '首关是教学关 i');
+  includes(home.goal.replace(/\s+/g, ''), 'P→P', '教学关目标 P→P');
   ok(home.tiles > 0, '元件栏有构造/规则/公理');
   equal(home.hasTerm, true, '唯一表达式核心已加载');
   equal(home.hasLogic, false, '旧 Logic 不再加载');
 
-  /* 选关面板：4 章 × 24 格 */
+  /* 选关面板：4 章 ×（教学 + 12 普通 + 12 进阶） */
   await page.js('document.querySelector("#levelBtn").click()');
-  await page.waitFor('document.querySelectorAll("[data-level]").length === 96');
+  await page.waitFor('document.querySelectorAll("[data-level]").length === 115');
   const sheet = await page.js(`(function(){
+    var labels = Array.from(document.querySelectorAll('[data-level]')).map(function(b){return b.getAttribute('aria-label')});
     return {chapters: document.querySelectorAll('.chapter').length,
-            aria: Array.from(document.querySelectorAll('[data-level]')).slice(24,26).map(function(b){return b.getAttribute('aria-label')})};
+            tutorials: document.querySelectorAll('.band.tutorial').length,
+            labels: labels};
   })()`);
   equal(sheet.chapters, 4, '选关有 4 章');
-  includes(sheet.aria[0], '*25', '第Ⅱ章首关是 *25');
+  equal(sheet.tutorials, 4, '每章有教学分带');
+  includes(sheet.labels.join('|'), '*25', '第Ⅱ章首关是 *25');
+  await page.shot('levels');
   await page.js('window.RSL.UI.closeSheet()');
 
   /* 帮助与成就面板 */
@@ -47,8 +51,25 @@ runTest('game-ui', async ({ openPage }) => {
   equal(await page.js('document.querySelectorAll(".achv").length'), 20, '成就面板 20 格');
   await page.js('window.RSL.UI.closeSheet()');
 
+  /* 元件栏合并：原子 P/Q/R 共享一个 tile，具体字母在配置弹层里选 */
+  const mergedTray = await page.js(`(function(){
+    var app = window.RSL.APP;
+    var idx = app.state.levels.map(function(l){return l.code}).indexOf('*01');
+    app.loadLevel(idx);
+    var parts = window.RSL.Catalog.partsForLevel(app.state.level);
+    var atom = parts.filter(function(p){return p.kind==='atom'})[0];
+    return {atomTiles: parts.filter(function(p){return p.kind==='atom'}).length,
+            variants: atom && atom.variants ? atom.variants.length : 0};
+  })()`);
+  equal(mergedTray.atomTiles, 1, '原子只占一个元件');
+  ok(mergedTray.variants >= 3, '原子弹层包含 P/Q/R 变体');
+  await page.js('document.querySelector(".tile[data-key=\\"atom:*\\"]").click()');
+  await page.sleep(150);
+  const popover = await page.js('document.querySelectorAll(".letter-grid .opt").length');
+  ok(popover >= 3, '原子配置弹层可切换字母');
+
   /* 最后一关：*96 与目标 */
-  await page.js('window.RSL.APP.loadLevel(95)');
+  await page.js('window.RSL.APP.loadLevel(window.RSL.APP.state.levels.map(function(l){return l.code}).indexOf("*96"))');
   await page.sleep(300);
   const last = await page.js(`(function(){
     return {code: window.RSL.APP.state.level.code,

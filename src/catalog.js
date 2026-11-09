@@ -18,10 +18,11 @@
       var ch = chapters[lv.chapter] || chapters[0];
       copy.chapterGroup = ch ? ch.id : 'Ⅰ';
       copy.chapterKey = ch ? ch.key : 'prop';
-      copy.chapterOrder = (counts[lv.chapter] = (counts[lv.chapter] || 0) + 1);
+      copy.tutorial = !!lv.tutorial;
+      copy.chapterOrder = copy.tutorial ? 0 : (counts[lv.chapter] = (counts[lv.chapter] || 0) + 1);
       copy.index = i;
       copy.order = i + 1;
-      copy.band = copy.chapterOrder <= 12 ? 'base' : 'challenge';
+      copy.band = copy.tutorial ? 'tutorial' : (copy.chapterOrder <= 12 ? 'base' : 'challenge');
       copy.requires = i ? [levels[i - 1].code] : [];
       copy.difficulty = lv.difficulty || 0;
       return copy;
@@ -79,18 +80,45 @@
     theorem: 50
   };
 
+  /* 构造类元件在托盘里合并成一个 tile，具体取值（P/Q、x/y、F/=、∀x/∀y、∃x/∃y）
+     放到节点的配置弹层里选；规则/公理/定理仍按实际条目显示。 */
+  var MERGE = { atom: 1, term: 1, pred: 1, all: 1, exists: 1 };
+  var FAMILY_SYMBOL = { atom: 'P', term: 'x', pred: 'F', all: '∀', exists: '∃' };
+  var FAMILY_LABEL = { atom: '原子命题', term: '个体变元', pred: '谓词 / 等词', all: '全称', exists: '存在' };
+
   function partsForLevel(level) {
-    var out = (level.palette || []).map(function (entry) {
+    var out = [];
+    var merged = {};
+    (level.palette || []).forEach(function (entry) {
       var kind = entry.kind;
       var cfg = Object.assign({}, entry.config || {});
-      var symbol = symbolOf(entry);
-      return {
+      if (MERGE[kind]) {
+        var part = merged[kind];
+        if (!part) {
+          part = merged[kind] = {
+            key: kind + ':*',
+            kind: kind,
+            symbol: FAMILY_SYMBOL[kind] || symbolOf(entry),
+            name: FAMILY_LABEL[kind] || nameOf(entry),
+            config: cfg,
+            variants: []
+          };
+          out.push(part);
+        }
+        var sig = JSON.stringify(cfg);
+        if (!part.variants.some(function (v) { return v.sig === sig; })) {
+          part.variants.push({ sig: sig, config: cfg, symbol: symbolOf(entry), name: nameOf(entry) });
+          part.name = part.name.split('：')[0] + '：' + part.variants.map(function (v) { return v.symbol; }).join(' / ');
+        }
+        return;
+      }
+      out.push({
         key: kind + ':' + JSON.stringify(cfg),
         kind: kind,
-        symbol: symbol,
+        symbol: symbolOf(entry),
         name: nameOf(entry),
         config: cfg
-      };
+      });
     });
     out.sort(function (a, b) { return (RANK[a.kind] || 0) - (RANK[b.kind] || 0); });
     return out;

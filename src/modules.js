@@ -152,10 +152,10 @@
       label: '原子命题', kindLabel: 'ATOM', group: 'build', symbol: 'P', construct: true,
       ports: { inputs: [], outputs: [{ id: 'out', label: '公式', type: FORMULA }] },
       config: { name: 'P' },
-      help: '命题变元 P/Q/R/S/T：代入规则可以把它换成任意公式。',
+      help: '命题变元 P/Q/R/S/T/U/V：代入规则可以把它换成任意公式。',
       apply: function (inputs, cfg) {
         var name = (cfg.name || 'P').toUpperCase().slice(0, 1);
-        if (!/^[PQRST]$/.test(name)) name = 'P';
+        if (!/^[PQRSTUV]$/.test(name)) name = 'P';
         return { tokens: wffOf([name]), note: '原子 ' + name };
       }
     },
