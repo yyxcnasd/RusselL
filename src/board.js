@@ -81,7 +81,6 @@
     this._groupDrag = null;
     this._marquee = null;
     this._pan = null;
-    this._long = null;
     this._touches = Object.create(null);   // pointerId -> {x,y}，双指缩放用
     this._pinch = null;
     this._lastTap = null;                  // 双击空板 = 适应视图
@@ -216,7 +215,6 @@
   Board.prototype._startPinch = function () {
     var pair = this._pinchPair();
     if (!pair) return;
-    this._cancelLong();
     this._drag = null;
     this._groupDrag = null;
     this._pan = null;
@@ -335,7 +333,6 @@
       this.selectedEdge = wireHit.dataset.edge;
       this.render();
       this.onSelect(null, this.selectedEdge);
-      if (e.pointerType === 'touch') this._startLong('edge', this.selectedEdge);
       return;
     }
     var nodeEl = e.target.closest && e.target.closest('.node');
@@ -364,7 +361,6 @@
       }
       this.selectedNodes = [node.id];
       this.select(node.id);
-      if (e.pointerType === 'touch' && node.kind !== 'target') this._startLong('node', node.id);
       if (node.kind === 'target') return;
       var p = this._client(e.clientX, e.clientY);
       this._drag = { id: node.id, dx: p.x - node.x, dy: p.y - node.y, ox: node.x, oy: node.y, moved: false, sx: e.clientX, sy: e.clientY };
@@ -475,7 +471,6 @@
       return;
     }
     if (this._drag) {
-      if (this._long) this._cancelLong();
       var node = this.node(this._drag.id);
       if (!node) return;
       var p = this._client(e.clientX, e.clientY);
@@ -511,7 +506,6 @@
         return;
       }
     }
-    this._cancelLong();
     if (this._pendingDetach) {
       var tapDetach = this._pendingDetach;
       this._pendingDetach = null;
@@ -651,32 +645,7 @@
     this.onSelect(null, null);
   };
 
-  Board.prototype._startLong = function (type, id) {
-    var self = this;
-    this._cancelLong();
-    this._long = {
-      type: type,
-      id: id,
-      timer: setTimeout(function () {
-        self._long = null;
-        self._drag = null;
-        self._pan = null;
-        self.board.classList.remove('is-panning');
-        if (type === 'node') self.removeNode(id);
-        else self.removeEdge(id);
-      }, 650)
-    };
-  };
-
-  Board.prototype._cancelLong = function () {
-    if (this._long) {
-      clearTimeout(this._long.timer);
-      this._long = null;
-    }
-  };
-
   Board.prototype._cancel = function () {
-    this._cancelLong();
     this._drag = null;
     this._groupDrag = null;
     if (this._marquee && this._marquee.el && this._marquee.el.parentNode) this._marquee.el.parentNode.removeChild(this._marquee.el);
