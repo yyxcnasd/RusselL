@@ -114,7 +114,7 @@ npm run build:toy                # 生成 dist/（维护模式下只有维护页
 | `src/term.js` | 唯一表达式核心：canonical token、解析/格式化、代入、捕获规避变元替换 |
 | `src/modules.js` | 唯一模块注册表：构造、公理、推理规则与定理 |
 | `src/engine.js` | 唯一求值器：拓扑、逐节点求值、目标比较、定理引用校验 |
-| `src/route.js` | 纯几何走线：正交 A*、45° 倒角、去尖刺 |
+| `src/route.js` | 纯几何走线：稀疏车道图、45° 倒角、去尖刺 |
 | `src/board.js` | 棋盘编辑器：缩放平移、节点/导线交互、渲染 |
 | `src/main.js` | 应用状态、存档、关卡流程、合并元件与配置弹层 |
 | `src/ui.js` | DOM 基础件、公式显示、toast、面板与焦点管理 |

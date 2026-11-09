@@ -2,16 +2,10 @@
  * No DOM, no Board instance, no app state. Loaded as a classic script before
  * src/board.js; also safe to load in a Node vm (only touches window.RSL).
  *
- * Public surface: window.RSL.Route
- *   ROUTE            grid / clearance constants
- *   simplePoints     quick 2-6 point orthogonal polyline between two points
- *   pathPoints       points -> SVG path string (PCB-style 45° chamfers)
- *   simplify         drop collinear + vacuous points
- *   segmentClear     segment vs. padded node rects test
- *   pathClear        polyline vs. padded node rects test
- *   shortcut         replace A* staircase runs with clean two-segment paths
- *   fallbackRoute    deterministic detour when A* cannot reach the target
- *   route            grid A* (bend / reverse / network-reuse penalties)
+ * Routing is a sparse lane graph instead of a 12px A* grid: candidate x/y
+ * lanes come from free corridors between node rects plus the two port stubs.
+ * Dijkstra on those lanes finds clean orthogonal runs, penalises bends and
+ * other networks' already-used segments, and never produces grid staircases.
  */
 (function () {
   'use strict';
@@ -32,8 +26,7 @@
   function cellSign(v) { return v > 0 ? 1 : (v < 0 ? -1 : 0); }
   function abs(v) { return v < 0 ? -v : v; }
 
-  /* Quick orthogonal polyline between two arbitrary points. Used while
-   * dragging (cheap preview) and as the last-resort fallback. */
+  /* Quick orthogonal polyline. Kept for drag previews and last-resort paths. */
   function simplePoints(x1, y1, x2, y2) {
     if (Math.abs(y2 - y1) < 2) return [{ x: x1, y: y1 }, { x: x2, y: y2 }];
     if (x2 - x1 > 60) {
@@ -52,9 +45,7 @@
     ];
   }
 
-  /* PCB-style 45° chamfers: cut each right-angle corner by a fixed amount.
-   * Points stay integral; only the rendered path string gets the chamfer.
-   * Short runs keep their sharp corner / get a half-length cut so two nearby
+  /* PCB-style 45° chamfers. Short runs get a half-length cut so two nearby
    * corners can never overlap into a spike. */
   function pathPoints(pts) {
     if (!pts || !pts.length) return '';
@@ -83,8 +74,7 @@
     return d;
   }
 
-  /* Drop points that do not change the direction of travel; collinear
-   * reversals (A→B→A) are dropped as well, otherwise they render as spikes. */
+  /* Drop duplicate points and collinear runs, including reversals (A→B→A). */
   function simplify(pts) {
     if (!pts || pts.length <= 2) return pts;
     var out = [pts[0]];
@@ -102,33 +92,28 @@
     return out;
   }
 
-  /* Remove tiny H/V jogs left between two nearby corners (common right at a
-   * port or where several routes negotiate the same corridor). */
-  function despike(pts, rects, freeCheck) {
-    if (!pts || pts.length < 3) return pts;
-    var out = [pts[0]];
-    for (var i = 1; i < pts.length - 1; i++) {
-      var a = out[out.length - 1], b = pts[i], c = pts[i + 1];
-      var ab = abs(a.x - b.x) + abs(a.y - b.y);
-      var bc = abs(c.x - b.x) + abs(c.y - b.y);
-      var small = ab < ROUTE.stub || bc < ROUTE.stub;
-      var aligned = a.x === c.x || a.y === c.y;
-      if (small && aligned && segmentClear(a, c, rects) && (!freeCheck || freeCheck(a, c))) continue;
-      out.push(b);
-    }
-    out.push(pts[pts.length - 1]);
-    return simplify(out);
-  }
-
+  /* Exact axis-aligned segment vs padded rect test (no sampling). */
   function segmentClear(p, q, rects) {
     var pad = ROUTE.segmentPad;
-    var steps = Math.max(1, Math.ceil((abs(q.x - p.x) + abs(q.y - p.y)) / 8));
-    for (var i = 1; i < steps; i++) {
-      var t = i / steps;
-      var x = p.x + (q.x - p.x) * t, y = p.y + (q.y - p.y) * t;
-      for (var r = 0; r < rects.length; r++) {
-        var rr = rects[r];
-        if (x > rr.x - pad && x < rr.x + rr.w + pad && y > rr.y - pad && y < rr.y + rr.h + pad) return false;
+    var horizontal = Math.abs(p.y - q.y) < 0.6;
+    var vertical = Math.abs(p.x - q.x) < 0.6;
+    var loX = Math.min(p.x, q.x), hiX = Math.max(p.x, q.x);
+    var loY = Math.min(p.y, q.y), hiY = Math.max(p.y, q.y);
+    for (var r = 0; r < rects.length; r++) {
+      var rr = rects[r];
+      var x0 = rr.x - pad, x1 = rr.x + rr.w + pad;
+      var y0 = rr.y - pad, y1 = rr.y + rr.h + pad;
+      if (horizontal) {
+        if (p.y > y0 && p.y < y1 && hiX > x0 && loX < x1) return false;
+      } else if (vertical) {
+        if (p.x > x0 && p.x < x1 && hiY > y0 && loY < y1) return false;
+      } else {
+        var steps = Math.max(1, Math.ceil((abs(q.x - p.x) + abs(q.y - p.y)) / 8));
+        for (var i = 1; i < steps; i++) {
+          var t = i / steps;
+          var x = p.x + (q.x - p.x) * t, y = p.y + (q.y - p.y) * t;
+          if (x > x0 && x < x1 && y > y0 && y < y1) return false;
+        }
       }
     }
     return true;
@@ -139,9 +124,7 @@
     return true;
   }
 
-  /* Replace the A* staircase with clean straight / two-segment runs.
-   * extraFree（可选）用来排除已被其它网络占用的线段，避免 shortcut 把
-   * 不同网络的走线压到同一条线上。 */
+  /* Replace a staircase with clean straight / two-segment runs. */
   function shortcut(pts, rects, extraFree) {
     if (!pts || pts.length < 3) return pts;
     function clear(p, q) {
@@ -174,7 +157,24 @@
     return out;
   }
 
-  /* Deterministic detour used when the grid search cannot reach b. */
+  /* Remove tiny H/V jogs left near ports or between nearby corners. */
+  function despike(pts, rects, freeCheck) {
+    if (!pts || pts.length < 3) return pts;
+    var out = [pts[0]];
+    for (var i = 1; i < pts.length - 1; i++) {
+      var a = out[out.length - 1], b = pts[i], c = pts[i + 1];
+      var ab = abs(a.x - b.x) + abs(a.y - b.y);
+      var bc = abs(c.x - b.x) + abs(c.y - b.y);
+      var small = ab < ROUTE.stub || bc < ROUTE.stub;
+      var aligned = a.x === c.x || a.y === c.y;
+      if (small && aligned && segmentClear(a, c, rects) && (!freeCheck || freeCheck(a, c))) continue;
+      out.push(b);
+    }
+    out.push(pts[pts.length - 1]);
+    return simplify(out);
+  }
+
+  /* Deterministic outer detour when the lane graph cannot reach b. */
   function fallbackRoute(a, b, rects, fromId, toId) {
     var obstacles = rects.filter(function (r) { return r.id !== fromId && r.id !== toId; });
     var minY = Math.min(a.y, b.y), maxY = Math.max(a.y, b.y);
@@ -191,14 +191,9 @@
     return simplePoints(a.x, a.y, b.x, b.y);
   }
 
-  /* =========================================================================
-   * 占用表（negotiated congestion / rip-up 风格的基础）
-   *
-   * used 的 key 使用**全局**网格坐标（而不是每条走线自己的局部 origin），
-   * 这样不同走线之间才能比较“谁占了哪段”。
-   *   横向线段：y0 === y1，x 取区间；纵向线段：x0 === x1，y 取区间。
-   * shortcut 之前先查占用，避免把两条不同网络的走线折叠到同一条线。
-   * ========================================================================= */
+  /* --------------------------------------------------------------------- *
+   * Occupancy table: global 12px segment keys, used for negotiated routing. *
+   * --------------------------------------------------------------------- */
 
   function segmentKey(x0, y0, x1, y1) {
     if (x0 < x1 || (x0 === x1 && y0 < y1)) return x0 + ',' + y0 + '|' + x1 + ',' + y1;
@@ -227,17 +222,14 @@
       var x0 = +m[1], y0 = +m[2], x1 = +m[3], y1 = +m[4];
       var groups = used[key];
       if (y0 === y1) {
-        var line = y0;
-        (h[line] = h[line] || []).push({ a: Math.min(x0, x1), b: Math.max(x0, x1), groups: groups });
+        (h[y0] = h[y0] || []).push({ a: Math.min(x0, x1), b: Math.max(x0, x1), groups: groups });
       } else if (x0 === x1) {
-        var vline = x0;
-        (v[vline] = v[vline] || []).push({ a: Math.min(y0, y1), b: Math.max(y0, y1), groups: groups });
+        (v[x0] = v[x0] || []).push({ a: Math.min(y0, y1), b: Math.max(y0, y1), groups: groups });
       }
     });
     return { h: h, v: v, cell: cell };
   }
 
-  /* 候选线段是否与其它网络的占用线段共线重叠（占用单位是网格）。 */
   function segmentBlocked(p, q, group, occupancy) {
     var cell = occupancy.cell;
     if (Math.abs(p.y - q.y) < 0.6) {
@@ -267,7 +259,6 @@
     return false;
   }
 
-  /* 把最终路径（而不是 A* 的原始阶梯）登记进占用表。 */
   function markPath(pts, used, group, cell) {
     for (var i = 1; i < pts.length; i += 1) {
       var p = pts[i - 1], q = pts[i];
@@ -285,142 +276,193 @@
     }
   }
 
-  /* A* on a 12px grid: bend penalty + segment-reuse penalty. Reuse only costs
-   * extra between *different* output networks (the same source port may share
-   * a trunk freely). `used` is owned by the caller and mutated with every
-   * routed segment so later routes see earlier trunks.
-   *
-   * opts (optional) carries endpoint node ids for the fallback path only; A*
-   * itself ignores them. `used` and `group` drive the network-reuse penalty:
-   * segments laid down by a different group cost extra, same-group reuse is
-   * free so a fan-out trunk can share a run. */
+  /* --------------------------------------------------------------------- *
+   * Sparse lane graph                                                       *
+   * --------------------------------------------------------------------- */
+
+  function uniqueSorted(vals) {
+    vals = vals.slice().sort(function (a, b) { return a - b; });
+    var out = [];
+    vals.forEach(function (v) {
+      if (!out.length || Math.abs(v - out[out.length - 1]) > 0.6) out.push(v);
+    });
+    return out;
+  }
+
+  function mergeIntervals(list) {
+    var sorted = list.slice().sort(function (a, b) { return a[0] - b[0]; });
+    var merged = [];
+    sorted.forEach(function (it) {
+      var last = merged[merged.length - 1];
+      if (last && it[0] <= last[1]) last[1] = Math.max(last[1], it[1]);
+      else merged.push([it[0], it[1]]);
+    });
+    return merged;
+  }
+
+  function gapCenters(list, min, max) {
+    var merged = mergeIntervals(list);
+    var out = [min, max];
+    var prev = min;
+    merged.forEach(function (it) {
+      if (it[0] > prev + 1) out.push((prev + it[0]) / 2);
+      prev = Math.max(prev, it[1]);
+    });
+    if (max > prev + 1) out.push((prev + max) / 2);
+    return out;
+  }
+
+  function buildLanes(rects, a, b) {
+    var pad = ROUTE.clearance;
+    var xInts = [], yInts = [];
+    var minX = Math.min(a.x, b.x) - ROUTE.stub * 2;
+    var maxX = Math.max(a.x, b.x) + ROUTE.stub * 2;
+    var minY = Math.min(a.y, b.y) - ROUTE.stub * 2;
+    var maxY = Math.max(a.y, b.y) + ROUTE.stub * 2;
+    rects.forEach(function (r) {
+      xInts.push([r.x - pad, r.x + r.w + pad]);
+      yInts.push([r.y - pad, r.y + r.h + pad]);
+      minX = Math.min(minX, r.x - 120);
+      maxX = Math.max(maxX, r.x + r.w + 120);
+      minY = Math.min(minY, r.y - 120);
+      maxY = Math.max(maxY, r.y + r.h + 120);
+    });
+    var xs = gapCenters(xInts, minX - 40, maxX + 40);
+    var ys = gapCenters(yInts, minY - 40, maxY + 40);
+    xs.push(a.x, b.x, a.x + ROUTE.stub, b.x - ROUTE.stub);
+    ys.push(a.y, b.y);
+    return { xs: uniqueSorted(xs), ys: uniqueSorted(ys) };
+  }
+
+  function indexOfValue(arr, v) {
+    for (var i = 0; i < arr.length; i++) if (Math.abs(arr[i] - v) < 0.6) return i;
+    return -1;
+  }
+
   function route(a, b, rects, used, group, opts) {
     rects = rects || [];
     used = used || Object.create(null);
     opts = opts || {};
-    var CELL = ROUTE.cell;
-    var xs = [a.x, b.x], ys = [a.y, b.y];
-    rects.forEach(function (r) { xs.push(r.x - ROUTE.bound, r.x + r.w + ROUTE.bound); ys.push(r.y - ROUTE.bound, r.y + r.h + ROUTE.bound); });
-    var minX = Math.floor((Math.min.apply(null, xs) - 180) / CELL) * CELL;
-    var maxX = Math.ceil((Math.max.apply(null, xs) + 180) / CELL) * CELL;
-    var minY = Math.floor((Math.min.apply(null, ys) - 180) / CELL) * CELL;
-    var maxY = Math.ceil((Math.max.apply(null, ys) + 180) / CELL) * CELL;
-    var cols = Math.max(2, Math.round((maxX - minX) / CELL) + 1);
-    var rows = Math.max(2, Math.round((maxY - minY) / CELL) + 1);
-    var blocked = new Uint8Array(cols * rows);
-    var i;
-    for (i = 0; i < rects.length; i++) {
-      var r = rects[i];
-      var x0 = Math.floor((r.x - ROUTE.clearance - minX) / CELL), x1 = Math.ceil((r.x + r.w + ROUTE.clearance - minX) / CELL);
-      var y0 = Math.floor((r.y - ROUTE.clearance - minY) / CELL), y1 = Math.ceil((r.y + r.h + ROUTE.clearance - minY) / CELL);
-      for (var yy = Math.max(0, y0); yy <= Math.min(rows - 1, y1); yy++)
-        for (var xx = Math.max(0, x0); xx <= Math.min(cols - 1, x1); xx++) blocked[yy * cols + xx] = 1;
-    }
-    var sx = Math.max(1, Math.min(cols - 2, Math.round((a.x - minX) / CELL)));
-    var sy = Math.max(1, Math.min(rows - 2, Math.round((a.y - minY) / CELL)));
-    var ex = Math.max(1, Math.min(cols - 2, Math.round((b.x - minX) / CELL)));
-    var ey = Math.max(1, Math.min(rows - 2, Math.round((b.y - minY) / CELL)));
-    function clear(cx, cy) {
-      for (var oy = -1; oy <= 1; oy++) for (var ox = -1; ox <= 1; ox++) {
-        var nx = cx + ox, ny = cy + oy;
-        if (nx >= 0 && nx < cols && ny >= 0 && ny < rows) blocked[ny * cols + nx] = 0;
+    if (Math.abs(a.x - b.x) < 0.6 && Math.abs(a.y - b.y) < 0.6) return [a, b];
+
+    var occupancy = buildOccupancy(used, ROUTE.cell);
+    var lanes = buildLanes(rects, a, b);
+    var xs = lanes.xs, ys = lanes.ys;
+    var nx = xs.length, ny = ys.length;
+    var total = nx * ny;
+    var free = new Uint8Array(total);
+    var pad = ROUTE.clearance;
+    for (var ix = 0; ix < nx; ix++) {
+      for (var iy = 0; iy < ny; iy++) {
+        var px = xs[ix], py = ys[iy], blocked = false;
+        for (var r = 0; r < rects.length; r++) {
+          var rr = rects[r];
+          if (px > rr.x - pad && px < rr.x + rr.w + pad &&
+              py > rr.y - pad && py < rr.y + rr.h + pad) { blocked = true; break; }
+        }
+        free[ix * ny + iy] = blocked ? 0 : 1;
       }
     }
-    clear(sx, sy); clear(ex, ey);
-    var DX = [1, 0, -1, 0], DY = [0, 1, 0, -1];
-    var total = cols * rows * 4;
-    var dist = new Float32Array(total); dist.fill(1e9);
-    var prev = new Int32Array(total); prev.fill(-1);
-    var startStates = [];
-    for (var d0 = 0; d0 < 4; d0++) {
-      var st = (sy * cols + sx) * 4 + d0;
-      dist[st] = 0;
-      startStates.push(st);
+    var sx = indexOfValue(xs, a.x), sy = indexOfValue(ys, a.y);
+    var ex = indexOfValue(xs, b.x), ey = indexOfValue(ys, b.y);
+    if (sx < 0 || sy < 0 || ex < 0 || ey < 0) {
+      var fb0 = fallbackRoute(a, b, rects, opts.fromId, opts.toId);
+      markPath(fb0, used, group, ROUTE.cell);
+      return fb0;
     }
-    // binary heap
-    var heap = [], hDist = [];
+    free[sx * ny + sy] = 1;
+    free[ex * ny + ey] = 1;
+
+    var DX = [1, 0, -1, 0], DY = [0, 1, 0, -1];
+    var states = total * 4;
+    var dist = new Float64Array(states);
+    dist.fill(Infinity);
+    var prev = new Int32Array(states);
+    prev.fill(-1);
+    var heapS = [], heapF = [];
     function push(state, score) {
-      heap.push(state); hDist.push(score);
-      var n = heap.length - 1;
+      heapS.push(state); heapF.push(score);
+      var n = heapS.length - 1;
       while (n > 0) {
         var p = (n - 1) >> 1;
-        if (hDist[p] <= hDist[n]) break;
-        var ts = heap[p]; heap[p] = heap[n]; heap[n] = ts;
-        var td = hDist[p]; hDist[p] = hDist[n]; hDist[n] = td;
+        if (heapF[p] <= heapF[n]) break;
+        var ts = heapS[p]; heapS[p] = heapS[n]; heapS[n] = ts;
+        var tf = heapF[p]; heapF[p] = heapF[n]; heapF[n] = tf;
         n = p;
       }
     }
     function pop() {
-      var top = heap[0], lastS = heap.pop(), lastD = hDist.pop();
-      if (heap.length) {
-        heap[0] = lastS; hDist[0] = lastD;
+      var top = heapS[0], lastS = heapS.pop(), lastF = heapF.pop();
+      if (heapS.length) {
+        heapS[0] = lastS; heapF[0] = lastF;
         var n = 0;
         while (true) {
           var l = n * 2 + 1, r = l + 1, m = n;
-          if (l < heap.length && hDist[l] < hDist[m]) m = l;
-          if (r < heap.length && hDist[r] < hDist[m]) m = r;
+          if (l < heapS.length && heapF[l] < heapF[m]) m = l;
+          if (r < heapS.length && heapF[r] < heapF[m]) m = r;
           if (m === n) break;
-          var ts = heap[m]; heap[m] = heap[n]; heap[n] = ts;
-          var td = hDist[m]; hDist[m] = hDist[n]; hDist[n] = td;
+          var ts = heapS[m]; heapS[m] = heapS[n]; heapS[n] = ts;
+          var tf = heapF[m]; heapF[m] = heapF[n]; heapF[n] = tf;
           n = m;
         }
       }
       return top;
     }
-    startStates.forEach(function (s) { push(s, 0); });
-    var found = -1;
-    var guard = 0;
-    while (heap.length && guard++ < 60000) {
+    function heuristic(ix, iy) {
+      return Math.abs(xs[ix] - b.x) + Math.abs(ys[iy] - b.y);
+    }
+    var startCell = sx * ny + sy, endCell = ex * ny + ey;
+    for (var d0 = 0; d0 < 4; d0++) {
+      var st = startCell * 4 + d0;
+      dist[st] = 0;
+      push(st, heuristic(sx, sy));
+    }
+    var found = -1, guard = 0, cap = Math.min(240000, states);
+    while (heapS.length && guard++ < cap) {
       var state = pop();
       var dir = state & 3, cell = state >> 2;
-      var cx = cell % cols, cy = (cell / cols) | 0;
-      if (cx === ex && cy === ey) { found = state; break; }
+      if (cell === endCell) { found = state; break; }
+      var cx = (cell / ny) | 0, cy = cell % ny;
+      var g = dist[state];
       for (var nd = 0; nd < 4; nd++) {
-        var nx = cx + DX[nd], ny = cy + DY[nd];
-        if (nx < 0 || ny < 0 || nx >= cols || ny >= rows) continue;
-        if (blocked[ny * cols + nx]) continue;
-        var ncell = ny * cols + nx;
+        var nIx = cx + DX[nd], nIy = cy + DY[nd];
+        if (nIx < 0 || nIy < 0 || nIx >= nx || nIy >= ny) continue;
+        var ncell = nIx * ny + nIy;
+        if (!free[ncell]) continue;
+        var p = { x: xs[cx], y: ys[cy] }, q = { x: xs[nIx], y: ys[nIy] };
+        if (!segmentClear(p, q, rects)) continue;
+        var len = Math.abs(q.x - p.x) + Math.abs(q.y - p.y);
+        var blocked = segmentBlocked(p, q, group, occupancy);
+        var cost = len + (nd !== dir ? ROUTE.bend : 0) +
+          (blocked ? ROUTE.networkPenalty * (len / ROUTE.cell) : 0);
         var nstate = ncell * 4 + nd;
-        /* used 的 key 走全局网格坐标：minX/minY 已经是 CELL 的整数倍。 */
-        var baseGX = Math.round(minX / CELL), baseGY = Math.round(minY / CELL);
-        var sk = (cx < nx || (cx === nx && cy < ny))
-          ? ((baseGX + cx) + ',' + (baseGY + cy) + '|' + (baseGX + nx) + ',' + (baseGY + ny))
-          : ((baseGX + nx) + ',' + (baseGY + ny) + '|' + (baseGX + cx) + ',' + (baseGY + cy));
-        var reuse = groupConflict(used[sk], group);
-        var cost = 1 + (nd === (dir + 2) % 4 ? ROUTE.reverse : (nd !== dir ? ROUTE.bend : 0)) + (reuse ? ROUTE.networkPenalty : 0);
-        var ndist = dist[state] + cost;
+        var ndist = g + cost;
         if (ndist < dist[nstate]) {
           dist[nstate] = ndist;
           prev[nstate] = state;
-          push(nstate, ndist + Math.abs(nx - ex) + Math.abs(ny - ey));
+          push(nstate, ndist + heuristic(nIx, nIy));
         }
       }
     }
     if (found < 0) {
-      var fallback = fallbackRoute(a, b, rects, opts.fromId, opts.toId);
-      markPath(fallback, used, group, CELL);
-      return fallback;
+      var fb = fallbackRoute(a, b, rects, opts.fromId, opts.toId);
+      markPath(fb, used, group, ROUTE.cell);
+      return fb;
     }
     var cells = [];
     var cur = found;
     while (cur >= 0) {
-      var cell2 = cur >> 2;
-      cells.push({ x: (cell2 % cols) * CELL + minX, y: ((cell2 / cols) | 0) * CELL + minY });
+      var c2 = cur >> 2;
+      cells.push({ x: xs[(c2 / ny) | 0], y: ys[c2 % ny] });
       cur = prev[cur];
     }
     cells.reverse();
-    var pts = [{ x: a.x, y: a.y }];
-    cells.forEach(function (p) { if (p.x !== a.x || p.y !== a.y) pts.push(p); });
-    pts.push({ x: b.x, y: b.y });
-    var occupancy = buildOccupancy(used, CELL);
-    var finalPts = shortcut(simplify(pts), rects, function (p, q) {
+    var pts = simplify(cells);
+    pts = despike(pts, rects, function (p, q) {
       return !segmentBlocked(p, q, group, occupancy);
     });
-    finalPts = despike(finalPts, rects, function (p, q) {
-      return !segmentBlocked(p, q, group, occupancy);
-    });
-    markPath(finalPts, used, group, CELL);
-    return finalPts;
+    markPath(pts, used, group, ROUTE.cell);
+    return pts;
   }
 
   root.RSL.Route = {

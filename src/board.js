@@ -772,10 +772,10 @@
     return path;
   }
 
-  /* Full routing pass: A* for every edge, ordered by span so short wires lay
-   * down first. Rebuilds the SVG layer (wire elements are cheap and stable). */
-  /* 简单正交折线：重放关的参考电路可能有几百条导线，不需要逐条 A* 避障。 */
-  /* 端点很近时缩短出线/入线 stub，避免两个 stub 互相越过、A* 在端口之间来回绕。 */
+  /* Full routing pass: sparse lane routing for every edge, ordered by span
+   * so short wires lay down first. Rebuilds the SVG layer. */
+  /* 简单正交折线：参考电路可能有几百条导线，不需要逐条寻路。 */
+  /* 端点很近时缩短出线/入线 stub，避免两个 stub 互相越过。 */
   function wireStubPoints(a, b) {
     var stub = ROUTE.stub;
     var dx = b.x - a.x;
@@ -791,7 +791,7 @@
   }
 
   /* 端口离得很近（或目标在左侧）时不再交给 A*：用固定车道画一条短 Z/U 线，
-   * 避免 A* 在两个 stub 之间来回绕。返回 null 表示按常规 stub + A* 处理。 */
+   * 避免布线在端口之间来回绕。返回 null 表示按常规 stub + 车道图处理。 */
   function closeWirePoints(a, b, ra, rb) {
     if (!ra || !rb) return null;
     var gap = rb.x - (ra.x + ra.w);
@@ -842,7 +842,7 @@
     this._wireEls = Object.create(null);
     var worldRect = this.world.getBoundingClientRect();
 
-    /* 大图：导线用简单正交折线，避免几百条线各跑一次 A*（由 main.js 按图规模开启）。 */
+    /* 大图：导线用简单正交折线，避免几百条线逐条寻路（由 main.js 按图规模开启）。 */
     if (this.simpleWires) {
       var usedSimple = Object.create(null);
       var simpleRoutes = Object.create(null);
@@ -922,7 +922,7 @@
   };
 
   /* Drag-time preview: cheap orthogonal polylines for the wires that touch the
-   * moved nodes, patched straight into the existing SVG paths (no A*, no DOM
+   * moved nodes, patched straight into the existing SVG paths (no routing, no DOM
    * re-creation). pointerup runs render() -> full route again. */
   Board.prototype._updateWiresCheap = function (movedIds) {
     if (!this._lastUsed || !this._wireEls) return this._updateWires();
