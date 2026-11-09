@@ -67,7 +67,10 @@
     state.lastId = p.lastId || null;
   }
 
-  function saveProgress() { SAVE.store(SAVE.payload(state)); }
+  function saveProgress() {
+    SAVE.store(SAVE.payload(state));
+    if (window.RSL.CloudSave) window.RSL.CloudSave.schedule(state);
+  }
 
   function exportSave() {
     var data = SAVE.payload(state);
@@ -229,7 +232,6 @@
 
     var level = state.level;
     state.parts = Catalog.partsForLevel(level);
-    if (els.hintBtn) els.hintBtn.style.display = 'none';
     if (els.tray) els.tray.classList.remove('is-wide');
 
     var saved = state.circuits[level.id];
@@ -622,6 +624,7 @@
     els.checkBtn.addEventListener('click', check);
     els.helpBtn.addEventListener('click', Screens.openHelp);
     els.achvBtn.addEventListener('click', Screens.openAchievements);
+    if (els.hintBtn) els.hintBtn.addEventListener('click', showHint);
     els.saveFile.addEventListener('change', function () {
       importSave(els.saveFile.files && els.saveFile.files[0]);
       els.saveFile.value = '';
@@ -722,6 +725,12 @@
       }
     });
 
+    window.addEventListener('pagehide', function () {
+      if (window.RSL.CloudSave && window.RSL.CloudSave.isToyHost()) {
+        window.RSL.CloudSave.flush(state);
+      }
+    });
+
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') {
         if (paletteHold) { clearPaletteHold(); return; }
@@ -756,7 +765,23 @@
    * 9. 启动
    * ========================================================================= */
 
-  function init() {
+  function showHint() {
+    var level = state.level;
+    if (!level || !window.RSL.Hints) return;
+    window.RSL.Hints.checkGate().then(function (gate) {
+      if (gate.allowed) Screens.openHint(level, gate);
+      else Screens.openFollowPrompt(gate);
+    });
+  }
+
+  function followAuthor() {
+    if (!window.RSL.Hints) return;
+    window.RSL.Hints.follow().catch(function () {
+      UI.toast('打开关注页失败，请稍后重试');
+    });
+  }
+
+  async function init() {
     els = UI.init();
     if (!window.RSL.Term || !window.RSL.Engine) { document.body.innerHTML = '<div class="fatal">公式引擎未加载</div>'; return; }
     loadProgress();
@@ -765,6 +790,13 @@
     updateSoundBtn();
     if (!state.sound) Audio.setSound(false);
     buildLevels();
+
+    if (window.RSL.CloudSave) {
+      var cloud = await window.RSL.CloudSave.init(state);
+      if (cloud && window.RSL.CloudSave.apply(state, cloud)) {
+        UI.toast('已同步账号存档');
+      }
+    }
 
     state.board = new window.RSL.Board({
       board: els.board,
@@ -789,7 +821,8 @@
       nextLevel: nextLevel,
       isUnlocked: isUnlocked,
       exportSave: exportSave,
-      requestImport: function () { els.saveFile.click(); }
+      requestImport: function () { els.saveFile.click(); },
+      followAuthor: followAuthor
     });
 
     bind();

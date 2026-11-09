@@ -132,6 +132,12 @@
 
   function openHelp() {
     host.RSL.Audio.sfx('click');
+    var toy = host.RSL.CloudSave && host.RSL.CloudSave.isToyHost();
+    var saveRow = toy ? '' :
+      '<div class="save-row">' +
+        '<button class="save-btn" data-save-export title="保存存档" aria-label="保存存档"><svg class="icon"><use href="#i-arrow-down-tray"></use></svg></button>' +
+        '<button class="save-btn" data-save-import title="加载存档" aria-label="加载存档"><svg class="icon"><use href="#i-arrow-up-tray"></use></svg></button>' +
+      '</div>';
     UI.openSheet(closeButton() +
       '<div class="help">' +
         '<div class="help-steps">' +
@@ -150,10 +156,40 @@
           helpCard('=I', 't = t') +
           helpCard('=L', 'x=y ⇒ A(x)→A(y)') +
         '</div>' +
-        '<div class="save-row">' +
-          '<button class="save-btn" data-save-export title="保存存档" aria-label="保存存档"><svg class="icon"><use href="#i-arrow-down-tray"></use></svg></button>' +
-          '<button class="save-btn" data-save-import title="加载存档" aria-label="加载存档"><svg class="icon"><use href="#i-arrow-up-tray"></use></svg></button>' +
-        '</div>' +
+        (toy ? '<p class="cloud-note">存档自动同步到当前 B 站账号</p>' : '') +
+        saveRow +
+      '</div>' +
+      '<p class="credit">Designed by yyxcnasd</p>');
+  }
+
+  function openHint(level, gate) {
+    host.RSL.Audio.sfx('click');
+    var text = host.RSL.Hints ? host.RSL.Hints.text(level) : (level.hint || level.teaches || '');
+    var note = gate && gate.mode === 'toy' ? 'B 站 Toy · 已关注 UP 主' : '网页版 · 提示直接可用';
+    UI.openSheet(closeButton() +
+      '<div class="hint-sheet">' +
+        '<div class="hint-kicker">HINT · ' + UI.esc(level.code) + '</div>' +
+        '<p class="hint-text">' + UI.esc(text) + '</p>' +
+        '<p class="hint-note">' + note + '。提示只给方向，不替你接线。</p>' +
+      '</div>' +
+      '<p class="credit">Designed by yyxcnasd</p>');
+  }
+
+  function openFollowPrompt(gate) {
+    host.RSL.Audio.sfx('click');
+    var reason = gate && gate.reason;
+    var lead = reason === 'unauthorized'
+      ? '先登录 B 站，并关注 UP 主，才能打开提示。'
+      : (reason === 'unsupported'
+        ? '请在 B 站 App 内打开 Toy，并关注 UP 主后再回来。'
+        : '关注 UP 主后，才能打开每一关的提示。');
+    var author = host.RSL.Hints ? host.RSL.Hints.author.name : 'UP 主';
+    UI.openSheet(closeButton() +
+      '<div class="hint-sheet">' +
+        '<div class="hint-kicker">HINT</div>' +
+        '<p class="hint-text">' + lead + '</p>' +
+        '<p class="hint-note">关注 ' + UI.esc(author) + '，回到这里再点一次闪电图标。</p>' +
+        '<div class="hint-actions"><button class="hint-follow" data-follow>去关注</button></div>' +
       '</div>' +
       '<p class="credit">Designed by yyxcnasd</p>');
   }
@@ -242,6 +278,11 @@
     if (target.closest && target.closest('[data-back]')) { openAchievements(); return; }
     if (target.closest && target.closest('[data-save-export]')) { ctx.exportSave(); return; }
     if (target.closest && target.closest('[data-save-import]')) { ctx.requestImport(); return; }
+    if (target.closest && target.closest('[data-follow]')) {
+      UI.closeSheet();
+      if (ctx.followAuthor) ctx.followAuthor();
+      return;
+    }
     var cell = target.closest && target.closest('[data-level]');
     if (cell) {
       var index = parseInt(cell.dataset.level, 10);
@@ -255,6 +296,8 @@
     init: init,
     openLevels: openLevels,
     openHelp: openHelp,
+    openHint: openHint,
+    openFollowPrompt: openFollowPrompt,
     openAchievements: openAchievements,
     openAchievement: openAchievement,
     openWin: openWin

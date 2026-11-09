@@ -1,20 +1,23 @@
 <div align="center">
   <img src="assets/favicon.svg" width="88" alt="公理板">
-  <h1>公理板</h1>
+  <h1>RussuelL · 公理板</h1>
   <p><b>把形式证明，接成一块板。</b></p>
   <p>一款基于 Metamath <code>set.mm</code> 的接线证明游戏。<br>
      每关给你一块空板、几枚公理或规则模块，以及一个要证的断言。</p>
 
   <p>
     <a href="https://github.com/yyxcnasd/RusselL"><img alt="源码" src="https://img.shields.io/badge/SOURCE-GitHub-24292f?style=for-the-badge"></a>
+    <a href="https://yyxcnasd.github.io/RusselL/"><img alt="网页版" src="https://img.shields.io/badge/PLAY-GitHub%20Pages-3f8e65?style=for-the-badge"></a>
+    <img alt="B站 Toy" src="https://img.shields.io/badge/BILIBILI-Toy-e66f3f?style=for-the-badge">
     <img alt="版本" src="https://img.shields.io/badge/VERSION-v3.0.0-3f8e65?style=for-the-badge">
     <img alt="主线关卡" src="https://img.shields.io/badge/MAIN-96-4f7fb5?style=for-the-badge">
     <img alt="教学关" src="https://img.shields.io/badge/TUTORIAL-18-d3ad68?style=for-the-badge">
-    <img alt="章节" src="https://img.shields.io/badge/CHAPTERS-4-e66f3f?style=for-the-badge">
   </p>
 
   <p>
+    <a href="#两个版本">两个版本</a> ·
     <a href="#怎么玩">怎么玩</a> ·
+    <a href="#提示">提示</a> ·
     <a href="#关卡结构">关卡结构</a> ·
     <a href="#演算与元件">演算与元件</a> ·
     <a href="#成就存档与进度">成就与存档</a> ·
@@ -28,15 +31,32 @@
   <img src="screenshots/levels.png" width="840" alt="选关界面：每章分教学、普通、进阶三段">
 </p>
 
+## 两个版本
+
+**GitHub Pages** 是网页版：[yyxcnasd.github.io/RusselL](https://yyxcnasd.github.io/RusselL/)。打开就能玩，存档留在浏览器本地，也可以从帮助页导出/导入 JSON。
+
+**Bilibili Toy** 是站内版，slug 为 `RusselL`。关卡、规则和成绩与网页版一致；Toy 版把存档自动写到当前 B 站账号的云存储，帮助页不再显示上传/下载按钮。提示功能需要关注 UP 主，详见下一节。上线地址是 `https://www.bilibili.com/toy/RusselL/index.html`（审核通过后可用）。
+
+<p align="center">
+  <img src="release/toy-poster.png" width="720" alt="RussuelL · 公理板 Toy 封面">
+</p>
+
 ## 怎么玩
 
 1. **拿模块**：从下栏把模块拖到板上。也可以点一下模块，再点画布放下。
 2. **接线**：从模块右侧圆点拖到另一个模块左侧圆点；先点输出、再点输入也可以。
 3. **校验**：把最终断言接到右侧的 `⊢`，点顶栏最右边的播放键。
 
-右键删除模块或导线；把模块拖回下边栏也能删。已接线的输入端可以按住拖走拆线，拖到别的输入端重接。触屏支持双指缩放，双击空板回到适应视图。卡住时可以看 [docs/SOLUTIONS.md](docs/SOLUTIONS.md)：114 关逐关列出参考电路的模块与接线。
+右键删除模块或导线；把模块拖回下边栏也能删。已接线的输入端可以按住拖走拆线，拖到别的输入端重接。触屏支持双指缩放，双击空板回到适应视图。卡住时也可以看 [docs/SOLUTIONS.md](docs/SOLUTIONS.md)：114 关逐关列出参考电路的模块与接线。
 
 同一类的构造元件只占一个下栏格子：原子、个体、谓词、`∀`、`∃` 都是放下来之后再从弹层里选具体取值。弹层给的是完整取值集合，不会因为本关参考证明只用了 P/Q/R 就只显示这三个。
+
+## 提示
+
+顶栏的闪电按钮会给出当前关的一段文字提示，内容按关卡单独写，只说明下一步往哪想，不会替你接线，也不会预填参考解。
+
+- **Bilibili Toy**：需要先关注 UP 主「夜与星尘_NaSd」。没有关注时，弹出的窗口只说明关注后才能用提示，并给一个去关注的入口。
+- **GitHub Pages / 本地**：没有站内关注状态可查，提示直接打开。
 
 ## 关卡结构
 
@@ -73,7 +93,9 @@
 ## 成就、存档与进度
 
 - 20 个成就，覆盖章节进度、规则使用、短证明、干净三关和挑战段完成度。
-- 存档写在浏览器 `localStorage`，也可以从帮助页导出/导入 JSON。重进已通关的关卡会恢复你自己的电路，包括接到 `⊢` 的那根终点线。
+- **GitHub Pages / 本地**：存档写在浏览器 `localStorage`，可以从帮助页导出/导入 JSON。
+- **Bilibili Toy**：自动同步到当前 B 站账号的云存储，保存通关进度和当前关卡电路；帮助页不显示上传/下载存档的按钮。
+- 重进已通关的关卡会恢复你自己的电路，包括接到 `⊢` 的那根终点线。
 - 每关记录通关电路的模块数。选关格底部的绿条表示你离参考电路有多近，胜利面板会显示本次长度和参考长度。
 - 存档结构是 v3；读取旧存档时会整理成当前字段，旧字段直接忽略。
 
@@ -111,10 +133,12 @@ node scripts/export-solutions.js # 重新生成 docs/SOLUTIONS.md（114 关参�
 | `src/modules.js` | 唯一模块注册表：构造、公理、推理规则与定理 |
 | `src/engine.js` | 唯一求值器：拓扑、逐节点求值、目标比较、定理引用校验 |
 | `src/wire.js` | 纯几何走线：端口到端口的确定性 Z/U 线、并行车道、45° 倒角 |
+| `src/hints.js` | 逐关提示文字、Toy 关注状态检查与关注入口 |
+| `src/cloudsave.js` | Toy 云存档：分片读写、自动同步；网页版本地存档 |
 | `src/board.js` | 棋盘编辑器：缩放平移、节点/导线交互、渲染 |
 | `src/main.js` | 应用状态、存档、关卡流程、合并元件与配置弹层 |
 | `src/ui.js` | DOM 基础件、公式显示、toast、面板与焦点管理 |
-| `src/screens.js` | 选关、帮助、成就、通关面板 |
+| `src/screens.js` | 选关、帮助、提示、成就、通关面板 |
 | `src/catalog.js` | 章节分组、解锁链、元件栏条目（纯函数） |
 | `src/achievements.js` / `src/save.js` | 成就判定；存档结构与本地读写 |
 | `campaign/` | 手写关卡、参考证明与教学关 |

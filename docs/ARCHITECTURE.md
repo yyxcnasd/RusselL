@@ -14,7 +14,7 @@
 
 ```
 term → levels → campaign-meta → modules → engine → wire → achievements → save
-     → ui → audio → catalog → screens → board → main
+     → hints → cloudsave → ui → audio → catalog → screens → board → main
 ```
 
 | 文件 | 职责 |
@@ -23,7 +23,9 @@ term → levels → campaign-meta → modules → engine → wire → achievemen
 | `src/modules.js` | **唯一模块注册表**：构造（原子/个体/谓词/∈/¬/→/∀/∃/∧/∨/↔）+ 公理 A1–A5 + 集合公理（外延/空集/配对/并集）+ 代入/分离/全称推广/全称引入/全称例化/存在推广/存在消去/等词自反/Leibniz/连接词公理形式/定理 `*NN`；完整清单以 `MODULES` 为准 |
 | `src/engine.js` | **唯一求值器**：拓扑、逐节点 apply、目标精确比较、来源反作弊、定理引用越界校验 |
 | `src/catalog.js` | 关卡目录：章节、band、解锁链、`palette` → 元件栏条目 |
-| `src/screens.js` | 选关/帮助/成就/通关面板 |
+| `src/screens.js` | 选关/帮助/提示/成就/通关面板 |
+| `src/hints.js` | 逐关提示文字；Toy 内查询作者关注状态，未关注时只返回关注入口 |
+| `src/cloudsave.js` | Toy 云存档：按账号分片写入、自动同步；网页版仍用 localStorage |
 | `src/board.js` / `src/main.js` | 棋盘交互与关卡流程（一条 `loadLevel/refresh/check/win`） |
 | `src/levels.js` | 编译器产物：96 主线 + 18 教学关（`targetTokens / palette / initialNodes / solution`） |
 | `campaign/` | 手写内容源：目标、顺序、提示、允许模块、参考证明项；`tutorials.json` 是教学关 |
@@ -41,6 +43,7 @@ campaign/*.json + scripts/build-campaign.js
 - 目标比较用 `Term.eq`（canonical token；没有定义展开，因为不再有定义式模块）。
 - 定理模块按关卡号查找，且引擎拒绝 `n >= 当前关卡`。
 - 存档在 localStorage（版本 3 key 保留），重进关卡可恢复自己的电路。
+- B 站 Toy 版在 localStorage 之外把精简存档分片写入 Toy 云存储；网页版/本地不加载 SDK，仍只读本地存档。
 
 ## 4. 作者链路
 

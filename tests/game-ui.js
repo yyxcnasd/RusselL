@@ -79,6 +79,59 @@ runTest('game-ui', async ({ openPage }) => {
   ok(!/[\u4e00-\u9fa5]/.test(help.text), '帮助图例不含汉字');
   await page.shot('help');
   await page.js('window.RSL.UI.closeSheet()');
+
+  /* 提示按钮：网页版直接打开当前关的定制提示；114 关提示都不为空 */
+  await page.js('document.querySelector("#hintBtn").click()');
+  await page.waitFor('document.querySelector(".hint-sheet") !== null');
+  const hint = await page.js(`(function(){
+    var texts = window.RSL.APP.state.levels.map(function (l) {
+      return window.RSL.Hints.text(l);
+    });
+    return {
+      text: document.querySelector('.hint-text').textContent.trim(),
+      missing: texts.filter(function (t) { return !t; }).length,
+      unique: new Set(texts).size
+    };
+  })()`);
+  ok(hint.text.length > 0, '提示面板显示本关提示');
+  equal(hint.missing, 0, '114 关都有定制提示');
+  equal(hint.unique, 114, '114 关提示内容互不重复');
+  await page.js('window.RSL.UI.closeSheet()');
+
+  /* Toy 内未关注时只弹关注提示，不显示本关提示文字 */
+  await page.js(`window.toy = {
+    getAuthorRelation: function () {
+      return Promise.resolve({ status: 'ok', data: { isFollowing: false, isAuthor: false } });
+    }
+  }; document.querySelector('#hintBtn').click();`);
+  await page.waitFor('document.querySelector(".hint-follow") !== null');
+  const followGate = await page.js(`(function(){
+    return {
+      hasHint: !!document.querySelector('.hint-text'),
+      text: document.querySelector('.hint-text').textContent
+    };
+  })()`);
+  equal(followGate.hasHint, true, '未关注时显示关注提示');
+  ok(/关注/.test(followGate.text), '关注提示包含关注动作');
+  await page.js('window.RSL.UI.closeSheet(); delete window.toy;');
+
+  /* Toy 帮助页不显示上传/下载，改为云存档说明 */
+  await page.js(`window.__realToyHost = window.RSL.CloudSave.isToyHost;
+    window.RSL.CloudSave.isToyHost = function () { return true; };
+    document.querySelector('#helpBtn').click();`);
+  await page.waitFor('document.querySelector(".cloud-note") !== null');
+  const toyHelp = await page.js(`(function(){
+    return {
+      saveButtons: document.querySelectorAll('[data-save-export],[data-save-import]').length,
+      note: document.querySelector('.cloud-note').textContent
+    };
+  })()`);
+  equal(toyHelp.saveButtons, 0, 'Toy 帮助页不显示上传/下载存档');
+  ok(/账号/.test(toyHelp.note), 'Toy 帮助页说明账号云存档');
+  await page.js(`window.RSL.UI.closeSheet();
+    window.RSL.CloudSave.isToyHost = window.__realToyHost;
+    delete window.__realToyHost;`);
+
   await page.js('document.querySelector("#achvBtn").click()');
   await page.waitFor('document.querySelectorAll(".achv").length === 20');
   equal(await page.js('document.querySelectorAll(".achv").length'), 20, '成就面板 20 格');

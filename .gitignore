@@ -17,4 +17,4 @@ Thumbs.db
 dist/
 
 # generated Toy upload package (rebuild with scripts/build-toy + make-toy-assets)
-release/axiom-board-toy.zip
+release/RusselL-toy.zip
