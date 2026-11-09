@@ -10,7 +10,7 @@
 
   var BOARD = 1;
   var SOLVED_UNIT = 100000;
-  var LEVEL_UNIT = 800;
+  var QUALITY_MAX = 99000;
 
   function toy() {
     return root.toy && typeof root.toy.getRankList === 'function' ? root.toy : null;
@@ -21,14 +21,16 @@
   }
 
   function parts(state) {
-    var solved = 0, quality = 0;
+    var solved = 0, weighted = 0, totalRef = 0;
     (state.levels || []).forEach(function (lv) {
+      var ref = (lv.solution && lv.solution.nodes.length) || 1;
+      totalRef += ref;
       if (!state.solved[lv.id]) return;
       solved += 1;
-      var ref = (lv.solution && lv.solution.nodes.length) || 1;
       var best = state.bestLen[lv.id] || ref;
-      quality += Math.round(LEVEL_UNIT * Math.min(1, ref / Math.max(1, best)));
+      weighted += ref * Math.min(1, ref / Math.max(1, best));
     });
+    var quality = totalRef ? Math.round(QUALITY_MAX * weighted / totalRef) : 0;
     return { solved: solved, quality: quality, score: solved * SOLVED_UNIT + quality };
   }
 
@@ -65,7 +67,7 @@
   root.RSL.Leaderboard = {
     BOARD: BOARD,
     SOLVED_UNIT: SOLVED_UNIT,
-    LEVEL_UNIT: LEVEL_UNIT,
+    QUALITY_MAX: QUALITY_MAX,
     parts: parts,
     isToy: isToy,
     submit: submit,

@@ -25,8 +25,8 @@ test('score is solved-count first, module efficiency second', () => {
   };
   const p = L.parts(state);
   assert.equal(p.solved, 2);
-  assert.equal(p.quality, 800 + 400);
-  assert.equal(p.score, 201200);
+  assert.equal(p.quality, Math.round(99000 * 20 / 38));
+  assert.equal(p.score, 200000 + p.quality);
   assert.ok(p.score < 16777216, 'score fits Toy submitScore range');
 });
 
