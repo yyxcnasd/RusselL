@@ -126,7 +126,7 @@
     host.RSL.Audio.sfx('click');
     var body;
     if (!data) {
-      body = '<p class="rank-empty">排行榜暂时不可用，稍后再试。</p>';
+      body = '<p class="rank-empty">稍后再试</p>';
     } else {
       var rows = (data.list || []).map(function (row) {
         return '<li class="rank-row">' +
@@ -136,22 +136,18 @@
           '<span class="rank-score">' + rankScore(row.score) + '</span>' +
         '</li>';
       }).join('');
-      if (!rows) rows = '<li class="rank-empty">还没有人上榜。你可以是第一个。</li>';
+      if (!rows) rows = '<li class="rank-empty">还没有人上榜</li>';
       var mine = data.mine;
       var meLine = mine && mine.ranked
-        ? '我的名次：第 ' + mine.rank + ' 名 · ' + rankScore(mine.score)
-        : '我还没有上榜。先通过一关，成绩会自动提交。';
+        ? '第 ' + mine.rank + ' 名 · ' + rankScore(mine.score)
+        : '未上榜';
       body = '<p class="rank-me">' + meLine + '</p>' +
         '<ol class="rank-list">' + rows + '</ol>';
     }
-    var p = host.RSL.Leaderboard ? host.RSL.Leaderboard.parts(state) : null;
-    var foot = p ? '当前成绩：' + p.solved + ' 关 · 效率分 ' + p.quality + '。通关数优先，同关数比模块效率。' : '';
     UI.openSheet(closeButton() +
       '<div class="rank-sheet">' +
-        '<div class="rank-title">排行榜</div>' +
-        '<p class="rank-sub">通关数第一，模块效率第二</p>' +
+        '<div class="rank-title">RANK</div>' +
         body +
-        '<p class="rank-note">' + foot + '</p>' +
       '</div>');
   }
 
@@ -204,35 +200,21 @@
   function openHint(level, gate) {
     host.RSL.Audio.sfx('click');
     var text = host.RSL.Hints ? host.RSL.Hints.text(level) : (level.hint || level.teaches || '');
-    var note = gate && gate.mode === 'toy'
-      ? (gate.reason === 'preview' ? '预览模式 · 作者可直接查看' : 'B 站 Toy · 已关注 UP 主')
-      : '网页版 · 提示直接可用';
     UI.openSheet(closeButton() +
       '<div class="hint-sheet">' +
-        '<div class="hint-kicker">HINT · ' + UI.esc(level.code) + '</div>' +
+        '<div class="hint-kicker">' + UI.esc(level.code) + '</div>' +
         '<p class="hint-text">' + UI.esc(text) + '</p>' +
-        '<p class="hint-note">' + note + '。提示只给方向，不替你接线。</p>' +
-      '</div>' +
-      '<p class="credit">Designed by yyxcnasd</p>');
+      '</div>');
   }
 
   function openFollowPrompt(gate) {
     host.RSL.Audio.sfx('click');
-    var reason = gate && gate.reason;
-    var lead = reason === 'unauthorized'
-      ? '先登录 B 站，并关注 UP 主，才能打开提示。'
-      : (reason === 'unsupported'
-        ? '请在 B 站 App 内打开 Toy，并关注 UP 主后再回来。'
-        : '关注 UP 主后，才能打开每一关的提示。');
     var author = host.RSL.Hints ? host.RSL.Hints.author.name : 'UP 主';
     UI.openSheet(closeButton() +
       '<div class="hint-sheet">' +
-        '<div class="hint-kicker">HINT</div>' +
-        '<p class="hint-text">' + lead + '</p>' +
-        '<p class="hint-note">关注 ' + UI.esc(author) + '，回到这里再点一次灯泡图标。</p>' +
-        '<div class="hint-actions"><button class="hint-follow" data-follow>去关注</button></div>' +
-      '</div>' +
-      '<p class="credit">Designed by yyxcnasd</p>');
+        '<p class="hint-text">关注 @' + UI.esc(author) + ' 后可用。</p>' +
+        '<div class="hint-actions"><button class="hint-follow" data-follow>关注</button></div>' +
+      '</div>');
   }
 
   /* =========================================================================
