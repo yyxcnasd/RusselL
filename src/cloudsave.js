@@ -18,6 +18,8 @@
   var lastWritten = '';
   var busy = false;
   var pending = null;
+  var ready = false;
+  var pendingState = null;
 
   function isToyHost() {
     return root.RSL.Hints ? root.RSL.Hints.isToyHost() : /bilibili\.com$/i.test(location.hostname);
@@ -117,6 +119,7 @@
 
   function schedule(state) {
     if (!isToyHost()) return;
+    if (!ready) { pendingState = state; return; }
     if (timer) clearTimeout(timer);
     timer = setTimeout(function () {
       timer = null;
@@ -125,21 +128,31 @@
   }
 
   function flush(state) {
+    if (!ready) return Promise.resolve(false);
     if (timer) { clearTimeout(timer); timer = null; }
     if (pending) return Promise.resolve(false);
     return write(state);
   }
 
   function init(state) {
-    if (!isToyHost()) return Promise.resolve(null);
-    return root.RSL.Hints.loadSdk().then(function () {
+    if (!isToyHost()) { ready = true; return Promise.resolve(null); }
+    var work = root.RSL.Hints.loadSdk().then(function () {
       if (!toy()) return null;
       return toy().getCloudStorage().then(function (all) {
         var raw = decode(all);
         if (!raw) return null;
-        var cleaned = root.RSL.Save.clean(raw);
-        return cleaned;
+        return root.RSL.Save.clean(raw);
       }).catch(function () { return null; });
+    });
+    return Promise.race([
+      work,
+      new Promise(function (resolve) { setTimeout(function () { resolve(null); }, 6000); })
+    ]).then(function (result) {
+      ready = true;
+      var queued = pendingState;
+      pendingState = null;
+      if (queued) schedule(queued);
+      return result;
     });
   }
 

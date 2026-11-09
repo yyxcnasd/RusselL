@@ -804,13 +804,6 @@
     if (!state.sound) Audio.setSound(false);
     buildLevels();
 
-    if (window.RSL.CloudSave) {
-      var cloud = await window.RSL.CloudSave.init(state);
-      if (cloud && window.RSL.CloudSave.apply(state, cloud)) {
-        UI.toast('已同步账号存档');
-      }
-    }
-
     state.board = new window.RSL.Board({
       board: els.board,
       world: els.boardWorld,
@@ -856,6 +849,17 @@
     }
     loadLevel(start);
     updateProgress();
+
+    /* 云存档在后台同步，绝不在它返回前阻塞游戏启动。 */
+    if (window.RSL.CloudSave && toyMode) {
+      window.RSL.CloudSave.init(state).then(function (cloud) {
+        if (!cloud) return;
+        if (window.RSL.CloudSave.apply(state, cloud)) {
+          updateProgress();
+          UI.toast('已同步账号存档');
+        }
+      });
+    }
 
     window.RSL.APP = {
       state: state,

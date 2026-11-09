@@ -38,15 +38,27 @@
 
   var sdkPromise = null;
 
+  function isToyHost() {
+    return /bilibili\.com$/i.test(location.hostname) || /^\/toy\//i.test(location.pathname);
+  }
+
   function loadSdk() {
     if (root.toy) return Promise.resolve(true);
     if (!isToyHost()) return Promise.resolve(false);
     if (sdkPromise) return sdkPromise;
     sdkPromise = new Promise(function (resolve) {
+      var done = false;
+      function finish(ok) {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        resolve(!!ok);
+      }
+      var timer = setTimeout(function () { finish(!!root.toy); }, 4000);
       var s = document.createElement('script');
       s.src = 'https://s1.hdslb.com/bfs/seed/toy/app/sdk/toy-sdk.js';
-      s.onload = function () { resolve(!!root.toy); };
-      s.onerror = function () { resolve(false); };
+      s.onload = function () { finish(!!root.toy); };
+      s.onerror = function () { finish(false); };
       document.head.appendChild(s);
     });
     return sdkPromise;
@@ -91,6 +103,6 @@
     checkGate: checkGate,
     follow: follow,
     loadSdk: loadSdk,
-    isToyHost: function () { return /bilibili\.com$/i.test(location.hostname) || /^\/toy\//i.test(location.pathname); }
+    isToyHost: isToyHost
   };
 })();
