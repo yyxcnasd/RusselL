@@ -484,7 +484,6 @@
     var isGrid = !!node && (node.kind === 'atom' || node.kind === 'term');
     els.popover.classList.toggle('is-grid', isGrid);
     if (!node || node.kind === 'target') { els.popover.hidden = true; return; }
-    var result = state.results && state.results.results[node.id];
     var config = node.config || {};
     var html = '';
     if (node.kind === 'atom') {
