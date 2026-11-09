@@ -266,32 +266,42 @@
   }
 
   function segmentBlocked(p, q, group, occupancy) {
+    return segmentOverlap(p, q, group, occupancy) > ROUTE.cell * 1.5;
+  }
+
+  /* 返回与其它网络共线重叠的像素长度；短重叠允许合并，长重叠才需要绕行。
+   * 这样端口附近的并行线可以贴在一起，不会为了几十像素的冲突绕出凹槽。 */
+  function segmentOverlap(p, q, group, occupancy) {
     var cell = occupancy.cell;
     if (Math.abs(p.y - q.y) < 0.6) {
       var line = Math.round(p.y / cell);
       var list = occupancy.h[line];
-      if (!list) return false;
+      if (!list) return 0;
       var a = Math.min(p.x, q.x) / cell, b = Math.max(p.x, q.x) / cell;
+      var total = 0;
       for (var i = 0; i < list.length; i += 1) {
         var e = list[i];
         if (!groupConflict(e.groups, group)) continue;
-        if (Math.min(b, e.b) - Math.max(a, e.a) > 0.35) return true;
+        var ov = Math.min(b, e.b) - Math.max(a, e.a);
+        if (ov > 0) total += ov * cell;
       }
-      return false;
+      return total;
     }
     if (Math.abs(p.x - q.x) < 0.6) {
       var vline = Math.round(p.x / cell);
       var vlist = occupancy.v[vline];
-      if (!vlist) return false;
+      if (!vlist) return 0;
       var c = Math.min(p.y, q.y) / cell, d = Math.max(p.y, q.y) / cell;
+      var totalV = 0;
       for (var j = 0; j < vlist.length; j += 1) {
         var ve = vlist[j];
         if (!groupConflict(ve.groups, group)) continue;
-        if (Math.min(d, ve.b) - Math.max(c, ve.a) > 0.35) return true;
+        var ovv = Math.min(d, ve.b) - Math.max(c, ve.a);
+        if (ovv > 0) totalV += ovv * cell;
       }
-      return false;
+      return totalV;
     }
-    return false;
+    return 0;
   }
 
   function markPath(pts, used, group, cell) {
@@ -339,11 +349,17 @@
     var merged = mergeIntervals(list);
     var out = [min, max];
     var prev = min;
+    function addGap(lo, hi) {
+      var width = hi - lo;
+      if (width <= 2) return;
+      var count = width > 90 ? 4 : (width > 48 ? 3 : (width > 20 ? 2 : 1));
+      for (var k = 1; k <= count; k++) out.push(lo + width * k / (count + 1));
+    }
     merged.forEach(function (it) {
-      if (it[0] > prev + 1) out.push((prev + it[0]) / 2);
+      if (it[0] > prev + 1) addGap(prev, it[0]);
       prev = Math.max(prev, it[1]);
     });
-    if (max > prev + 1) out.push((prev + max) / 2);
+    if (max > prev + 1) addGap(prev, max);
     return out;
   }
 
@@ -364,7 +380,7 @@
     });
     var xs = gapCenters(xInts, minX - 40, maxX + 40);
     var ys = gapCenters(yInts, minY - 40, maxY + 40);
-    xs.push(a.x, b.x, a.x + ROUTE.stub, b.x - ROUTE.stub);
+    xs.push(a.x, b.x, a.x + ROUTE.stub, b.x - ROUTE.stub, b.x - ROUTE.stub - 70);
     ys.push(a.y, b.y);
     return { xs: uniqueSorted(xs), ys: uniqueSorted(ys) };
   }
@@ -467,9 +483,9 @@
         var p = { x: xs[cx], y: ys[cy] }, q = { x: xs[nIx], y: ys[nIy] };
         if (!segmentClear(p, q, rects)) continue;
         var len = Math.abs(q.x - p.x) + Math.abs(q.y - p.y);
-        var blocked = segmentBlocked(p, q, group, occupancy);
+        var overlap = segmentOverlap(p, q, group, occupancy);
         var cost = len + (nd !== dir ? ROUTE.bend : 0) +
-          (blocked ? ROUTE.networkPenalty * (len / ROUTE.cell) : 0);
+          (overlap > ROUTE.cell * 2 ? ROUTE.networkPenalty * (overlap / ROUTE.cell) : 0);
         var nstate = ncell * 4 + nd;
         var ndist = g + cost;
         if (ndist < dist[nstate]) {

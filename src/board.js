@@ -858,6 +858,7 @@
         var path = makePath(ns, d, 'wire' + (self.selectedEdge === e.id ? ' is-selected' : '') + (e._new ? ' is-new' : ''));
         path.setAttribute('data-state', self._wireState(e));
         path.setAttribute('data-role', self._wireRole(e));
+        path.dataset.edge = e.id;
         self.wires.appendChild(path);
         var hit = makePath(ns, d, 'wire-hit');
         hit.dataset.edge = e.id;
@@ -896,11 +897,18 @@
         }
       }
       var s = wireStubPoints(x.a, x.b);
-      var pts = Route.route(s.a, s.b, rects, used, group, { fromId: e.from.node, toId: e.to.node });
+      var endPt = s.b;
+      if (s.stub > 0) {
+        var approachX = x.b.x - ROUTE.stub - 70;
+        if (approachX > s.a.x + 8) endPt = { x: approachX, y: s.b.y };
+      }
+      var pts = Route.route(s.a, endPt, rects, used, group, { fromId: e.from.node, toId: e.to.node });
+      if (endPt !== s.b) pts.push({ x: s.b.x, y: s.b.y });
       if (s.stub > 0) {
         pts.unshift({ x: x.a.x, y: x.a.y });
         pts.push({ x: x.b.x, y: x.b.y });
       }
+      Route.markPath(pts, used, group, ROUTE.cell);
       routes[e.id] = pts;
     });
     this.edges.forEach(function (e) {
@@ -909,6 +917,7 @@
       var path = makePath(ns, d, 'wire' + (self.selectedEdge === e.id ? ' is-selected' : '') + (e._new ? ' is-new' : ''));
       path.setAttribute('data-state', self._wireState(e));
       path.setAttribute('data-role', self._wireRole(e));
+      path.dataset.edge = e.id;
       self.wires.appendChild(path);
       var hit = makePath(ns, d, 'wire-hit');
       hit.dataset.edge = e.id;

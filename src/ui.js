@@ -134,7 +134,7 @@
     var r = sheet.getBoundingClientRect();
     var trackH = Math.max(36, r.height - 100);
     els.sheetBar.hidden = false;
-    els.sheetBar.style.left = (r.right - 24) + 'px';
+    els.sheetBar.style.left = (r.right - 20) + 'px';
     els.sheetBar.style.top = (r.top + 68) + 'px';
     els.sheetBar.style.height = trackH + 'px';
     var thumb = els.sheetBar.querySelector('i');
