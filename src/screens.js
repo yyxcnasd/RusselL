@@ -70,7 +70,6 @@
     return '<div class="band ' + kind + (firstLocked ? ' is-locked' : '') + '">' +
       '<div class="band-head">' +
         '<span class="band-glyph"><svg class="icon"><use href="#' + glyph + '"></use></svg></span>' +
-        '<span class="band-progress" aria-hidden="true"><i style="width:' + (solved / items.length * 100) + '%"></i></span>' +
         '<span class="band-count">' + solved + ' / ' + items.length + '</span>' +
       '</div>' +
       '<div class="levels">' + bandCells(items) + '</div>' +

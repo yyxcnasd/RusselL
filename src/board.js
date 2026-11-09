@@ -721,9 +721,12 @@
     }
     var fromId = this.draft && this.draft.from ? this.draft.from.node : null;
     var group = this.draft && this.draft.from ? (this.draft.from.node + '|' + this.draft.from.port) : '';
-    var start = { x: a.x + ROUTE.stub, y: a.y };
-    var pts = Route.route(start, b, rects || this._rects(), this._lastUsed || {}, group, { fromId: fromId, toId: null });
-    pts.unshift({ x: a.x, y: a.y });
+    var s = wireStubPoints(a, b);
+    var pts = Route.route(s.a, s.b, rects || this._rects(), this._lastUsed || {}, group, { fromId: fromId, toId: null });
+    if (s.stub > 0) {
+      pts.unshift({ x: a.x, y: a.y });
+      pts.push({ x: b.x, y: b.y });
+    }
     d.setAttribute('d', Route.pathPoints(pts));
   };
 
@@ -772,16 +775,32 @@
   /* Full routing pass: A* for every edge, ordered by span so short wires lay
    * down first. Rebuilds the SVG layer (wire elements are cheap and stable). */
   /* 简单正交折线：重放关的参考电路可能有几百条导线，不需要逐条 A* 避障。 */
+  /* 端点很近时缩短出线/入线 stub，避免两个 stub 互相越过、A* 在端口之间来回绕。 */
+  function wireStubPoints(a, b) {
+    var stub = ROUTE.stub;
+    var dx = b.x - a.x;
+    if (dx >= 0) {
+      stub = Math.min(stub, Math.max(0, dx / 2 - 4));
+      if (dx < 16) stub = 0;
+    }
+    return {
+      a: { x: a.x + stub, y: a.y },
+      b: { x: b.x - stub, y: b.y },
+      stub: stub
+    };
+  }
+
   function simpleWirePoints(a, b) {
-    var stub = 18;
-    var x1 = a.x + stub;
-    var x2 = b.x - stub;
+    var s = wireStubPoints(a, b);
+    var x1 = s.a.x, x2 = s.b.x;
     if (x2 < x1) x2 = x1;
     var mx = Math.round((x1 + x2) / 2);
-    return [
-      { x: a.x, y: a.y }, { x: x1, y: a.y }, { x: mx, y: a.y },
-      { x: mx, y: b.y }, { x: x2, y: b.y }, { x: b.x, y: b.y }
-    ];
+    var pts = [{ x: a.x, y: a.y }];
+    if (s.stub > 0) pts.push({ x: x1, y: a.y });
+    pts.push({ x: mx, y: a.y }, { x: mx, y: b.y });
+    if (s.stub > 0) pts.push({ x: x2, y: b.y });
+    pts.push({ x: b.x, y: b.y });
+    return pts;
   }
 
   Board.prototype._updateWires = function (mode, movedIds) {
@@ -833,12 +852,13 @@
     entries.sort(function (e1, e2) { return e1.dist - e2.dist; });
     entries.forEach(function (x) {
       var e = x.e;
-      var aStub = { x: x.a.x + ROUTE.stub, y: x.a.y };
-      var bStub = { x: x.b.x - ROUTE.stub, y: x.b.y };
+      var s = wireStubPoints(x.a, x.b);
       var group = e.from.node + '|' + e.from.port;
-      var pts = Route.route(aStub, bStub, rects, used, group, { fromId: e.from.node, toId: e.to.node });
-      pts.unshift({ x: x.a.x, y: x.a.y });
-      pts.push({ x: x.b.x, y: x.b.y });
+      var pts = Route.route(s.a, s.b, rects, used, group, { fromId: e.from.node, toId: e.to.node });
+      if (s.stub > 0) {
+        pts.unshift({ x: x.a.x, y: x.a.y });
+        pts.push({ x: x.b.x, y: x.b.y });
+      }
       routes[e.id] = pts;
     });
     this.edges.forEach(function (e) {
@@ -880,9 +900,12 @@
       var a = self._portPoint(e.from.node, e.from.port, worldRect);
       var b = self._portPoint(e.to.node, e.to.port, worldRect);
       if (!a || !b) return;
-      var pts = Route.simplePoints(a.x + ROUTE.stub, a.y, b.x - ROUTE.stub, b.y);
-      pts.unshift({ x: a.x, y: a.y });
-      pts.push({ x: b.x, y: b.y });
+      var s = wireStubPoints(a, b);
+      var pts = Route.simplePoints(s.a.x, s.a.y, s.b.x, s.b.y);
+      if (s.stub > 0) {
+        pts.unshift({ x: a.x, y: a.y });
+        pts.push({ x: b.x, y: b.y });
+      }
       var d = Route.pathPoints(pts);
       els.path.setAttribute('d', d);
       els.hit.setAttribute('d', d);
