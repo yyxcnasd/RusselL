@@ -2,7 +2,7 @@
  * 公理板 / AXIOM BOARD — RSL.Term
  *
  * 唯一的表达式核心。**公式就是 set.mm token 数组**，首 token 是类型码
- * （'wff' / '|-'; 个体项是 'setvar'）。这是重放关与普通关融合的底层：
+ * （'wff' / '|-'; 个体项是 'setvar'）。这是普通关与参考证明共用的底层：
  * 普通关的公式只是 set.mm token 的一个受限子集，不再有第二套 AST 运行时。
  *
  * 约定（canonical form，全项目唯一）：
@@ -10,11 +10,11 @@
  *   - 一元/量词是前缀：['-.', ...a]、['A.', 'x', ...a]、['E.', 'x', ...a]
  *   - 关系式是中级：['x', '=', 'y']、['x', 'e.', 'y']
  *   - 谓词应用：['F', '(', 'x', ')']
- *   - 糖（∨ ∧ ↔ ∃）保留用于显示；比较时按 df-or/df-an/dfbi2/df-ex 展开（与旧
- *     Logic.expand 完全同规则），并按出现顺序对约束变元做 α 规范化。
+ *   - 糖（∨ ∧ ↔ ∃）保留用于显示；比较时按 df-or/df-an/dfbi2/df-ex 展开，
+ *     并按出现顺序对约束变元做 α 规范化。
  *
- * 结构视图：需要“子公式”时会用 read(tokens) 派生出 tree（只读，节点形状与旧 AST
- * 兼容，便于迁移对拍）；token 才是真身，tree 不落盘、不跨模块传递。
+ * 结构视图：需要“子公式”时会用 read(tokens) 派生出 tree（只读）；token 才是真身，
+ * tree 不落盘、不跨模块传递。
  *
  * 纯函数、无 DOM；经典脚本 + CommonJS 双导出。
  */
@@ -59,7 +59,7 @@
   function tokensOf(tokens) { return Array.isArray(tokens) ? tokens : fail('需要一个 token 数组'); }
 
   /* =========================================================================
-   * 2. 文本 → token（作者侧编译器；也用于 archive/axiom 公式）
+   * 2. 文本 → token（作者侧编译器）
    * ========================================================================= */
 
   var MULTI_OPS = [['<->', 'IFF'], ['<=>', 'IFF'], ['->', 'IMP'], ['=>', 'IMP'], ['/\\', 'AND'], ['\\/', 'OR']];
@@ -188,7 +188,7 @@
   function parseAssertion(text) { return assertion(treeToBody(parseTree(text))); }
 
   /* =========================================================================
-   * 3. token → 结构树（只读视图；路径 'a'/'b' 与旧 AST 一致）
+   * 3. token → 结构树（只读视图；路径 'a'/'b'）
    * ========================================================================= */
 
   function read(tokens) {
@@ -219,7 +219,7 @@
         return { k: kind, a: left, b: right };
       }
       if (tok === undefined) fail('公式不完整');
-      /* 关系式：IDENT '='|'e.' IDENT（两侧在旧 AST 里都是 var 节点） */
+      /* 关系式：IDENT '='|'e.' IDENT（两侧都是 var 节点） */
       if (isIdentifier(tok) && (b[pos + 1] === '=' || b[pos + 1] === 'e.')) {
         var rel = b[pos + 1] === '=' ? '=' : '∈';
         var rhs = b[pos + 2];
@@ -245,7 +245,7 @@
       }
       if (!isIdentifier(tok)) fail('无法识别的记号：' + JSON.stringify(tok));
       pos += 1;
-      /* 裸标识符在旧解析器里一律是 atom；var 只出现在谓词参数/量词位置。 */
+      /* 裸标识符一律是 atom；var 只出现在谓词参数/量词位置。 */
       return { k: 'atom', name: tok };
     }
 
@@ -442,7 +442,7 @@
     }
   }
 
-  /** 等价判定键：定义展开 + 约束变元按出现顺序 α 规范化（与旧 Logic.key 同格式）。 */
+  /** 等价判定键：定义展开 + 约束变元按出现顺序 α 规范化。 */
   function key(tokens) {
     return coreKey(expandNode(read(tokens)), Object.create(null), { n: 0 });
   }
@@ -458,7 +458,7 @@
     else if (BINARY[n.k]) { walk(n.a, visit); walk(n.b, visit); }
   }
 
-  /** 命题原子（不区分作用域；与旧 Logic.atomsOf 一致：返回名字数组）。 */
+  /** 命题原子（不区分作用域；返回名字数组）。 */
   function atomsOf(tokens) {
     var out = [];
     walk(read(tokens), function (n) { if (n.k === 'atom' && out.indexOf(n.name) < 0) out.push(n.name); });
@@ -519,7 +519,7 @@
   /**
    * 游戏语义的原子实例化：只替换「公式叶子位置上的 atom」，不碰谓词参数/关系式
    * 两侧的变元 token（那些在结构上是 var，不是 atom）。替换是直接的：不做 α 改名，
-   * 代换式里的自由变元可以被外层量词捕获（旧 Logic.instantiate 的语义）。
+   * 代换式里的自由变元可以被外层量词捕获。
    */
   function substAtoms(tokens, map) {
     var t = tokensOf(tokens);
@@ -656,7 +656,7 @@
   }
 
   /* =========================================================================
-   * 8. 定义置换（与旧 Logic.replaceOptions 同 id/同结果）
+   * 8. 定义置换
    * ========================================================================= */
 
   var REPLACE_LABELS = {
@@ -808,7 +808,7 @@
   }
 
   /* =========================================================================
-   * 10. MV 断言应用（与 src/mm/verify.js 的语义一致；token 层唯一实现）
+   * 10. MV 断言应用（token 层唯一实现）
    * ========================================================================= */
 
   function stripType(tokens) { var t = tokensOf(tokens); return t.length > 1 ? t.slice(1) : []; }

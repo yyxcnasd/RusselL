@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 /*
- * 关卡编译器：把手工编写的关卡（目标 / 允许模块 / 参考证明项）展开成棋盘数据。
+ * 关卡编译器：把手工编写的关卡（目标 / 参考证明项）展开成棋盘数据。
  *
  * 它只做三件事：
  *   1) 按证明项把断言步骤接成 DAG，并把替换用的公式用构造模块搭出来；
@@ -16,7 +16,6 @@ const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..');
 const Term = require(path.join(ROOT, 'src', 'term.js'));
-const Modules = require(path.join(ROOT, 'src', 'modules.js'));
 const Engine = require(path.join(ROOT, 'src', 'engine.js'));
 const campaign = require(path.join(ROOT, 'campaign', 'index.js'));
 
@@ -25,35 +24,6 @@ const OUT_META = path.join(ROOT, 'src', 'campaign-meta.js');
 
 const PAD = (n) => String(n).padStart(2, '0');
 const keyOf = (body) => body.join('\u0000');
-
-/* ---------- 允许模块 → 元件栏条目 ---------- */
-const ATOMS = ['P', 'Q', 'R', 'S', 'T', 'U', 'V'];
-const TERMS = ['x', 'y', 'z'];
-const PREDS = ['F', 'G', 'H', '='];
-const QUANT_VARS = ['x', 'y', 'z'];
-
-function expandAllowed(allowed) {
-  const out = [];
-  const seen = new Set();
-  const push = (kind, config) => {
-    const k = kind + ':' + JSON.stringify(config || {});
-    if (seen.has(k)) return;
-    seen.add(k);
-    out.push({ kind, config: config || {} });
-  };
-  (allowed || []).forEach((entry) => {
-    const [kind, rest] = String(entry).split(':');
-    if (kind === 'atom') ATOMS.forEach((a) => push('atom', { name: a }));
-    else if (kind === 'term') TERMS.forEach((t) => push('term', { name: t }));
-    else if (kind === 'pred') PREDS.forEach((p) => push('pred', { symbol: p }));
-    else if (kind === 'all') QUANT_VARS.forEach((v) => push('all', { v }));
-    else if (kind === 'axiom') (rest ? [rest] : ['A1', 'A2', 'A3']).forEach((s) => push('axiom', { schema: s }));
-    else if (kind === 'theorem') push('theorem', { n: Number(rest) });
-    else if (kind === 'not' || kind === 'imp') push(kind, {});
-    else push(kind, {});
-  });
-  return out;
-}
 
 /* ---------- 公式 → 构造电路 ---------- */
 function createBuilder() {
@@ -221,12 +191,6 @@ function compileProof(proof, builder, ctx) {
         builder.connect(resolve(pt.of), 'out', id, 'assertion');
         break;
       }
-      case 'shiftAx': {
-        id = builder.addNode('shift-ax', { v: pt.v });
-        builder.connect(builder.formula(pt.a), 'out', id, 'a');
-        builder.connect(builder.formula(pt.b), 'out', id, 'b');
-        break;
-      }
       case 'allInst': {
         id = builder.addNode('all-inst', { v: pt.v });
         builder.connect(builder.formula(pt.formula), 'out', id, 'formula');
@@ -237,20 +201,6 @@ function compileProof(proof, builder, ctx) {
         id = builder.addNode('exists-gen', { v: pt.v });
         builder.connect(builder.formula(pt.formula), 'out', id, 'formula');
         builder.connect(builder.termNode(pt.t), 'out', id, 'term');
-        break;
-      }
-      case 'exportAx': {
-        id = builder.addNode('export-ax', {});
-        builder.connect(builder.formula(pt.a), 'out', id, 'a');
-        builder.connect(builder.formula(pt.b), 'out', id, 'b');
-        builder.connect(builder.formula(pt.c), 'out', id, 'c');
-        break;
-      }
-      case 'importAx': {
-        id = builder.addNode('import-ax', {});
-        builder.connect(builder.formula(pt.a), 'out', id, 'a');
-        builder.connect(builder.formula(pt.b), 'out', id, 'b');
-        builder.connect(builder.formula(pt.c), 'out', id, 'c');
         break;
       }
       case 'andIntroAx': {
@@ -290,50 +240,10 @@ function compileProof(proof, builder, ctx) {
         builder.connect(builder.formula(pt.b), 'out', id, 'b');
         break;
       }
-      case 'existsI': {
-        id = builder.addNode('exists-intro', { v: pt.v });
-        builder.connect(resolve(pt.of), 'out', id, 'assertion');
-        break;
-      }
       case 'existsE': {
         id = builder.addNode('exists-elim', {});
         builder.connect(resolve(pt.ex), 'out', id, 'exists');
         builder.connect(resolve(pt.imp), 'out', id, 'implication');
-        break;
-      }
-      case 'andI': {
-        id = builder.addNode('and-intro', {});
-        builder.connect(resolve(pt.a), 'out', id, 'a');
-        builder.connect(resolve(pt.b), 'out', id, 'b');
-        break;
-      }
-      case 'andE': {
-        id = builder.addNode('and-elim', { side: pt.side || 'l' });
-        builder.connect(resolve(pt.of), 'out', id, 'assertion');
-        break;
-      }
-      case 'orI': {
-        id = builder.addNode('or-intro', { side: pt.side || 'r' });
-        builder.connect(resolve(pt.of), 'out', id, 'assertion');
-        builder.connect(builder.formula(pt.formula), 'out', id, 'formula');
-        break;
-      }
-      case 'orE': {
-        id = builder.addNode('or-elim', {});
-        builder.connect(resolve(pt.or), 'out', id, 'or');
-        builder.connect(resolve(pt.ca), 'out', id, 'ca');
-        builder.connect(resolve(pt.cb), 'out', id, 'cb');
-        break;
-      }
-      case 'iffI': {
-        id = builder.addNode('iff-intro', {});
-        builder.connect(resolve(pt.ab), 'out', id, 'ab');
-        builder.connect(resolve(pt.ba), 'out', id, 'ba');
-        break;
-      }
-      case 'iffE': {
-        id = builder.addNode('iff-elim', { dir: pt.dir || 'lr' });
-        builder.connect(resolve(pt.of), 'out', id, 'assertion');
         break;
       }
       case 'setExt': {
@@ -362,11 +272,6 @@ function compileProof(proof, builder, ctx) {
         builder.connect(builder.formula(pt.formula), 'out', id, 'formula');
         break;
       }
-      case 'allE': {
-        id = builder.addNode('all-elim', { t: pt.t });
-        builder.connect(resolve(pt.of), 'out', id, 'assertion');
-        break;
-      }
       case 'eqRefl': {
         id = builder.addNode('eq-refl', { t: pt.t });
         break;
@@ -376,12 +281,6 @@ function compileProof(proof, builder, ctx) {
         builder.connect(builder.termNode(pt.x), 'out', id, 'x');
         builder.connect(builder.termNode(pt.y), 'out', id, 'y');
         builder.connect(builder.formula(pt.formula), 'out', id, 'formula');
-        break;
-      }
-      case 'eqSubst': {
-        id = builder.addNode('eq-subst', { dir: pt.dir || 'l2r' });
-        builder.connect(resolve(pt.eq), 'out', id, 'eq');
-        builder.connect(resolve(pt.of), 'out', id, 'formula');
         break;
       }
       default:

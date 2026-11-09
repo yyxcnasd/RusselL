@@ -77,30 +77,10 @@
     '</div>';
   }
 
-  /* 重放关在章内按统一难度交错，用横跨 5 格的宽行表示（不是独立分带）。 */
-  function mmInline(entry) {
-    var lv = entry.lv, i = entry.i;
-    var solved = !!ctx.state.solved[lv.id];
-    var current = i === ctx.state.index;
-    var unlocked = ctx.isUnlocked(i);
-    var steps = lv.stats ? lv.stats.steps : 0;
-    var badge = lv.axiom ? '公理' : steps + ' 步';
-    return '<button class="mm-level is-inline' + (solved ? ' is-solved' : '') + (current ? ' is-current' : '') +
-      (unlocked ? '' : ' is-locked') + '" data-level="' + i + '"' +
-      (unlocked ? '' : ' disabled') +
-      ' title="' + esc(lv.note || '') + '"' +
-      ' aria-label="' + esc((lv.title || lv.code || '') + '，重放 ' + badge + (unlocked ? '' : '，未解锁')) + '">' +
-      '<span class="mm-level-no">' + esc(String(lv.chapterOrder || '').padStart(2, '0')) + '</span>' +
-      '<span class="mm-level-title">' + esc(lv.title || '') + '</span>' +
-      '<span class="mm-level-steps">' + esc(badge) + '</span>' +
-    '</button>';
-  }
-
   function bandCells(items) {
     return items.map(function (entry) {
       if (entry.lv.tutorial) return tutorialCell(entry);
-      var isReplay = entry.lv.track === 'replay';
-    return isReplay ? mmInline(entry) : levelCell(entry);
+      return levelCell(entry);
     }).join('');
   }
 
@@ -141,9 +121,8 @@
    * 2. 帮助
    * ========================================================================= */
 
-  function helpCard(label, kind, formula, hint) {
-    var attr = kind ? ' data-coach="' + kind + '"' : '';
-    return '<div class="help-card"' + attr + ' role="button" tabindex="0"' +
+  function helpCard(label, formula, hint) {
+    return '<div class="help-card"' +
       (hint ? ' title="' + esc(hint) + '"' : '') + '><b>' + esc(label) + '</b>' +
       UI.helpFormula(formula) + '</div>';
   }
@@ -162,30 +141,15 @@
           helpStep('i-play') +
         '</div>' +
         '<div class="help-cards">' +
-          helpCard('P', '', 'P / Q / R / S / T') +
-          helpCard('x', '', 'x / y / z') +
-          helpCard('F', '', 'F(x) / G(x) / H(x)') +
-          helpCard('=', '', 'x = y') +
-          helpCard('¬', '', '¬A') +
-          helpCard('→', '', 'A→B') +
-          helpCard('∀', '', '∀x A') +
-          helpCard('∃', '', '∃x A') +
-          helpCard('∈', '', 'x ∈ y') +
-          helpCard('∧∨↔', '', '连接词') +
-          helpCard('Ax', '', '公理 A1–A5') +
-          helpCard('EXT', '', '外延公理') +
-          helpCard('∅{,}∪', '', '空集/配对/并集') +
-          helpCard('∧∨↔ 规则', '', '合取/析取/等值规则') +
-          helpCard('S', '', 'A[P↦B]') +
-          helpCard('M', '', 'A, A→B ⇒ B') +
-          helpCard('∀I', '', 'A ⇒ ∀x A') +
-          helpCard('∀*', '', 'A ⇒ A→∀x A') +
-          helpCard('∀E', '', '∀x A ⇒ A[t/x]') +
-          helpCard('∃I*', '', 'A[t/x] ⇒ ∃x A') +
-          helpCard('∃E', '', '∃x A, A→B ⇒ B') +
-          helpCard('=I', '', 't = t') +
-          helpCard('=L', '', 'x=y, A(x) ⇒ A(y)') +
-          helpCard('*NN', '', '已证定理') +
+          helpCard('P x F ∈', 'P…V · x…w · F(x) · x∈y', '原子 / 个体 / 谓词 / 属于') +
+          helpCard('¬ → ∧ ∨ ↔', '连接词', '公式构造') +
+          helpCard('∀ ∃', '∀x A · ∃x A', '量词') +
+          helpCard('Ax', 'A1–A5', '公理图式') +
+          helpCard('S M', '代入 · 分离', '基本推理') +
+          helpCard('∀I ∀* ∀E* ∃I* ∃E', '全称 / 存在规则', '量词规则') +
+          helpCard('=I =L', '等词替换', '等词规则') +
+          helpCard('EXT ∅ {,} ∪', '外延 / 空集 / 配对 / 并集', '集合公理') +
+          helpCard('*NN', '已证定理', '定理引用') +
         '</div>' +
         '<div class="save-row">' +
           '<button class="save-btn" data-save-export title="保存存档" aria-label="保存存档"><svg class="icon"><use href="#i-arrow-down-tray"></use></svg></button>' +
@@ -274,12 +238,6 @@
 
   function handleClick(e) {
     var target = e.target;
-    var card = target.closest && target.closest('[data-coach]');
-    if (card) {
-      UI.closeSheet();
-      ctx.showCoachKind(card.dataset.coach);
-      return;
-    }
     var achv = target.closest && target.closest('[data-achv]');
     if (achv) { openAchievement(achv.dataset.achv); return; }
     if (target.closest && target.closest('[data-back]')) { openAchievements(); return; }

@@ -20,8 +20,6 @@ const chapters = [
   { key: 'classic', id: 'Ⅳ', title: '经典定理' }
 ];
 
-const allowed = ['atom', 'term', 'pred', 'not', 'imp', 'all', 'axiom', 'subst', 'mp'];
-
 function fromJson(lv, chapter) {
   return {
     no: lv.no,
@@ -30,7 +28,6 @@ function fromJson(lv, chapter) {
     teaches: lv.teaches,
     hint: lv.hint,
     target: lv.targetTokens.slice(1),
-    allowed,
     proof: lv.proof
   };
 }
@@ -44,7 +41,6 @@ function fromTutorial(lv, chapter) {
     teaches: lv.teaches,
     hint: lv.hint,
     target: lv.targetTokens.slice(1),
-    allowed,
     proof: lv.proof
   };
 }

@@ -9,7 +9,6 @@
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <script>try{var t=JSON.parse(localStorage.getItem("axiom-simple:settings")||"{}").theme;if(t==="dark")document.documentElement.dataset.theme="dark";}catch(e){}</script>
 <link rel="stylesheet" href="src/simple.css">
-<link rel="stylesheet" href="src/mm/mm.css">
 </head>
 <body>
 <div class="app">
@@ -36,12 +35,6 @@
         <svg class="wires" id="wireLayer" aria-hidden="true"></svg>
         <div class="nodes" id="nodeLayer"></div>
       </div>
-      <div class="coach" id="coach" hidden>
-        <span class="coach-tile">A1</span>
-        <span class="coach-arrow">→</span>
-        <span class="coach-goal">⊢</span>
-      </div>
-      <div class="coach-pop" id="coachPop" hidden role="dialog" aria-label="规则提示"></div>
     </div>
   </main>
 
@@ -95,7 +88,6 @@
 <script src="src/save.js"></script>
 <script src="src/ui.js"></script>
 <script src="src/audio.js"></script>
-<script src="src/coach.js"></script>
 <script src="src/catalog.js"></script>
 <script src="src/screens.js"></script>
 <script src="src/board.js"></script>

@@ -26,7 +26,7 @@ test('运行时只加载新体系的脚本（无 archive/mm/logic 生成物）',
   assert.ok(joined.includes('term.js') && joined.includes('modules.js') && joined.includes('engine.js'));
 });
 
-test('模块注册表：6 构造 + 1 公理 + 基本推理 + 定理，没有旧模块', () => {
+test('模块注册表：构造 + 公理 + 基本推理 + 定理，没有旧模块', () => {
   const kinds = Object.keys(RSL.Modules.MODULES);
   ['atom', 'term', 'pred', 'not', 'imp', 'all'].forEach((k) => assert.ok(kinds.includes(k), k));
   assert.ok(kinds.includes('axiom'));

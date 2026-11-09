@@ -5,13 +5,11 @@
   "description": "公理板 — a one-screen modular proof game built on Metamath set.mm",
   "scripts": {
     "test": "node --test tests/game.test.js",
-    "test:unit": "node --test tests/logic.test.mjs tests/achievements.test.js tests/save.test.js tests/route.test.js tests/catalog.test.js tests/mm-flags.test.js tests/mm-replay.test.js",
-    "test:levels": "node tests/levels.test.js",
+    "test:route": "node --test tests/route.test.js",
     "test:ui": "node tests/game-ui.js",
     "test:acceptance": "npm run build:toy && node tests/acceptance.js",
-    "test:all": "npm test && npm run test:ui && npm run test:acceptance",
-    "capture:screens": "node tests/capture-simple.js --repo",
+    "test:all": "npm test && npm run test:route && npm run test:ui && npm run test:acceptance",
     "build:toy": "node scripts/build-toy.js",
-    "build:mm": "node scripts/mm-build-frames.js && node scripts/mm-verify.js && node scripts/mm-to-levels.js"
+    "build": "node scripts/build-campaign.js"
   }
 }

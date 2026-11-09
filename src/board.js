@@ -41,6 +41,7 @@
     return Math.max(0, Math.min(4, n));
   }
   function substPortVisible(id, extras) {
+    if (id === 'vleft' || id === 'vright') return false; /* 旧变元改名端口不再使用 */
     var m = /^(atom|formula)(\d+)$/.exec(id);
     if (!m) return true;
     return Number(m[2]) <= 1 + extras;
@@ -900,35 +901,40 @@
   };
 
   Board.prototype._code = function (n) {
+    var cfg = n.config || {};
     if (n.kind === 'target') return '⊢';
-    if (n.kind === 'axiom') return n.config.axiomId || 'A1';
-    if (n.kind === 'theorem') {
-      var tc = String(n.config.theoremCode || 'T');
-      var levels = window.RSL.LEVELS || [];
-      for (var i = 0; i < levels.length; i += 1) {
-        if (levels[i].id === tc) return (levels[i].code || tc).slice(0, 6);
-      }
-      return tc.replace('*', '');
-    }
     if (n.kind === 'atom') return '';
-    if (n.kind === 'term') return n.config.name || 'x';
-    if (n.kind === 'pred') return n.config.name || 'F';
+    if (n.kind === 'term') return cfg.name || 'x';
+    if (n.kind === 'pred') return cfg.symbol || 'F';
     if (n.kind === 'not') return '¬';
     if (n.kind === 'or') return '∨';
     if (n.kind === 'imp') return '→';
     if (n.kind === 'and') return '∧';
     if (n.kind === 'iff') return '↔';
+    if (n.kind === 'mem') return '∈';
+    if (n.kind === 'all') return '∀' + (cfg.v || 'x');
+    if (n.kind === 'exists') return '∃' + (cfg.v || 'x');
+    if (n.kind === 'axiom') return (cfg.schema || 'A1') + (cfg.v ? '·' + cfg.v : '');
     if (n.kind === 'subst') return 'S';
-    if (n.kind === 'replace') return 'D';
-    if (n.kind === 'detach') return 'M';
-    if (n.kind === 'quant') return n.config.kind === 'exists' ? '∃' : '∀';
-    if (n.kind === 'all-elim') return '∀E';
-    if (n.kind === 'all-intro') return '∀I';
-    if (n.kind === 'exists-intro') return '∃I';
+    if (n.kind === 'mp') return 'M';
+    if (n.kind === 'gen') return '∀I' + (cfg.v || '');
+    if (n.kind === 'shift') return '∀*' + (cfg.v || '');
+    if (n.kind === 'all-inst') return '∀E*' + (cfg.v || '');
+    if (n.kind === 'exists-gen') return '∃I*' + (cfg.v || '');
     if (n.kind === 'exists-elim') return '∃E';
-    if (n.kind === 'archive') return String(n.config.label || 'M').slice(0, 6);
-    if (n.kind === 'mmstep') return String(n.config.label || 'step').slice(0, 10);
-    if (n.kind === 'mmhyp') return String(n.config.label || 'hyp').slice(0, 10);
+    if (n.kind === 'leibniz') return '=L';
+    if (n.kind === 'eq-refl') return '=I';
+    if (n.kind === 'and-intro-ax') return '∧I*';
+    if (n.kind === 'and-elim-ax') return '∧E*';
+    if (n.kind === 'or-intro-ax') return '∨I*';
+    if (n.kind === 'or-elim-ax') return '∨E*';
+    if (n.kind === 'iff-intro-ax') return '↔I*';
+    if (n.kind === 'iff-elim-ax') return '↔E*';
+    if (n.kind === 'set-ext') return 'EXT';
+    if (n.kind === 'set-empty') return '∅';
+    if (n.kind === 'set-pair') return '{,}';
+    if (n.kind === 'set-union') return '∪';
+    if (n.kind === 'theorem') return '*' + String(cfg.n || 0).padStart(2, '0');
     return '·';
   };
 
@@ -940,10 +946,6 @@
     if (n.kind === 'subst') {
       var extras = substExtras(n.config);
       inputPorts = inputPorts.filter(function (p) { return substPortVisible(p.id, extras); });
-    }
-    if (n.kind === 'mmstep') {
-      var arity = Math.max(0, Math.min(inputPorts.length, (n.config && n.config.arity) || 0));
-      inputPorts = inputPorts.slice(0, arity);
     }
     var outputs = info.ports.outputs || [];
     var isAssertion = outputs.some(function (p) { return p.type === 'assertion'; });

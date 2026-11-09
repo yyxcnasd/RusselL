@@ -111,7 +111,7 @@
 
   /**
    * evaluate(level, nodes, edges, ctx?)
-   * ctx = { proof }：重放关传入自包含证明，mmhyp/mmstep 用它取 frame。
+   * ctx = { levels, levelNo }：定理模块按关卡号取已证目标。
    */
   function evaluate(level, nodes, edges, ctx) {
     nodes = nodes || [];
@@ -138,7 +138,7 @@
     var targetNode = nodes.filter(function (n) { return n.kind === 'target'; })[0] || null;
     var target = targetNode ? results[targetNode.id] : null;
 
-    /* 反作弊：目标上游必须真的产生断言（公理/定理/档案/规则/mmstep），
+    /* 反作弊：目标上游必须真的产生断言（公理/定理/规则），
        不能只用构造模块拼出目标公式。construct 标记在模块注册表里。 */
     if (target && target.state === 'complete') {
       var seen = {};

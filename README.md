@@ -28,18 +28,19 @@
 
 - `campaign/chapter1..4.json`：手写的 96 主线关卡（顺序、目标、标题、提示与参考证明项）；
 - `campaign/tutorials.json`：教学关（小写罗马数字，不占编号；由 `make-tutorials.js` 生成）；
-- `campaign/index.js`：章节与允许模块，按“教学 → 普通 → 进阶”拼出完整关卡表；
+- `campaign/index.js`：章节与关卡顺序，按“教学 → 普通 → 进阶”拼出完整关卡表；
 - `scripts/build-campaign.js`：把证明项展开成棋盘电路、自动布局，并用真实 `Engine` 逐关验证；
-- `scripts/authoring/`：从 set.mm 真实证明挖掘/展开并翻译成新演算（第Ⅰ/Ⅱ章的大部分参考证明来自这里；
-  推理式引理会被内联到 A1–A5 + 分离 + 全称规则，游戏里不会出现 set.mm 的缩写）；
-  `dt.js` 是演绎定理引擎，`harden-*.js` 用它把部分等词/集合关升级为组合证明。
+- `scripts/authoring/`：`dt.js` 是演绎定理引擎，`harden-*.js` 用它把个别关卡升级为组合证明，
+  `make-tutorials.js` 生成教学关。第Ⅰ/Ⅱ章参考证明是 set.mm 真实证明的历史编译产物
+  （推理式引理已内联到 A1–A5 + 分离 + 全称规则），旧的重放/挖掘工具不再随仓库提供。
 
 改完关卡后：
 
 ```bash
-node scripts/build-campaign.js     # 生成 src/levels.js，并验证 96 关
-npm test                           # 96 关参考证明 + 模块表校验
-npm run test:ui                    # 浏览器端到端（加载、选关、帮助、成就、*96）
+node scripts/build-campaign.js     # 生成 src/levels.js，并验证 115 关
+npm test                           # 参考证明 + 模块表 + 关卡 schema
+npm run test:route                 # 路线/解锁纯函数
+npm run test:ui                    # 浏览器端到端（教学/选关/帮助/成就/合并元件）
 npm run test:acceptance            # dist 构建产物 + 正式页/维护页
 ```
 
@@ -54,13 +55,12 @@ GitHub Pages 不会发布游戏脚本；删掉标记后重新推送即可恢复�
 src/term.js       唯一表达式核心（canonical token）
 src/modules.js    唯一模块注册表
 src/engine.js     唯一求值器
-src/levels.js     生成产物（96 关棋盘数据，勿手改）
+src/levels.js     生成产物（115 关棋盘数据，勿手改）
 src/campaign-meta.js 章节元数据
 src/{ui,screens,board,main}.js  UI 与棋盘
-campaign/         手写关卡与参考证明（内容源）
+campaign/         手写关卡与参考证明（内容源；tutorials.json 是教学关）
 scripts/build-campaign.js       关卡编译器
-scripts/authoring/              set.mm 证明挖掘 + 演绎定理/加难脚本（仅作者用）
-assets/data/set.mm              证明矿场（约 51 MB，不参与运行时）
+scripts/authoring/              演绎定理/加难/教学关生成脚本（仅作者用）
 ```
 
 Design by yyxcnasd. 音乐 “lvl 3 - the grassland” by YannZ, CC BY 4.0（见 `CREDITS.md`）。

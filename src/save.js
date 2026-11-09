@@ -1,8 +1,8 @@
 /* Local save schema, validation, and storage.
  *
- * Schema v3（P3）：内容字段与 v2 相同，版本号升级为 3；clean() 接受 v2 并升级到 v3
- * （目前 v2→v3 没有字段迁移，只是版本标记，后续 P5 会把电路里的公式换成 token）。
- * localStorage 的 key 保持 'axiom-simple:v2'，避免已发布版本的存档丢失。
+ * 当前 schema v3；clean() 接受 v2 并统一输出 v3。localStorage key 保持
+ * 'axiom-simple:v2'，避免已发布版本的存档丢失。旧字段（usedArchive/usedTheorem/
+ * coachSeen）会被忽略，不再读写。
  */
 (function () {
   'use strict';
@@ -25,12 +25,9 @@
       solved: Object.keys(state.solved || {}),
       bestLen: object(state.bestLen),
       usedKinds: Object.keys(state.usedKinds || {}),
-      usedArchive: Object.keys(state.usedArchive || {}),
-      usedTheorem: Object.keys(state.usedTheorem || {}),
       cleanWins: Object.keys(state.cleanWins || {}),
       circuits: object(state.circuits),
       achievements: Object.keys(state.achievements || {}),
-      coachSeen: Object.keys(state.coachSeen || {}),
       lastId: state.level ? state.level.id : state.lastId
     };
   }
@@ -56,12 +53,9 @@
       solved: strings(raw.solved),
       bestLen: object(raw.bestLen),
       usedKinds: strings(raw.usedKinds),
-      usedArchive: strings(raw.usedArchive),
-      usedTheorem: strings(raw.usedTheorem),
       cleanWins: strings(raw.cleanWins),
       circuits: circuits(raw.circuits),
       achievements: strings(raw.achievements),
-      coachSeen: strings(raw.coachSeen),
       lastId: typeof raw.lastId === 'string' ? raw.lastId : null
     };
   }

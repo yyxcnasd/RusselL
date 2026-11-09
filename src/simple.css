@@ -15,19 +15,18 @@
  *   09 导线 wire
  *   10 模块 node
  *   11 端口 port
- *   12 空板引导 coach
- *   13 元件盘 tray
- *   14 配置浮条 popover
- *   15 提示 toast
- *   16 遮罩与面板 overlay / sheet
- *   17 选关面板 levels
- *   18 成就面板 achievements
- *   19 帮助面板 help
- *   20 通关面板 win
- *   21 图标与杂项
- *   22 动效与动画
- *   23 响应式（≤700 / ≤380）
- *   24 减弱动效
+ *   12 元件盘 tray
+ *   13 配置浮条 popover
+ *   14 提示 toast
+ *   15 遮罩与面板 overlay / sheet
+ *   16 选关面板 levels
+ *   17 成就面板 achievements
+ *   18 帮助面板 help
+ *   19 通关面板 win
+ *   20 图标与杂项
+ *   21 动效与动画
+ *   22 响应式（≤700 / ≤380）
+ *   23 减弱动效
  */
 
 /* =========================================================================
@@ -103,7 +102,6 @@
   --ghost-shadow:0 18px 44px rgba(45,36,25,.22);
 
   /* 棋盘上的半透明容器 */
-  --coach-bg:var(--glass);
   --target-bg:var(--glass);
   --target-ok-bg:rgba(63,142,101,.10);
   --toast-bg:var(--ink);
@@ -128,9 +126,7 @@
 
   /* 层级：board 内部 < 浮条 < 遮罩 < 面板滚动条 < toast < 拖拽残影 */
   --z-port:3;
-  --z-coach:5;
   --z-marquee:6;
-  --z-coach-pop:9;
   --z-popover:40;
   --z-overlay:70;
   --z-sheet-bar:75;
@@ -183,7 +179,6 @@ html[data-theme="dark"]{
   --scrim:rgba(0,0,0,.62);
   --ghost-shadow:0 18px 44px rgba(0,0,0,.55);
 
-  --coach-bg:rgba(241,236,226,.055);
   --target-bg:rgba(241,236,226,.045);
   --target-ok-bg:rgba(103,192,141,.14);
   --toast-bg:var(--accent-soft);
@@ -479,56 +474,7 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
 .node[data-state="error"] .port-in{border-color:var(--red)}
 
 /* =========================================================================
- * 12 空板引导 coach
- * ========================================================================= */
-
-.coach{
-  position:absolute;left:50%;top:46%;z-index:var(--z-coach);
-  transform:translate(-50%,-50%);
-  display:flex;align-items:center;gap:14px;padding:16px 22px;
-  border-radius:var(--radius-lg);background:var(--coach-bg);pointer-events:none;
-  animation:coach 2.2s ease-in-out infinite;
-}
-.coach-tile{
-  display:grid;place-items:center;width:62px;height:62px;border-radius:var(--radius);
-  background:var(--card);border:1.5px solid var(--line);
-  font-family:var(--font);font-size:22px;font-weight:600;
-  box-shadow:var(--sticker);
-}
-.coach-arrow{font-family:var(--math);font-size:30px;color:var(--accent)}
-.coach-goal{font-family:var(--math);font-size:40px;color:var(--accent)}
-
-/* 规则提示窗（点帮助卡片 / 首次进入教程关时出现） */
-.coach-pop{
-  position:absolute;left:50%;top:50%;z-index:var(--z-coach-pop);
-  transform:translate(-50%,-50%);max-width:calc(100vw - 32px);
-  padding:14px 18px;border-radius:var(--radius-lg);background:var(--coach-bg);border:0;
-  box-shadow:var(--pop-shadow);cursor:default;
-  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
-  text-align:center;
-}
-.coach-flow{
-  display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:12px;
-  font-family:var(--font);font-size:20px;color:var(--ink);
-}
-.coach-flow .chip{
-  display:grid;place-items:center;min-width:62px;height:62px;padding:0 12px;
-  border-radius:var(--radius);background:var(--card);border:1.5px solid var(--line);
-  box-shadow:var(--sticker);
-  font-family:var(--math);font-size:18px;white-space:nowrap;
-}
-.coach-flow .chip .formula{font-size:18px;color:inherit}
-.coach-flow .plus{font-family:var(--math);color:var(--muted);font-size:30px}
-.coach-flow .arrow{font-family:var(--math);color:var(--accent);font-size:26px}
-.coach-flow .coach-mod{
-  display:grid;place-items:center;min-width:62px;height:62px;padding:0 10px;
-  border-radius:var(--radius);background:var(--accent-soft);color:var(--ink);
-  font-family:var(--font);font-weight:600;font-size:19px;
-  border:1.5px solid var(--line);box-shadow:var(--sticker);
-}
-
-/* =========================================================================
- * 13 元件盘 tray
+ * 12 元件盘 tray
  * ========================================================================= */
 
 .tray{
@@ -575,7 +521,7 @@ body.is-holding,
 body.is-holding *{cursor:grabbing!important}
 
 /* =========================================================================
- * 14 配置浮条 popover
+ * 13 配置浮条 popover
  * 选中模块后从底部升起的一排芯片；窄屏横向滚动。
  * ========================================================================= */
 
@@ -623,7 +569,7 @@ body.is-holding *{cursor:grabbing!important}
 .opt-gap{flex:none;width:1px;height:30px;background:var(--line);margin:0 3px}
 
 /* =========================================================================
- * 15 提示 toast
+ * 14 提示 toast
  * 与 .stage 同处 grid 第 3 行、靠上居中：位置 = 顶栏 + 进度条的真实高度 + 间距。
  * 顶栏因长公式变两行时 toast 自动下移，永不压住目标公式；
  * z-index 高于 overlay(70)，通关喝彩时依然可见。
@@ -644,7 +590,7 @@ body.is-holding *{cursor:grabbing!important}
 .toast.is-on{opacity:1;visibility:visible;transform:translateY(0)}
 
 /* =========================================================================
- * 16 遮罩与面板 overlay / sheet
+ * 15 遮罩与面板 overlay / sheet
  * 面板自身滚动条隐藏，由固定定位的 .sheet-bar 提供可见滚动条（见下）。
  * ========================================================================= */
 
@@ -690,7 +636,7 @@ body.is-holding *{cursor:grabbing!important}
 
 
 /* =========================================================================
- * 17 选关面板 levels
+ * 16 选关面板 levels
  * ========================================================================= */
 
 .chapters{display:flex;flex-direction:column;gap:26px;padding-top:8px}
@@ -758,7 +704,7 @@ body.is-holding *{cursor:grabbing!important}
 .level-cell.is-locked .eff{display:none}
 
 /* =========================================================================
- * 18 成就面板 achievements
+ * 17 成就面板 achievements
  * ========================================================================= */
 
 
@@ -807,7 +753,7 @@ body.is-holding *{cursor:grabbing!important}
 .achv-detail-icon .achv-q .icon{width:34px;height:34px;stroke-width:1.7}
 
 /* =========================================================================
- * 19 帮助面板 help
+ * 18 帮助面板 help
  * 面板内部统一是 flat row（soft 底、无贴纸投影）；白贴纸只属于棋盘模块。
  * ========================================================================= */
 
@@ -860,7 +806,7 @@ body.is-holding *{cursor:grabbing!important}
 .credit{margin:18px 0 0;text-align:center;color:var(--muted);font-size:12px}
 
 /* =========================================================================
- * 20 通关面板 win
+ * 19 通关面板 win
  * ========================================================================= */
 
 .win{
@@ -904,7 +850,7 @@ body.is-holding *{cursor:grabbing!important}
 .next-btn{min-width:160px}
 
 /* =========================================================================
- * 21 图标与杂项
+ * 20 图标与杂项
  * ========================================================================= */
 
 .icon-sprite{position:absolute;width:0;height:0;overflow:hidden}
@@ -920,13 +866,9 @@ body.is-holding *{cursor:grabbing!important}
 .fatal{display:grid;place-items:center;height:100%;font-size:18px;color:var(--muted)}
 
 /* =========================================================================
- * 22 动效与动画
+ * 21 动效与动画
  * ========================================================================= */
 
-@keyframes coach{
-  0%,100%{transform:translate(-50%,-50%) scale(1)}
-  50%{transform:translate(-50%,-50%) scale(1.035)}
-}
 @keyframes node-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 @keyframes wire-in{from{opacity:0}to{opacity:1}}
 @keyframes level-pop{0%{transform:scale(1)}45%{transform:scale(1.12)}100%{transform:scale(1)}}
@@ -953,7 +895,7 @@ body.is-holding *{cursor:grabbing!important}
 }
 
 /* =========================================================================
- * 23 响应式
+ * 22 响应式
  * ========================================================================= */
 
 /* ---- ≤700px：顶栏两行 + 紧凑棋具 ---- */
@@ -989,15 +931,6 @@ body.is-holding *{cursor:grabbing!important}
   .node-formula{font-size:18px;min-height:38px;padding-top:6px}
   .node-code{font-size:13px}
   .node.is-target{min-height:96px;padding:8px}
-
-  .coach{top:19%;gap:10px;padding:12px 16px;border-radius:var(--radius-lg)}
-  .coach-tile{width:50px;height:50px;font-size:19px;border-radius:var(--radius-sm)}
-  .coach-goal{font-size:32px}
-  .coach-arrow{font-size:24px}
-  .coach-flow{gap:10px;font-size:17px}
-  .coach-flow .chip,
-  .coach-flow .coach-mod{min-width:50px;height:50px;font-size:15px;border-radius:var(--radius-sm)}
-  .coach-flow .chip .formula{font-size:15px}
 
   .tray{
     max-width:100%;
@@ -1102,11 +1035,10 @@ body.is-holding *{cursor:grabbing!important}
   .tile.is-code.is-long{font-size:9px}
   .popover{bottom:calc(72px + env(safe-area-inset-bottom,0px))}
   .sheet{max-height:94dvh;padding-top:46px}
-  .coach{top:52%}
 }
 
 /* =========================================================================
- * 24 减弱动效
+ * 23 减弱动效
  * ========================================================================= */
 
 @media (prefers-reduced-motion:reduce){
@@ -1118,9 +1050,7 @@ body.is-holding *{cursor:grabbing!important}
     transition-duration:.01ms!important;
     scroll-behavior:auto!important;
   }
-  /* 呼吸 / 脉冲 / 彩带直接停掉，而不是压到 0.01ms 后仍闪一下 */
-  .coach,
-  .coach-pop{animation:none!important}
+  /* 脉冲 / 彩带直接停掉，而不是压到 0.01ms 后仍闪一下 */
   .check-btn.is-ready{animation:none!important;filter:none!important}
   .confetti{display:none!important}
 }

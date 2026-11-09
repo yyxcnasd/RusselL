@@ -11,7 +11,6 @@
   var ACH = window.RSL.Achievements;
   var UI = window.RSL.UI;
   var Audio = window.RSL.Audio;
-  var Coach = window.RSL.Coach;
   var Catalog = window.RSL.Catalog;
   var Screens = window.RSL.Screens;
 
@@ -22,20 +21,16 @@
     solved: {},
     bestLen: {},
     usedKinds: {},
-    usedArchive: {},
-    usedTheorem: {},
     cleanWins: {},
     circuits: {},
     deletedThisLevel: false,
     achievements: {},
-    coachSeen: {},
     board: null,
     results: null,
     selectedNode: null,
     selectedEdge: null,
     lastId: null,
     forceUnlock: false,
-    hintDismissed: false,
     sound: true,
     theme: 'light',
     parts: [],
@@ -49,8 +44,8 @@
 
   function loadProgress() {
     var empty = {
-      solved: {}, bestLen: {}, usedKinds: {}, usedArchive: {}, usedTheorem: {},
-      cleanWins: {}, circuits: {}, achievements: {}, coachSeen: {}, lastId: null
+      solved: {}, bestLen: {}, usedKinds: {},
+      cleanWins: {}, circuits: {}, achievements: {}, lastId: null
     };
     var p;
     try { p = SAVE.clean(SAVE.load()); }
@@ -66,12 +61,9 @@
     state.solved = setOf(p.solved);
     state.bestLen = p.bestLen || {};
     state.usedKinds = setOf(p.usedKinds);
-    state.usedArchive = setOf(p.usedArchive);
-    state.usedTheorem = setOf(p.usedTheorem);
     state.cleanWins = setOf(p.cleanWins);
     state.circuits = p.circuits || {};
     state.achievements = setOf(p.achievements);
-    state.coachSeen = setOf(p.coachSeen);
     state.lastId = p.lastId || null;
   }
 
@@ -206,17 +198,14 @@
     return { x: left + 30, y: top + 30 };
   }
 
-  /* 载入关卡：普通关与重放关走同一条路径。
-     初始图/元件来自关卡数据（targetTokens / palette / initialNodes / solution），
-     proof 只是重放关的证明数据（参考提示与 mmstep 求值），不是另一套流程。 */
+  /* 载入关卡：初始图/元件来自关卡数据（targetTokens / palette / initialNodes / solution），
+     proof 只用于参考提示，不是另一套流程。 */
   function loadLevel(index) {
     if (index < 0 || index >= state.levels.length) return;
     if (!isUnlocked(index)) { UI.toast('先完成前一关'); return; }
     UI.closeSheet();
     clearPaletteHold();
-    Coach.hide();
     state.deletedThisLevel = false;
-    state.hintDismissed = false;
     state.index = index;
     state.level = state.levels[index];
     state.selectedNode = null;
@@ -272,7 +261,6 @@
     state.board.result = null;
     refresh();
     state.board.fit({ minScale: 0.45 });
-    els.coach.hidden = true;
     saveProgress();
   }
 
@@ -311,17 +299,9 @@
     var result = window.RSL.Engine.evaluate(state.level, data.nodes, data.edges, ctx);
     state.results = result;
     state.board.paint(result);
-    els.coach.hidden = !(state.index === 0 && data.nodes.length <= 1 && !state.hintDismissed);
     els.checkBtn.classList.toggle('is-ready', result.complete);
     renderPopover();
     saveProgress();
-  }
-
-  function maybeShowCoach(level) {
-    if (!level.coach || state.coachSeen[level.id] || !Coach.has(level.coach)) return;
-    state.coachSeen[level.id] = true;
-    saveProgress();
-    Coach.showKind(level.coach);
   }
 
   /* =========================================================================
@@ -417,6 +397,7 @@
     return Math.max(0, Math.min(4, n));
   }
   function substPortVisible(id, extras) {
+    if (id === 'vleft' || id === 'vright') return false; /* 旧变元改名端口不再使用 */
     var m = /^(atom|formula)(\d+)$/.exec(id);
     if (!m) return true;
     return Number(m[2]) <= 1 + extras;
@@ -523,7 +504,7 @@
       }).join('');
     } else if (node.kind === 'all' || node.kind === 'exists') {
       var vars = variantChoices(node.kind, 'v', ['x', 'y', 'z']);
-      html = '<button class="opt opt-sym is-on" data-config="v" data-value="' + (config.v || vars[0]) + '">' + (node.kind === 'all' ? '∀' : '∃') + '</button>' +
+      html = '<span class="opt opt-sym is-on">' + (node.kind === 'all' ? '∀' : '∃') + '</span>' +
         '<span class="opt-gap"></span>' + vars.map(function (v) {
           return '<button class="opt opt-var' + (config.v === v ? ' is-on' : '') + '" data-config="v" data-value="' + v + '">' + v + '</button>';
         }).join('');
@@ -656,9 +637,6 @@
 
     document.addEventListener('pointerdown', function (e) {
       Audio.ensure();
-      Coach.hide();
-      state.hintDismissed = true;
-      if (els.coach) els.coach.hidden = true;
       var onSurface = e.target.closest && (e.target.closest('.tile') || e.target.closest('#board'));
       if (paletteHold && paletteHold.sticky && !onSurface) {
         var rect = els.board.getBoundingClientRect();
@@ -780,7 +758,6 @@
     updateSoundBtn();
     if (!state.sound) Audio.setSound(false);
     buildLevels();
-    Coach.init();
 
     state.board = new window.RSL.Board({
       board: els.board,
@@ -804,7 +781,6 @@
       loadLevel: loadLevel,
       nextLevel: nextLevel,
       isUnlocked: isUnlocked,
-      showCoachKind: Coach.showKind,
       exportSave: exportSave,
       requestImport: function () { els.saveFile.click(); }
     });

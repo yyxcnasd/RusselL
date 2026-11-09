@@ -11,7 +11,7 @@
   var ELEMENT_IDS = [
     'levelBtn', 'goal', 'goalFormula', 'themeBtn', 'soundBtn', 'helpBtn', 'achvBtn', 'hintBtn', 'checkBtn',
     'progressFill', 'board', 'boardWorld', 'wireLayer', 'nodeLayer', 'tray', 'popover', 'toast',
-    'overlay', 'sheet', 'coach', 'coachPop', 'saveFile', 'sheetBar'
+    'overlay', 'sheet', 'saveFile', 'sheetBar'
   ];
 
   var els = {};
@@ -31,7 +31,7 @@
    * 1. 公式显示
    *
    * 界面上统一用“全括号”写法（P→(Q→R) 的每个二元/量化子式都加括号），
-   * 比 Logic.fmt 的最小括号更易读；DOM 结构与 .formula .f-* 样式约定一致。
+   * 比纯 token 拼接更易读；DOM 结构与 .formula .f-* 样式约定一致。
    * ========================================================================= */
 
   /** 顶栏目标：token 公式（唯一渲染器 Term），去掉类型码（⊢ 由外壳画）。 */
@@ -221,13 +221,6 @@
     });
     document.addEventListener('keydown', trapTab, true);
     document.addEventListener('focusin', keepFocusInSheet, true);
-    els.sheet.addEventListener('keydown', function (e) {
-      if (e.key !== 'Enter' && e.key !== ' ') return;
-      var card = e.target.closest && e.target.closest('[data-coach]');
-      if (!card) return;
-      e.preventDefault();
-      card.click();
-    });
     return els;
   }
 

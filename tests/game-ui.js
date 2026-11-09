@@ -26,6 +26,23 @@ runTest('game-ui', async ({ openPage }) => {
   equal(home.hasTerm, true, '唯一表达式核心已加载');
   equal(home.hasLogic, false, '旧 Logic 不再加载');
 
+  /* 节点代号与端口：A2 不能显示成 A1；S 不显示旧变元改名端口 */
+  const labels = await page.js(`(function(){
+    var b = window.RSL.APP.state.board;
+    var s = b._nodeView({ kind:'subst', config:{ groups:0 } }, null);
+    return {
+      axiom: b._code({ kind:'axiom', config:{ schema:'A2' } }),
+      pred: b._code({ kind:'pred', config:{ symbol:'G' } }),
+      theorem: b._code({ kind:'theorem', config:{ n:64 } }),
+      substPorts: s.inputPorts.map(function(p){return p.id})
+    };
+  })()`);
+  equal(labels.axiom, 'A2', 'A2 显示 A2');
+  equal(labels.pred, 'G', '谓词显示 G');
+  equal(labels.theorem, '*64', '定理显示 *64');
+  ok(labels.substPorts.indexOf('vleft') < 0 && labels.substPorts.indexOf('vright') < 0,
+    'S 不显示旧变元改名端口');
+
   /* 选关面板：4 章 ×（教学 + 12 普通 + 12 进阶） */
   await page.js('document.querySelector("#levelBtn").click()');
   await page.waitFor('document.querySelectorAll("[data-level]").length === 115');
@@ -43,8 +60,10 @@ runTest('game-ui', async ({ openPage }) => {
 
   /* 帮助与成就面板 */
   await page.js('document.querySelector("#helpBtn").click()');
-  await page.waitFor('document.querySelectorAll(".help-card").length >= 10');
-  ok((await page.js('document.querySelectorAll(".help-card").length')) >= 10, '帮助面板列出新模块');
+  await page.waitFor('document.querySelectorAll(".help-card").length >= 6');
+  const helpCards = await page.js('document.querySelectorAll(".help-card").length');
+  ok(helpCards >= 6 && helpCards <= 10, '帮助面板只保留精简图例（' + helpCards + ' 张）');
+  await page.shot('help');
   await page.js('window.RSL.UI.closeSheet()');
   await page.js('document.querySelector("#achvBtn").click()');
   await page.waitFor('document.querySelectorAll(".achv").length === 20');
