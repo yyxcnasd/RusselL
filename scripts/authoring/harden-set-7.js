@@ -43,12 +43,31 @@ function nodesOf(t) {
   return 1;
 }
 const target = F.imp(H, F.imp(K, F.all('z', F.iff(A, C))));
+/* 只沿真正的证明子项递归；公理参数（iffElimAx.a/.b 等）是公式，不是证明。 */
+function proofChildren(pt) {
+  if (!pt || typeof pt !== 'object') return [];
+  switch (pt.op) {
+    case 'mp': return [pt.a, pt.b];
+    case 'subst':
+    case 'gen':
+    case 'existsI':
+    case 'allE':
+    case 'allDist':
+    case 'andE':
+    case 'iffE':
+    case 'orI': return [pt.of];
+    case 'existsE': return [pt.ex, pt.imp];
+    case 'orE': return [pt.or, pt.ca, pt.cb];
+    case 'andI':
+    case 'iffI': return [pt.a, pt.b];
+    case 'eqSubst': return [pt.eq, pt.of];
+    default: return [];
+  }
+}
 (function check(t, p) {
-  if (!t) throw new Error('null proof node at ' + p);
-  if (!t.op) throw new Error('missing op at ' + p + ' formula=' + (t.f || t).toString().slice(0, 80));
-  if (t.a) check(t.a, p + '.a');
-  if (t.b) check(t.b, p + '.b');
-  if (t.of) check(t.of, p + '.of');
+  if (!t || typeof t !== 'object') throw new Error('bad proof node at ' + p);
+  if (!t.op) throw new Error('missing op at ' + p);
+  proofChildren(t).forEach((c, i) => check(c, p + '.' + i));
 })(proof, 'proof');
 console.log('nodes', nodesOf(proof));
 
