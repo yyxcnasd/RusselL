@@ -493,7 +493,7 @@
         if (!T.eq(wffOf(T.treeToBody(exTree.a)), wffOf(T.treeToBody(impTree.a)))) fail('第二路前件与 ∃ 的内层公式不一致');
         var v = exTree.v;
         if (T.freeVars(wffOf(T.treeToBody(impTree.b))).indexOf(v) >= 0) fail('变元 ' + v + ' 在结论 B 中自由出现');
-        return { tokens: assertionOf(asBody(impTree.b)), note: '∃E · ' + v };
+        return { tokens: assertionOf(T.treeToBody(impTree.b)), note: '∃E · ' + v };
       }
     },
 
