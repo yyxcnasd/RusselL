@@ -490,6 +490,10 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
 .tray.is-drop-target{background:var(--danger-soft);box-shadow:inset 0 0 0 2px var(--red)}
 .tray.is-drop-target .tile{opacity:.45;filter:grayscale(.5)}
 .tray::-webkit-scrollbar{display:none}
+@media (pointer:coarse){
+  .tray{touch-action:pan-x;-webkit-overflow-scrolling:touch}
+  .tile{touch-action:pan-x}
+}
 
 .tile{
   flex:none;display:grid;place-items:center;width:70px;height:70px;border-radius:var(--radius);

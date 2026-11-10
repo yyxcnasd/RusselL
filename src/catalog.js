@@ -81,9 +81,9 @@
 
   /* 构造类元件在托盘里合并成一个 tile，具体取值（P/Q、x/y、F/=、∀x/∀y、∃x/∃y）
      放到节点的配置弹层里选；规则/公理/定理仍按实际条目显示。 */
-  var MERGE = { atom: 1, term: 1, pred: 1, all: 1, exists: 1 };
-  var FAMILY_SYMBOL = { atom: 'P', term: 'x', pred: 'F', all: '∀', exists: '∃' };
-  var FAMILY_LABEL = { atom: '原子命题', term: '个体变元', pred: '谓词 / 等词', all: '全称', exists: '存在' };
+  var MERGE = { atom: 1, term: 1, pred: 1, all: 1, exists: 1, subst: 1 };
+  var FAMILY_SYMBOL = { atom: 'P', term: 'x', pred: 'F', all: '∀', exists: '∃', subst: 'S' };
+  var FAMILY_LABEL = { atom: '原子命题', term: '个体变元', pred: '谓词 / 等词', all: '全称', exists: '存在', subst: '代入' };
 
   function partsForLevel(level) {
     var out = [];

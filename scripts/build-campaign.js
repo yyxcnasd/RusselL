@@ -33,6 +33,7 @@ function createBuilder() {
   let edgeSeq = 0;
   const formulaCache = new Map();
   const termCache = new Map();
+  const atomCache = new Map();
 
   const used = [];
   const usedSeen = new Set();
@@ -57,6 +58,12 @@ function createBuilder() {
     termCache.set(name, id);
     return id;
   }
+  function atomNode(name) {
+    if (atomCache.has(name)) return atomCache.get(name);
+    const id = addNode('atom', { name });
+    atomCache.set(name, id);
+    return id;
+  }
 
   /** 把 wff 公式体搭成构造电路，返回输出节点 id。 */
   function formula(body) {
@@ -64,7 +71,7 @@ function createBuilder() {
     if (formulaCache.has(k)) return formulaCache.get(k);
     let id;
     if (body.length === 1 && /^[A-Za-z][A-Za-z0-9_]*$/.test(body[0])) {
-      id = addNode('atom', { name: body[0] });
+      id = atomNode(body[0]);
     } else if (body[0] === '-.') {
       const a = formula(body.slice(1));
       id = addNode('not', {});
@@ -123,7 +130,7 @@ function createBuilder() {
     return id;
   }
 
-  return { nodes, edges, formula, termNode, addNode, connect, nextId: () => seq, used: () => used };
+  return { nodes, edges, formula, termNode, atomNode, addNode, connect, nextId: () => seq, used: () => used };
 }
 
 /* ---------- 证明项 → 断言电路 ---------- */
@@ -193,7 +200,7 @@ function compileProof(proof, builder, ctx) {
         id = builder.addNode('subst', { groups: Math.max(0, names.length - 1) });
         builder.connect(base, 'out', id, 'assertion');
         names.forEach((name, i) => {
-          const atomNode = builder.addNode('atom', { name });
+          const atomNode = builder.atomNode(name);
           const formulaNode = builder.formula(atoms[name]);
           builder.connect(atomNode, 'out', id, 'atom' + (i + 1));
           builder.connect(formulaNode, 'out', id, 'formula' + (i + 1));
@@ -214,7 +221,7 @@ function compileProof(proof, builder, ctx) {
         id = builder.addNode('subst', { groups: Math.max(0, atomNames.length - 1) });
         builder.connect(src, 'out', id, 'assertion');
         atomNames.forEach((name, i) => {
-          const atomNode = builder.addNode('atom', { name });
+          const atomNode = builder.atomNode(name);
           const formulaNode = builder.formula(atoms[name]);
           builder.connect(atomNode, 'out', id, 'atom' + (i + 1));
           builder.connect(formulaNode, 'out', id, 'formula' + (i + 1));
@@ -517,13 +524,11 @@ function compileLevel(def, prevLevels) {
   const seenPalette = new Set();
   nodes.forEach((entry) => {
     if (entry.kind === 'target') return;
-    const k = entry.kind + ':' + JSON.stringify(entry.config || {});
+    const cfg = entry.kind === 'subst' ? {} : (entry.config || {});
+    const k = entry.kind + ':' + JSON.stringify(cfg);
     if (seenPalette.has(k)) return;
     seenPalette.add(k);
-    mergedPalette.push({
-      kind: entry.kind,
-      config: entry.kind === 'subst' ? {} : (entry.config || {})
-    });
+    mergedPalette.push({ kind: entry.kind, config: cfg });
   });
 
   const level = {

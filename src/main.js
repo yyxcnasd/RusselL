@@ -672,7 +672,10 @@
 
     els.tray.addEventListener('pointerdown', function (e) {
       var tile = e.target.closest('.tile');
-      if (tile) startPaletteHold(e, tile);
+      if (!tile) return;
+      /* 触屏上把横滑留给元件栏；点一下 tile 仍会进入待放置状态。 */
+      if (e.pointerType === 'touch') return;
+      startPaletteHold(e, tile);
     });
     els.tray.addEventListener('click', function (e) {
       if (paletteHold) return;
