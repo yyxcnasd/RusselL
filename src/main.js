@@ -284,7 +284,19 @@
 
     els.goalFormula.innerHTML = tokens ? UI.goalTokens(tokens) : UI.esc(level.code || '');
     els.goal.classList.toggle('is-long', (els.goalFormula.textContent || '').length > 52);
-    els.levelBtn.textContent = level.code || String(index + 1).padStart(2, '0');
+    if (level.tutorial) {
+      els.levelBtn.style.backgroundImage = '';
+      els.levelBtn.textContent = level.code || String(index + 1).padStart(2, '0');
+    } else {
+      var roman = ['I', 'II', 'III', 'IV'][Number(level.chapter) || 0] || 'I';
+      var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44">' +
+        '<text x="22" y="30" text-anchor="middle" font-family="Times New Roman,serif" ' +
+        'font-size="24" font-weight="700" fill="#24251f" opacity=".2">' + roman + '</text></svg>';
+      els.levelBtn.style.backgroundImage = 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '")';
+      els.levelBtn.style.backgroundRepeat = 'no-repeat';
+      els.levelBtn.style.backgroundPosition = 'center';
+      els.levelBtn.textContent = '*' + String(level.no || (index + 1)).padStart(2, '0');
+    }
     els.levelBtn.setAttribute('aria-label', '第 ' + (index + 1) + ' 关，选择关卡');
     els.popover.hidden = true;
     buildTray();
@@ -292,28 +304,7 @@
     refresh();
     state.board.fit({ minScale: 0.45 });
     showTutorialTip(level);
-    showTutorialDemo(level);
     saveProgress();
-  }
-
-  function showTutorialDemo(level) {
-    if (!level || !level.tutorial) return;
-    state.demoSeen = state.demoSeen || {};
-    if (state.demoSeen[level.id]) return;
-    state.demoSeen[level.id] = true;
-    var part = state.parts && state.parts[0];
-    var symbol = part ? (part.symbol || '·') : '·';
-    var el = document.createElement('div');
-    el.className = 'tutorial-demo';
-    el.setAttribute('aria-hidden', 'true');
-    el.innerHTML =
-      '<div class="demo-ghost"><span>' + UI.esc(symbol) + '</span></div>' +
-      '<div class="demo-cursor"><svg viewBox="0 0 24 24"><path d="M5 3l14 8-6 1.4L10 19 5 3Z"/></svg></div>' +
-      '<div class="demo-label">拖到画布</div>';
-    document.body.appendChild(el);
-    setTimeout(function () {
-      if (el.parentNode) el.parentNode.removeChild(el);
-    }, 3600);
   }
 
   /* 把当前视图夹到“目标焊盘完整可见”的范围内，同时尽量保留 fit() 的取景。 */

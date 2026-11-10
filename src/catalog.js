@@ -46,7 +46,10 @@
     if (kind === 'gen') return '∀I' + (cfg.v || '');
     if (kind === 'shift') return '∀*' + (cfg.v || '');
     if (kind === 'axiom') return (cfg.schema || 'Ax') + (cfg.v ? '·' + cfg.v : '');
-    if (kind === 'theorem') return String(cfg.code || '⊢');
+    if (kind === 'theorem') {
+      var m = /([ⅠⅡⅢⅣ])-(\d+)/.exec(String(cfg.code || ''));
+      return m ? '*' + m[2] : String(cfg.code || '⊢');
+    }
     if (kind === 'not') return '¬';
     if (kind === 'imp') return '→';
     var info = host.RSL.Engine.info ? host.RSL.Engine.info(kind) : null;

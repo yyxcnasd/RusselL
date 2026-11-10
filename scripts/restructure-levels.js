@@ -223,17 +223,14 @@ function main() {
     all.sort((a, b) => a.cand.size - b.cand.size || a.level.no - b.level.no);
     const picked = [];
     const seen = new Set();
-    /* 10 个普通关覆盖 5–20 块，不要全挤在最小的一档。 */
-    const targets = [5, 7, 8, 10, 12, 13, 15, 17, 18, 20];
-    targets.forEach((target) => {
-      let best = null;
-      all.forEach((x) => {
-        if (seen.has(key(x.cand.tokens))) return;
-        if (!best || Math.abs(x.cand.size - target) < Math.abs(best.cand.size - target)) best = x;
-      });
-      if (!best) return;
-      seen.add(key(best.cand.tokens));
-      picked.push(best);
+    /* 只挑最短的目标公式；长嵌套式子留给困难关。 */
+    all.slice().sort((a, b) => a.cand.tokens.length - b.cand.tokens.length ||
+      a.cand.size - b.cand.size || a.level.no - b.level.no).forEach((x) => {
+      if (picked.length === 10) return;
+      const k = key(x.cand.tokens);
+      if (seen.has(k)) return;
+      seen.add(k);
+      picked.push(x);
     });
     picked.sort((a, b) => a.cand.size - b.cand.size || a.level.no - b.level.no);
     chapterNormals[g] = picked;

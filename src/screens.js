@@ -43,6 +43,16 @@
       (unlocked ? '' : ' disabled') + '>' + esc(lv.code) + '</button>';
   }
 
+  function chapterEn(lv) {
+    return ['I', 'II', 'III', 'IV'][Number(lv.chapter) || 0] || 'I';
+  }
+
+  function levelBadge(lv, no) {
+    return '<span class="level-badge" data-chapter="' + chapterEn(lv) + '">' +
+      '<span class="chapter-bg" aria-hidden="true">' + chapterEn(lv) + '</span>' +
+      '<span class="level-num">*' + String(no).padStart(2, '0') + '</span></span>';
+  }
+
   function levelCell(entry) {
     var lv = entry.lv, i = entry.i;
     var unlocked = ctx.isUnlocked(i);
@@ -55,11 +65,13 @@
       (unlocked ? '' : ' is-locked');
     var no = Number(lv.no) || (i + 1);
     var label = 'Level ' + String(no).padStart(2, '0') + (unlocked ? '' : ', locked');
-    return '<button class="' + cls + '" data-level="' + i + '" aria-label="' + label + '"' +
+    return '<span class="level-wrap" data-chapter="' + chapterEn(lv) + '">' +
+      '<span class="chapter-bg" aria-hidden="true">' + chapterEn(lv) + '</span>' +
+      '<button class="' + cls + '" data-level="' + i + '" aria-label="' + label + '"' +
       (unlocked ? '' : ' disabled') + style + '>' +
-      String(no).padStart(2, '0') +
+      '<span class="level-num">*' + String(no).padStart(2, '0') + '</span>' +
       '<i class="eff" aria-hidden="true"></i>' +
-      '</button>';
+      '</button></span>';
   }
 
   function bandHTML(items, kind) {

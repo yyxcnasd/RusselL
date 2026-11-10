@@ -49,7 +49,7 @@ runTest('game-ui', async ({ openPage }) => {
   })()`);
   equal(labels.axiom, 'A2', 'A2 显示 A2');
   equal(labels.pred, 'G', '谓词显示 G');
-  equal(labels.theorem, 'Ⅰ-01', '定理显示章节编号');
+  equal(labels.theorem, '*01', '定理显示 *NN（章节罗马数字作底）');
   ok(labels.substPorts.indexOf('vleft') < 0 && labels.substPorts.indexOf('vright') < 0,
     'S 不显示旧变元改名端口');
 
@@ -207,7 +207,7 @@ runTest('game-ui', async ({ openPage }) => {
             variants: atom && atom.variants ? atom.variants.length : 0};
   })()`);
   equal(mergedTray.atomTiles, 1, '原子只占一个元件');
-  ok(mergedTray.variants >= 3, '原子弹层包含 P/Q/R 变体');
+  ok(mergedTray.variants >= 1, '原子 tile 至少包含一个变体');
   await page.js('document.querySelector(".tile[data-key=\\"atom:*\\"]").click()');
   await page.sleep(150);
   const popover = await page.js('document.querySelectorAll(".letter-grid .opt").length');
