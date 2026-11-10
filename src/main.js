@@ -44,22 +44,28 @@
    * 1. 存档
    * ========================================================================= */
 
-  function loadProgress() {
-    var empty = {
-      solved: {}, bestLen: {}, usedKinds: {},
-      cleanWins: {}, circuits: {}, achievements: {}, lastId: null
-    };
-    var p;
-    try { p = SAVE.clean(SAVE.load()); }
-    catch (e) {
-      Object.keys(empty).forEach(function (k) { state[k] = empty[k]; });
-      return;
-    }
-    function setOf(list) {
-      var map = {};
-      (list || []).forEach(function (k) { map[k] = true; });
-      return map;
-    }
+  var storeFailureShown = false;
+  var migrationToastShown = false;
+  var migrationWarningShown = false;
+  var rejectToastShown = false;
+
+  function setOf(list) {
+    var map = {};
+    (list || []).forEach(function (k) { map[k] = true; });
+    return map;
+  }
+
+  function resetProgress() {
+    state.solved = {};
+    state.bestLen = {};
+    state.usedKinds = {};
+    state.cleanWins = {};
+    state.circuits = {};
+    state.achievements = {};
+    state.lastId = null;
+  }
+
+  function applyProgress(p) {
     state.solved = setOf(p.solved);
     state.bestLen = p.bestLen || {};
     state.usedKinds = setOf(p.usedKinds);
@@ -69,8 +75,62 @@
     state.lastId = p.lastId || null;
   }
 
+  /** localStorage 写入失败（配额/隐私模式）只提示一次，不再静默吞掉 false。 */
+  function reportStoreFailure() {
+    if (storeFailureShown) return;
+    storeFailureShown = true;
+    UI.toast('存档写入失败：浏览器存储不可用');
+  }
+
+  /** 迁移提示只出现一次；返回是否真的弹了 toast。 */
+  function showMigrationReport(report) {
+    if (!report || !report.migrated) return false;
+    if (report.missingLegacy) {
+      if (migrationWarningShown) return false;
+      migrationWarningShown = true;
+      UI.toast('旧存档待更新：缺少旧关卡映射，已备份旧档');
+      return true;
+    }
+    if (migrationToastShown) return false;
+    if (!report.keptSolved && !report.droppedSolved) return false;
+    migrationToastShown = true;
+    var msg = '存档已更新：保留 ' + report.keptSolved + ' 关';
+    if (report.droppedSolved) msg += '，移除 ' + report.droppedSolved + ' 关';
+    UI.toast(msg);
+    return true;
+  }
+
+  function loadProgress() {
+    var raw = SAVE.load();
+    var result;
+    try {
+      result = SAVE.migrate(raw, state.levels, window.RSL.LEGACY_TARGETS || null);
+    } catch (e) {
+      /* 版本过新/结构损坏：不拿空进度覆盖，先把原档留底并提示一次。 */
+      if (raw && typeof raw === 'object' && Object.keys(raw).length) SAVE.backup(raw);
+      resetProgress();
+      if (!rejectToastShown) {
+        rejectToastShown = true;
+        UI.toast('存档版本过新或已损坏，原档已备份');
+      }
+      return;
+    }
+    applyProgress(result.save);
+    var stored = true;
+    if (result.report.migrated) {
+      /* 覆盖前留一份旧档；缺失 legacy 映射时不在加载阶段持久化，避免静默洗掉旧字段。 */
+      var legacySource = result.report.fromVersion !== SAVE.version ||
+        result.report.fromCampaign !== result.report.toCampaign;
+      if (legacySource && raw && typeof raw === 'object' && Object.keys(raw).length) SAVE.backup(raw);
+      if (!result.report.missingLegacy) stored = SAVE.store(result.save);
+    }
+    showMigrationReport(result.report);
+    /* 写入失败提示放在最后，避免被迁移提示覆盖。 */
+    if (!stored) reportStoreFailure();
+  }
+
   function saveProgress() {
-    SAVE.store(SAVE.payload(state));
+    if (!SAVE.store(SAVE.payload(state))) reportStoreFailure();
     if (window.RSL.CloudSave) window.RSL.CloudSave.schedule(state);
   }
 
@@ -92,15 +152,27 @@
     if (!file) return;
     var reader = new FileReader();
     reader.onload = function () {
+      var raw, result;
       try {
-        var data = SAVE.clean(JSON.parse(String(reader.result || '')));
-        SAVE.store(data);
-        UI.toast('已导入');
-        setTimeout(function () { window.location.reload(); }, 650);
+        raw = JSON.parse(String(reader.result || ''));
+        result = SAVE.migrate(raw, state.levels, window.RSL.LEGACY_TARGETS || null);
       } catch (e) {
         UI.toast('存档不对');
+        return;
       }
+      if (result.report.missingLegacy) {
+        UI.toast('导入失败：缺少旧关卡映射');
+        return;
+      }
+      if (!SAVE.store(result.save)) {
+        UI.toast('导入失败：本地存储不可用');
+        return;
+      }
+      SAVE.backup(raw);
+      UI.toast(result.report.migrated ? '已导入并更新存档' : '已导入');
+      setTimeout(function () { window.location.reload(); }, 650);
     };
+    reader.onerror = function () { UI.toast('导入失败：文件读取错误'); };
     reader.readAsText(file);
   }
 
@@ -183,23 +255,14 @@
     if (index <= 0) return true;
     var lv = state.levels[index];
     if (!lv) return false;
-    /* 普通关 = 非教学、非困难、非引理关。引理关（band 'lemma'）是可选的
-       「原始语言 → 定义 → 引理」内容，不参与章节/困难关解锁判定；
-       HANDOFF §7 的口径是「第 N 章在第 N−1 章普通关全部完成后解锁」。 */
-    function isNormal(x) { return !x.tutorial && !x.hard && x.band !== 'lemma'; }
-    var chapterLevels = state.levels.filter(function (x) { return x.chapter === lv.chapter; });
-    var firstOfChapter = chapterLevels[0] === lv;
-    if (firstOfChapter) {
-      if (lv.chapter === 0) return true;
-      var prevChapter = state.levels.filter(function (x) { return x.chapter === lv.chapter - 1 && isNormal(x); });
-      return prevChapter.every(function (x) { return !!state.solved[x.id]; });
-    }
+    var levels = state.levels;
+    function solved(x) { return !!(x && state.solved[x.id]); }
     if (lv.hard) {
-      var normals = chapterLevels.filter(isNormal);
-      if (normals.every(function (x) { return !!state.solved[x.id]; })) return true;
+      /* 困难段统一在全部教学 + 普通关完成后开放。 */
+      return levels.every(function (x) { return x.hard || solved(x); });
     }
-    var prev = state.levels[index - 1];
-    return !!(prev && state.solved[prev.id]);
+    var prev = levels[index - 1];
+    return solved(prev);
   }
 
   /** 关卡目标的 canonical token（带 |-）。 */
@@ -243,20 +306,11 @@
   function updateLevelButton() {
     var level = state.level;
     if (!level || !els.levelBtn) return;
+    els.levelBtn.style.backgroundImage = '';
     if (level.tutorial) {
-      els.levelBtn.style.backgroundImage = '';
       els.levelBtn.textContent = level.code || '';
       return;
     }
-    var roman = ['I', 'II', 'III', 'IV'][Number(level.chapter) || 0] || 'I';
-    var fill = state.theme === 'dark' ? '#f3efe4' : '#24251f';
-    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44">' +
-      '<text x="22" y="31" text-anchor="middle" font-family="Times New Roman,serif" ' +
-      'font-size="30" font-weight="700" fill="' + fill + '" opacity=".55">' + roman + '</text></svg>';
-    els.levelBtn.style.backgroundImage = 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '")';
-    els.levelBtn.style.backgroundRepeat = 'no-repeat';
-    els.levelBtn.style.backgroundPosition = 'center';
-    els.levelBtn.style.backgroundSize = '40px 40px';
     els.levelBtn.textContent = '*' + String(level.no || '').padStart(2, '0');
   }
 
@@ -331,7 +385,7 @@
     buildTray();
     state.board.result = null;
     refresh();
-    state.board.fit({ minScale: 0.45 });
+    state.board.fit({ minScale: 0.15 });
     showTutorialTip(level);
     saveProgress();
   }
@@ -361,16 +415,7 @@
       var long = variant === ' is-code' && symbol.length > 3 ? ' is-long' : '';
       var style = '';
       if (part.kind === 'theorem' && part.config && part.config.code) {
-        var m = /([ⅠⅡⅢⅣ])-(\d+)/.exec(String(part.config.code));
-        if (m) {
-          var roman = { 'Ⅰ': 'I', 'Ⅱ': 'II', 'Ⅲ': 'III', 'Ⅳ': 'IV' }[m[1]] || 'I';
-          var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="58" height="58">' +
-            '<text x="29" y="40" text-anchor="middle" font-family="Times New Roman,serif" ' +
-            'font-size="32" font-weight="700" fill="' + (state.theme === 'dark' ? '#f3efe4' : '#24251f') + '" opacity=".3">' + roman + '</text></svg>';
-          symbol = '*' + m[2];
-          style = ' style="background-image:url(\'data:image/svg+xml,' + encodeURIComponent(svg) +
-            '\');background-repeat:no-repeat;background-position:center;background-size:58px 58px"';
-        }
+        symbol = '*' + String(part.config.code);
       }
       return '<button class="tile' + variant + long + '" data-key="' + UI.esc(part.key) + '" title="' + UI.esc(part.name) +
         '" aria-label="' + UI.esc(part.name) + '"' + style + '><span>' + UI.esc(symbol) + '</span></button>';
@@ -806,6 +851,24 @@
     loadLevel(next);
   }
 
+  /** 选一个当前 campaign 里有效、已解锁的起始关（云存档/启动共用）。 */
+  function pickStartIndex() {
+    var start = -1;
+    if (state.lastId && state.levels.length) {
+      for (var i = 0; i < state.levels.length; i += 1) {
+        if (state.levels[i].id === state.lastId) { start = i; break; }
+      }
+    }
+    if (start < 0 || state.solved[state.levels[start].id] || !isUnlocked(start)) {
+      start = -1;
+      for (var j = 0; j < state.levels.length; j += 1) {
+        if (!state.solved[state.levels[j].id] && isUnlocked(j)) { start = j; break; }
+      }
+      if (start < 0) start = state.levels.length - 1;
+    }
+    return start;
+  }
+
   /* =========================================================================
    * 8. 全局事件
    * ========================================================================= */
@@ -1032,12 +1095,13 @@
     if (els.hintBtn) els.hintBtn.hidden = !toyMode;
     if (els.rankBtn) els.rankBtn.hidden = !toyMode;
     if (els.godBtn) els.godBtn.hidden = !godMode;
+    /* 先建关卡表：loadProgress 的 v4 迁移需要当前 levels + targetTokens。 */
+    buildLevels();
     loadProgress();
     loadSettings();
     applyTheme();
     updateSoundBtn();
     if (!state.sound) Audio.setSound(false);
-    buildLevels();
 
     state.board = new window.RSL.Board({
       board: els.board,
@@ -1070,19 +1134,7 @@
 
     bind();
 
-    var start = -1;
-    if (state.lastId) {
-      for (var i = 0; i < state.levels.length; i++) {
-        if (state.levels[i].id === state.lastId) { start = i; break; }
-      }
-    }
-    if (start < 0 || state.solved[state.levels[start].id] || !isUnlocked(start)) {
-      start = -1;
-      for (var j = 0; j < state.levels.length; j++) {
-        if (!state.solved[state.levels[j].id] && isUnlocked(j)) { start = j; break; }
-      }
-      if (start < 0) start = state.levels.length - 1;
-    }
+    var start = pickStartIndex();
     loadLevel(start);
     updateProgress();
 
@@ -1090,10 +1142,32 @@
     if (window.RSL.CloudSave && toyMode) {
       window.RSL.CloudSave.init(state).then(function (cloud) {
         if (!cloud) return;
-        if (window.RSL.CloudSave.apply(state, cloud)) {
-          updateProgress();
-          UI.toast('已同步账号存档');
+        var result;
+        try {
+          result = SAVE.migrate(cloud, state.levels, window.RSL.LEGACY_TARGETS || null);
+        } catch (e) {
+          return;
         }
+        if (result.report.missingLegacy) {
+          UI.toast('云存档待更新：缺少旧关卡映射');
+          return;
+        }
+        /* 云存档与本地进度等价时不再 apply / 重载，避免启动时闪一下棋盘。 */
+        if (window.RSL.CloudSave.equal(state, result.save)) {
+          /* 旧版云存档即使内容相同也写回一次 v4，避免每次启动重复迁移。 */
+          if (result.report.migrated) window.RSL.CloudSave.schedule(state);
+          updateProgress();
+          return;
+        }
+        if (!window.RSL.CloudSave.apply(state, result.save)) return;
+        var cloudStart = pickStartIndex();
+        if (cloudStart >= 0) loadLevel(cloudStart);
+        else if (!SAVE.store(SAVE.payload(state))) reportStoreFailure();
+        updateProgress();
+        checkAchievements();
+        /* 迁移后的 v4 存档写回 Toy，下次启动不必再迁移一遍。 */
+        window.RSL.CloudSave.schedule(state);
+        if (!showMigrationReport(result.report)) UI.toast('已同步账号存档');
       });
     }
 

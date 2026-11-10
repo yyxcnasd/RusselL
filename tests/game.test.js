@@ -1,8 +1,7 @@
 'use strict';
-/* 核心校验：152 关 = 16 教学 + 40 普通 + 96 困难；
- * 每章 4 教学 + 10 普通（5–21 模块）+ 24 困难（≤200 模块、hint=null）；
- * 全部参考解通过真实 Engine；定理只引用更早关卡；模块表无派生连接词公理。
- * 契约：docs/LEVEL-REDESIGN-PLAN.md。
+/* 核心校验：96 关 = 8 教学 + 32 普通（5–21 模块）+ 56 困难（22–200 模块、hint=null）。
+ * 单章命题演算：不允许谓词/等词/集合论元件或章节字段；目标不重复；
+ * 全部参考解通过真实 Engine；定理只引用更早关卡。
  */
 const test = require('node:test');
 const assert = require('node:assert');
@@ -21,39 +20,19 @@ const RSL = loadRuntime({
   ],
 });
 
-const EXPECTED = {
-  total: 152,
-  tutorials: 16,
-  base: 40,
-  challenge: 96,
-  perChapterBase: 10,
-  perChapterChallenge: 24,
-  perChapterTutorials: 4,
-};
-const CHAPTERS = ['Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ'];
-const LEGACY_DERIVED = ['and-intro-ax', 'and-elim-ax', 'or-intro-ax', 'or-elim-ax', 'iff-intro-ax', 'iff-elim-ax'];
-const CONSTRUCT_KINDS = ['atom', 'term', 'pred', 'not', 'imp', 'all', 'exists', 'mem', 'and', 'or', 'iff'];
+const EXPECTED = { total: 96, tutorials: 8, base: 32, challenge: 56 };
+const PROPOSITIONAL_KINDS = new Set([
+  'atom', 'not', 'imp', 'and', 'or', 'iff',
+  'axiom', 'subst', 'mp', 'def-expand', 'def-contract', 'theorem',
+]);
 
-test('运行时只加载新体系的脚本', () => {
+test('运行时只加载需要的脚本', () => {
   const joined = scripts.join(',');
-  ['archive.js', 'levels-generated.js', 'mm/', 'logic.js'].forEach((bad) => assert.ok(!joined.includes(bad), '不应加载 ' + bad));
-  ['term.js', 'modules.js', 'engine.js', 'levels.js'].forEach((good) => assert.ok(joined.includes(good), '缺少 ' + good));
-});
-
-test('模块表：构造 + A1–A5 + 基本推理 + D 定义重写 + 定理，无派生连接词公理', () => {
-  const kinds = Object.keys(RSL.Modules.MODULES);
-  CONSTRUCT_KINDS.forEach((k) => assert.ok(kinds.includes(k), '缺少构造模块 ' + k));
-  ['axiom', 'subst', 'mp', 'gen', 'shift', 'all-inst', 'exists-gen', 'exists-elim', 'leibniz', 'eq-refl',
-    'def-expand', 'def-contract', 'theorem', 'set-ext', 'set-empty', 'set-pair', 'set-union'].forEach((k) => {
-    assert.ok(kinds.includes(k), '缺少模块 ' + k);
+  ['archive.js', 'levels-generated.js', 'mm/', 'logic.js'].forEach((bad) => {
+    assert.ok(!joined.includes(bad), '不应加载 ' + bad);
   });
-  LEGACY_DERIVED.forEach((k) => assert.ok(!kinds.includes(k), '派生公理必须删除：' + k));
-  ['A1', 'A2', 'A3', 'A4', 'A5'].forEach((s) => assert.ok(RSL.Modules.AXIOMS[s], '缺少公理 ' + s));
-  ['def-expand', 'def-contract'].forEach((k) => {
-    assert.strictEqual(RSL.Modules.isConstruct(k), false, k + ' 不能是构造模块');
-    const info = RSL.Modules.info(k);
-    assert.strictEqual(JSON.stringify(info.ports.inputs.map((p) => p.id)), JSON.stringify(['assertion']));
-    assert.strictEqual(info.ports.inputs[0].type, 'assertion');
+  ['term.js', 'modules.js', 'engine.js', 'levels.js', 'legacy-targets.js'].forEach((good) => {
+    assert.ok(joined.includes(good), '缺少 ' + good);
   });
 });
 
@@ -68,33 +47,31 @@ test('D 定义重写 API：expand/contract 幂等、互逆、不改变 T.eq 语�
   assert.throws(() => RSL.Modules.apply('def-contract', { assertion: ['wff', 'P'] }, {}, {}), /断言/);
 });
 
-test('152 关 = 16 教学 + 40 普通 + 96 困难；每章 4 教学 + 10 普通 + 24 困难', () => {
+test('96 关 = 8 教学 + 32 普通 + 56 困难，且只有一条课程线', () => {
   const levels = RSL.LEVELS;
   assert.strictEqual(levels.length, EXPECTED.total, '总关数');
   const tutorials = levels.filter((lv) => lv.tutorial);
   const numbered = levels.filter((lv) => !lv.tutorial);
   assert.strictEqual(tutorials.length, EXPECTED.tutorials, '教学关数');
-  assert.strictEqual(numbered.length, EXPECTED.base + EXPECTED.challenge, '主线关数');
+  assert.strictEqual(numbered.length, EXPECTED.base + EXPECTED.challenge, '编号关数');
   assert.strictEqual(numbered.filter((lv) => !lv.hard).length, EXPECTED.base, '普通关数');
   assert.strictEqual(numbered.filter((lv) => lv.hard).length, EXPECTED.challenge, '困难关数');
   assert.strictEqual(levels.filter((lv) => lv.band === 'lemma').length, 0, '不应再有 lemma 带');
-  CHAPTERS.forEach((g) => {
-    const inCh = levels.filter((lv) => lv.chapterGroup === g);
-    assert.strictEqual(inCh.filter((lv) => lv.tutorial).length, EXPECTED.perChapterTutorials, g + ' 教学关数');
-    assert.strictEqual(inCh.filter((lv) => !lv.tutorial && !lv.hard).length, EXPECTED.perChapterBase, g + ' 普通关数');
-    assert.strictEqual(inCh.filter((lv) => lv.hard).length, EXPECTED.perChapterChallenge, g + ' 困难关数');
+  levels.forEach((lv) => {
+    assert.ok(!('chapter' in lv), lv.code + ' 不应有 chapter 字段');
+    assert.ok(!('chapterGroup' in lv), lv.code + ' 不应有 chapterGroup 字段');
   });
-  /* 编号：教学关小写罗马数字；编号关 X-NN，每章 01–34 连续 */
-  tutorials.forEach((lv) => assert.ok(/^[ⅠⅡⅢⅣ]-[ivx]+$/.test(lv.code), lv.code + ' 教学关代号'));
-  CHAPTERS.forEach((g) => {
-    const codes = numbered.filter((lv) => lv.chapterGroup === g).map((lv) => lv.code);
-    assert.strictEqual(JSON.stringify(codes), JSON.stringify(Array.from({ length: 34 }, (_, i) => g + '-' + String(i + 1).padStart(2, '0'))), g + ' 章编号连续');
-  });
+  assert.ok(!/Ⅰ-|Ⅱ-|Ⅲ-|Ⅳ-|章/.test(levels.map((lv) => lv.title + lv.teaches).join(' ')), '标题里不应出现章节字样');
+  /* 教学关只显示小写罗马数字；编号关 01–88 连续。 */
+  assert.strictEqual(JSON.stringify(tutorials.map((lv) => lv.code)),
+    JSON.stringify(['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii']), '教学关代号');
+  assert.strictEqual(JSON.stringify(numbered.map((lv) => lv.code)),
+    JSON.stringify(Array.from({ length: 88 }, (_, i) => String(i + 1).padStart(2, '0'))), '编号连续');
   const ids = levels.map((lv) => lv.id);
   assert.strictEqual(new Set(ids).size, ids.length, 'id 唯一');
 });
 
-test('每关 schema：普通 5–21 模块 + mustUse，困难 hint=null，教学 tip，定理只引用更早关卡', () => {
+test('每关 schema：普通 5–21 + mustUse，困难 22–200 + hint=null，教学 tip', () => {
   const levels = RSL.LEVELS;
   levels.forEach((lv) => {
     assert.ok(Array.isArray(lv.targetTokens) && lv.targetTokens[0] === '|-', lv.code + ' targetTokens');
@@ -110,11 +87,12 @@ test('每关 schema：普通 5–21 模块 + mustUse，困难 hint=null，教学
       assert.ok(n >= 5 && n <= 21, lv.code + ' 普通关 5–21 模块（实际 ' + n + '）');
       assert.ok(Array.isArray(lv.mustUse) && lv.mustUse.length > 0, lv.code + ' 普通关 mustUse');
     } else {
-      assert.ok(lv.solution.nodes.length <= 200, lv.code + ' 困难关 ≤200 模块');
+      const n = lv.solution.nodes.length;
+      assert.ok(n >= 22 && n <= 200, lv.code + ' 困难关 22–200 模块（实际 ' + n + '）');
       assert.strictEqual(lv.hint, null, lv.code + ' 困难关 hint=null');
     }
     (lv.palette || []).forEach((e) => {
-      LEGACY_DERIVED.forEach((bad) => assert.notStrictEqual(e.kind, bad, lv.code + ' palette 残留 ' + bad));
+      assert.ok(PROPOSITIONAL_KINDS.has(e.kind), lv.code + ' 出现非命题元件 ' + e.kind);
       if (e.kind === 'theorem') {
         const idx = levels.findIndex((x) => x.code === e.config.code);
         assert.ok(idx >= 0, lv.code + ' 引用了不存在的定理 ' + e.config.code);
@@ -124,7 +102,28 @@ test('每关 schema：普通 5–21 模块 + mustUse，困难 hint=null，教学
   });
 });
 
-test('152 关参考证明全部通过真实引擎（逐节点求值）', () => {
+test('目标公式不重复（定义展开后比较）', () => {
+  const levels = RSL.LEVELS;
+  const seen = new Map();
+  levels.forEach((lv) => {
+    const key = RSL.Term.key(lv.targetTokens.slice(1));
+    assert.ok(!seen.has(key), '重复目标：' + seen.get(key) + ' / ' + lv.code);
+    seen.set(key, lv.code);
+  });
+});
+
+test('困难关模块数整体上升，且不超过 200', () => {
+  const hard = RSL.LEVELS.filter((lv) => lv.hard);
+  const sizes = hard.map((lv) => lv.solution.nodes.length);
+  assert.ok(Math.min.apply(null, sizes) >= 22, '困难关最小模块数');
+  assert.ok(Math.max.apply(null, sizes) <= 200, '困难关最大模块数');
+  assert.ok(sizes[sizes.length - 1] > sizes[0], '困难关应整体变长');
+  let inversions = 0;
+  for (let i = 1; i < sizes.length; i += 1) if (sizes[i] < sizes[i - 1]) inversions += 1;
+  assert.ok(inversions <= 10, '困难关倒挂过多：' + inversions);
+});
+
+test('96 关参考证明全部通过真实引擎（逐节点求值）', () => {
   const levels = RSL.LEVELS;
   const failures = [];
   levels.forEach((lv) => {

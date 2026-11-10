@@ -1,3 +1,7 @@
+> **历史文档 / 已归档**：本文件记录的是四章（命题/谓词/等词/集合论）版本的设计与验收。
+> 该版本已冻结在 `archive/predicate-set/`（tag `archive/predicate-set-v1`）；主线现在是
+> 单章 96 关命题演算，见 [README](../README.md) 与 [docs/ARCHIVE-PREDICATE-SET.md](ARCHIVE-PREDICATE-SET.md)。
+
 # 公理审计：哪些是真公理，哪些应当变成关卡
 
 原则：**只有推不出来的才保留为公理模块；能由更基本规则证明的，必须先做成关卡（`*NN`），之后只能以定理引用它。**

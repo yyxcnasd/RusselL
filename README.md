@@ -10,8 +10,8 @@
     <a href="https://yyxcnasd.github.io/RusselL/"><img alt="网页版" src="https://img.shields.io/badge/PLAY-GitHub%20Pages-3f8e65?style=for-the-badge"></a>
     <img alt="B站 Toy" src="https://img.shields.io/badge/BILIBILI-Toy-e66f3f?style=for-the-badge">
     <img alt="版本" src="https://img.shields.io/badge/VERSION-v4.0.0-3f8e65?style=for-the-badge">
-    <img alt="主线关卡" src="https://img.shields.io/badge/MAIN-136-4f7fb5?style=for-the-badge">
-    <img alt="教学关" src="https://img.shields.io/badge/TUTORIAL-16-d3ad68?style=for-the-badge">
+    <img alt="编号关卡" src="https://img.shields.io/badge/LEVELS-88-4f7fb5?style=for-the-badge">
+    <img alt="教学关" src="https://img.shields.io/badge/TUTORIAL-8-d3ad68?style=for-the-badge">
   </p>
 
   <p>
@@ -29,7 +29,7 @@
 </div>
 
 <p align="center">
-  <img src="screenshots/levels.png" width="840" alt="选关界面：每章分教学、普通、引理、进阶分带（第Ⅰ章含 9 个引理关）">
+  <img src="screenshots/levels.png" width="840" alt="选关界面：单章命题演算，教学、普通、困难三条分带">
 </p>
 
 ## 两个版本
@@ -48,11 +48,11 @@
 2. **接线**：从模块右侧圆点拖到另一个模块左侧圆点；先点输出、再点输入也可以。
 3. **校验**：把最终断言接到右侧的 `⊢`，点顶栏最右边的播放键。
 
-右键删除模块或导线；把模块拖回下边栏也能删。已接线的输入端可以按住拖走拆线，拖到别的输入端重接。触屏支持双指缩放，双击空板回到适应视图。卡住时也可以看 [docs/SOLUTIONS.md](docs/SOLUTIONS.md)：166 关逐关列出参考电路的模块与接线。
+右键删除模块或导线；把模块拖回下边栏也能删。已接线的输入端可以按住拖走拆线，拖到别的输入端重接。触屏支持双指缩放，双击空板回到适应视图。卡住时也可以看 [docs/SOLUTIONS.md](docs/SOLUTIONS.md)：96 关逐关列出参考电路的模块与接线。
 
 框选多个模块后，直接拖其中任意一个就能整体移动，不用再按 Shift。`Ctrl/Cmd+C` 复制选中模块和它们之间的线，`Ctrl/Cmd+V` 粘贴成跟随鼠标的磁吸贴；左键放下。目标位置放不下时会留在鼠标上，不会把模块挪到别处。跨关粘贴只保留当前关允许使用的元件。
 
-同一类的构造元件只占一个下栏格子：原子、个体、谓词、`∀`、`∃` 都是放下来之后再从弹层里选具体取值。弹层给的是完整取值集合，不会因为本关参考证明只用了 P/Q/R 就只显示这三个。
+同类构造元件只占一个下栏格子：原子命题和代入是放下来之后再从弹层里选具体取值。弹层给的是完整取值集合，不会因为本关参考证明只用了 P/Q/R 就只显示这三个。
 
 ## 提示
 
@@ -74,18 +74,15 @@ B 站 Toy 版有排行榜入口，和帮助、提示按钮并排在顶栏。GitH
 
 ## 关卡结构
 
-共 **166 关**：四章各 **10 个普通关 + 24 个困难关**，第Ⅰ章另有 **9 个引理关**（Ⅰ-11…Ⅰ-19），外加 **21 个教学关**（7 / 6 / 4 / 4）。每章从 `01` 重新编号，关卡号写作 `Ⅰ-01`、`Ⅱ-07`；定理模块也直接用这个编号引用更早关卡。
+共 **96 关**：**8 个教学关**（i–viii）+ **32 个普通关**（01–32）+ **56 个困难关**（33–88）。只有一条课程线，不再分章节；教学关显示小写罗马数字，编号关从 01 连续到 88。
 
-| 章 | 主题 | 教学 | 普通 | 引理 | 困难 |
-|:---:| --- |:---:|:---:|:---:|:---:|
-| Ⅰ | 命题演算：A1–A3、代入、分离、∧/∨/↔ 引理 | i–vii | Ⅰ-01–Ⅰ-10 | Ⅰ-11–Ⅰ-19 | Ⅰ-20–Ⅰ-43 |
-| Ⅱ | 谓词与量词：全称/存在规则、A5、引用已证定理 | i–vi | Ⅱ-01–Ⅱ-10 | — | Ⅱ-11–Ⅱ-34 |
-| Ⅲ | 等词：等词自反、Leibniz 替换 | i–iv | Ⅲ-01–Ⅲ-10 | — | Ⅲ-11–Ⅲ-34 |
-| Ⅳ | 集合论：∈、外延/空集/配对/并集 | i–iv | Ⅳ-01–Ⅳ-10 | — | Ⅳ-11–Ⅳ-34 |
+- **普通关**：参考解 **5–21 个元件**，目标不超过 36 个 token，必须用到至少一条推理规则，都有定制提示。
+- **困难关**：参考解 **22–200 个元件**，整体从短到长；不提供提示，允许引用更早关卡的定理。
+- **教学关**：每关只演示一个元件或流程，参考证明最多 20 步；棋盘正中浮窗显示元件代号与规则式，点一下收起。
 
-普通关的参考解控制在 **5–20 个元件** 且必须用到非 S 规则；困难关可以很大，并允许引用前面的普通关/引理关定理（困难关不提供提示）。引理关不套 5–20 限制：9 条派生规则的原始语言证明从 8 个元件（析取引入/等值消去）到 562 个（析取消去）不等。教学关、普通关、引理关都有定制提示。
+内容以 set.mm 的命题演算定理为主：49 条定理的证明 DAG 经 `scripts/mm-import.js` 重放、`scripts/lib/mm-bridge.js` 翻译，再按真实模块数排成阶梯；大证明里的关键中间结论会单独成关，标题注明它属于哪条定理。∧/∨/↔ 由定义展开/收缩（D/D⁻）处理，∧/∨/↔ 的引入/消去规则由真实证明内联成困难关。
 
-教学关每关只演示一个元件或一个流程，参考证明最长 20 步。进入教学关时，棋盘正中会出现一张浮窗，左边是本关元件的代号，右边是规则式（例如 `A1` 与 `P→(Q→P)`，或 `D` 与 `¬(A→¬B) ⇒ A∧B`）；点一下棋盘就收起。第Ⅰ章 vi/vii 讲解定义 D 与原始语法，第Ⅱ章 vi 演示如何用 `theorem` 引用已证的 Ⅰ-14。
+谓词、等词、集合论三章已整体移出主线，冻结在 [archive/predicate-set](archive/predicate-set/README.md)（tag `archive/predicate-set-v1`），见 [docs/ARCHIVE-PREDICATE-SET.md](docs/ARCHIVE-PREDICATE-SET.md)。单章设计、构建管线与限制见 [docs/SINGLE-CHAPTER.md](docs/SINGLE-CHAPTER.md)。
 
 <p align="center">
   <img src="screenshots/tutorial.png" width="760" alt="教学关浮窗：只显示元件代号与规则式">
@@ -97,24 +94,22 @@ B 站 Toy 版有排行榜入口，和帮助、提示按钮并排在顶栏。GitH
 
 | 类别 | 模块 |
 | --- | --- |
-| 构造 | 命题原子 `P…V`，个体变元 `x…w`，谓词/等词 `F(x)`/`x=y`，属于 `x∈y`，`¬`、`→`、`∀x`、`∃x`、`∧∨↔`（`∧/∨/↔` 是表面语法，比较时按定义展开） |
-| 公理 | A1–A5（命题公理、全称消去、全称分配）；集合论：外延、空集、配对、并集 |
-| 定义重写 | `D` 定义展开 / `D⁻` 定义收缩：把断言在 `∧/∨/↔/∃` 表面语法与只用 `¬/→/∀` 的原始公式之间重写，不能凭空产生结论 |
-| 基本推理 | 代入、分离、全称推广/引入/例化、存在推广/消去、等词自反、Leibniz 等词替换 |
-| 定理 | 章节编号（如 `Ⅰ-01`）：只能引用排在前面的关卡，引擎会校验。∧/∨/↔ 的引入/消去是第Ⅰ章 Ⅰ-11…Ⅰ-19 的引理关，不再是公理模块 |
+| 构造 | 命题原子 `P…V`，`¬`、`→`、`∧∨↔`（`∧/∨/↔` 是表面语法，比较时按定义展开） |
+| 公理 | A1、A2、A3 |
+| 定义重写 | `D` 定义展开 / `D⁻` 定义收缩：把断言在 `∧/∨/↔` 表面语法与只用 `¬/→` 的原始公式之间重写，不能凭空产生结论 |
+| 基本推理 | 代入 `S`、分离 `M` |
+| 定理 | 关卡编号（如 `01`、`33`）：只能引用排在前面的关卡，引擎会校验 |
 
-帮助页只列定义重写与推理规则（D、D⁻、S、M、∀I、∀*、∀E*、∃I*、∃E、=I、=L），不列变元、连接词和公理。
-
-没有 set.mm 重放关，没有 archive/引理直连，也没有 `mpbi` 这类缩写。
+帮助页只列 A1–A3、S、M 与 D/D⁻ 七张图例，不列变元、连接词或未使用的规则。
 
 ## 成就、存档与进度
 
-- 20 个成就，覆盖章节进度、规则使用、短证明、干净三关和挑战段完成度。
+- 20 个成就，覆盖通关进度、教学/普通/困难分段、规则使用、短证明、干净通关和挑战完成度。
 - **GitHub Pages / 本地**：存档写在浏览器 `localStorage`，可以从帮助页导出/导入 JSON。
 - **Bilibili Toy**：自动同步到当前 B 站账号的云存储，保存通关进度和当前关卡电路；帮助页不显示上传/下载存档的按钮。
 - 重进已通关的关卡会恢复你自己的电路，包括接到 `⊢` 的那根终点线。
 - 每关记录通关电路的模块数。选关格底部的绿条表示你离参考电路有多近，胜利面板会显示本次长度和参考长度。
-- 存档结构是 v3；读取旧存档时会整理成当前字段，旧字段直接忽略。
+- 存档结构是 v4，带当前关卡集的指纹。旧 v1–v3 存档会按**目标公式**迁移：目标没变的关卡保留进度与最佳模块数，旧电路丢弃；迁移前备份到 `axiom-simple:pre-v4`，读档后提示保留/移除了多少关。
 
 ## 本地运行
 
@@ -131,21 +126,18 @@ python -m http.server 8000
 ## 开发
 
 ```bash
-npm run build                   # 生成关卡数据（教学 + 10 普通 + 9 引理 + 24 困难/第Ⅰ章），逐关用真实 Engine 验证
-npm test                         # 166 关 schema、模块表、参考证明、定理引用越界
+npm run build                   # 生成 96 关数据（8 教学 + 32 普通 + 56 困难），逐关用真实 Engine 验证
+npm test                         # 96 关 schema、参考证明、目标不重复、定理引用越界
 npm run test:wire                # 走线/几何纯函数
 npm run test:leaderboard         # 排行榜分数算法
-npm run test:ui                  # Edge headless 浏览器回归（166 关、引理分带）
-npm run test:acceptance          # dist 构建产物与完整 166 关验收
+npm run test:ui                  # Edge headless 浏览器回归（96 关、三条分带）
+npm run test:acceptance          # dist 构建产物与完整 96 关验收
 npm run build:toy                # 生成可发布的 dist/ 游戏本体
-node scripts/export-solutions.js # 重新生成 docs/SOLUTIONS.md（166 关参考解清单）
+node scripts/export-solutions.js # 重新生成 docs/SOLUTIONS.md（96 关参考解清单）
 node tests/screenshots.js        # 重拍 screenshots/ 浅色与深色验收图
 ```
 
-关卡内容手写在 `campaign/` 下，`src/levels.js` 是编译器产物，不要手改。作者脚本在 `scripts/authoring/`：
-`dt.js` 是演绎定理引擎，`harden-*.js` 负责把个别关卡升级成组合证明，`make-tutorials.js` 生成教学关。
-改完关卡后重新跑 `npm run build` 和测试；原始 114 关素材保存在 `campaign/legacy-levels.json`，
-9 个引理关素材在 `campaign/lemma-levels.json`（由 `scripts/build-lemmas.js` 生成）。
+关卡内容手写在 `campaign/campaign2.js`，`src/levels.js` 是编译器产物，不要手改。`npm run build` 会编译证明、用 `scripts/lib/circuit-dedupe.js` 合并重复断言、提取中间结论、按目标去重、排序并跑门禁。set.mm 证明导入与翻译在 `scripts/mm-import.js`、`scripts/lib/mm-bridge.js`；旧的 166/152 关素材与四章源文件在 `archive/predicate-set/campaign-sources/`。
 
 ### 主要文件
 
@@ -162,10 +154,11 @@ node tests/screenshots.js        # 重拍 screenshots/ 浅色与深色验收图
 | `src/main.js` | 应用状态、存档、关卡流程、合并元件与配置弹层 |
 | `src/ui.js` | DOM 基础件、公式显示、toast、面板与焦点管理 |
 | `src/screens.js` | 选关、帮助、提示、成就、通关面板 |
-| `src/catalog.js` | 章节分组、解锁链、元件栏条目（纯函数） |
+| `src/catalog.js` | 关卡顺序、解锁链、元件栏条目（纯函数） |
 | `src/achievements.js` / `src/save.js` | 成就判定；存档结构与本地读写 |
-| `campaign/` | 手写关卡、参考证明与教学关 |
-| `scripts/restructure-levels.js` | 关卡重组：教学 + 普通 + 9 引理 + 困难关，逐关验证 |
+| `campaign/` | 当前 96 关内容源（`campaign2.js`）、set.mm 证明 DAG 与 5 个 legacy 电路 |
+| `scripts/build-campaign2.js` | 96 关编译器：证明→电路、去重、中间结论、排序与门禁 |
+| `archive/predicate-set/` | 冻结的谓词/等词/集合论四章版本、关卡切片与还原说明 |
 | `docs/` | 架构、设计、公理审计 |
 
 界面和下栏用 IBM Plex Sans，公式用 STIX Two Text；图标来自 Heroicons。

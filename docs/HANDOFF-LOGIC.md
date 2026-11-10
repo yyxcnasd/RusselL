@@ -1,3 +1,7 @@
+> **历史文档 / 已归档**：本文件记录的是四章（命题/谓词/等词/集合论）版本的设计与验收。
+> 该版本已冻结在 `archive/predicate-set/`（tag `archive/predicate-set-v1`）；主线现在是
+> 单章 96 关命题演算，见 [README](../README.md) 与 [docs/ARCHIVE-PREDICATE-SET.md](ARCHIVE-PREDICATE-SET.md)。
+
 # 逻辑系统重做交接清单
 
 本文件是给下一个 agent 的交接说明。当前维护页仍然生效，未经用户明确同意不要删除 `.maintenance`，也不要更新 Toy。

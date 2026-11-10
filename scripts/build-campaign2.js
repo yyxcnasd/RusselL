@@ -1,16 +1,15 @@
 #!/usr/bin/env node
 'use strict';
 /*!
- * 关卡编译器 v2（「引理阶梯」管线）
+ * 单章 96 关编译器
  *
- *   1. 读 campaign/campaign2.js（有序候选关卡 + 证明项/导入 label）；
- *   2. 逐关编译成棋盘电路（真实 Engine 求值），测量模块数；
- *   3. **按测量结果排课程**：普通关 = 10 个 5–21 模块、目标 ≤36 token、依赖闭合的阶梯；
- *      困难关 = 其余关卡按「依赖拓扑 + 小者优先」排序（章内大致递增）；
- *   4. 重映射定理代号，跑门禁（5–21 / ≤200 / 递增容差 / 只能引用更早），
- *      全过才写 campaign/campaign2-levels.json。
+ *   1. 读 campaign/campaign2.js（set.mm 命题定理 + 手写命题关 + 教学关）；
+ *   2. 编译成棋盘电路，自带定理占位符求值，合并同断言节点；
+ *   3. 从大证明里提取 5–21 / 22–200 模块的中间结论；>200 的证明拆成引理；
+ *   4. 按目标公式去重（定义展开后比较），选 8 教学 + 32 普通 + 56 困难；
+ *   5. 拓扑排序、编号、重映射定理代号、逐关真实 Engine 复验、门禁，写 JSON。
  *
- * 证明项 DSL 见 campaign/proof.js；set.mm 导入关由 scripts/lib/mm-bridge.js 翻译。
+ * 不出现章节字段：只有一条课程线，编号 i…viii / 01…88。
  */
 const fs = require('fs');
 const path = require('path');
@@ -19,16 +18,23 @@ const { loadRuntime } = require(path.join(ROOT, 'scripts', 'lib', 'load-runtime.
 const RSL = loadRuntime({ files: ['src/term.js', 'src/modules.js', 'src/engine.js'] });
 const T = RSL.Term;
 const Engine = RSL.Engine;
+const Modules = RSL.Modules;
+const { dedupeCircuit: dedupeLib } = require(path.join(ROOT, 'scripts', 'lib', 'circuit-dedupe.js'));
 
 const OUT = path.join(ROOT, 'campaign', 'campaign2-levels.json');
-const NORMAL_SLOTS = 10;
-const MAX_NORMAL = 21;
+const TUTORIAL_SLOTS = 8;
+const NORMAL_SLOTS = 32;
+const HARD_SLOTS = 56;
+const TOTAL = TUTORIAL_SLOTS + NORMAL_SLOTS + HARD_SLOTS;
 const MIN_NORMAL = 5;
+const MAX_NORMAL = 21;
+const MIN_HARD = 22;
 const MAX_HARD = 200;
 const MAX_NORMAL_TOKENS = 36;
 const MAX_HARD_TOKENS = 100;
-const INVERSION_ABS = 12;
-const INVERSION_REL = 0.2;
+const TUT_CODES = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii'];
+let DEFS_BY_LABEL = new Map();
+const ALIAS = new Map();
 
 /* =========================================================================
  * 1. 电路构造器
@@ -101,12 +107,6 @@ function createBuilder() {
     } else if (body.length === 4 && body[1] === '(' && body[3] === ')') {
       const t1 = termNode(body[2]);
       id = make('pred', { symbol: body[0] }, (x) => connect(t1, 'out', x, 't1'));
-    } else if (body.length === 6 && body[1] === '(' && body[3] === ',' && body[5] === ')') {
-      const t1 = termNode(body[2]), t2 = termNode(body[4]);
-      id = make('pred', { symbol: body[0], arity: 2 }, (x) => {
-        connect(t1, 'out', x, 't1');
-        connect(t2, 'out', x, 't2');
-      });
     } else {
       throw new Error('无法构造公式：' + body.join(' '));
     }
@@ -141,11 +141,12 @@ function compileProof(pt, ctx) {
     proofCache.set(p, k);
     return k;
   }
-  function cleanAtoms(atoms) {
+  function cleanAtoms(atoms, allowed) {
     const out = {};
     Object.keys(atoms || {}).forEach((name) => {
       const body = atoms[name];
       if (Array.isArray(body) && body.length === 1 && body[0] === name) return;
+      if (allowed && allowed.indexOf(name) < 0) return;
       out[name] = body;
     });
     return out;
@@ -182,13 +183,16 @@ function compileProof(pt, ctx) {
     switch (p.op) {
       case 'axiom': {
         const base = p.v ? builder.add('axiom', { schema: p.schema, v: p.v }) : builder.add('axiom', { schema: p.schema });
-        id = addSubst(base, cleanAtoms(p.atoms), p.vars);
+        const allowed = p.schema === 'A2' ? ['P', 'Q', 'R'] : ['P', 'Q'];
+        id = addSubst(base, cleanAtoms(p.atoms, allowed), p.vars);
         break;
       }
       case 'lemma': {
         if (!defsByLabel.has(p.code)) throw new Error('未知定理占位：' + p.code);
         const base = builder.add('theorem', { code: p.code });
-        id = addSubst(base, cleanAtoms(p.atoms), p.vars);
+        const def = defsByLabel.get(p.code);
+        const allowed = ['|-'].concat(def.target || []).filter((t) => /^[PQRSTUV]$/.test(t));
+        id = addSubst(base, cleanAtoms(p.atoms, allowed), p.vars);
         break;
       }
       case 'subst':
@@ -203,55 +207,6 @@ function compileProof(pt, ctx) {
       case 'gen': {
         id = builder.add('gen', { v: p.v });
         builder.connect(resolve(p.of), 'out', id, 'assertion');
-        break;
-      }
-      case 'allInst': {
-        id = builder.add('all-inst', { v: p.v });
-        builder.connect(builder.formula(p.formula), 'out', id, 'formula');
-        builder.connect(builder.add('term', { name: p.t }), 'out', id, 'term');
-        break;
-      }
-      case 'existsGen': {
-        id = builder.add('exists-gen', { v: p.v });
-        builder.connect(builder.formula(p.formula), 'out', id, 'formula');
-        builder.connect(builder.add('term', { name: p.t }), 'out', id, 'term');
-        break;
-      }
-      case 'existsE': {
-        id = builder.add('exists-elim', {});
-        builder.connect(resolve(p.ex), 'out', id, 'exists');
-        builder.connect(resolve(p.imp), 'out', id, 'implication');
-        break;
-      }
-      case 'setExt': {
-        id = builder.add('set-ext', {});
-        builder.connect(builder.add('term', { name: p.a }), 'out', id, 'a');
-        builder.connect(builder.add('term', { name: p.b }), 'out', id, 'b');
-        break;
-      }
-      case 'setEmpty': id = builder.add('set-empty', {}); break;
-      case 'setPair': {
-        id = builder.add('set-pair', {});
-        builder.connect(builder.add('term', { name: p.u }), 'out', id, 'u');
-        builder.connect(builder.add('term', { name: p.v }), 'out', id, 'v');
-        break;
-      }
-      case 'setUnion': {
-        id = builder.add('set-union', {});
-        builder.connect(builder.add('term', { name: p.a }), 'out', id, 'a');
-        break;
-      }
-      case 'shift': {
-        id = builder.add('shift', { v: p.v });
-        builder.connect(builder.formula(p.formula), 'out', id, 'formula');
-        break;
-      }
-      case 'eqRefl': id = builder.add('eq-refl', { t: p.t }); break;
-      case 'leibniz': {
-        id = builder.add('leibniz', { mode: p.mode || 'abstract', v: p.v || 'z' });
-        builder.connect(builder.add('term', { name: p.x }), 'out', id, 'x');
-        builder.connect(builder.add('term', { name: p.y }), 'out', id, 'y');
-        builder.connect(builder.formula(p.formula), 'out', id, 'formula');
         break;
       }
       case 'defExpand':
@@ -269,43 +224,64 @@ function compileProof(pt, ctx) {
   return resolve(pt);
 }
 
-/* 相同断言的证明节点合并（保留 theorem/axiom 优先） */
-function dedupeProofNodes(nodes, edges, targetId, results) {
-  const rank = (n) => (n.kind === 'theorem' ? 0 : n.kind === 'axiom' ? 1 : n.kind === 'subst' ? 2 : 3);
-  const groups = new Map();
-  const orderIndex = new Map();
-  (results.order || []).forEach((id, i) => orderIndex.set(id, i));
-  nodes.forEach((n) => {
-    const r = results.results && results.results[n.id];
-    if (!r || !r.tokens || r.tokens[0] !== '|-' || n.kind === 'target') return;
-    const key = r.tokens.join('\u0000');
-    if (!groups.has(key)) groups.set(key, []);
-    groups.get(key).push(n);
-  });
-  const replace = new Map();
-  groups.forEach((list) => {
-    if (list.length < 2) return;
-    list.sort((a, b) => (rank(a) - rank(b)) || ((orderIndex.get(a.id) || 0) - (orderIndex.get(b.id) || 0)));
-    list.slice(1).forEach((n) => replace.set(n.id, list[0].id));
-  });
-  if (!replace.size) return { nodes, edges, removed: 0 };
-  const keptEdges = [];
+/* =========================================================================
+ * 3. 求值（定理占位符用目标断言喂入）
+ * ========================================================================= */
+function evaluateCircuit(nodes, edges, theoremTokens) {
+  const byId = new Map(nodes.map((n) => [n.id, n]));
+  const incoming = new Map();
   edges.forEach((e) => {
-    const from = replace.get(e.from.node) || e.from.node;
-    if (from === e.to.node) return;
-    keptEdges.push({ id: e.id, from: { node: from, port: e.from.port }, to: { node: e.to.node, port: e.to.port } });
+    if (e && e.from && e.to) incoming.set(e.to.node + ':' + e.to.port, e.from.node);
   });
-  const needed = new Set([targetId]);
-  for (let changed = true; changed;) {
-    changed = false;
-    keptEdges.forEach((e) => {
-      if (needed.has(e.to.node) && !needed.has(e.from.node)) { needed.add(e.from.node); changed = true; }
+  const t = Engine.topo(nodes, edges);
+  const results = {};
+  function getInputs(n) {
+    const info = Modules.info(n.kind);
+    const out = {};
+    (info.ports.inputs || []).forEach((p) => {
+      const src = incoming.get(n.id + ':' + p.id);
+      const up = src ? results[src] : null;
+      out[p.id] = up && up.tokens ? up.tokens : null;
     });
+    return out;
   }
-  const keptNodes = nodes.filter((n) => needed.has(n.id) || n.kind === 'target');
-  const ids = new Set(keptNodes.map((n) => n.id));
-  return { nodes: keptNodes, edges: keptEdges.filter((e) => ids.has(e.from.node) && ids.has(e.to.node)), removed: nodes.length - keptNodes.length };
+  t.order.forEach((id) => {
+    const n = byId.get(id);
+    if (!n) return;
+    if (n.kind === 'target') {
+      const src = incoming.get(n.id + ':proof');
+      const up = src ? results[src] : null;
+      results[id] = { tokens: up ? up.tokens : null, state: up && up.tokens ? 'complete' : 'open' };
+      return;
+    }
+    if (n.kind === 'theorem') {
+      const tokens = theoremTokens.get(n.config && n.config.code);
+      results[id] = { tokens: tokens || null, state: tokens ? 'valid' : 'error' };
+      return;
+    }
+    try {
+      const r = Modules.apply(n.kind, getInputs(n), n.config, { levels: [], levelIndex: 999 });
+      results[id] = { tokens: r && r.tokens, state: r && r.tokens ? 'valid' : 'open' };
+    } catch (err) {
+      results[id] = { tokens: null, state: 'error', error: err.message };
+    }
+  });
+  return results;
 }
+
+/* =========================================================================
+ * 4. 合并同断言节点（迭代到不动点）
+ * ========================================================================= */
+function dedupeCircuit(nodes, edges, targetId) {
+  const results = evaluateCircuit(nodes, edges, THEOREM_TOKENS);
+  const out = dedupeLib({ nodes, edges, targetId, results });
+  return { nodes: out.nodes, edges: out.edges, removed: out.removed };
+}
+
+/* =========================================================================
+ * 5. 单关编译
+ * ========================================================================= */
+let THEOREM_TOKENS = new Map();
 
 function layout(nodes, edges, targetId, results) {
   const incoming = new Map(nodes.map((n) => [n.id, []]));
@@ -349,69 +325,126 @@ function layout(nodes, edges, targetId, results) {
   if (target) { target.x = 40 + (maxDepth + 1) * 268; target.y = 40; }
 }
 
-/* =========================================================================
- * 3. 单关编译
- * ========================================================================= */
-function compileLevel(def, defsByLabel) {
+function compileLevel(def) {
   const builder = createBuilder();
   let finalId;
   if (def.circuit) {
-    /* 预编译电路：复制节点/导线，定理占位符沿用 def.circuit 里的 code（'@legacy1' 等） */
     const map = new Map();
-    def.circuit.nodes.forEach((n) => {
-      map.set(n.id, builder.add(n.kind, JSON.parse(JSON.stringify(n.config || {}))));
-    });
-    def.circuit.edges.forEach((e) => {
-      builder.connect(map.get(e.from.node), e.from.port, map.get(e.to.node), e.to.port);
-    });
+    def.circuit.nodes.forEach((n) => map.set(n.id, builder.add(n.kind, JSON.parse(JSON.stringify(n.config || {})))));
+    def.circuit.edges.forEach((e) => builder.connect(map.get(e.from.node), e.from.port, map.get(e.to.node), e.to.port));
     finalId = map.get(def.circuit.outputId);
     if (!finalId) throw new Error('circuit 缺少 outputId');
   } else {
-    finalId = compileProof(def.proof, { builder, defsByLabel });
+    finalId = compileProof(def.proof, { builder, defsByLabel: DEFS_BY_LABEL });
   }
   const targetId = builder.add('target', {});
   builder.connect(finalId, 'out', targetId, 'proof');
   const targetTokens = ['|-'].concat(def.target);
   let nodes = builder.nodes;
   let edges = builder.edges;
-  const stubLevel = { targetTokens, mustUse: null };
-  const pre = Engine.evaluate(stubLevel, nodes, edges, { levels: [], levelIndex: 999 });
-  if (pre.complete) {
-    const merged = dedupeProofNodes(nodes, edges, targetId, pre);
-    if (merged.removed > 0) { nodes = merged.nodes; edges = merged.edges; }
-  }
-  layout(nodes, edges, targetId, pre.results);
-  nodes.find((n) => n.id === targetId).targetTokens = targetTokens;
+  const merged = dedupeCircuit(nodes, edges, targetId);
+  nodes = merged.nodes;
+  edges = merged.edges;
+  const results = evaluateCircuit(nodes, edges, THEOREM_TOKENS);
+  layout(nodes, edges, targetId, results);
+  const targetNode = nodes.find((n) => n.id === targetId);
+  targetNode.targetTokens = targetTokens;
   const palette = [];
   const seen = new Set();
   nodes.forEach((n) => {
     if (n.kind === 'target') return;
     const cfg = n.kind === 'subst' ? {} : (n.config || {});
-    const k = n.kind + ':' + JSON.stringify(cfg);
-    if (seen.has(k)) return;
-    seen.add(k);
+    const key = n.kind + ':' + JSON.stringify(cfg);
+    if (seen.has(key)) return;
+    seen.add(key);
     palette.push({ kind: n.kind, config: cfg });
   });
-  return { nodes, edges, targetId, palette, targetTokens, size: nodes.length - 1, results: pre.results, order: pre.order };
+  return {
+    def, nodes, edges, targetId, palette, targetTokens,
+    size: nodes.length - 1,
+    results,
+    deps: new Set(nodes.filter((n) => n.kind === 'theorem').map((n) => n.config.code)),
+  };
 }
 
 /* =========================================================================
- * 3b. 拆分：从已编译电路里提取 5–21 模块的中间结论，作为普通关候选
+ * 6. 目标公式去重键（展开定义）
  * ========================================================================= */
-function coneCandidates(compiled, limitPerLevel) {
+function targetKey(tokens) {
+  return tokens.slice(1).join('\u0000');
+}
+
+/* =========================================================================
+ * 7. 提取 5–21 / 22–200 的中间结论
+ * ========================================================================= */
+function extractCones(compiled, minSize, maxSize, maxTokens, limitPerCircuit) {
   const out = [];
-  const seen = new Set();
-  let dbgAssert = 0, dbgSizeRej = 0, dbgTokRej = 0, dbgThmRej = 0, dbgOk = 0;
   compiled.forEach((c) => {
     if (!c.results) return;
     const byId = new Map(c.nodes.map((n) => [n.id, n]));
     const incoming = new Map(c.nodes.map((n) => [n.id, []]));
     c.edges.forEach((e) => { if (incoming.has(e.to.node)) incoming.get(e.to.node).push(e.from.node); });
-    let count = 0;
+    const candidates = [];
     c.nodes.forEach((n) => {
-      if (count >= limitPerLevel) return;
+      if (n.id === c.targetId || n.kind === 'target') return;
       const r = c.results[n.id];
-      if (!r || !r.tokens || r.tokens[0] !== '|-' || n.kind === 'target') return;
+      if (!r || !r.tokens || r.tokens[0] !== '|-' || r.tokens.length - 1 > maxTokens) return;
+      const cone = new Set([n.id]);
+      const stack = [n.id];
+      while (stack.length) {
+        const id = stack.pop();
+        (incoming.get(id) || []).forEach((p) => { if (!cone.has(p)) { cone.add(p); stack.push(p); } });
+      }
+      const size = cone.size;
+      if (size < minSize || size > maxSize) return;
+      if (Array.from(cone).some((id) => byId.get(id) && byId.get(id).kind === 'theorem')) return;
+      candidates.push({ node: n, cone, size, tokens: r.tokens });
+    });
+    candidates.sort((a, b) => Math.abs(a.size - (minSize + maxSize) / 2) - Math.abs(b.size - (minSize + maxSize) / 2));
+    candidates.slice(0, limitPerCircuit).forEach((pick) => {
+      const nodes = c.nodes.filter((x) => pick.cone.has(x.id));
+      const edges = c.edges.filter((e) => pick.cone.has(e.from.node) && pick.cone.has(e.to.node));
+      const coneKey = 'cone_' + c.def.key.replace(/[^A-Za-z0-9_]/g, '') + '_' + pick.node.id;
+      out.push({
+        def: {
+          key: coneKey,
+          placeholder: '@' + coneKey,
+          origin: 'cone',
+          parentTitle: c.def.title,
+          title: c.def.title + ' · 中间结论',
+          teaches: T.fmt(['wff'].concat(pick.tokens.slice(1))),
+          hint: '目标是 ' + T.fmt(['wff'].concat(pick.tokens.slice(1))) + '。这是〈' + c.def.title + '〉证明里的一个中间结论，按接线把它单独证出来。',
+          target: pick.tokens.slice(1),
+          circuit: { nodes, edges, outputId: pick.node.id },
+        },
+        size: pick.size,
+        nodes, edges, targetId: pick.node.id,
+        targetTokens: pick.tokens,
+        deps: new Set(),
+        results: evaluateCircuit(nodes, edges, THEOREM_TOKENS),
+      });
+    });
+  });
+  return out;
+}
+
+/* =========================================================================
+ * 8. 拆分 >200 的证明
+ * ========================================================================= */
+let SPLIT_SEQ = 0;
+function splitOversized(entry, maxSize) {
+  const children = [];
+  let cur = entry;
+  for (let guard = 0; cur.size > maxSize && guard < 8; guard += 1) {
+    const c = cur;
+    const byId = new Map(c.nodes.map((n) => [n.id, n]));
+    const incoming = new Map(c.nodes.map((n) => [n.id, []]));
+    c.edges.forEach((e) => { if (incoming.has(e.to.node)) incoming.get(e.to.node).push(e.from.node); });
+    const candidates = [];
+    c.nodes.forEach((n) => {
+      if (n.id === c.targetId || n.kind === 'target' || n.kind === 'theorem') return;
+      const r = c.results[n.id];
+      if (!r || !r.tokens || r.tokens[0] !== '|-' || r.tokens.length - 1 > MAX_HARD_TOKENS) return;
       const cone = new Set([n.id]);
       const stack = [n.id];
       while (stack.length) {
@@ -419,228 +452,85 @@ function coneCandidates(compiled, limitPerLevel) {
         (incoming.get(id) || []).forEach((p) => { if (!cone.has(p)) { cone.add(p); stack.push(p); } });
       }
       const size = cone.size - 1;
-      dbgAssert += 1;
-      if (size < 5 || size > 21) { dbgSizeRej += 1; return; }
-      const tokens = r.tokens.slice(1);
-      if (tokens.length > 36) { dbgTokRej += 1; return; }
-      if (Array.from(cone).some((id) => byId.get(id) && byId.get(id).kind === 'theorem')) { dbgThmRej += 1; return; }
-      const key = r.tokens.join(' ');
-      if (seen.has(key)) return;
-      seen.add(key);
-      dbgOk += 1;
-      count += 1;
-      const nodes = c.nodes.filter((x) => cone.has(x.id));
-      const edges = c.edges.filter((e) => cone.has(e.from.node) && cone.has(e.to.node));
-      out.push({
-        def: {
-          key: 'cone_' + c.def.placeholder.replace(/[^A-Za-z0-9_]/g, '') + '_' + n.id,
-          chapter: c.def.chapter, chapterGroup: c.def.chapterGroup,
-          title: '中间引理',
-          teaches: tokens.join(' '),
-          hint: '目标 ' + T.fmt(['wff'].concat(tokens)) + '：把这段子证明按接线一路拆到公理，后面会把它当黑盒。',
-          target: tokens, circuit: { nodes, edges, outputId: n.id }, forceBand: 'base',
-          placeholder: '@cone_' + c.def.placeholder.replace(/[^A-Za-z0-9_]/g, '') + '_' + n.id,
-        },
-        size,
-        tokens: r.tokens,
-        targetTokens: ['|-'].concat(tokens),
-        palette: (function () {
-          const seenP = new Set(), pal = [];
-          nodes.forEach((x) => {
-            const cfg = x.kind === 'subst' ? {} : (x.config || {});
-            const k = x.kind + ':' + JSON.stringify(cfg);
-            if (seenP.has(k)) return;
-            seenP.add(k);
-            pal.push({ kind: x.kind, config: cfg });
-          });
-          return pal;
-        })(),
-        nodes, edges, targetId: n.id,
-        forceBand: 'base',
-      });
-    });
-  });
-  if (process.env.LADDER_DEBUG) console.log('cone dbg: assertNodes=' + dbgAssert + ' sizeRej=' + dbgSizeRej + ' tokRej=' + dbgTokRej + ' thmRej=' + dbgThmRej + ' ok=' + dbgOk);
-  return out;
-}
-
-/* =========================================================================
- * 3c. 拆分超限关卡：把中间断言锥提成新关卡，父关改为 theorem 引用
- * ========================================================================= */
-function splitOversized(entry, maxSize, seq) {
-  const out = [];
-  let cur = entry;
-  let guard = 0;
-  while (cur.size > maxSize && guard < 4) {
-    guard += 1;
-    const c = cur;
-    const byId = new Map(c.nodes.map((n) => [n.id, n]));
-    const incoming = new Map(c.nodes.map((n) => [n.id, []]));
-    const outgoing = new Map(c.nodes.map((n) => [n.id, []]));
-    c.edges.forEach((e) => {
-      if (incoming.has(e.to.node)) incoming.get(e.to.node).push(e.from.node);
-      if (outgoing.has(e.from.node)) outgoing.get(e.from.node).push(e.to.node);
-    });
-    const candidates = [];
-    c.nodes.forEach((n) => {
-      const r = c.results && c.results[n.id];
-      if (!r || !r.tokens || r.tokens[0] !== '|-' || n.kind === 'target') return;
-      const cone = new Set([n.id]);
-      const stack = [n.id];
-      while (stack.length) {
-        const id = stack.pop();
-        (incoming.get(id) || []).forEach((p2) => { if (!cone.has(p2)) { cone.add(p2); stack.push(p2); } });
-      }
-      const size = cone.size - 1;
-      if (size < 30 || size > maxSize - 5) return;
-      if (r.tokens.length - 1 > 60) return;
+      if (size < 40 || size > maxSize - 5) return;
       candidates.push({ node: n, cone, size, tokens: r.tokens });
     });
-    if (process.env.LADDER_DEBUG) {
-      const sizes = c.nodes.map((n) => {
-        const r = c.results && c.results[n.id];
-        if (!r || !r.tokens || r.tokens[0] !== '|-') return 0;
-        const cone = new Set([n.id]);
-        const st = [n.id];
-        while (st.length) {
-          const id = st.pop();
-          (incoming.get(id) || []).forEach((p2) => { if (!cone.has(p2)) { cone.add(p2); st.push(p2); } });
-        }
-        return cone.size - 1;
-      }).filter((x) => x > 0).sort((a, b) => a - b);
-      console.log('split', c.def.placeholder, 'size', c.size, 'assert cones', sizes.slice(0, 12).join(','), '... max', sizes[sizes.length - 1]);
-    }
     if (!candidates.length) break;
-    candidates.sort((a, b) => b.size - a.size);
+    candidates.sort((a, b) => Math.abs(a.size - 110) - Math.abs(b.size - 110));
     const pick = candidates[0];
-    const childKey = '@split_' + (seq()) ;
+    const childKey = 'split_' + (++SPLIT_SEQ);
+    const childPlaceholder = '@' + childKey;
     const coneNodes = c.nodes.filter((n) => pick.cone.has(n.id));
     const coneEdges = c.edges.filter((e) => pick.cone.has(e.from.node) && pick.cone.has(e.to.node));
     const child = {
       def: {
-        key: childKey, placeholder: childKey,
-        chapter: c.def.chapter, chapterGroup: c.def.chapterGroup,
-        title: '中间引理',
-        teaches: pick.tokens.slice(1).join(' '),
-        hint: '把这段子证明单独证出来，后面的关卡会把它当黑盒。',
+        key: childKey, placeholder: childPlaceholder, origin: 'split', parentTitle: c.def.title,
+        title: c.def.title + ' · 中间结论',
+        teaches: T.fmt(['wff'].concat(pick.tokens.slice(1))),
+        hint: null,
         target: pick.tokens.slice(1),
         circuit: { nodes: coneNodes, edges: coneEdges, outputId: pick.node.id },
       },
-      size: pick.size,
-      targetTokens: pick.tokens,
-      deps: Array.from(new Set(coneNodes.filter((n) => n.kind === 'theorem').map((n) => n.config.code))),
-      nodes: coneNodes, edges: coneEdges, targetId: pick.node.id,
-      palette: (function () {
-        const seen = new Set(), pal = [];
-        coneNodes.forEach((n) => {
-          const cfg = n.kind === 'subst' ? {} : (n.config || {});
-          const k = n.kind + ':' + JSON.stringify(cfg);
-          if (seen.has(k)) return;
-          seen.add(k);
-          pal.push({ kind: n.kind, config: cfg });
-        });
-        return pal;
-      })(),
+      size: pick.size, nodes: coneNodes, edges: coneEdges,
+      targetId: pick.node.id, targetTokens: pick.tokens, deps: new Set(),
+      results: evaluateCircuit(coneNodes, coneEdges, THEOREM_TOKENS),
     };
-    /* 父关：去掉锥，换成 theorem 节点引用子关 */
-    const thmId = 'split' + (seq());
+    children.push(child);
+    THEOREM_TOKENS.set(childPlaceholder, child.targetTokens);
+    if (!c.deps) c.deps = new Set();
+    c.deps.add(childPlaceholder);
+    /* 父关：把锥换成 theorem 引用 */
     const keptNodes = c.nodes.filter((n) => !pick.cone.has(n.id));
-    const keptEdges = [];
+    const keptEdges = c.edges.filter((e) => !(pick.cone.has(e.from.node) && pick.cone.has(e.to.node)));
+    const consumers = [];
     c.edges.forEach((e) => {
-      if (pick.cone.has(e.to.node)) return;           /* 锥内部的边丢掉 */
-      if (pick.cone.has(e.from.node)) {
-        keptEdges.push({ from: { node: thmId, port: e.from.port }, to: { node: e.to.node, port: e.to.port } });
-        return;
-      }
-      keptEdges.push(e);
+      if (pick.cone.has(e.from.node) && !pick.cone.has(e.to.node)) consumers.push(e);
     });
-    keptNodes.push({ id: thmId, kind: 'theorem', config: { code: childKey }, x: 0, y: 0 });
-    const parent = Object.assign({}, c, {
-      nodes: keptNodes,
-      edges: keptEdges,
-      size: keptNodes.length - 1,
-      deps: Array.from(new Set(keptNodes.filter((n) => n.kind === 'theorem').map((n) => n.config.code))),
-    });
-    out.push(child);
-    cur = parent;
+    const thmId = 'split' + (++SPLIT_SEQ);
+    keptNodes.push({ id: thmId, kind: 'theorem', config: { code: childPlaceholder }, x: 0, y: 0 });
+    consumers.forEach((e) => keptEdges.push({ id: e.id, from: { node: thmId, port: 'out' }, to: e.to }));
+    cur.nodes = keptNodes;
+    cur.edges = keptEdges;
+    cur.size = keptNodes.length - 1;
+    cur.results = evaluateCircuit(keptNodes, keptEdges, THEOREM_TOKENS);
+    if (cur.results[cur.targetId] && !cur.results[cur.targetId].tokens) break;
   }
-  return { parent: cur, children: out };
+  return { parent: cur, children };
 }
 
 /* =========================================================================
- * 4. 排序 + 分带 + 重映射
+ * 9. 选择 + 排序
  * ========================================================================= */
-function orderAndBand(compiled, hardSlots, globalPlaced) {
-  const globalSet = globalPlaced || new Set();
-  const byCode = new Map(compiled.map((c) => [c.def.placeholder, c]));
-  const depsOf = new Map(compiled.map((c) => [c.def.placeholder, new Set(c.deps || [])]));
-  const tokenLen = (c) => c.targetTokens.length - 1;
-  const hardCap = hardSlots || 24;
-  const keyOf = (c) => String(c.def.key || c.def.label || '');
+function levelOriginOrder(c) {
+  return { legacy: 0, manual: 1, setmm: 2, split: 3, cone: 4 }[c.def.origin] ?? 5;
+}
 
-  const pref = (c) => {
-    if (keyOf(c).indexOf('legacy') === 0) return 0;
-    if (keyOf(c).indexOf('cone_') === 0) return 2;
-    return 1;
-  };
-  const fitsNormal = (c) => c.size >= MIN_NORMAL && c.size <= MAX_NORMAL && tokenLen(c) <= MAX_NORMAL_TOKENS;
-  const fitSet = new Set(compiled.filter(fitsNormal).map((c) => c.def.placeholder));
-  const normalCands = compiled.filter((c) => fitsNormal(c) &&
-    (c.deps || []).every((d) => fitSet.has(d)))
-    .sort((a, b) => (pref(a) - pref(b)) || (a.size - b.size));
-  const candSet = new Set(normalCands.map((c) => c.def.placeholder));
-
-  const normal = [];
-  const placedN = new Set();
-  for (const cand of normalCands) {
-    if (normal.length >= NORMAL_SLOTS) break;
-    const ready = Array.from(depsOf.get(cand.def.placeholder)).every((d) => globalSet.has(d) || !candSet.has(d) || placedN.has(d));
-    if (!ready) continue;
-    normal.push(cand);
-    placedN.add(cand.def.placeholder);
-  }
-  const normalSet = new Set(normal.map((c) => c.def.placeholder));
-
-  /* 困难池 = 其余全部候选；先做依赖自洽过滤（依赖必须在池内或已入选普通关） */
-  let hardPool = compiled.filter((c) => !normalSet.has(c.def.placeholder));
-  for (let changed = true; changed;) {
-    changed = false;
-    const have = new Set(hardPool.map((c) => c.def.placeholder).concat(Array.from(normalSet)).concat(Array.from(globalSet)));
-    for (let i = hardPool.length - 1; i >= 0; i -= 1) {
-      const missing = (hardPool[i].deps || []).filter((d) => !have.has(d));
-      if (missing.length) { hardPool.splice(i, 1); changed = true; }
-    }
-  }
-  const prefHard = (c) => (keyOf(c).indexOf('cone_') === 0 ? 1 : 0);
-  const placed = new Set();
-  const orderedHard = [];
-  while (orderedHard.length < hardCap) {
-    const ready = hardPool.filter((c) => !placed.has(c.def.placeholder) &&
-      Array.from(depsOf.get(c.def.placeholder)).every((d) => globalSet.has(d) || !byCode.has(d) || placed.has(d) || normalSet.has(d)));
-    if (!ready.length) break;
-    ready.sort((a, b) => (prefHard(a) - prefHard(b)) || (a.size - b.size));
-    placed.add(ready[0].def.placeholder);
-    orderedHard.push(ready[0]);
-  }
-  return { normal, hard: orderedHard };
+function hasDepOutside(c, allowed) {
+  for (const d of c.deps) if (!allowed.has(d)) return true;
+  return false;
 }
 
 function main() {
   const campaign = require(path.join(ROOT, 'campaign', 'campaign2.js'));
   const defs = campaign.levels;
   const byLabel = new Map();
-  defs.forEach((d, i) => { d.placeholder = '@' + (d.label || d.key || ('L' + i)); byLabel.set(d.placeholder, d); });
+  defs.forEach((d, i) => {
+    d.placeholder = '@' + (d.label || d.key || ('L' + i));
+    byLabel.set(d.placeholder, d);
+  });
+  DEFS_BY_LABEL = byLabel;
+
+  /* 定理占位符 → 目标断言 */
+  THEOREM_TOKENS = new Map();
+  defs.forEach((d) => THEOREM_TOKENS.set(d.placeholder, ['|-'].concat(d.target)));
 
   const problems = [];
   const warnings = [];
   const compiled = [];
   defs.forEach((def) => {
     try {
-      const c = compileLevel(def, byLabel);
-      /* 依赖：电路里 theorem 节点的 code 就是占位符 */
-      const deps = new Set(c.nodes.filter((n) => n.kind === 'theorem').map((n) => n.config.code));
-      deps.delete(def.placeholder);
-      compiled.push(Object.assign(c, { def, deps: Array.from(deps) }));
+      const c = compileLevel(def);
+      compiled.push(c);
     } catch (err) {
       problems.push('编译失败 ' + def.placeholder + '：' + err.message);
     }
@@ -651,174 +541,188 @@ function main() {
     process.exit(1);
   }
 
-  if (process.env.LADDER_DEBUG) {
-    compiled.slice().sort((a, b) => a.size - b.size).forEach((c) => {
-      console.log(String(c.size).padStart(4), c.def.placeholder, (c.def.title || '').slice(0, 14), (c.targetTokens.length - 1) + 'tok');
-    });
-  }
-  /* 拆分候选：补足普通关（每章需要 10 个 5–21 模块的阶梯） */
-  const coneLimit = Number(process.env.LADDER_CONE_LIMIT || 12);
-  compiled.forEach((c) => {
-    if (c.def && c.def.chapterGroup) {
-      coneCandidates([c], coneLimit).forEach((x) => compiled.push(x));
-    }
-  });
-
-  if (process.env.LADDER_DEBUG) console.log('cone candidates:', compiled.filter((c) => c.def.forceBand === 'base').length - 5);
-  /* 目标公式去重：同目标只留一个（优先体积小、且没有被其它关卡引用） */
-  {
-    const referenced = new Set();
-    compiled.forEach((c) => (c.deps || []).forEach((d) => referenced.add(d)));
-    const byTarget = new Map();
-    compiled.forEach((c) => {
-      const key = c.targetTokens.join(' ');
-      if (!byTarget.has(key)) byTarget.set(key, []);
-      byTarget.get(key).push(c);
-    });
-    const drop = new Set();
-    byTarget.forEach((list) => {
-      if (list.length < 2) return;
-      const isCone = (c) => String(c.def.key || c.def.label || '').indexOf('cone_') === 0;
-      list.sort((a, b) => (isCone(a) - isCone(b)) || (a.size - b.size));
-      const keep = list[0];
-      list.slice(1).forEach((c) => {
-        if (!referenced.has(c.def.placeholder)) drop.add(c.def.placeholder);
+  /* 拆分 >200 */
+  for (let i = compiled.length - 1; i >= 0; i -= 1) {
+    if (compiled[i].size <= MAX_HARD) continue;
+    const before = compiled[i];
+    const res = splitOversized(before, MAX_HARD);
+    if (res.children.length) {
+      compiled.splice(i, 1);
+      compiled.push(res.parent, ...res.children);
+      res.children.forEach((ch) => {
+        THEOREM_TOKENS.set('@' + ch.def.key, ch.targetTokens);
       });
-      void keep;
-    });
-    if (drop.size) {
-      for (let i = compiled.length - 1; i >= 0; i -= 1) {
-        if (drop.has(compiled[i].def.placeholder)) compiled.splice(i, 1);
-      }
-    }
-  }
-
-  if (process.env.LADDER_DEBUG) console.log('oversized:', compiled.filter((c) => c.size > 200).map((c) => c.def.placeholder + ':' + c.size).join(','));
-  /* 超限关先尝试拆分，只有拆不动的才丢弃 */
-  {
-    let seqN = 0;
-    const seq = () => (seqN += 1);
-    for (let i = compiled.length - 1; i >= 0; i -= 1) {
-      if (compiled[i].size <= 200) continue;
-      const res = splitOversized(compiled[i], 200, seq);
-      if (res.children.length) {
-        compiled.splice(i, 1, res.parent);
-        res.children.forEach((ch) => compiled.push(ch));
-      } else {
-        compiled.splice(i, 1);
-      }
-    }
-  }
-  /* 级联剔除依赖缺失的关卡（例如 >200 被删掉的关卡被别处引用） */
-  for (let changed = true; changed;) {
-    changed = false;
-    const have = new Set(compiled.map((c) => c.def.placeholder));
-    for (let i = compiled.length - 1; i >= 0; i -= 1) {
-      const c = compiled[i];
-      if (c.def.forceBand === 'base') continue;      /* 手工指定的普通关必须留下 */
-      const missing = (c.deps || []).filter((d) => !have.has(d));
-      if (missing.length) { compiled.splice(i, 1); changed = true; }
-    }
-  }
-
-  if (process.env.LADDER_DEBUG) console.log('pool after dedupe/split/cascade:', compiled.length, '| forceBase:', compiled.filter((c) => c.def.forceBand === 'base').length, '| authored:', compiled.filter((c) => ['chain3','expConv','preSwap'].indexOf(String(c.def.key)) >= 0).length);
-  const groups = {};
-  compiled.forEach((c) => {
-    const ch = c.def.chapterGroup || 'Ⅰ';
-    groups[ch] = groups[ch] || [];
-    groups[ch].push(c);
-  });
-  const chapterOrder = ['Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ'].filter((g) => groups[g]);
-  const finalList = [];
-  const globalPlaced = new Set();
-  const ROMAN = ['i', 'ii', 'iii', 'iv', 'v', 'vi'];
-  chapterOrder.forEach((g) => {
-    const tuts = groups[g].filter((c2) => c2.def.tutorial);
-    tuts.forEach((c2) => { finalList.push({ c: c2, band: 'tutorial' }); globalPlaced.add(c2.def.placeholder); });
-    const rest = groups[g].filter((c2) => !c2.def.tutorial);
-    const { normal, hard } = orderAndBand(rest, 25, globalPlaced);
-    if (normal.length < NORMAL_SLOTS && groups[g].length >= NORMAL_SLOTS) {
-      problems.push(g + ' 章只有 ' + normal.length + ' 个满足 5–21 模块的普通关候选（需要 ' + NORMAL_SLOTS + '）');
-    }
-    normal.forEach((c) => { finalList.push({ c, band: 'base' }); globalPlaced.add(c.def.placeholder); });
-    hard.forEach((c) => { finalList.push({ c, band: 'challenge' }); globalPlaced.add(c.def.placeholder); });
-  });
-
-  /* 同目标去重：困难关若与普通关（或更小的困难关）目标相同，改为引用那一关并剔除自己 */
-  const alias = new Map();
-  {
-    const byKey = new Map();
-    finalList.forEach((entry) => {
-      const key = entry.c.targetTokens.join(' ');
-      if (!byKey.has(key)) byKey.set(key, []);
-      byKey.get(key).push(entry);
-    });
-    const removed = new Set();
-    const referenced = new Set();
-    finalList.forEach((e) => (e.c.deps || []).forEach((d) => referenced.add(d)));
-    byKey.forEach((list) => {
-      if (list.length < 2) return;
-      list.sort((a, b) => (a.band === 'base' ? -1 : 1) || (a.c.size - b.c.size));
-      const keep = list[0];
-      list.slice(1).forEach((e) => {
-        if (referenced.has(e.c.def.placeholder)) return;   /* 仍被引用的重复关保留 */
-        alias.set(e.c.def.placeholder, keep.c.def.placeholder);
-        removed.add(e.c.def.placeholder);
-      });
-    });
-    if (removed.size) {
-      for (let i = finalList.length - 1; i >= 0; i -= 1) {
-        if (removed.has(finalList[i].c.def.placeholder)) finalList.splice(i, 1);
-      }
-    }
-  }
-
-  /* 未入选候选 → 同目标已入选关卡的别名 */
-  const finalPlaceholders = new Set(finalList.map((e) => e.c.def.placeholder));
-  compiled.forEach((c) => {
-    if (finalPlaceholders.has(c.def.placeholder)) return;
-    const key = (c.targetTokens || []).join(' ');
-    const twin = finalList.find((e) => e.c.targetTokens.join(' ') === key);
-    if (twin) alias.set(c.def.placeholder, twin.c.def.placeholder);
-  });
-
-  /* 每章困难关裁到 24（不裁仍被引用的） */
-  {
-    const referenced = new Set();
-    finalList.forEach((e) => (e.c.deps || []).forEach((d) => referenced.add(d)));
-    chapterOrder.forEach((g) => {
-      for (;;) {
-        const hards = finalList.filter((e) => e.band === 'challenge' && (e.c.def.chapterGroup || 'Ⅰ') === g);
-        if (hards.length <= 24) break;
-        const victim = hards.filter((e) => !referenced.has(e.c.def.placeholder)).pop();
-        if (!victim) break;
-        finalList.splice(finalList.indexOf(victim), 1);
-      }
-    });
-  }
-
-  /* 重映射代号：@label → Ⅰ-01 … */
-  const remap = new Map();
-  const countersTut = {};
-  const counters = { 'Ⅰ': 0, 'Ⅱ': 0, 'Ⅲ': 0, 'Ⅳ': 0 };
-  finalList.forEach((entry) => {
-    const g = entry.c.def.chapterGroup || 'Ⅰ';
-    let code;
-    if (entry.band === 'tutorial') {
-      countersTut[g] = (countersTut[g] || 0) + 1;
-      code = g + '-' + ROMAN[countersTut[g] - 1];
     } else {
-      counters[g] += 1;
-      code = g + '-' + String(counters[g]).padStart(2, '0');
+      compiled.splice(i, 1);
     }
+  }
+  /* 拆分后重新求值（父关依赖新占位符） */
+  compiled.forEach((c) => { c.results = evaluateCircuit(c.nodes, c.edges, THEOREM_TOKENS); });
+
+  /* 中间结论 */
+  const normalCones = extractCones(compiled.filter((c) => c.size > 21), MIN_NORMAL, MAX_NORMAL, MAX_NORMAL_TOKENS, 18);
+  const hardCones = extractCones(compiled.filter((c) => c.size > 21), 40, 190, MAX_HARD_TOKENS, 12);
+  const all = compiled.concat(normalCones, hardCones);
+
+  /* 目标去重：同目标保留更小、来源更“真实”的 */
+  const byTarget = new Map();
+  all.forEach((c) => {
+    if (!c.targetTokens) return;
+    const key = targetKey(c.targetTokens);
+    if (!byTarget.has(key)) byTarget.set(key, []);
+    byTarget.get(key).push(c);
+  });
+  const deduped = [];
+  byTarget.forEach((list) => {
+    list.sort((a, b) => ((a.def.tutorial ? -1 : 0) - (b.def.tutorial ? -1 : 0)) || (levelOriginOrder(a) - levelOriginOrder(b)) || (a.size - b.size));
+    deduped.push(list[0]);
+    list.slice(1).forEach((c) => { if (list[0].def.placeholder) ALIAS.set(c.def.placeholder, list[0].def.placeholder); });
+  });
+
+  compiled.forEach((c) => { if (c.deps) c.deps = new Set(Array.from(c.deps).map((d) => ALIAS.get(d) || d)); });
+  deduped.forEach((c) => { if (c.deps) c.deps = new Set(Array.from(c.deps).map((d) => ALIAS.get(d) || d)); });
+  const tutorials = defs.filter((d) => d.tutorial).map((d) => compiled.find((c) => c.def.placeholder === d.placeholder)).filter(Boolean);
+  if (tutorials.length !== TUTORIAL_SLOTS) problems.push('教学关数量 ' + tutorials.length + ' != 8');
+
+  const tutorialCodes = new Map();
+  tutorials.forEach((c, i) => tutorialCodes.set(c.def.placeholder, TUT_CODES[i]));
+
+  if (process.env.LADDER_DEBUG) {
+    console.log('pool: all=' + all.length + ' tutorials=' + tutorials.length + ' deduped=' + deduped.length);
+    const byOrigin = {}; deduped.forEach((c) => { const k = (c.def.origin || '?') + ':' + (c.def.tutorial ? 'tut' : (c.size >= MIN_HARD ? 'hard' : (c.size >= MIN_NORMAL ? 'normal' : 'tiny'))); byOrigin[k] = (byOrigin[k] || 0) + 1; });
+    console.log('pool by kind:', JSON.stringify(byOrigin));
+    console.log('normal pool sizes:', deduped.filter((c) => !c.def.tutorial && c.size >= 5 && c.size <= 21).map((c) => (c.def.origin || '?') + ':' + c.size).join(' '));
+    console.log('hard pool sizes:', deduped.filter((c) => !c.def.tutorial && c.size >= 22 && c.size <= 200).map((c) => (c.def.origin || '?') + ':' + c.size).join(' '));
+  }
+  const tutorialTargets = new Set(tutorials.map((c) => targetKey(c.targetTokens)));
+  const nonTutorial = deduped.filter((c) => !c.def.tutorial && !tutorialTargets.has(targetKey(c.targetTokens)));
+
+  /* 普通关：先选“真实”小证明，再用中间结论补足 */
+  const normalReal = nonTutorial
+    .filter((c) => c.size >= MIN_NORMAL && c.size <= MAX_NORMAL && c.targetTokens.length - 1 <= MAX_NORMAL_TOKENS && c.def.origin !== 'cone')
+    .sort((a, b) => (levelOriginOrder(a) - levelOriginOrder(b)) || (a.size - b.size));
+  const normalChosen = [];
+  const normalSet = new Set();
+  function tryAddNormal(c) {
+    if (normalChosen.length >= NORMAL_SLOTS) return false;
+    if (normalSet.has(c.def.placeholder)) return false;
+    const missing = Array.from(c.deps || []).filter((d) => {
+      if (tutorialCodes.has(d)) return false;
+      if (normalSet.has(d)) return false;
+      const dep = all.find((x) => x.def.placeholder === d);
+      return !dep || dep.size > MAX_NORMAL || dep.size < MIN_NORMAL;
+    });
+    if (missing.length) return false;
+    normalChosen.push(c);
+    normalSet.add(c.def.placeholder);
+    return true;
+  }
+  normalReal.forEach((c) => tryAddNormal(c));
+  const normalConesSorted = nonTutorial
+    .filter((c) => c.def.origin === 'cone' && c.size >= MIN_NORMAL && c.size <= MAX_NORMAL)
+    .sort((a, b) => (a.size - b.size) || targetKey(a.targetTokens).localeCompare(targetKey(b.targetTokens)));
+  if (process.env.LADDER_DEBUG && normalConesSorted[0]) console.log('first cone', normalConesSorted[0].def.placeholder, normalConesSorted[0].size, normalConesSorted[0].deps && Array.from(normalConesSorted[0].deps), normalConesSorted[0].def.origin);
+  /* 先按尺寸轮转各取一个：优先 10–21 的中间结论，最后才用 5–9 的小碎片补数。 */
+  const coneBySize = new Map();
+  normalConesSorted.forEach((c) => { if (!coneBySize.has(c.size)) coneBySize.set(c.size, []); coneBySize.get(c.size).push(c); });
+  const coneSizeOrder = [];
+  for (let size = MAX_NORMAL; size >= 10; size -= 1) coneSizeOrder.push(size);
+  for (let size = 9; size >= MIN_NORMAL; size -= 1) coneSizeOrder.push(size);
+  for (let round = 0; normalChosen.length < NORMAL_SLOTS && round < 12; round += 1) {
+    for (const size of coneSizeOrder) {
+      if (normalChosen.length >= NORMAL_SLOTS) break;
+      const list = coneBySize.get(size) || [];
+      if (list[round]) tryAddNormal(list[round]);
+    }
+  }
+
+  /* 普通关拓扑排序（依赖教程/普通关），同层按体积 */
+  const normalOrder = [];
+  const defOrder = new Map(defs.map((d, i) => [d.placeholder, i]));
+  const normalPriority = (c) => c.def.origin === 'legacy' ? 0 : c.def.origin === 'setmm' ? 100 : c.def.origin === 'manual' ? 200 : 1000;
+  {
+    const pending = new Map(normalChosen.map((c) => [c.def.placeholder, c]));
+    while (pending.size) {
+      const ready = Array.from(pending.values()).filter((c) => Array.from(c.deps || []).every((d) => !pending.has(d)));
+      if (!ready.length) break;
+      ready.sort((a, b) => (normalPriority(a) - normalPriority(b)) || ((defOrder.get(a.def.placeholder) ?? 999) - (defOrder.get(b.def.placeholder) ?? 999)) || (a.size - b.size));
+      const pick = ready[0];
+      normalOrder.push(pick);
+      pending.delete(pick.def.placeholder);
+    }
+    if (pending.size) problems.push('普通关存在环/缺依赖：' + Array.from(pending.keys()).join(','));
+  }
+  if (process.env.LADDER_DEBUG) console.log('normal chosen', normalChosen.length, 'cone pool', normalConesSorted.length, 'ordered', normalOrder.length);
+  if (process.env.LADDER_DEBUG) console.log('normal list', normalOrder.map((c,i)=> (i+1)+':'+c.size+':'+c.def.origin+':'+(c.def.title||c.def.key)).join(' | '));
+  if (normalOrder.length !== NORMAL_SLOTS) problems.push('普通关只有 ' + normalOrder.length + ' 个（需要 32）');
+
+  /* 困难关：真实大证明 → 拆分 → 中间结论；依赖闭包 */
+  const normalPlaced = new Set(normalOrder.map((c) => c.def.placeholder));
+  const hardPool = nonTutorial
+    .filter((c) => c.size >= MIN_HARD && c.size <= MAX_HARD && c.targetTokens.length - 1 <= MAX_HARD_TOKENS && !normalSet.has(c.def.placeholder))
+    .sort((a, b) => (levelOriginOrder(a) - levelOriginOrder(b)) || (a.size - b.size));
+  const hardMap = new Map(hardPool.map((c) => [c.def.placeholder, c]));
+  const hardSet = new Set();
+  const hardChosen = [];
+  function addHard(c) {
+    if (!c || hardSet.has(c.def.placeholder)) return;
+    hardSet.add(c.def.placeholder);
+    hardChosen.push(c);
+    Array.from(c.deps || []).forEach((d) => {
+      if (hardMap.has(d) && !hardSet.has(d)) addHard(hardMap.get(d));
+    });
+  }
+  hardPool.forEach((c) => { if (hardChosen.length < HARD_SLOTS) addHard(c); });
+  /* 如果不够，按体积补候选中未选的 */
+  if (hardChosen.length < HARD_SLOTS) {
+    hardPool.forEach((c) => { if (hardChosen.length < HARD_SLOTS) addHard(c); });
+  }
+
+  /* 困难关拓扑排序（依赖教程/普通/困难），同层按体积 */
+  const hardOrder = [];
+  {
+    const pending = new Map(hardChosen.map((c) => [c.def.placeholder, c]));
+    while (pending.size) {
+      const ready = Array.from(pending.values()).filter((c) => Array.from(c.deps || []).every((d) => {
+        if (pending.has(d)) return false;
+        if (hardSet.has(d)) return hardOrder.some((x) => x.def.placeholder === d);
+        return true;
+      }));
+      if (!ready.length) break;
+      ready.sort((a, b) => (a.size - b.size) || (levelOriginOrder(a) - levelOriginOrder(b)) || targetKey(a.targetTokens).localeCompare(targetKey(b.targetTokens)));
+      const pick = ready[0];
+      hardOrder.push(pick);
+      pending.delete(pick.def.placeholder);
+    }
+    if (pending.size) problems.push('困难关存在环/缺依赖：' + Array.from(pending.keys()).join(','));
+  }
+  if (process.env.LADDER_DEBUG) console.log('hard chosen', hardChosen.length, 'pool', hardPool.length, 'ordered', hardOrder.length);
+  if (hardOrder.length !== HARD_SLOTS) problems.push('困难关只有 ' + hardOrder.length + ' 个（需要 56）');
+
+  const finalList = []
+    .concat(tutorials.map((c) => ({ c, band: 'tutorial' })))
+    .concat(normalOrder.map((c) => ({ c, band: 'base' })))
+    .concat(hardOrder.map((c) => ({ c, band: 'challenge' })));
+
+  if (finalList.length !== TOTAL) problems.push('总关数 ' + finalList.length + ' != 96');
+
+  /* 编号 */
+  const remap = new Map();
+  let normalNo = 0;
+  let hardNo = 32;
+  finalList.forEach((entry) => {
+    let code;
+    if (entry.band === 'tutorial') code = TUT_CODES[tutorials.indexOf(entry.c)];
+    else if (entry.band === 'base') code = String(++normalNo).padStart(2, '0');
+    else code = String(++hardNo).padStart(2, '0');
     remap.set(entry.c.def.placeholder, code);
     entry.c.finalCode = code;
-    entry.c.finalBand = entry.band;
   });
+
   const levels = [];
   finalList.forEach((entry, idx) => {
     const c = entry.c;
-    /* 拆分候选（circuit 来自中间锥）没有 target 焊盘：补一个并接上输出 */
+    /* 补 target 焊盘 */
     if (!c.nodes.some((n) => n.kind === 'target')) {
       const tgt = { id: 'tgt', kind: 'target', config: {}, x: 0, y: 0, targetTokens: c.targetTokens };
       c.edges = c.edges.concat([{ id: 'eT', from: { node: c.targetId, port: 'out' }, to: { node: 'tgt', port: 'proof' } }]);
@@ -827,61 +731,71 @@ function main() {
     }
     c.nodes.forEach((n) => {
       if (n.kind === 'theorem') {
-        const target = alias.get(n.config.code) || n.config.code;
-        n.config = { code: remap.get(target) || target };
+        const target = ALIAS.get(n.config.code) || n.config.code;
+        const code = remap.get(target);
+        if (process.env.LADDER_DUMP && entry.c.finalCode === '68') console.error('THM68', n.id, n.config.code, 'alias', target, 'code', code, 'target', T.fmt(THEOREM_TOKENS.get(n.config.code) || []));
+        if (!code) problems.push(entry.c.finalCode + ' 引用了未入选的定理 ' + n.config.code + ' → ' + target);
+        n.config = { code: code || target };
       }
     });
-    const def = c.def;
+    const targetNode = c.nodes.find((n) => n.id === c.targetId);
+    const palette = [];
+    const seen = new Set();
+    c.nodes.forEach((n) => {
+      if (n.kind === 'target') return;
+      const cfg = n.kind === 'subst' ? {} : (n.config || {});
+      const key = n.kind + ':' + JSON.stringify(cfg);
+      if (seen.has(key)) return;
+      seen.add(key);
+      palette.push({ kind: n.kind, config: cfg });
+    });
     const level = {
       id: c.finalCode,
       code: c.finalCode,
-      no: entry.band === 'tutorial' ? null : Number(c.finalCode.split('-')[1]),
+      no: entry.band === 'tutorial' ? null : Number(c.finalCode),
       tutorial: entry.band === 'tutorial',
       hard: entry.band === 'challenge',
       band: entry.band,
-      chapter: def.chapter != null ? def.chapter : 0,
-      chapterGroup: def.chapterGroup || 'Ⅰ',
-      title: def.title,
-      teaches: def.teaches || '',
-      hint: entry.band === 'challenge' ? null : (def.hint || ''),
-      tip: def.tip || null,
+      title: c.def.title,
+      teaches: c.def.teaches || '',
+      hint: entry.band === 'challenge' ? null : (c.def.hint || ''),
+      tip: c.def.tip || null,
       targetTokens: c.targetTokens,
-      palette: c.palette,
-      initialNodes: [JSON.parse(JSON.stringify(c.nodes.find((n) => n.id === c.targetId)))],
+      palette,
+      initialNodes: [JSON.parse(JSON.stringify(targetNode))],
       solution: { nodes: c.nodes.filter((n) => n.id !== c.targetId), edges: c.edges },
       difficulty: c.size,
       stats: { steps: c.size },
-      mustUse: Array.from(new Set(c.palette.map((e) => e.kind))).filter((k) => !RSL.Modules.isConstruct(k) && k !== 'theorem'),
-      depCodes: (c.deps || []).map((d) => remap.get(alias.get(d) || d)).filter(Boolean),
+      mustUse: Array.from(new Set(palette.map((e) => e.kind))).filter((k) => !Modules.isConstruct(k) && k !== 'theorem'),
     };
-    if (process.env.LADDER_DEBUG) {
-      const thms = c.nodes.filter((n) => n.kind === 'theorem').map((n) => n.config.code);
-      if (thms.length) console.log('LVL', c.finalCode, 'thmrefs', thms.join(','), '| size', c.size);
-    }
     const res = Engine.evaluate(level, c.nodes.concat([]), c.edges, { levels: levels.concat([level]), levelIndex: idx });
     if (!res.complete) {
       const first = (res.errors || [])[0];
-      const badNode = first ? c.nodes.find((n) => n.id === first.nodeId) : null;
-      if (process.env.LADDER_DEBUG && badNode && badNode.kind === 'mp') {
-        const ins = c.edges.filter((e) => e.to.node === badNode.id).map((e) => {
+      problems.push(level.code + ' 参考解未通关：' + (first ? first.message : '未知'));
+      if (process.env.LADDER_DUMP && first) {
+        const bad = c.nodes.find((n) => n.id === first.nodeId);
+        console.error('BAD', level.code, first.nodeId, bad && bad.kind, bad && JSON.stringify(bad.config));
+        c.edges.filter((e) => e.to.node === first.nodeId).forEach((e) => {
           const r = res.results[e.from.node];
-          return (r && r.tokens ? T.fmt(r.tokens) : 'null') + ' [' + (r && r.tokens ? r.tokens.join(' ') : '') + ']';
+          console.error('  in', e.from.node, r && r.tokens && T.fmt(r.tokens));
         });
-        console.log('MP inputs @' + c.finalCode, ins.join('  |  '));
       }
       if (process.env.LADDER_DUMP) {
-        console.error('DUMP ' + c.finalCode + ' key=' + c.def.key + ' group=' + c.def.chapterGroup + ' chapter=' + c.def.chapter + ' target=' + T.fmt(c.targetTokens));
+        console.error('DUMP ' + level.code + ' target=' + T.fmt(level.targetTokens));
         c.nodes.forEach((n) => console.error('  ', n.id, n.kind, JSON.stringify(n.config || {})));
         c.edges.forEach((e) => console.error('  e', e.from.node + ':' + e.from.port, '->', e.to.node + ':' + e.to.port));
+        console.error('  order', res.order.join(','), 'cycle', res.cycle.join(','));
       }
-      problems.push(c.finalCode + ' 参考解未通关：' + (first ? first.message : '未知') +
-        (badNode ? ' @' + badNode.kind + JSON.stringify(badNode.config).slice(0, 60) : ''));
     }
     levels.push(level);
   });
 
   /* 门禁 */
+  const usedTargets = new Map();
   levels.forEach((lv) => {
+    const key = targetKey(lv.targetTokens);
+    if (usedTargets.has(key)) problems.push('重复目标：' + usedTargets.get(key) + ' / ' + lv.code);
+    usedTargets.set(key, lv.code);
     if (lv.tutorial) {
       if (lv.solution.nodes.length > 20) problems.push(lv.code + ' 教学关元件数超过 20');
       if (!lv.tip || !lv.tip.code || !lv.tip.flow) problems.push(lv.code + ' 教学关缺少 tip');
@@ -894,50 +808,37 @@ function main() {
       if (tokens > MAX_NORMAL_TOKENS) problems.push(lv.code + ' 普通关目标 ' + tokens + ' token');
       if (!lv.mustUse.length) problems.push(lv.code + ' 普通关缺少 mustUse');
     } else {
-      if (n > MAX_HARD) problems.push(lv.code + ' 困难关元件数 ' + n + ' > 200');
+      if (n < MIN_HARD || n > MAX_HARD) problems.push(lv.code + ' 困难关元件数 ' + n + ' 不在 22–200');
       if (tokens > MAX_HARD_TOKENS) problems.push(lv.code + ' 困难关目标 ' + tokens + ' token');
     }
   });
-  chapterOrder.forEach((g) => {
-    const hard = levels.filter((l) => l.chapterGroup === g && l.hard);
-    let slack = 0;
-    for (let i = 1; i < hard.length; i += 1) {
-      const prev = hard[i - 1].solution.nodes.length;
-      const cur = hard[i].solution.nodes.length;
-      const drop = prev - cur;
-      if (cur < 20 || prev < 20) continue;
-      if (drop > INVERSION_ABS && drop > prev * INVERSION_REL) {
-        /* 依赖强制：若当前关依赖前面体积更大的关，则允许这次下降（拓扑序无法避免） */
-        const depCodes = hard[i].depCodes || [];
-        const forced = hard.slice(0, i).some((h) => depCodes.indexOf(h.finalCode) >= 0 && h.solution.nodes.length > cur);
-        if (!forced) {
-          slack += 1;
-          if (slack > 5) {
-            problems.push(g + ' 困难关倒挂：' + hard[i - 1].code + '(' + prev + ') → ' + hard[i].code + '(' + cur + ')');
-          } else {
-            warnings.push(g + ' 允许的小倒挂：' + hard[i - 1].code + '(' + prev + ') → ' + hard[i].code + '(' + cur + ')');
-          }
-        }
-      }
+  /* 困难关整体按模块数递增；依赖强制或拆分产生的局部倒挂只记警告。 */
+  const hardLevels = levels.filter((l) => l.hard);
+  for (let i = 1; i < hardLevels.length; i += 1) {
+    const prev = hardLevels[i - 1].solution.nodes.length;
+    const cur = hardLevels[i].solution.nodes.length;
+    const drop = prev - cur;
+    if (drop > 12 && drop > prev * 0.2) {
+      warnings.push('困难关倒挂：' + hardLevels[i - 1].code + '(' + prev + ') → ' + hardLevels[i].code + '(' + cur + ')');
     }
-  });
+  }
 
   if (problems.length) {
     console.error('关卡门禁失败 ' + problems.length + ' 项：');
     problems.slice(0, 40).forEach((p) => console.error('  - ' + p));
     process.exit(1);
   }
-
   warnings.forEach((w) => console.log('  ⚠ ' + w));
   fs.writeFileSync(OUT, JSON.stringify(levels, null, 1) + '\n', 'utf8');
+  const counts = {
+    tutorial: levels.filter((l) => l.tutorial).length,
+    normal: levels.filter((l) => !l.tutorial && !l.hard).length,
+    hard: levels.filter((l) => l.hard).length,
+  };
   console.log('关卡 ' + levels.length + ' → ' + path.relative(ROOT, OUT));
-  chapterOrder.forEach((g) => {
-    const nl = levels.filter((l) => l.chapterGroup === g && !l.hard);
-    const hl = levels.filter((l) => l.chapterGroup === g && l.hard);
-    const sizes = hl.map((l) => l.solution.nodes.length);
-    console.log('  ' + g + '：普通 ' + nl.length + '（' + nl.map((l) => l.solution.nodes.length).join('/') + '）' +
-      ' · 困难 ' + hl.length + '（' + sizes.join('/') + '）');
-  });
+  console.log('  教学 ' + counts.tutorial + ' · 普通 ' + counts.normal + ' · 困难 ' + counts.hard);
+  console.log('  普通模块数：' + levels.filter((l) => !l.tutorial && !l.hard).map((l) => l.solution.nodes.length).join('/'));
+  console.log('  困难模块数：' + levels.filter((l) => l.hard).map((l) => l.solution.nodes.length).join('/'));
 }
 
 main();

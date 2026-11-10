@@ -1,3 +1,7 @@
+> **历史文档 / 已归档**：本文件记录的是四章（命题/谓词/等词/集合论）版本的设计与验收。
+> 该版本已冻结在 `archive/predicate-set/`（tag `archive/predicate-set-v1`）；主线现在是
+> 单章 96 关命题演算，见 [README](../README.md) 与 [docs/ARCHIVE-PREDICATE-SET.md](ARCHIVE-PREDICATE-SET.md)。
+
 # 关卡重设计方案（第二版：并入引理关 + 四章重做）
 
 > 目标：把「引理关」并入普通/困难关；重做全部关卡，让普通关是 5–21 个模块的**引理阶梯**、

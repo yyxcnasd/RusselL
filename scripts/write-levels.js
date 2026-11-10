@@ -56,10 +56,7 @@ if (failures.length) {
 }
 
 const chapters = [
-  { key: 'prop', id: 'Ⅰ', title: '命题演算' },
-  { key: 'pred', id: 'Ⅱ', title: '谓词与量词' },
-  { key: 'eq', id: 'Ⅲ', title: '等词' },
-  { key: 'classic', id: 'Ⅳ', title: '集合论' },
+  { key: 'logic', id: '', title: '命题演算' },
 ];
 const header = '/* 自动生成：node scripts/build-campaign2.js && node scripts/write-levels.js（源：campaign/campaign2.js） */\n';
 fs.writeFileSync(OUT_LEVELS, header +
@@ -70,16 +67,14 @@ fs.writeFileSync(OUT_LEVELS, header +
 fs.writeFileSync(OUT_META, header +
   '(function (host) {\n  \'use strict\';\n  host.RSL = host.RSL || {};\n' +
   '  host.RSL.CAMPAIGN = ' + JSON.stringify(chapters) + ';\n' +
-  '  host.RSL.CAMPAIGN_META = ' + JSON.stringify({ total: levels.length }) + ';\n' +
+  '  host.RSL.CAMPAIGN_META = ' + JSON.stringify({ total: levels.length, id: 'prop-96' }) + ';\n' +
   "})(typeof window !== 'undefined' ? window : globalThis);\n", 'utf8');
 
-const byCh = {};
+const counts = { tutorial: 0, normal: 0, hard: 0 };
 levels.forEach((lv) => {
-  const g = lv.chapterGroup;
-  byCh[g] = byCh[g] || { tutorial: 0, normal: 0, hard: 0 };
-  if (lv.tutorial) byCh[g].tutorial += 1;
-  else if (lv.hard) byCh[g].hard += 1;
-  else byCh[g].normal += 1;
+  if (lv.tutorial) counts.tutorial += 1;
+  else if (lv.hard) counts.hard += 1;
+  else counts.normal += 1;
 });
 console.log('写入 ' + path.relative(ROOT, OUT_LEVELS) + '：' + levels.length + ' 关（复验全部通过）');
-Object.keys(byCh).forEach((g) => console.log('  ' + g + '：教学 ' + byCh[g].tutorial + ' · 普通 ' + byCh[g].normal + ' · 困难 ' + byCh[g].hard));
+console.log('  教学 ' + counts.tutorial + ' · 普通 ' + counts.normal + ' · 困难 ' + counts.hard);

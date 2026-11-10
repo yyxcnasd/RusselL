@@ -21,7 +21,7 @@
   var DEFAULT_NODE_H = 112;
   var DEFAULT_TARGET_H = 104;
   var OVERLAP_GAP = 18;
-  var VIEW_MIN = 0.2, VIEW_MAX = 1.35;
+  var VIEW_MIN = 0.05, VIEW_MAX = 1.35;
 
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
   function esc(s) {
@@ -966,12 +966,14 @@
     if (n.kind === 'set-pair') return '{,}';
     if (n.kind === 'set-union') return '∪';
     if (n.kind === 'theorem') {
-      var m = /([ⅠⅡⅢⅣ])-(\d+)/.exec(String(cfg.code || ''));
+      var code = String(cfg.code || '');
+      if (/^\d+$/.test(code)) return '*' + code;
+      var m = /([ⅠⅡⅢⅣ])-(\d+)/.exec(code);
       if (m) {
         var en = { 'Ⅰ': 'I', 'Ⅱ': 'II', 'Ⅲ': 'III', 'Ⅳ': 'IV' }[m[1]] || 'I';
         return en + '-' + m[2];
       }
-      return String(cfg.code || '⊢');
+      return code || '⊢';
     }
     return '·';
   };

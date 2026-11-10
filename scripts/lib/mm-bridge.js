@@ -36,6 +36,12 @@ function canonicalMap(dag) {
   const vars = Object.create(null);
   let wi = 0;
   let vi = 0;
+  const targetWff = new Set();
+  const targetVars = new Set();
+  (dag.conclusion || []).forEach((t) => {
+    if (isWffVar(t)) targetWff.add(t);
+    else if (SETVAR_RE.test(t)) targetVars.add(t);
+  });
   const assign = (t) => {
     if (isWffVar(t)) {
       if (!wff[t]) { wff[t] = OUR_ATOMS[wi]; wi += 1; }
@@ -49,7 +55,7 @@ function canonicalMap(dag) {
   (dag.conclusion || []).forEach(assign);
   (dag.mandatory || []).forEach((h) => (h.math || []).forEach(assign));
   (dag.steps || []).forEach((s) => (s.conclusion || []).forEach(assign));
-  return { wff, vars };
+  return { wff, vars, targetWff, targetVars };
 }
 
 function makeTranslator(dag, sigma, ctx, hypTerms) {
@@ -94,10 +100,14 @@ function makeTranslator(dag, sigma, ctx, hypTerms) {
     const canon = info.sigmaCanon;
     const out = { wff: Object.create(null), vars: Object.create(null) };
     for (const name of Object.keys(canon.wff)) {
+      if (!canon.targetWff.has(name)) continue;
       if (!comp.wff[name]) err('关卡 ' + label + ' 的 wff 变元 ' + name + ' 没有代入');
       out.wff[canon.wff[name]] = comp.wff[name];
     }
-    for (const name of Object.keys(canon.vars)) out.vars[canon.vars[name]] = comp.vars[name] || name;
+    for (const name of Object.keys(canon.vars)) {
+      if (!canon.targetVars.has(name)) continue;
+      out.vars[canon.vars[name]] = comp.vars[name] || name;
+    }
     return out;
   }
 

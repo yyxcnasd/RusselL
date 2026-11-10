@@ -1,11 +1,11 @@
 'use strict';
-/* 新关卡体系的浏览器验收：152 关（每章 4 教学 + 10 普通 + 24 困难，无引理带）。 */
+/* 单章命题演算的浏览器验收：96 关（8 教学 + 32 普通 + 56 困难）。 */
 const { runTest, fileUrl } = require('./lib/browser');
 const { ok, equal, includes } = require('./lib/expect');
 
-const TOTAL = 152;
-const TUTORIALS = 16;
-const BASE = 40;
+const TOTAL = 96;
+const TUTORIALS = 8;
+const BASE = 32;
 
 runTest('game-ui', async ({ openPage }) => {
   const page = await openPage({ width: 1440, height: 900, url: fileUrl('index.html'), shotDir: '.research/shots' });
@@ -23,8 +23,8 @@ runTest('game-ui', async ({ openPage }) => {
       hasLogic: !!window.RSL.Logic
     };
   })()`);
-  equal(home.levels, TOTAL, '游戏加载 136 主线 + 16 教学关');
-  equal(home.code, 'Ⅰ-i', '首关是第Ⅰ章教学关 Ⅰ-i');
+  equal(home.levels, TOTAL, '游戏加载 88 编号关 + 8 教学关');
+  equal(home.code, 'i', '首关是教学关 i');
   includes(home.goal.replace(/\s+/g, ''), 'P→(Q→P)', '教学关目标 A1 实例');
   ok(home.tiles > 0, '元件栏有构造/规则/公理');
   equal(home.hasTerm, true, '唯一表达式核心已加载');
@@ -47,17 +47,17 @@ runTest('game-ui', async ({ openPage }) => {
     return {
       axiom: b._code({ kind:'axiom', config:{ schema:'A2' } }),
       pred: b._code({ kind:'pred', config:{ symbol:'G' } }),
-      theorem: b._code({ kind:'theorem', config:{ code:'Ⅰ-01' } }),
+      theorem: b._code({ kind:'theorem', config:{ code:'01' } }),
       substPorts: s.inputPorts.map(function(p){return p.id})
     };
   })()`);
   equal(labels.axiom, 'A2', 'A2 显示 A2');
   equal(labels.pred, 'G', '谓词显示 G');
-  equal(labels.theorem, 'I-01', '定理显示英文字母章节编号');
+  equal(labels.theorem, '*01', '定理显示 *01');
   ok(labels.substPorts.indexOf('vleft') < 0 && labels.substPorts.indexOf('vright') < 0,
     'S 不显示旧变元改名端口');
 
-  /* 选关面板：4 章，每章教学 + 10 普通 + 24 困难；第Ⅰ章另有 9 个引理关分带。 */
+  /* 选关面板：单章，教学 / 普通 / 困难三条带。 */
   await page.js('document.querySelector("#levelBtn").click()');
   await page.waitFor('document.querySelectorAll("[data-level]").length === ' + TOTAL);
   const sheet = await page.js(`(function(){
@@ -66,26 +66,26 @@ runTest('game-ui', async ({ openPage }) => {
     return {
       chapters: chapters.length,
       tutorials: document.querySelectorAll('.band.tutorial').length,
-      tutorialPerChapter: chapters.map(function(ch){ return ch.querySelectorAll('.band.tutorial').length; }),
-      lemmaBands: chapters.map(function(ch){ return ch.querySelectorAll('.band.lemma').length; }),
-      tutorialCells: chapters.map(function(ch){ return ch.querySelectorAll('.band.tutorial [data-level]').length; }),
+      tutorialCells: document.querySelectorAll('.band.tutorial [data-level]').length,
+      baseCells: document.querySelectorAll('.band.base [data-level]').length,
+      challengeCells: document.querySelectorAll('.band.challenge [data-level]').length,
       labels: labels
     };
   })()`);
-  equal(sheet.chapters, 4, '选关有 4 章');
-  equal(sheet.tutorials, 4, '4 章各有一条教学分带');
-  equal(sheet.tutorialCells.join(','), '4,4,4,4', '每章教学分带 4 格');
-  equal(sheet.tutorialPerChapter.join(','), '1,1,1,1', '每章都有教学分带');
-  equal(sheet.lemmaBands.join(','), '0,0,0,0', '已删除引理分带');
-  includes(sheet.labels.join('|'), 'Level 34', '第Ⅱ章有 *34 编号关');
+  equal(sheet.chapters, 1, '选关只有一条课程线');
+  equal(sheet.tutorials, 1, '一条教学分带');
+  equal(sheet.tutorialCells, 8, '教学分带 8 格');
+  equal(sheet.baseCells, 32, '普通分带 32 格');
+  equal(sheet.challengeCells, 56, '困难分带 56 格');
+  includes(sheet.labels.join('|'), 'Level 88', '有 88 号编号关');
   await page.shot('levels');
 
-  /* 点第Ⅰ章困难关格：应直接加载 Ⅰ-11。 */
+  /* 点困难关格：应直接加载 33。 */
   await page.js(`(function(){
     var app = window.RSL.APP;
-    var idx = app.state.levels.map(function(l){return l.code}).indexOf('Ⅰ-11');
+    var idx = app.state.levels.map(function(l){return l.code}).indexOf('33');
     var cell = document.querySelector('[data-level="' + idx + '"]');
-    if (!cell) throw new Error('找不到 Ⅰ-11 的选关格');
+    if (!cell) throw new Error('找不到 33 的选关格');
     cell.click();
   })()`);
   await page.sleep(200);
@@ -94,17 +94,15 @@ runTest('game-ui', async ({ openPage }) => {
     return {
       code: app.state.level.code,
       band: app.state.level.band,
-      chapter: app.state.level.chapter,
       hard: app.state.level.hard,
       goal: document.getElementById('goalFormula').textContent.trim(),
       tiles: document.querySelectorAll('.tile').length,
       sheetOpen: document.querySelectorAll('[data-level]').length > 0
     };
   })()`);
-  equal(lemmaView.code, 'Ⅰ-11', '点击第Ⅰ章困难关加载 Ⅰ-11');
+  equal(lemmaView.code, '33', '点击困难关加载 33');
   equal(lemmaView.band, 'challenge', '困难关 band 为 challenge');
-  equal(lemmaView.chapter, 0, '引理关属于第Ⅰ章');
-  equal(lemmaView.hard, true, 'Ⅰ-11 是困难关');
+  equal(lemmaView.hard, true, '33 是困难关');
   ok(lemmaView.goal.length > 0, '引理关目标渲染');
   ok(lemmaView.tiles > 0, '引理关元件栏有可放置模块');
   equal(lemmaView.sheetOpen, false, '点击关卡后选关面板关闭');
@@ -112,12 +110,12 @@ runTest('game-ui', async ({ openPage }) => {
 
   /* 帮助只保留推理/定义规则图例，不列变元/连接词/公理（D/D⁻ 本轮新增）。 */
   await page.js('document.querySelector("#helpBtn").click()');
-  await page.waitFor('document.querySelectorAll(".help-card").length === 11');
+  await page.waitFor('document.querySelectorAll(".help-card").length === 7');
   const help = await page.js(`(function(){
     return {labels: Array.from(document.querySelectorAll('.help-card b')).map(function(b){return b.textContent}),
             text: document.querySelector('.help-cards').textContent};
   })()`);
-  equal(help.labels.join(','), 'D,D⁻,S,M,∀I,∀*,∀E*,∃I*,∃E,=I,=L', '帮助列定义重写与推理规则');
+  equal(help.labels.join(','), 'A1,A2,A3,S,M,D,D⁻', '帮助列三条公理、代入、分离与定义重写');
   ok(!/[\u4e00-\u9fa5]/.test(help.text), '帮助图例不含汉字');
   await page.shot('help');
   await page.js('window.RSL.UI.closeSheet()');
@@ -147,8 +145,8 @@ runTest('game-ui', async ({ openPage }) => {
   })()`);
   ok(hint.text.length > 0, '提示面板显示第一层提示');
   ok(/1\s*\/\s*3/.test(hint.nav), '提示面板有三页导航');
-  equal(hint.count, TUTORIALS + BASE, '16 教学 + 40 普通关参与提示检查');
-  equal(hint.missing, 0, '56 个教学/普通关都有定制提示');
+  equal(hint.count, TUTORIALS + BASE, '8 教学 + 32 普通关参与提示检查');
+  equal(hint.missing, 0, '40 个教学/普通关都有定制提示');
   equal(hint.unique, TUTORIALS + BASE, '教学/普通关提示内容互不重复');
   ok(hint.lemmaHints === 0 || hint.lemmaUnique === hint.lemmaHints, '引理关提示若存在则互不重复');
   await page.js('window.RSL.UI.closeSheet()');
@@ -248,7 +246,7 @@ runTest('game-ui', async ({ openPage }) => {
   /* 元件栏合并：原子 P/Q/R 共享一个 tile，具体字母在配置弹层里选 */
   const mergedTray = await page.js(`(function(){
     var app = window.RSL.APP;
-    var idx = app.state.levels.map(function(l){return l.code}).indexOf('Ⅰ-04');
+    var idx = app.state.levels.map(function(l){return l.code}).indexOf('01');
     app.loadLevel(idx);
     var parts = window.RSL.Catalog.partsForLevel(app.state.level);
     var atom = parts.filter(function(p){return p.kind==='atom'})[0];
@@ -277,7 +275,7 @@ runTest('game-ui', async ({ openPage }) => {
   /* 终点连线持久化：旧存档里的 target id 也要在重进时接回 ⊢ */
   const persist = await page.js(`(function(){
     var app = window.RSL.APP;
-    var idx = app.state.levels.map(function(l){return l.code}).indexOf('Ⅰ-04');
+    var idx = app.state.levels.map(function(l){return l.code}).indexOf('01');
     var lv = app.state.levels[idx];
     app.state.circuits[lv.id] = {
       nodes: JSON.parse(JSON.stringify(lv.solution.nodes)),
@@ -332,16 +330,22 @@ runTest('game-ui', async ({ openPage }) => {
     return !!base && base === small && base === large;
   })()`);
   equal(zoomStable, true, '缩放前后导线路径保持一致');
+  const zoomMin = await page.js(`(function(){
+    var b = window.RSL.APP.state.board;
+    b.setView(30, 30, 0.001);
+    return b.view.scale;
+  })()`);
+  equal(zoomMin, 0.05, '缩放下限为 0.05');
 
-  /* 最后一关：Ⅳ-34 与目标 */
-  await page.js('window.RSL.APP.loadLevel(window.RSL.APP.state.levels.map(function(l){return l.code}).indexOf("Ⅳ-34"))');
+  /* 最后一关：88 与目标 */
+  await page.js('window.RSL.APP.loadLevel(window.RSL.APP.state.levels.map(function(l){return l.code}).indexOf("88"))');
   await page.sleep(300);
   const last = await page.js(`(function(){
     return {code: window.RSL.APP.state.level.code,
             goal: document.getElementById('goalFormula').textContent.trim(),
             tiles: document.querySelectorAll('.tile').length};
   })()`);
-  equal(last.code, 'Ⅳ-34', '可以进入最后一关 Ⅳ-34');
+  equal(last.code, '88', '可以进入最后一关 88');
   ok(last.goal.length > 0, '最后一关目标渲染');
   ok(last.tiles > 0, '最后一关元件栏');
   ok(await page.js('window.RSL.APP.state.level.solution.nodes.length > 0'), '最后一关有参考电路');

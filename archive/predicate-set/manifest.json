@@ -1,0 +1,102 @@
+{
+  "name": "predicate-set",
+  "title": "Axiom Board — 第 Ⅱ/Ⅲ/Ⅳ 章（谓词 / 等词 / 集合论）冻结归档",
+  "archivedAt": "2026-11-10",
+  "tag": "archive/predicate-set-v1",
+  "commit": "8987493e3be7c8fe2c917d3cf0d54a531ba42c5d",
+  "commitSubject": "Record final acceptance for the 152-level redesign",
+  "branch": "main",
+  "frozenAt": "HEAD 8987493 (152 levels: Ⅰ/Ⅱ/Ⅲ/Ⅳ 各 38 关)",
+  "campaign2Snapshot": {
+    "path": "archive/predicate-set/campaign2-snapshot.js",
+    "equalsCommitBlob": true,
+    "blobOid": "cbb6c1573d1ad2c00e00eaee638810b8a41e16bb",
+    "note": "逐字节等于冻结提交中的 campaign/campaign2.js（git blob OID 相同）。冻结后主游戏工作区对该文件的改造不计入本快照。"
+  },
+  "levelCounts": {
+    "total": 114,
+    "chapterGroups": [
+      "Ⅱ",
+      "Ⅲ",
+      "Ⅳ"
+    ],
+    "byChapter": {
+      "Ⅱ": 38,
+      "Ⅲ": 38,
+      "Ⅳ": 38
+    },
+    "byBand": {
+      "tutorial": 12,
+      "base": 30,
+      "challenge": 72
+    },
+    "byChapterBand": {
+      "Ⅱ/tutorial": 4,
+      "Ⅱ/base": 10,
+      "Ⅱ/challenge": 24,
+      "Ⅲ/tutorial": 4,
+      "Ⅲ/base": 10,
+      "Ⅲ/challenge": 24,
+      "Ⅳ/tutorial": 4,
+      "Ⅳ/base": 10,
+      "Ⅳ/challenge": 24
+    },
+    "perChapterRule": "4 教学 + 10 普通 + 24 进阶 = 38"
+  },
+  "files": [
+    {
+      "path": "archive/predicate-set/README.md",
+      "bytes": 8766,
+      "sha256": "ad37b6d1550b8ab0fa3e53f44fbca7b5bc097e022628397c6ec8e602e045eaca",
+      "role": "本说明：归档范围、冻结理由、还原方式"
+    },
+    {
+      "path": "archive/predicate-set/levels-ii-iv.json",
+      "bytes": 1355110,
+      "sha256": "11ae904b8452f79fe2265b30e8e4986e7e21d3075b22d6573e7a70274aa94b51",
+      "role": "第 Ⅱ/Ⅲ/Ⅳ 章编译后关卡数据（114 关，来源 campaign/campaign2-levels.json）"
+    },
+    {
+      "path": "archive/predicate-set/campaign2-snapshot.js",
+      "bytes": 25337,
+      "sha256": "b9ab5bb54b543ad14df0cdcb8b0636bc149088be1d2650958829c1b739cafb41",
+      "role": "campaign/campaign2.js 作者源精确副本（逐字节，未改动）"
+    },
+    {
+      "path": "archive/predicate-set/docs/LEVEL-REDESIGN-PLAN.md",
+      "bytes": 25845,
+      "sha256": "5f3e3f129e67bf78b7ff397fcd0e13409de81fe7b00f1dce8327ad2d0b339fcc",
+      "role": "四章重设计施工图（唯谓词/等词/集合章节设计）"
+    },
+    {
+      "path": "archive/predicate-set/docs/HANDOFF-LOGIC.md",
+      "bytes": 13843,
+      "sha256": "81df4a93000b3db4fab071c2f8e06e6eaacc4efc928329dc4b3cb177b53df38e",
+      "role": "逻辑系统重做交接清单"
+    },
+    {
+      "path": "archive/predicate-set/docs/AXIOM-AUDIT.md",
+      "bytes": 6594,
+      "sha256": "e61414f8134554ccefbe609a3e45ac99aa04f8dacf5a17aed7577644d7ceb749",
+      "role": "公理审计：集合论/谓词公式存疑点的原始记录"
+    },
+    {
+      "path": "archive/predicate-set/restore.md",
+      "bytes": 6483,
+      "sha256": "be7906f019bdf6c27663634b62176c067ed8aa6e675b200e5551ce5cbb9da307",
+      "role": "从 tag 还原冻结完整游戏的命令"
+    }
+  ],
+  "notIncluded": [
+    "src/levels.js（743 KB / 761,200 字节的编译产物；完整可玩状态以 git tag archive/predicate-set-v1 为准）",
+    "campaign/campaign2-levels.json 全量 152 关（本归档只抽取 Ⅱ/Ⅲ/Ⅳ 共 114 关）",
+    "assets/data/set.mm（本地 only、已 gitignore，tag 中同样不存在；缺失时 npm run build 无法重跑）"
+  ],
+  "includedViaTag": [
+    "src/levels.js 全量关卡数据（761,200 字节，tag 自带，checkout 后无需构建即可游玩）",
+    "campaign/campaign2-levels.json 全量 152 关",
+    "campaign/mm/proofs/*.json（115 个证明 JSON）与 campaign/mm/seeds*.json",
+    "src/engine.js、src/board.js、src/modules.js、tests/ 等冻结时完整可玩工程"
+  ],
+  "note": "本归档只做保存与可追溯，不背书内容正确性。第 Ⅳ 章集合论关卡中若干公式在 docs/AXIOM-AUDIT.md 与 docs/LEVEL-REDESIGN-PLAN.md §6 中被标为存疑/不严谨（如 ∃E 侧条件无法用一阶公理图式表达、空域下 ∀xφ→∃xφ 不成立、DV 条件靠字母差异表达），归档不等于验收通过。tag 指向的提交是当时 152 关的完整可玩状态；可玩性由 tag 保证，不由本目录的 JSON 副本单独保证。验证：在 tag 的独立克隆上确认 campaign2-levels.json 为 152 关、src/levels.js 通过 node --check、campaign/mm/proofs 还原 115 个证明 JSON、node --test tests/game.test.js 7/7 通过（含 152 关逐节点引擎求值）。"
+}

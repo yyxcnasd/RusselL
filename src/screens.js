@@ -68,7 +68,7 @@
     var firstLocked = !ctx.isUnlocked(items[0].i);
     var glyph = kind === 'tutorial' ? 'i-play'
       : kind === 'challenge' ? 'i-star'
-      : 'i-book-open'; /* base 与 lemma 都用书页：lemma 靠 .band.lemma 的强调色区分 */
+      : 'i-book-open';
     return '<div class="band ' + kind + (firstLocked ? ' is-locked' : '') + '">' +
       '<div class="band-head">' +
         '<span class="band-glyph"><svg class="icon"><use href="#' + glyph + '"></use></svg></span>' +
@@ -86,33 +86,20 @@
   }
 
   function levelsHTML() {
-    var buckets = {};
-    Catalog.CHAPTERS.forEach(function (c) { buckets[c.id] = []; });
-    ctx.state.levels.forEach(function (lv, i) {
-      (buckets[Catalog.chapterOf(lv)] || buckets['Ⅰ']).push({ lv: lv, i: i });
-    });
-    return Catalog.CHAPTERS.map(function (c) {
-      var items = buckets[c.id] || [];
-      if (!items.length) return '';
-      var solved = items.filter(function (x) { return ctx.state.solved[x.lv.id]; }).length;
-      var isCurrent = items.some(function (x) { return x.i === ctx.state.index; });
-      var tut = items.filter(function (x) { return x.lv.band === 'tutorial'; });
-      var base = items.filter(function (x) { return x.lv.band === 'base'; });
-      var lemma = items.filter(function (x) { return x.lv.band === 'lemma'; });
-      var chal = items.filter(function (x) { return x.lv.band === 'challenge'; });
-      var chapterLocked = !ctx.isUnlocked(items[0].i);
-      return '<section class="chapter' + (isCurrent ? ' is-current' : '') + (chapterLocked ? ' is-locked' : '') + '">' +
-        '<div class="chapter-head">' +
-          '<span class="chapter-roman">' + c.id + '</span>' +
-          '<span class="chapter-progress" aria-hidden="true"><i style="width:' + (solved / items.length * 100) + '%"></i></span>' +
-          '<span class="chapter-count">' + solved + ' / ' + items.length + '</span>' +
-        '</div>' +
-        bandHTML(tut, 'tutorial') +
-        bandHTML(base, 'base') +
-        bandHTML(lemma, 'lemma') +
-        bandHTML(chal, 'challenge') +
-      '</section>';
-    }).join('');
+    var items = ctx.state.levels.map(function (lv, i) { return { lv: lv, i: i }; });
+    var tut = items.filter(function (x) { return x.lv.band === 'tutorial'; });
+    var base = items.filter(function (x) { return x.lv.band === 'base'; });
+    var chal = items.filter(function (x) { return x.lv.band === 'challenge'; });
+    var solved = items.filter(function (x) { return ctx.state.solved[x.lv.id]; }).length;
+    return '<section class="chapter is-current">' +
+      '<div class="chapter-head">' +
+        '<span class="chapter-progress" aria-hidden="true"><i style="width:' + (solved / (items.length || 1) * 100) + '%"></i></span>' +
+        '<span class="chapter-count">' + solved + ' / ' + items.length + '</span>' +
+      '</div>' +
+      bandHTML(tut, 'tutorial') +
+      bandHTML(base, 'base') +
+      bandHTML(chal, 'challenge') +
+    '</section>';
   }
 
   function openLevels() {
@@ -185,20 +172,14 @@
           helpStep('i-play') +
         '</div>' +
         '<div class="help-cards">' +
-          /* D 的两条是定义重写，不是推理规则：图例只放代号与符号，中文说明进 title 浮窗
-             （与既有约定一致：帮助图例不含汉字，tests/game-ui.js 有断言）。
-             放在最前，与元件栏顺序一致（定义改写先于推理规则），两张卡也正好成对。 */
-          helpCard('D', 'A∧B ⇄ ¬(A→¬B)', '定义展开：把公式里的 ∧/∨/↔/∃ 按定义改写成只用 ¬/→/∀ 的原始公式；只重写公式，不能凭空产生结论。') +
-          helpCard('D⁻', '¬(A→¬B) ⇄ A∧B', '定义收缩：把原始公式折叠回 ∧/∨/↔/∃ 的表面写法；只重写公式，不能凭空产生结论。') +
-          helpCard('S', 'A[P↦B] ⇒ A′') +
-          helpCard('M', 'A · A→B ⇒ B') +
-          helpCard('∀I', 'A ⇒ ∀x A') +
-          helpCard('∀*', 'A ⇒ A→∀x A') +
-          helpCard('∀E*', '∀x A ⇒ A[t/x]') +
-          helpCard('∃I*', 'A[t/x] ⇒ ∃x A') +
-          helpCard('∃E', '∃x A · A→B ⇒ B') +
-          helpCard('=I', 't = t') +
-          helpCard('=L', 'x=y ⇒ A(x)→A(y)') +
+          /* 单章命题演算：只需要三条公理、代入、分离与两条定义重写。 */
+          helpCard('A1', 'P→(Q→P)', '公理 1：任意命题蕴涵一切蕴涵它的命题。') +
+          helpCard('A2', '(P→(Q→R))→((P→Q)→(P→R))', '公理 2：蕴涵的分销。') +
+          helpCard('A3', '(¬P→¬Q)→(Q→P)', '公理 3：逆否与反证法的基础。') +
+          helpCard('S', 'A[P↦B] ⇒ A′', '代入：把断言里的原子命题换成任意公式。') +
+          helpCard('M', 'A · A→B ⇒ B', '分离：由 A 与 A→B 得到 B。') +
+          helpCard('D', 'A∧B ⇄ ¬(A→¬B)', '定义展开：把公式里的 ∧/∨/↔ 按定义改写成只用 ¬/→ 的原始公式；只重写公式，不能凭空产生结论。') +
+          helpCard('D⁻', '¬(A→¬B) ⇄ A∧B', '定义收缩：把原始公式折叠回 ∧/∨/↔ 的表面写法；只重写公式，不能凭空产生结论。') +
         '</div>' +
         (toy ? '<p class="cloud-note">存档自动同步到当前 B 站账号</p>' : '') +
         saveRow +

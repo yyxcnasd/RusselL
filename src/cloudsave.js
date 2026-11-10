@@ -49,6 +49,46 @@
     return data;
   }
 
+  /* 递归 canonical JSON：云存档和本地 state 的键顺序可能不同，但内容等价时
+     不应重复 apply / 重载关卡。只比较进度字段，忽略 savedAt/exportedAt。 */
+  function canonical(value) {
+    if (Array.isArray(value)) return value.map(canonical);
+    if (value && typeof value === 'object') {
+      var out = {};
+      Object.keys(value).sort().forEach(function (key) { out[key] = canonical(value[key]); });
+      return out;
+    }
+    return value;
+  }
+
+  function progressKey(p) {
+    p = p || {};
+    return JSON.stringify(canonical({
+      campaign: p.campaign || null,
+      solved: p.solved || [],
+      bestLen: p.bestLen || {},
+      usedKinds: p.usedKinds || [],
+      cleanWins: p.cleanWins || [],
+      circuits: p.circuits || {},
+      achievements: p.achievements || [],
+      lastId: p.lastId || null
+    }));
+  }
+
+  function equal(state, p) {
+    if (!p) return false;
+    var save = root.RSL.Save;
+    var local = save ? save.payload(state) : {};
+    /* 云端是精简存档：只带一个当前关卡电路。比较时也只取云端携带的电路 key，
+       本地其它关卡的电路不会让“内容相同”误判为不同。 */
+    var picked = {};
+    Object.keys(p.circuits || {}).forEach(function (id) {
+      if (local.circuits && local.circuits[id]) picked[id] = local.circuits[id];
+    });
+    local.circuits = picked;
+    return progressKey(local) === progressKey(p);
+  }
+
   function byteChunks(str) {
     var enc = new TextEncoder();
     var chars = Array.from(str);
@@ -163,7 +203,8 @@
     state.usedKinds = setOf(p.usedKinds);
     state.cleanWins = setOf(p.cleanWins);
     state.achievements = setOf(p.achievements);
-    state.circuits = p.circuits || {};
+    /* 云端只保存精简电路；合并而不是整体覆盖，避免丢掉本机其它关卡的电路。 */
+    state.circuits = Object.assign({}, state.circuits || {}, p.circuits || {});
     state.lastId = p.lastId || null;
     return true;
   }
@@ -172,6 +213,7 @@
     isToyHost: isToyHost,
     init: init,
     apply: apply,
+    equal: equal,
     schedule: schedule,
     flush: flush
   };

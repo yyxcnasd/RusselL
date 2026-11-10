@@ -13,30 +13,8 @@
   };
   var VIDEO = 'BV1pk4J68Egx'; // RusselL - 公理板 | 如果公理系统变成游戏
 
-  var OVERRIDES = {
-    T0i: 'A1 接目标。',
-    T0ii: 'A2 接目标，P/Q/R 对齐。',
-    T0iii: 'A3 接目标，P/Q 对齐否定。',
-    T0iv: 'S 做一次同时代入。',
-    T0v: 'A、A→B 接 M。',
-    T1i: 'A 接 ∀*，再全称推广。',
-    T1ii: '∀x A 接 ∀E*，选 t。',
-    T1iii: 'A 接 ∀I，x 对齐目标。',
-    T1iv: 'A[t/x] 接 ∃I*。',
-    T1v: 'A5 接目标。',
-    T2i: '=I 接目标。',
-    T2ii: 'x=y、F(x) 接 =L。',
-    T2iii: 'y=x、F(y) 接 =L。',
-    T2iv: 'x=y、x=z 接 =L。',
-    T3i: 'EXT 接目标。',
-    T3ii: '∅ 接目标。',
-    T3iii: 'x、y 接 {,}。',
-    T3iv: 'x 接 ∪。',
-    '*36': '同 *38，先拆外层量词。',
-    '*44': '同 *38，先拆第三层。',
-    '*78': '=L 反向替换属于关系。',
-    '*88': '=L 反向替换，先对变元。'
-  };
+  var OVERRIDES = {};
+
 
   var sdkPromise = null;
 
@@ -145,12 +123,7 @@
     if (n.kind === 'axiom') return (c.schema || 'axiom') + (c.v ? '(' + c.v + ')' : '');
     if (n.kind === 'def-expand') return 'D';
     if (n.kind === 'def-contract') return 'D⁻';
-    if (n.kind === 'theorem') {
-      var m = /([ⅠⅡⅢⅣ])-(\d+)/.exec(String(c.code || ''));
-      if (!m) return String(c.code || '⊢');
-      var en = { 'Ⅰ': 'I', 'Ⅱ': 'II', 'Ⅲ': 'III', 'Ⅳ': 'IV' }[m[1]] || 'I';
-      return en + '-' + m[2];
-    }
+    if (n.kind === 'theorem') return '*' + String(c.code || '');
     if (n.kind === 'atom') return c.name || 'atom';
     if (n.kind === 'term') return c.name || 'term';
     if (n.kind === 'pred') return c.symbol || 'pred';

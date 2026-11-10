@@ -80,6 +80,7 @@
   --port-formula:#4f7fb5;
   --port-atom:#e66f3f;
   --port-assert:#2b2721;
+  --port-term:#7d5aa6;
 
   /* 反相印章：主操作 / 当前关卡 / 选中芯片共用一个角色（浅色墨底纸字，
      暗色纸底墨字）。accent 不再兼任主操作，只做注意力与状态标记。 */
@@ -163,6 +164,7 @@ html[data-theme="dark"]{
   --port-formula:#79a9db;
   --port-atom:#f08a5d;
   --port-assert:#f1ece2;
+  --port-term:#b79ae0;
 
   /* 暗色反相印章：纸底墨字，与浅色墨底纸字同一角色 */
   --stamp-bg:var(--ink);
@@ -380,6 +382,7 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
 .wire[data-role="atom"]{stroke:var(--port-atom)}
 .wire[data-role="formula"]{stroke:var(--port-formula)}
 .wire[data-role="assertion"]{stroke:var(--port-assert)}
+.wire[data-role="term"]{stroke:var(--port-term)}
 .wire[data-state="error"]{stroke:var(--red)}
 .wire.is-selected{stroke:var(--accent);stroke-width:4}
 .wire.is-new{animation:wire-in .3s var(--ease)}
@@ -458,9 +461,11 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
 .port-in[data-role="atom"]{border-color:var(--port-atom)}
 .port-in[data-role="formula"]{border-color:var(--port-formula)}
 .port-in[data-role="assertion"]{border-color:var(--port-assert)}
+.port-in[data-role="term"]{border-color:var(--port-term)}
 .port-out[data-role="atom"]{background:var(--port-atom);border-color:var(--port-atom)}
 .port-out[data-role="formula"]{background:var(--port-formula);border-color:var(--port-formula)}
 .port-out[data-role="assertion"]{background:var(--port-assert);border-color:var(--port-assert)}
+.port-out[data-role="term"]{background:var(--port-term);border-color:var(--port-term)}
 
 /* 双代入的第二组端口与主端口同一视觉，不再用虚线/半透明区分。 */
 

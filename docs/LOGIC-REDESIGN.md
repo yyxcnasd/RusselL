@@ -1,3 +1,7 @@
+> **历史文档 / 已归档**：本文件记录的是四章（命题/谓词/等词/集合论）版本的设计与验收。
+> 该版本已冻结在 `archive/predicate-set/`（tag `archive/predicate-set-v1`）；主线现在是
+> 单章 96 关命题演算，见 [README](../README.md) 与 [docs/ARCHIVE-PREDICATE-SET.md](ARCHIVE-PREDICATE-SET.md)。
+
 # 逻辑系统重做 · 实施契约（LOGIC-REDESIGN）
 
 本文件是 `docs/HANDOFF-LOGIC.md` 的落地契约。所有 agent 以本文件为准；与 HANDOFF 冲突时以 HANDOFF 的目标为准、以本文件的**名称/编号/文件归属**为准。

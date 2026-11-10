@@ -27,7 +27,9 @@ function configText(cfg) {
 
 function theoremLabel(cfg) {
   cfg = cfg || {};
-  var m = /([ⅠⅡⅢⅣ])-(\d+)/.exec(String(cfg.code || ''));
+  var code = String(cfg.code || '');
+  if (/^\d+$/.test(code)) return '定理 *' + code;
+  var m = /([ⅠⅡⅢⅣ])-(\d+)/.exec(code);
   if (m) return '定理 *' + m[2];
   /* 兼容旧关卡的 config.n 写法；两边都没有时宁可显示 *? 也不输出 undefined。 */
   if (cfg.n != null && !isNaN(Number(cfg.n))) return '定理 *' + String(Number(cfg.n)).padStart(2, '0');
@@ -53,7 +55,7 @@ function edgeLine(e) {
 
 var groups = {};
 levels.forEach(function (lv) {
-  var g = lv.chapterGroup || String(lv.chapter + 1);
+  var g = '课程';
   (groups[g] = groups[g] || []).push(lv);
 });
 
@@ -66,20 +68,20 @@ md.push('> 目标槽的节点已在关卡棋盘上，标为 `[target]`。');
 md.push('');
 md.push('## 快速索引');
 md.push('');
-md.push('| 章节 | 关 | 标题 | 目标 | 提示 | 模块/接线 |');
-md.push('| --- | --- | --- | --- | --- | --- |');
+md.push('| 关 | 标题 | 目标 | 提示 | 模块/接线 |');
+md.push('| --- | --- | --- | --- | --- |');
 levels.forEach(function (lv) {
   var code = lv.tutorial ? lv.code : ('`' + lv.code + '`');
   var title = (lv.title || '').replace(/\|/g, '\\|');
   var hint = (lv.hint || lv.teaches || '').replace(/\|/g, '\\|').replace(/\n/g, ' ');
   var goal = target(lv.targetTokens).replace(/\|/g, '\\|');
-  md.push('| ' + lv.chapterGroup + ' | ' + code + ' | ' + title + ' | `' + goal + '` | ' + hint + ' | ' +
+  md.push('| ' + code + ' | ' + title + ' | `' + goal + '` | ' + hint + ' | ' +
     lv.solution.nodes.length + ' / ' + lv.solution.edges.length + ' |');
 });
 md.push('');
 
 Object.keys(groups).forEach(function (g) {
-  md.push('## ' + g + ' 章');
+  md.push('## ' + g);
   md.push('');
   groups[g].forEach(function (lv) {
     var heading = lv.code + (lv.title ? ' · ' + lv.title : '');
