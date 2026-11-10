@@ -21,7 +21,7 @@
   var DEFAULT_NODE_H = 112;
   var DEFAULT_TARGET_H = 104;
   var OVERLAP_GAP = 18;
-  var VIEW_MIN = 0.35, VIEW_MAX = 1.35;
+  var VIEW_MIN = 0.2, VIEW_MAX = 1.35;
 
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
   function esc(s) {
@@ -138,6 +138,22 @@
     this.selectedEdge = null;
     this.draft = null;
     this.render();
+    this._resolveOverlaps();
+  };
+
+  /* 公式很长时实际节点会比布局估计更高；载入后按真实 DOM 尺寸再让一次位。 */
+  Board.prototype._resolveOverlaps = function () {
+    var self = this;
+    var moved = false;
+    this.items.forEach(function (n) {
+      if (n.kind === 'target') return;
+      if (!self._overlaps(n, n.x, n.y)) return;
+      self._resolvePosition(n);
+      var el = self._elById[n.id];
+      if (el) { el.style.left = n.x + 'px'; el.style.top = n.y + 'px'; }
+      moved = true;
+    });
+    if (moved) this._updateWires();
   };
 
   Board.prototype.getData = function () { return { nodes: clone(this.items), edges: clone(this.edges) }; };
@@ -343,21 +359,12 @@
       if (!node) return;
       if (e.shiftKey && node.kind !== 'target') {
         if (this.selectedNodes.indexOf(node.id) < 0) this.selectedNodes.push(node.id);
-        this.selectedNode = this.selectedNodes.length === 1 ? node.id : null;
-        var origin = {};
-        this.selectedNodes.forEach(function (id) {
-          var n = self.node(id);
-          if (n) origin[id] = { x: n.x, y: n.y };
-        });
-        var gp = this._client(e.clientX, e.clientY);
-        this._groupDrag = {
-          ids: this.selectedNodes.slice(), origin: origin,
-          start: gp, sx: e.clientX, sy: e.clientY, moved: false
-        };
-        this.selectedEdge = null;
-        this.render();
-        this.onSelect(this.selectedNode, null);
-        this.board.setPointerCapture && this.board.setPointerCapture(e.pointerId);
+        this._startGroupDrag(this.selectedNodes.slice(), e);
+        return;
+      }
+      /* 框选后直接拖其中任意一个模块，不需要再按 Shift。 */
+      if (!e.shiftKey && this.selectedNodes.length > 1 && this.selectedNodes.indexOf(node.id) >= 0) {
+        this._startGroupDrag(this.selectedNodes.slice(), e);
         return;
       }
       this.selectedNodes = [node.id];
@@ -373,6 +380,26 @@
     this.selectedNodes = [];
     this._pan = { x: this.view.x, y: this.view.y, sx: e.clientX, sy: e.clientY };
     this.board.classList.add('is-panning');
+    this.board.setPointerCapture && this.board.setPointerCapture(e.pointerId);
+  };
+
+  Board.prototype._startGroupDrag = function (ids, e) {
+    var self = this;
+    this.selectedNodes = ids.slice();
+    this.selectedNode = ids.length === 1 ? ids[0] : null;
+    this.selectedEdge = null;
+    var origin = {};
+    ids.forEach(function (id) {
+      var n = self.node(id);
+      if (n) origin[id] = { x: n.x, y: n.y };
+    });
+    var gp = this._client(e.clientX, e.clientY);
+    this._groupDrag = {
+      ids: ids.slice(), origin: origin,
+      start: gp, sx: e.clientX, sy: e.clientY, moved: false
+    };
+    this.paint(this.result);
+    this.onSelect(this.selectedNode, null);
     this.board.setPointerCapture && this.board.setPointerCapture(e.pointerId);
   };
 
@@ -1125,6 +1152,67 @@
         }
       }
     }
+  };
+
+  /* Paste a copied block at an exact anchor. Returns null instead of moving
+   * anything when the block does not fit. */
+  Board.prototype.pasteNodes = function (pasteNodes, pasteEdges, baseX, baseY) {
+    var self = this;
+    var probes = pasteNodes.map(function (n, i) {
+      return {
+        id: '__paste_' + i,
+        srcId: n.id,
+        kind: n.kind,
+        config: n.config || {},
+        x: snap(baseX + (n.dx || 0)),
+        y: snap(baseY + (n.dy || 0)),
+        _h: n.h || 0
+      };
+    });
+    var colRects = this._rects();
+    for (var i = 0; i < probes.length; i++) {
+      var p = probes[i];
+      var el = null;
+      var own = this._nodeRect(p, el);
+      if (p._h > own.h) own.h = p._h;
+      for (var c = 0; c < colRects.length; c++) {
+        var r = colRects[c];
+        if (p.x < r.x + r.w && p.x + own.w > r.x && p.y < r.y + r.h && p.y + own.h > r.y) return null;
+      }
+      for (var j = i + 1; j < probes.length; j++) {
+        var q = probes[j];
+        var qr = this._nodeRect(q, null);
+        if (q._h > qr.h) qr.h = q._h;
+        if (p.x < q.x + qr.w && p.x + own.w > q.x && p.y < q.y + qr.h && p.y + own.h > q.y) return null;
+      }
+    }
+    var idMap = Object.create(null);
+    var added = [];
+    probes.forEach(function (p) {
+      var id = uid('n');
+      idMap[p.srcId] = id;
+      var node = { id: id, kind: p.kind, config: p.config, x: p.x, y: p.y, _new: true };
+      self.items.push(node);
+      added.push(node);
+    });
+    pasteEdges.forEach(function (e) {
+      var from = idMap[e.from.node], to = idMap[e.to.node];
+      if (!from || !to) return;
+      self.edges.push({ id: uid('e'), from: { node: from, port: e.from.port }, to: { node: to, port: e.to.port }, _new: true });
+    });
+    var topo = window.RSL.Engine.topo(this.items, this.edges);
+    if (topo.cycle.length) {
+      this.items = this.items.filter(function (n) { return added.indexOf(n) < 0; });
+      var addedIds = Object.create(null);
+      added.forEach(function (n) { addedIds[n.id] = true; });
+      this.edges = this.edges.filter(function (e) { return !addedIds[e.from.node] && !addedIds[e.to.node]; });
+      return null;
+    }
+    this.selectedNodes = added.map(function (n) { return n.id; });
+    this.selectedNode = added.length === 1 ? added[0].id : null;
+    this.selectedEdge = null;
+    this.render();
+    return added.map(function (n) { return n.id; });
   };
 
   Board.prototype.addNode = function (kind, config, pos) {

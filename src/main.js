@@ -34,6 +34,8 @@
     sound: true,
     theme: 'light',
     parts: [],
+    clipboard: null,
+    paste: null
   };
   var els = null;
   var paletteHold = null;
@@ -224,6 +226,7 @@
     if (!isUnlocked(index)) { UI.toast('先完成前一关'); return; }
     UI.closeSheet();
     clearPaletteHold();
+    clearPaste();
     state.deletedThisLevel = false;
     state.index = index;
     state.level = state.levels[index];
@@ -417,6 +420,139 @@
     clearPaletteHold();
     refresh();
     return true;
+  }
+
+  /* =========================================================================
+   * 5b. 复制 / 粘贴
+   * ========================================================================= */
+
+  function copySelection() {
+    var board = state.board;
+    var ids = (board.selectedNodes || []).filter(function (id) {
+      var n = board.node(id);
+      return n && n.kind !== 'target';
+    });
+    if (!ids.length) return;
+    var set = new Set(ids);
+    var nodes = [];
+    var minX = Infinity, minY = Infinity;
+    ids.forEach(function (id) {
+      var n = board.node(id);
+      var el = board._elById[id];
+      nodes.push({
+        id: id, kind: n.kind, config: n.config || {},
+        dx: n.x, dy: n.y, h: el ? el.offsetHeight : 0
+      });
+      minX = Math.min(minX, n.x);
+      minY = Math.min(minY, n.y);
+    });
+    nodes.forEach(function (n) { n.dx -= minX; n.dy -= minY; });
+    var edges = (board.edges || []).filter(function (e) {
+      return set.has(e.from.node) && set.has(e.to.node);
+    }).map(function (e) {
+      return { from: { node: e.from.node, port: e.from.port }, to: { node: e.to.node, port: e.to.port } };
+    });
+    state.clipboard = { nodes: nodes, edges: edges };
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(JSON.stringify({ version: 1, nodes: nodes, edges: edges }))
+          .catch(function () {});
+      }
+    } catch (e) {}
+    UI.toast('已复制 ' + nodes.length + ' 个模块');
+  }
+
+  function allowedForLevel(node) {
+    var merged = { atom: 1, term: 1, pred: 1, all: 1, exists: 1, subst: 1 };
+    return state.parts.some(function (part) {
+      if (part.kind !== node.kind) return false;
+      if (merged[node.kind]) return true;
+      return JSON.stringify(part.config || {}) === JSON.stringify(node.config || {});
+    });
+  }
+
+  function clearPaste() {
+    var p = state.paste;
+    if (!p) return;
+    p.ghosts.forEach(function (g) {
+      if (g.parentNode) g.parentNode.removeChild(g);
+    });
+    document.removeEventListener('pointermove', movePaste);
+    document.removeEventListener('pointerdown', downPaste, true);
+    document.body.classList.remove('is-holding');
+    state.paste = null;
+  }
+
+  function movePaste(e) {
+    var p = state.paste;
+    if (!p) return;
+    p.cx = e.clientX; p.cy = e.clientY;
+    p.ghosts.forEach(function (g, i) {
+      var n = p.nodes[i];
+      g.style.left = (p.cx + n.dx - p.w / 2) + 'px';
+      g.style.top = (p.cy + n.dy - p.h / 2) + 'px';
+    });
+  }
+
+  function downPaste(e) {
+    if (e.button !== 0 || !state.paste) return;
+    var r = els.board.getBoundingClientRect();
+    if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    var p = state.paste;
+    var world = state.board._client(e.clientX, e.clientY);
+    var ids = state.board.pasteNodes(p.nodes, p.edges, world.x - p.w / 2, world.y - p.h / 2);
+    if (!ids) {
+      UI.toast('这里放不下');
+      return;
+    }
+    Audio.sfx('place');
+    clearPaste();
+    state.selectedNodes = ids;
+    state.selectedNode = ids.length === 1 ? ids[0] : null;
+    state.selectedEdge = null;
+    refresh();
+  }
+
+  function startPaste() {
+    if (!state.clipboard || !state.clipboard.nodes.length) return;
+    clearPaste();
+    clearPaletteHold();
+    var allowed = [];
+    var oldToNew = {};
+    state.clipboard.nodes.forEach(function (n) {
+      if (!allowedForLevel(n)) return;
+      allowed.push(n);
+      oldToNew[n.id] = n;
+    });
+    if (!allowed.length) {
+      UI.toast('本关没有可粘贴的元件');
+      return;
+    }
+    var filtered = state.clipboard.nodes.length - allowed.length;
+    if (filtered) UI.toast('已过滤 ' + filtered + ' 个本关不可用元件');
+    var edges = state.clipboard.edges.filter(function (e) {
+      return oldToNew[e.from.node] && oldToNew[e.to.node];
+    });
+    var w = 232, h = 112;
+    allowed.forEach(function (n) {
+      w = Math.max(w, n.dx + 232);
+      h = Math.max(h, n.dy + (n.h || 112));
+    });
+    var p = { nodes: allowed, edges: edges, w: w, h: h, ghosts: [], cx: 0, cy: 0 };
+    allowed.forEach(function (n) {
+      var g = makeModuleGhost({ kind: n.kind, config: n.config });
+      g.classList.add('paste-ghost');
+      document.body.appendChild(g);
+      p.ghosts.push(g);
+    });
+    state.paste = p;
+    var r = els.board.getBoundingClientRect();
+    movePaste({ clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 });
+    document.body.classList.add('is-holding');
+    document.addEventListener('pointermove', movePaste);
+    document.addEventListener('pointerdown', downPaste, true);
   }
 
   function substExtras(config) {
@@ -738,14 +874,25 @@
     });
 
     document.addEventListener('keydown', function (e) {
+      var inField = e.target.closest && e.target.closest('input,textarea');
+      if ((e.ctrlKey || e.metaKey) && !inField && (e.key === 'c' || e.key === 'C')) {
+        if ((state.board.selectedNodes || []).length) { e.preventDefault(); copySelection(); }
+        return;
+      }
+      if ((e.ctrlKey || e.metaKey) && !inField && (e.key === 'v' || e.key === 'V')) {
+        e.preventDefault();
+        startPaste();
+        return;
+      }
       if (e.key === 'Escape') {
+        if (state.paste) { clearPaste(); return; }
         if (paletteHold) { clearPaletteHold(); return; }
         if (UI.isSheetOpen()) closeSheet();
         else {
           state.board.selectedNode = null;
           state.board.selectedNodes = [];
           state.board.selectedEdge = null;
-          state.board.render();
+          state.board.paint(state.board.result);
           state.selectedNode = null;
           state.selectedEdge = null;
           refresh();
