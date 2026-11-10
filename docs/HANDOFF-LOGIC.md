@@ -320,3 +320,13 @@ palette/参考解无 6 个派生 kind、不强制 `mustUse`；困难关/后续�
    本轮没有为此新增硬断言，也没有为了变绿放宽其它核心不变量。
 5. 帮助图例 D/D⁻ 的中文说明只在 hover `title` 里，触屏看不到。
 6. 维护页仍生效、Toy 未更新是**有意保持**，不是未完成项。
+
+## 14. 交接状态（2026-11-10，第二次重做后）
+
+- 现役内容链：`campaign/campaign2.js` → `scripts/build-campaign2.js` → `campaign/campaign2-levels.json`
+  → `scripts/write-levels.js` → `src/levels.js`；`npm run build` 一条命令重建。
+- 关卡：152 = 16 教学 + 40 普通 + 96 困难；每章 4 教学 + 10 普通（5–21 模块）+ 24 困难（≤200）。
+- 引理带（band 'lemma'）已删除，∧/∨/↔ 规则并入困难关；D/D⁻ 仍是定义重写模块。
+- 第Ⅱ章含从本地 set.mm 重放导入的量词律与二元谓词 F(x,y) 支持。
+- 验收命令与结果见本文件 §13。
+- 旧的 HANDOFF-LOGIC 逻辑重做（派生公理 → D + 引理关）仍然成立；本轮在其之上把课程整体重排。
