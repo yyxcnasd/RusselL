@@ -1,5 +1,5 @@
 'use strict';
-/* 新关卡体系的核心校验：154 关、统一 schema、参考证明全部通过真实引擎、定理只引用更早关卡。 */
+/* 新关卡体系的核心校验：153 关、统一 schema、参考证明全部通过真实引擎、定理只引用更早关卡。 */
 const test = require('node:test');
 const assert = require('node:assert');
 const fs = require('node:fs');
@@ -42,15 +42,15 @@ test('模块注册表：构造 + 公理 + 基本推理 + 定理，没有旧模�
   });
 });
 
-test('154 关 = 40 普通引理 + 96 困难关 + 18 教学关，每关有 canonical targetTokens / palette / 参考电路', () => {
+test('153 关 = 39 普通引理 + 96 困难关 + 18 教学关，每关有 canonical targetTokens / palette / 参考电路', () => {
   const levels = RSL.LEVELS;
-  assert.strictEqual(levels.length, 154);
+  assert.strictEqual(levels.length, 153);
   const numbered = levels.filter((lv) => !lv.tutorial);
   const tutorials = levels.filter((lv) => lv.tutorial);
-  assert.strictEqual(numbered.length, 136);
+  assert.strictEqual(numbered.length, 135);
   assert.strictEqual(tutorials.length, 18);
   for (let c = 0; c < 4; c += 1) {
-    assert.strictEqual(numbered.filter((lv) => lv.chapter === c).length, 34, '章 ' + (c + 1));
+    assert.strictEqual(numbered.filter((lv) => lv.chapter === c).length, c === 0 ? 33 : 34, '章 ' + (c + 1));
     const tut = tutorials.filter((lv) => lv.chapter === c);
     assert.ok(tut.length >= 4 && tut.length <= 6, '每章 4–6 个教学关');
     const labels = tut.map((lv) => lv.code);
@@ -84,7 +84,7 @@ test('154 关 = 40 普通引理 + 96 困难关 + 18 教学关，每关有 canoni
   });
 });
 
-test('154 关参考证明全部通过真实引擎（逐节点求值）', () => {
+test('153 关参考证明全部通过真实引擎（逐节点求值）', () => {
   const levels = RSL.LEVELS;
   const failures = [];
   levels.forEach((lv) => {

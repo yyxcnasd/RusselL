@@ -19,7 +19,7 @@ runTest('game-ui', async ({ openPage }) => {
       hasLogic: !!window.RSL.Logic
     };
   })()`);
-  equal(home.levels, 154, '游戏加载 136 主线 + 18 教学关');
+  equal(home.levels, 153, '游戏加载 135 主线 + 18 教学关');
   equal(home.code, 'i', '首关是教学关 i');
   includes(home.goal.replace(/\s+/g, ''), 'P→(Q→P)', '教学关目标 A1 实例');
   ok(home.tiles > 0, '元件栏有构造/规则/公理');
@@ -49,13 +49,13 @@ runTest('game-ui', async ({ openPage }) => {
   })()`);
   equal(labels.axiom, 'A2', 'A2 显示 A2');
   equal(labels.pred, 'G', '谓词显示 G');
-  equal(labels.theorem, '*01', '定理显示 *NN（章节罗马数字作底）');
+  equal(labels.theorem, 'Ⅰ-01', '定理显示章节编号');
   ok(labels.substPorts.indexOf('vleft') < 0 && labels.substPorts.indexOf('vright') < 0,
     'S 不显示旧变元改名端口');
 
   /* 选关面板：4 章，每章教学 + 10 普通 + 24 困难 */
   await page.js('document.querySelector("#levelBtn").click()');
-  await page.waitFor('document.querySelectorAll("[data-level]").length === 154');
+  await page.waitFor('document.querySelectorAll("[data-level]").length === 153');
   const sheet = await page.js(`(function(){
     var labels = Array.from(document.querySelectorAll('[data-level]')).map(function(b){return b.getAttribute('aria-label')});
     return {chapters: document.querySelectorAll('.chapter').length,
@@ -100,8 +100,8 @@ runTest('game-ui', async ({ openPage }) => {
   })()`);
   ok(hint.text.length > 0, '提示面板显示第一层提示');
   ok(/1\s*\/\s*3/.test(hint.nav), '提示面板有三页导航');
-  equal(hint.missing, 0, '58 个教学/普通关都有定制提示');
-  equal(hint.unique, 58, '教学/普通关提示内容互不重复');
+  equal(hint.missing, 0, '57 个教学/普通关都有定制提示');
+  equal(hint.unique, 57, '教学/普通关提示内容互不重复');
   await page.js('window.RSL.UI.closeSheet()');
 
   /* 未点赞/未关注：第 2、3 页分别锁定 */

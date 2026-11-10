@@ -10,7 +10,7 @@
     <a href="https://yyxcnasd.github.io/RusselL/"><img alt="网页版" src="https://img.shields.io/badge/PLAY-GitHub%20Pages-3f8e65?style=for-the-badge"></a>
     <img alt="B站 Toy" src="https://img.shields.io/badge/BILIBILI-Toy-e66f3f?style=for-the-badge">
     <img alt="版本" src="https://img.shields.io/badge/VERSION-v4.0.0-3f8e65?style=for-the-badge">
-    <img alt="主线关卡" src="https://img.shields.io/badge/MAIN-136-4f7fb5?style=for-the-badge">
+    <img alt="主线关卡" src="https://img.shields.io/badge/MAIN-135-4f7fb5?style=for-the-badge">
     <img alt="教学关" src="https://img.shields.io/badge/TUTORIAL-18-d3ad68?style=for-the-badge">
   </p>
 
@@ -48,7 +48,7 @@
 2. **接线**：从模块右侧圆点拖到另一个模块左侧圆点；先点输出、再点输入也可以。
 3. **校验**：把最终断言接到右侧的 `⊢`，点顶栏最右边的播放键。
 
-右键删除模块或导线；把模块拖回下边栏也能删。已接线的输入端可以按住拖走拆线，拖到别的输入端重接。触屏支持双指缩放，双击空板回到适应视图。卡住时也可以看 [docs/SOLUTIONS.md](docs/SOLUTIONS.md)：154 关逐关列出参考电路的模块与接线。
+右键删除模块或导线；把模块拖回下边栏也能删。已接线的输入端可以按住拖走拆线，拖到别的输入端重接。触屏支持双指缩放，双击空板回到适应视图。卡住时也可以看 [docs/SOLUTIONS.md](docs/SOLUTIONS.md)：153 关逐关列出参考电路的模块与接线。
 
 框选多个模块后，直接拖其中任意一个就能整体移动，不用再按 Shift。`Ctrl/Cmd+C` 复制选中模块和它们之间的线，`Ctrl/Cmd+V` 粘贴成跟随鼠标的磁吸贴；左键放下。目标位置放不下时会留在鼠标上，不会把模块挪到别处。跨关粘贴只保留当前关允许使用的元件。
 
@@ -74,11 +74,11 @@ B 站 Toy 版有排行榜入口，和帮助、提示按钮并排在顶栏。GitH
 
 ## 关卡结构
 
-共 154 关：四章各 **10 个普通关 + 24 个困难关**，外加 18 个教学关。每章从 `01` 重新编号，关卡号写作 `Ⅰ-01`、`Ⅱ-07`；定理模块也直接用这个编号引用更早关卡。
+共 153 关：四章各 **9–10 个普通关 + 24 个困难关**，外加 18 个教学关。每章从 `01` 重新编号，关卡号写作 `Ⅰ-01`、`Ⅱ-07`；定理模块也直接用这个编号引用更早关卡。
 
 | 章 | 主题 | 教学 | 普通 | 困难 |
 |:---:| --- |:---:|:---:|:---:|
-| Ⅰ | 命题演算：A1–A3、代入、分离 | i–v | Ⅰ-01–Ⅰ-10 | Ⅰ-11–Ⅰ-34 |
+| Ⅰ | 命题演算：A1–A3、代入、分离 | i–v | Ⅰ-01–Ⅰ-09 | Ⅰ-10–Ⅰ-33 |
 | Ⅱ | 谓词与量词：全称/存在规则、A5 | i–v | Ⅱ-01–Ⅱ-10 | Ⅱ-11–Ⅱ-34 |
 | Ⅲ | 等词：等词自反、Leibniz 替换 | i–iv | Ⅲ-01–Ⅲ-10 | Ⅲ-11–Ⅲ-34 |
 | Ⅳ | 集合论：∈、外延/空集/配对/并集 | i–iv | Ⅳ-01–Ⅳ-10 | Ⅳ-11–Ⅳ-34 |
@@ -135,9 +135,9 @@ npm test                         # 关卡 schema、模块表、参考证明、�
 npm run test:wire                # 走线/几何纯函数
 npm run test:leaderboard         # 排行榜分数算法
 npm run test:ui                  # Edge headless 浏览器回归
-npm run test:acceptance          # dist 构建产物与完整 154 关验收
+npm run test:acceptance          # dist 构建产物与完整 153 关验收
 npm run build:toy                # 生成可发布的 dist/ 游戏本体
-node scripts/export-solutions.js # 重新生成 docs/SOLUTIONS.md（154 关参考解清单）
+node scripts/export-solutions.js # 重新生成 docs/SOLUTIONS.md（153 关参考解清单）
 ```
 
 关卡内容手写在 `campaign/` 下，`src/levels.js` 是编译器产物，不要手改。作者脚本在 `scripts/authoring/`：

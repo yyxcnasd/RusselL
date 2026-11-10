@@ -66,7 +66,18 @@ function normalCandidates(level, hardTargets) {
     }
     if (bad) return;
     if (seen.size < 5 || seen.size > 20) return;
-    out.push({ id: n.id, tokens: r.tokens.slice(), size: seen.size, nodes: Array.from(seen), order });
+    const ruleKinds = new Set();
+    seen.forEach((id) => {
+      const node = byId.get(id);
+      if (node && !['atom', 'term', 'pred', 'not', 'imp', 'and', 'or', 'iff', 'all', 'exists', 'mem'].includes(node.kind)) {
+        ruleKinds.add(node.kind);
+      }
+    });
+    out.push({
+      id: n.id, tokens: r.tokens.slice(), size: seen.size, nodes: Array.from(seen),
+      order, rules: ruleKinds, hasMp: ruleKinds.has('mp'),
+      complex: Array.from(ruleKinds).some((k) => k !== 'axiom' && k !== 'subst')
+    });
   });
   out.sort((a, b) => a.size - b.size || a.order - b.order);
   const picked = [], formulas = new Set();
@@ -128,6 +139,7 @@ function makeNormal(level, cand, code, no, chapterGroup) {
     initialNodes: [target],
     solution: { nodes: nodes, edges: edges },
     difficulty: nodes.length + 0.1 * (targetTokens.length / 4),
+    mustUse: Array.from(cand.rules).filter((k) => k !== 'axiom' && k !== 'subst'),
     stats: { steps: nodes.length }
   };
 }
@@ -223,14 +235,31 @@ function main() {
     all.sort((a, b) => a.cand.size - b.cand.size || a.level.no - b.level.no);
     const picked = [];
     const seen = new Set();
-    /* 只挑最短的目标公式；长嵌套式子留给困难关。 */
-    all.slice().sort((a, b) => a.cand.tokens.length - b.cand.tokens.length ||
-      a.cand.size - b.cand.size || a.level.no - b.level.no).forEach((x) => {
+    /* 普通关不能只是“一条 S 就能过”的公理实例：优先含 mp、至少 8 块，
+     * 公式也别太长；再按 8–20 块铺开难度。 */
+    const tiers = [
+      (x) => x.cand.hasMp && x.cand.size >= 8 && x.cand.tokens.length <= 45,
+      (x) => x.cand.hasMp && x.cand.size >= 6 && x.cand.tokens.length <= 60,
+      (x) => x.cand.complex && x.cand.size >= 6,
+      (x) => x.cand.complex
+    ];
+    const targets = [8, 9, 10, 11, 12, 14, 16, 18, 19, 20];
+    tiers.forEach((test) => {
       if (picked.length === 10) return;
-      const k = key(x.cand.tokens);
-      if (seen.has(k)) return;
-      seen.add(k);
-      picked.push(x);
+      const pool = all.filter((x) => test(x) && !seen.has(key(x.cand.tokens)));
+      targets.forEach((target) => {
+        if (picked.length === 10) return;
+        let best = null;
+        pool.forEach((x) => {
+          const k = key(x.cand.tokens);
+          if (seen.has(k)) return;
+          const score = Math.abs(x.cand.size - target) * 100 + x.cand.tokens.length;
+          if (!best || score < best.score) best = { x: x, score: score };
+        });
+        if (!best) return;
+        seen.add(key(best.x.cand.tokens));
+        picked.push(best.x);
+      });
     });
     picked.sort((a, b) => a.cand.size - b.cand.size || a.level.no - b.level.no);
     chapterNormals[g] = picked;

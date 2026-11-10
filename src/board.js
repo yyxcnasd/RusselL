@@ -958,27 +958,9 @@
     if (n.kind === 'set-empty') return '∅';
     if (n.kind === 'set-pair') return '{,}';
     if (n.kind === 'set-union') return '∪';
-    if (n.kind === 'theorem') {
-      var tm = /([ⅠⅡⅢⅣ])-(\d+)/.exec(String(cfg.code || ''));
-      return tm ? '*' + tm[2] : String(cfg.code || '⊢');
-    }
+    if (n.kind === 'theorem') return String(cfg.code || '⊢');
     return '·';
   };
-
-  function chapterEn(code) {
-    var m = /([ⅠⅡⅢⅣ])/.exec(String(code || ''));
-    return { 'Ⅰ': 'I', 'Ⅱ': 'II', 'Ⅲ': 'III', 'Ⅳ': 'IV' }[m && m[1]] || 'I';
-  }
-
-  function theoremCodeHTML(code) {
-    var m = /([ⅠⅡⅢⅣ])-(\d+)/.exec(String(code || ''));
-    if (!m) return null;
-    var roman = chapterEn(code);
-    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="42" height="30">' +
-      '<text x="21" y="22" text-anchor="middle" font-family="Times New Roman,serif" ' +
-      'font-size="22" font-weight="700" fill="#24251f" opacity=".2">' + roman + '</text></svg>';
-    return 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '")';
-  }
 
   /* Single source of truth for the mutable parts of a node marker. render()
    * uses it to build, paint() uses it to update; the two cannot drift. */
@@ -1008,7 +990,6 @@
       info: info,
       plain: plain,
       code: this._code(n),
-      codeImage: n.kind === 'theorem' ? theoremCodeHTML(cfg.code) : null,
       inputPorts: inputPorts,
       outputs: outputs,
       isTarget: n.kind === 'target',
@@ -1063,13 +1044,7 @@
     else el.removeAttribute('title');
     var refs = el._rsl;
     if (refs) {
-      if (refs.code) {
-        refs.code.textContent = v.code;
-        refs.code.style.backgroundImage = v.codeImage || '';
-        refs.code.style.backgroundRepeat = 'no-repeat';
-        refs.code.style.backgroundPosition = 'center';
-        refs.code.style.backgroundSize = '34px 24px';
-      }
+      if (refs.code) refs.code.textContent = v.code;
       if (refs.formula) refs.formula.innerHTML = v.formula;
     }
   };

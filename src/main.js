@@ -284,19 +284,7 @@
 
     els.goalFormula.innerHTML = tokens ? UI.goalTokens(tokens) : UI.esc(level.code || '');
     els.goal.classList.toggle('is-long', (els.goalFormula.textContent || '').length > 52);
-    if (level.tutorial) {
-      els.levelBtn.style.backgroundImage = '';
-      els.levelBtn.textContent = level.code || String(index + 1).padStart(2, '0');
-    } else {
-      var roman = ['I', 'II', 'III', 'IV'][Number(level.chapter) || 0] || 'I';
-      var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44">' +
-        '<text x="22" y="30" text-anchor="middle" font-family="Times New Roman,serif" ' +
-        'font-size="24" font-weight="700" fill="#24251f" opacity=".2">' + roman + '</text></svg>';
-      els.levelBtn.style.backgroundImage = 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '")';
-      els.levelBtn.style.backgroundRepeat = 'no-repeat';
-      els.levelBtn.style.backgroundPosition = 'center';
-      els.levelBtn.textContent = '*' + String(level.no || (index + 1)).padStart(2, '0');
-    }
+    els.levelBtn.textContent = level.code || String(index + 1).padStart(2, '0');
     els.levelBtn.setAttribute('aria-label', '第 ' + (index + 1) + ' 关，选择关卡');
     els.popover.hidden = true;
     buildTray();
@@ -330,8 +318,21 @@
       var symbol = part.symbol || '·';
       var variant = VARIABLES[part.kind] ? ' is-var' : (SYMBOLS[part.kind] ? ' is-symbol' : ' is-code');
       var long = variant === ' is-code' && symbol.length > 3 ? ' is-long' : '';
+      var style = '';
+      if (part.kind === 'theorem' && part.config && part.config.code) {
+        var m = /([ⅠⅡⅢⅣ])-(\d+)/.exec(String(part.config.code));
+        if (m) {
+          var roman = { 'Ⅰ': 'I', 'Ⅱ': 'II', 'Ⅲ': 'III', 'Ⅳ': 'IV' }[m[1]] || 'I';
+          var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="58" height="58">' +
+            '<text x="29" y="40" text-anchor="middle" font-family="Times New Roman,serif" ' +
+            'font-size="32" font-weight="700" fill="#24251f" opacity=".3">' + roman + '</text></svg>';
+          symbol = '*' + m[2];
+          style = ' style="background-image:url(\'data:image/svg+xml,' + encodeURIComponent(svg) +
+            '\');background-repeat:no-repeat;background-position:center;background-size:58px 58px"';
+        }
+      }
       return '<button class="tile' + variant + long + '" data-key="' + UI.esc(part.key) + '" title="' + UI.esc(part.name) +
-        '" aria-label="' + UI.esc(part.name) + '"><span>' + UI.esc(symbol) + '</span></button>';
+        '" aria-label="' + UI.esc(part.name) + '"' + style + '><span>' + UI.esc(symbol) + '</span></button>';
     }).join('');
   }
 
