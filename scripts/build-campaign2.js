@@ -435,7 +435,7 @@ function coneCandidates(compiled, limitPerLevel) {
         def: {
           key: 'cone_' + c.def.placeholder.replace(/[^A-Za-z0-9_]/g, '') + '_' + n.id,
           chapter: c.def.chapter, chapterGroup: c.def.chapterGroup,
-          title: '引理 ' + T.fmt(['wff'].concat(tokens)).slice(0, 24),
+          title: '中间引理',
           teaches: tokens.join(' '),
           hint: '目标 ' + T.fmt(['wff'].concat(tokens)) + '：把这段子证明按接线一路拆到公理，后面会把它当黑盒。',
           target: tokens, circuit: { nodes, edges, outputId: n.id }, forceBand: 'base',
@@ -520,7 +520,7 @@ function splitOversized(entry, maxSize, seq) {
       def: {
         key: childKey, placeholder: childKey,
         chapter: c.def.chapter, chapterGroup: c.def.chapterGroup,
-        title: '引理 ' + T.fmt(['wff'].concat(pick.tokens.slice(1))).slice(0, 24),
+        title: '中间引理',
         teaches: pick.tokens.slice(1).join(' '),
         hint: '把这段子证明单独证出来，后面的关卡会把它当黑盒。',
         target: pick.tokens.slice(1),
@@ -657,7 +657,7 @@ function main() {
     });
   }
   /* 拆分候选：补足普通关（每章需要 10 个 5–21 模块的阶梯） */
-  const coneLimit = Number(process.env.LADDER_CONE_LIMIT || 3);
+  const coneLimit = Number(process.env.LADDER_CONE_LIMIT || 12);
   compiled.forEach((c) => {
     if (c.def && c.def.chapterGroup) {
       coneCandidates([c], coneLimit).forEach((x) => compiled.push(x));
