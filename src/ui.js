@@ -9,7 +9,7 @@
   'use strict';
   host.RSL = host.RSL || {};
   var ELEMENT_IDS = [
-    'levelBtn', 'goal', 'goalFormula', 'themeBtn', 'soundBtn', 'helpBtn', 'achvBtn', 'hintBtn', 'rankBtn', 'checkBtn',
+    'levelBtn', 'goal', 'goalFormula', 'themeBtn', 'soundBtn', 'helpBtn', 'achvBtn', 'godBtn', 'hintBtn', 'rankBtn', 'checkBtn',
     'progressFill', 'board', 'boardWorld', 'wireLayer', 'nodeLayer', 'tray', 'popover', 'toast',
     'tutorialTip', 'overlay', 'sheet', 'saveFile', 'sheetBar'
   ];

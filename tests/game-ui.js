@@ -140,7 +140,7 @@ runTest('game-ui', async ({ openPage }) => {
   await page.js('document.querySelector("[data-hint-next]").click()');
   await page.waitFor('document.querySelector(".hint-page") !== null');
   const tier2 = await page.js(`document.querySelector('.hint-page').textContent`);
-  ok(/参考解/.test(tier2), '提示2提供详细思路');
+  ok(/目标：/.test(tier2) && /←/.test(tier2), '提示2拆出目标依赖');
   await page.js('document.querySelector("[data-hint-next]").click()');
   await page.waitFor('document.querySelector(".hint-page.is-recipe") !== null');
   const tier3 = await page.js(`document.querySelector('.hint-page.is-recipe').textContent`);

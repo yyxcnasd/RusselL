@@ -86,20 +86,124 @@
   }
 
   function tier1(level) {
-    var h = sanitize(baseHint(level));
-    var first = h.split(/[。；]/)[0].trim();
-    return first ? first + '。' : h;
+    var h = sanitize(baseHint(level)).trim();
+    var info = graphInfo(level);
+    var roots = info.rootSources.map(function (n) { return '#' + info.index[n.id] + ' ' + shortLabel(n); });
+    var tail = roots.length ? ' 目标最后由 ' + roots.join('、') + ' 接到 ⊢。' : '';
+    return h + tail;
+  }
+
+  function graphInfo(level) {
+    var sol = level.solution || { nodes: [], edges: [] };
+    var byId = Object.create(null);
+    sol.nodes.forEach(function (n) { byId[n.id] = n; });
+    var initial = level.initialNodes || [];
+    initial.forEach(function (n) { byId[n.id] = n; });
+    var incoming = Object.create(null);
+    sol.edges.forEach(function (e) {
+      (incoming[e.to.node] = incoming[e.to.node] || []).push(e);
+    });
+    function portRank(e) {
+      var n = byId[e.to.node];
+      var info = n && root.RSL.Engine ? root.RSL.Engine.info(n.kind) : null;
+      var inputs = info && info.ports ? info.ports.inputs : [];
+      var i = inputs.map(function (p) { return p.id; }).indexOf(e.to.port);
+      return i < 0 ? 99 : i;
+    }
+    Object.keys(incoming).forEach(function (id) {
+      incoming[id].sort(function (a, b) { return portRank(a) - portRank(b); });
+    });
+    var indeg = Object.create(null), out = Object.create(null);
+    sol.nodes.forEach(function (n) { indeg[n.id] = 0; out[n.id] = []; });
+    sol.edges.forEach(function (e) {
+      if (indeg[e.from.node] == null || indeg[e.to.node] == null) return;
+      indeg[e.to.node] += 1;
+      out[e.from.node].push(e.to.node);
+    });
+    var queue = sol.nodes.filter(function (n) { return indeg[n.id] === 0; });
+    var order = [];
+    while (queue.length) {
+      var n = queue.shift();
+      order.push(n);
+      out[n.id].forEach(function (id) {
+        indeg[id] -= 1;
+        if (indeg[id] === 0) queue.push(byId[id]);
+      });
+    }
+    if (order.length !== sol.nodes.length) order = sol.nodes.slice();
+    var index = Object.create(null);
+    order.forEach(function (n, i) { index[n.id] = i + 1; });
+    var target = initial.filter(function (n) { return n.kind === 'target'; })[0];
+    var rootSources = target ? (incoming[target.id] || []).map(function (e) { return byId[e.from.node]; }).filter(Boolean) : [];
+    return { byId: byId, incoming: incoming, order: order, index: index, target: target, rootSources: rootSources };
+  }
+
+  function shortLabel(n) {
+    if (!n) return '?';
+    var c = n.config || {};
+    if (n.kind === 'axiom') return (c.schema || 'axiom') + (c.v ? '(' + c.v + ')' : '');
+    if (n.kind === 'theorem') return '*' + String(c.n || 0).padStart(2, '0');
+    if (n.kind === 'atom') return c.name || 'atom';
+    if (n.kind === 'term') return c.name || 'term';
+    if (n.kind === 'pred') return c.symbol || 'pred';
+    if (n.kind === 'all' || n.kind === 'exists') return n.kind + (c.v ? '(' + c.v + ')' : '');
+    return n.kind;
+  }
+
+  function targetText(level) {
+    if (!level.targetTokens) return '';
+    var map = { '|-': '⊢', '->': '→', '/\\': '∧', '\\/': '∨', '<->': '↔', 'A.': '∀', 'E.': '∃', 'e.': '∈', '=': '=', '-.': '¬' };
+    return level.targetTokens.map(function (t) { return map[t] || t; }).join(' ');
+  }
+
+  function branchLines(info, id, depth, seen) {
+    if (depth <= 0) return [];
+    var n = info.byId[id];
+    if (!n) return [];
+    var prefix = '#' + info.index[n.id] + ' ' + shortLabel(n);
+    var lines = [];
+    (info.incoming[id] || []).forEach(function (e) {
+      if (seen[e.from.node]) return;
+      var src = info.byId[e.from.node];
+      if (!src) return;
+      lines.push(prefix + '.' + e.to.port + ' ← #' + info.index[src.id] + ' ' + shortLabel(src));
+      seen[src.id] = true;
+      lines = lines.concat(branchLines(info, src.id, depth - 1, seen));
+    });
+    return lines;
   }
 
   function tier2(level) {
-    var h = sanitize(baseHint(level));
-    var n = level.solution ? level.solution.nodes.length : 0;
-    var e = level.solution ? level.solution.edges.length : 0;
-    var extra = '';
-    if (!level.tutorial && level.teaches && level.teaches !== baseHint(level)) {
-      extra = ' ' + sanitize(level.teaches);
+    var info = graphInfo(level);
+    var lines = ['目标：' + targetText(level)];
+    if (info.target) {
+      (info.incoming[info.target.id] || []).forEach(function (e) {
+        var src = info.byId[e.from.node];
+        if (!src) return;
+        lines.push('目标 ← #' + info.index[src.id] + ' ' + shortLabel(src) + '.' + e.from.port);
+        lines = lines.concat(branchLines(info, src.id, 2, Object.create(null)));
+      });
     }
-    return h + extra + (n ? ' 参考解 ' + n + ' 模块 / ' + e + ' 接线。' : '');
+    if (lines.length === 1) lines.push(sanitize(baseHint(level)));
+    return lines.join('\n');
+  }
+
+  function tier3(level) {
+    var info = graphInfo(level);
+    var sol = level.solution || { nodes: [], edges: [] };
+    var lines = ['按这个顺序放模块：'];
+    info.order.forEach(function (n) {
+      lines.push('#' + info.index[n.id] + '  ' + nodeLabel(n));
+    });
+    lines.push('', '接线：');
+    sol.edges.forEach(function (e) {
+      var from = info.index[e.from.node] ? '#' + info.index[e.from.node] : '?';
+      var to = e.to.node === (info.target && info.target.id)
+        ? '目标'
+        : (info.index[e.to.node] ? '#' + info.index[e.to.node] : '?');
+      lines.push(from + '.' + e.from.port + ' → ' + to + '.' + e.to.port);
+    });
+    return lines.join('\n');
   }
 
   function configText(cfg) {
@@ -121,20 +225,6 @@
     if (n.kind === 'pred') return 'pred ' + (c.symbol || '');
     if (n.kind === 'all' || n.kind === 'exists') return n.kind + configText(c);
     return n.kind + configText(c);
-  }
-
-  function tier3(level) {
-    var sol = level.solution || { nodes: [], edges: [] };
-    var lines = ['模块：'];
-    (level.initialNodes || []).forEach(function (n) {
-      if (n.kind === 'target') lines.push(n.id + '  [target]');
-    });
-    sol.nodes.forEach(function (n) { lines.push(n.id + '  ' + nodeLabel(n)); });
-    lines.push('', '接线：');
-    sol.edges.forEach(function (e) {
-      lines.push(e.from.node + '.' + e.from.port + ' → ' + e.to.node + '.' + e.to.port);
-    });
-    return lines.join('\n');
   }
 
   function pages(level) {

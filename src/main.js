@@ -625,6 +625,7 @@
     els.checkBtn.addEventListener('click', check);
     els.helpBtn.addEventListener('click', Screens.openHelp);
     els.achvBtn.addEventListener('click', Screens.openAchievements);
+    if (els.godBtn) els.godBtn.addEventListener('click', godSolve);
     if (els.hintBtn) els.hintBtn.addEventListener('click', showHint);
     if (els.rankBtn) els.rankBtn.addEventListener('click', openLeaderboard);
     els.saveFile.addEventListener('change', function () {
@@ -795,12 +796,28 @@
     });
   }
 
+  function godSolve() {
+    var level = state.level;
+    if (!level || !level.solution) return;
+    var target = (level.initialNodes || []).filter(function (n) { return n.kind === 'target'; })[0];
+    if (!target) return;
+    var nodes = [JSON.parse(JSON.stringify(target))].concat(
+      JSON.parse(JSON.stringify(level.solution.nodes))
+    );
+    var edges = JSON.parse(JSON.stringify(level.solution.edges || []));
+    state.board.setData(nodes, edges);
+    refresh();
+    UI.toast('已按参考解布置');
+  }
+
   async function init() {
     els = UI.init();
     if (!window.RSL.Term || !window.RSL.Engine) { document.body.innerHTML = '<div class="fatal">公式引擎未加载</div>'; return; }
     var toyMode = !!(window.RSL.Hints && window.RSL.Hints.isToyHost());
+    var godMode = /(?:^|[?&])godMode=1(?:&|$)/.test(location.search);
     if (els.hintBtn) els.hintBtn.hidden = !toyMode;
     if (els.rankBtn) els.rankBtn.hidden = !toyMode;
+    if (els.godBtn) els.godBtn.hidden = !godMode;
     loadProgress();
     loadSettings();
     applyTheme();
