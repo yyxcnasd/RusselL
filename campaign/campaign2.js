@@ -16,6 +16,30 @@ const ROOT = path.resolve(__dirname, '..');
 const bridge = require(path.join(ROOT, 'scripts', 'lib', 'mm-bridge.js'));
 const T = require(path.join(ROOT, 'src', 'term.js'));
 
+const LEGACY_LEVELS = require(path.join(ROOT, 'campaign', 'legacy-levels.json'));
+const LEGACY_BY_NO = new Map();
+LEGACY_LEVELS.forEach((lv) => { if (lv.no != null) LEGACY_BY_NO.set(lv.no, lv); });
+
+/* 把 legacy 已验证电路包装成 circuit 关卡（定理引用 {n} → 占位符 @legacyN） */
+function legacyCircuit(no) {
+  const lv = LEGACY_BY_NO.get(no);
+  if (!lv) throw new Error('缺少 legacy 关卡 *' + no);
+  const solNodes = lv.solution.nodes;
+  const solIds = new Set(solNodes.map((n) => n.id));
+  const edges = lv.solution.edges.filter((e) => solIds.has(e.from.node) && solIds.has(e.to.node));
+  let outputId = null;
+  lv.solution.edges.forEach((e) => { if (!solIds.has(e.to.node) && outputId == null) outputId = e.from.node; });
+  if (!outputId) throw new Error('legacy *' + no + ' 找不到输出节点');
+  const nodes = solNodes.map((n) => {
+    const copy = { id: n.id, kind: n.kind, config: JSON.parse(JSON.stringify(n.config || {})) };
+    if (n.kind === 'theorem' && n.config && n.config.n != null) copy.config = { code: '@legacy' + n.config.n };
+    return copy;
+  });
+  return { nodes, edges: edges.map((e) => ({ from: { node: e.from.node, port: e.from.port }, to: { node: e.to.node, port: e.to.port } })), outputId };
+}
+
+const LEGACY_BASE = [1, 2, 3, 4, 14];
+
 const PROOF_DIR = path.join(ROOT, 'campaign', 'mm', 'proofs');
 const PROOFS = new Map();
 fs.readdirSync(PROOF_DIR).filter((f) => f.endsWith('.json')).forEach((f) => {
@@ -35,6 +59,74 @@ const IFF = (a, b) => ['('].concat(a, ['<->'], b, [')']);
 const labelRef = (label, atoms) => ({ op: 'lemma', code: '@' + label, atoms: atoms || {} });
 const dCon = (of) => ({ op: 'defContract', of });
 const ax = (schema, atoms) => ({ op: 'axiom', schema, atoms: atoms || {} });
+
+
+/* ---------- 手写困难关（演绎定理生成，补足数量） ---------- */
+const DT = require(path.join(ROOT, 'scripts', 'lib', 'proof-dt.js'));
+function authoredHards() {
+  const out = [];
+  /* 1) 三段蕴涵链：(P→Q)→((Q→R)→((R→S)→(P→S))) */
+  {
+    const A = IMP(P, Q), B = IMP(Q, R), C = IMP(R, S);
+    let d = DT.mpNode({ f: A, node: null, hyp: true }, { f: P, node: null, hyp: true });   /* Q */
+    d = DT.mpNode({ f: B, node: null, hyp: true }, d);                                    /* R */
+    d = DT.mpNode({ f: C, node: null, hyp: true }, d);                                    /* S */
+    const r = DT.dtMany(d, [P, A, B, C]);
+    if (false) out.push({ key: 'chain3', title: '三段蕴涵链', teaches: '三节链条接起来：P→Q、Q→R、R→S 一路读到 P→S。',
+      target: r.f, dtProof: r.node });
+  }
+  /* 2) 后件合并：(P→(Q→R))→((P→Q)→(P→R)) 是 A2；这里做它“反方向”的实用形式
+   *    ((P→Q)→(P→R))→(P→(Q→R)) */
+  {
+    const A = IMP(IMP(P, Q), IMP(P, R));
+    const a1 = { f: IMP(Q, IMP(P, Q)), node: DT.ax('A1', { P: Q, Q: P }), hyp: false, op: null };
+    const pq = DT.mpNode(a1, { f: Q, node: null, hyp: true });                            /* Q→P? 实际 Q→(P→Q) 与 Q 分离后得 P→Q */
+    const pr = DT.mpNode({ f: A, node: null, hyp: true }, pq);                            /* P→R */
+    const r0 = DT.mpNode(pr, { f: P, node: null, hyp: true });                            /* R */
+    const r = DT.dtMany(r0, [P, Q, A]);
+    out.push({ key: 'expConv', title: '后件合并', teaches: '把 (P→Q)→(P→R) 整理成 P→(Q→R)。',
+      target: r.f, dtProof: r.node });
+  }
+  /* 3) 前件换位：(P→Q)→R 与 P、Q 一起可以得到 R，写成三条前件的链 */
+  {
+    const X = IMP(IMP(P, Q), R);
+    const a1 = { f: IMP(Q, IMP(P, Q)), node: DT.ax('A1', { P: Q, Q: P }), hyp: false, op: null };
+    const pq = DT.mpNode(a1, { f: Q, node: null, hyp: true });                            /* P→Q */
+    const r0 = DT.mpNode({ f: X, node: null, hyp: true }, pq);                            /* R */
+    const r = DT.dtMany(r0, [P, Q, X]);
+    out.push({ key: 'preSwap', title: '前件换位', teaches: '((P→Q)→R) 先接 P、Q 得到 P→Q，再分离出 R。',
+      target: r.f, dtProof: r.node });
+  }
+  /* 4) 四段链：(P→Q)→((Q→R)→((R→S)→((S→T)→(P→T)))) */
+  {
+    const T2 = ['T'];
+    const A = IMP(P, Q), B = IMP(Q, R), C = IMP(R, S), D = IMP(S, T2);
+    let d = DT.mpNode({ f: A, node: null, hyp: true }, { f: P, node: null, hyp: true });
+    d = DT.mpNode({ f: B, node: null, hyp: true }, d);
+    d = DT.mpNode({ f: C, node: null, hyp: true }, d);
+    d = DT.mpNode({ f: D, node: null, hyp: true }, d);
+    const r = DT.dtMany(d, [P, A, B, C, D]);
+    if (false) out.push({ key: 'chain4', title: '四段蕴涵链', teaches: '四节链条：把 P→Q→R→S→T 一路接成 P→T。', target: r.f, dtProof: r.node });
+  }
+  /* 5) 前后件混合链：(P→Q)→((R→P)→((S→R)→(S→Q))) */
+  {
+    const A = IMP(P, Q), B = IMP(R, P), C = IMP(S, R);
+    let d = DT.mpNode({ f: C, node: null, hyp: true }, { f: S, node: null, hyp: true });   /* R */
+    d = DT.mpNode({ f: B, node: null, hyp: true }, d);                                     /* P */
+    d = DT.mpNode({ f: A, node: null, hyp: true }, d);                                     /* Q */
+    const r = DT.dtMany(d, [S, A, B, C]);
+    if (false) out.push({ key: 'mixChain', title: '前后件混合链', teaches: '先由 S→R、R→P 得 S→P，再由 P→Q 得 S→Q。', target: r.f, dtProof: r.node });
+  }
+  /* 6) 前件搬移：(P→(Q→R))→((S→P)→(S→(Q→R))) */
+  {
+    const A = IMP(P, IMP(Q, R)), B = IMP(S, P);
+    let d = DT.mpNode({ f: B, node: null, hyp: true }, { f: S, node: null, hyp: true });   /* P */
+    d = DT.mpNode({ f: A, node: null, hyp: true }, d);                                     /* Q→R */
+    const r = DT.dtMany(d, [S, A, B]);
+    out.push({ key: 'preLift', title: '前件搬移', teaches: '把 P 换成 S→P 之后再接 P→(Q→R)。', target: r.f, dtProof: r.node });
+  }
+  return out;
+}
 
 const MANUAL = [
   {
@@ -74,6 +166,10 @@ const MANUAL = [
   },
 ];
 
+const LEGACY_TITLES = {
+  1: '同一律', 2: '后件恒等', 3: '前件自应用', 4: '前件交换', 14: '空真（爆炸）',
+};
+
 /* ---------- 第Ⅰ章导入关 ---------- */
 const TITLES = {
   id: '同一律', con4: 'A3 的改写形式', 'pm2.21': '空真（爆炸）', 'pm2.18': '反证收尾',
@@ -112,6 +208,18 @@ function buildDefs() {
   });
   const ctx = { labels: labelInfo, loadDag, inlined: [] };
   const defs = [];
+  LEGACY_BASE.forEach((no) => {
+    const lv = LEGACY_BY_NO.get(no);
+    const target = lv.targetTokens.slice(1);
+    defs.push({
+      key: 'legacy' + no, label: 'legacy' + no, chapter: 0, chapterGroup: 'Ⅰ',
+      forceBand: 'base',
+      title: LEGACY_TITLES[no] || ('原始引理 *' + no),
+      teaches: T.fmt(['wff'].concat(target)),
+      hint: '目标是 ' + T.fmt(['wff'].concat(target)) + '。从最左的构造块开始，按参考接线接到 ⊢。',
+      target, circuit: legacyCircuit(no),
+    });
+  });
   closed.forEach((label) => {
     const dag = loadDag(label);
     let tr;
@@ -134,7 +242,7 @@ function buildDefs() {
       key: m.key, chapter: 0, chapterGroup: 'Ⅰ',
       title: m.title, teaches: m.teaches,
       hint: '目标是 ' + T.fmt(['wff'].concat(m.target)) + '。' + m.teaches + ' 末尾用 D⁻ 把原始结论折回表面语法。',
-      target: m.target, proof: m.proof,
+      target: m.target, proof: m.proof || m.dtProof,
     });
   });
   return { chapters: [
