@@ -306,6 +306,7 @@
 
   Board.prototype._down = function (e) {
     var self = this;
+    this._tapNode = null;
     /* 触屏双指缩放：第二根手指按下时接管，取消正在进行的拖拽/平移。 */
     if (e.pointerType === 'touch' && e.pointerId !== undefined) {
       this._touches[e.pointerId] = { x: e.clientX, y: e.clientY };
@@ -368,6 +369,7 @@
         return;
       }
       this.selectedNodes = [node.id];
+      this._tapNode = node.id;
       this.select(node.id);
       if (node.kind === 'target') return;
       var p = this._client(e.clientX, e.clientY);
@@ -678,6 +680,15 @@
 
   Board.prototype._click = function (e) {
     if (this._suppressClick) return;
+    /* 指针捕获可能把 click 重定向到画布本身；这里沿用 pointerdown 命中的
+     * 模块，避免“按下选中、松开又被当点空白取消”。 */
+    if (this._tapNode) {
+      var tapped = this._tapNode;
+      this._tapNode = null;
+      this.selectedNodes = [tapped];
+      this.select(tapped);
+      return;
+    }
     var port = e.target.closest && e.target.closest('.port');
     if (port) {
       var mod = port.closest('.node');
