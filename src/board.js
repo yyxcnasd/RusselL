@@ -959,12 +959,8 @@
     if (n.kind === 'exists-elim') return '∃E';
     if (n.kind === 'leibniz') return '=L';
     if (n.kind === 'eq-refl') return '=I';
-    if (n.kind === 'and-intro-ax') return '∧I*';
-    if (n.kind === 'and-elim-ax') return '∧E*';
-    if (n.kind === 'or-intro-ax') return '∨I*';
-    if (n.kind === 'or-elim-ax') return '∨E*';
-    if (n.kind === 'iff-intro-ax') return '↔I*';
-    if (n.kind === 'iff-elim-ax') return '↔E*';
+    if (n.kind === 'def-expand') return 'D';
+    if (n.kind === 'def-contract') return 'D⁻';
     if (n.kind === 'set-ext') return 'EXT';
     if (n.kind === 'set-empty') return '∅';
     if (n.kind === 'set-pair') return '{,}';

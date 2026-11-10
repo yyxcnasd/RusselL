@@ -685,6 +685,10 @@ body.is-holding *{cursor:grabbing!important}
 .band-glyph .icon{width:15px;height:15px;stroke-width:var(--icon-stroke)}
 .band.tutorial .band-glyph,
 .band.challenge .band-glyph{color:var(--accent)}
+/* 引理带（第Ⅰ章 9 关）：排布与 base 完全一致，只加一条虚线分隔和略暖的行首图标，
+   让 9 个引理关在 base 与 challenge 之间成为看得见的中间层；颜色只用变量，深色模式同样成立。 */
+.band.lemma{margin-top:10px;padding-top:9px;border-top:1px dashed var(--line)}
+.band.lemma .band-glyph{color:var(--accent);opacity:.55}
 .band.is-locked .band-glyph{opacity:.4}
 .band-count{font-size:10px;color:var(--muted);opacity:.8;font-variant-numeric:tabular-nums;margin-left:auto}
 

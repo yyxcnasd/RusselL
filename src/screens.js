@@ -66,7 +66,9 @@
     if (!items.length) return '';
     var solved = items.filter(function (x) { return ctx.state.solved[x.lv.id]; }).length;
     var firstLocked = !ctx.isUnlocked(items[0].i);
-    var glyph = kind === 'tutorial' ? 'i-play' : (kind === 'challenge' ? 'i-star' : 'i-book-open');
+    var glyph = kind === 'tutorial' ? 'i-play'
+      : kind === 'challenge' ? 'i-star'
+      : 'i-book-open'; /* base 与 lemma 都用书页：lemma 靠 .band.lemma 的强调色区分 */
     return '<div class="band ' + kind + (firstLocked ? ' is-locked' : '') + '">' +
       '<div class="band-head">' +
         '<span class="band-glyph"><svg class="icon"><use href="#' + glyph + '"></use></svg></span>' +
@@ -96,6 +98,7 @@
       var isCurrent = items.some(function (x) { return x.i === ctx.state.index; });
       var tut = items.filter(function (x) { return x.lv.band === 'tutorial'; });
       var base = items.filter(function (x) { return x.lv.band === 'base'; });
+      var lemma = items.filter(function (x) { return x.lv.band === 'lemma'; });
       var chal = items.filter(function (x) { return x.lv.band === 'challenge'; });
       var chapterLocked = !ctx.isUnlocked(items[0].i);
       return '<section class="chapter' + (isCurrent ? ' is-current' : '') + (chapterLocked ? ' is-locked' : '') + '">' +
@@ -106,6 +109,7 @@
         '</div>' +
         bandHTML(tut, 'tutorial') +
         bandHTML(base, 'base') +
+        bandHTML(lemma, 'lemma') +
         bandHTML(chal, 'challenge') +
       '</section>';
     }).join('');
@@ -181,6 +185,11 @@
           helpStep('i-play') +
         '</div>' +
         '<div class="help-cards">' +
+          /* D 的两条是定义重写，不是推理规则：图例只放代号与符号，中文说明进 title 浮窗
+             （与既有约定一致：帮助图例不含汉字，tests/game-ui.js 有断言）。
+             放在最前，与元件栏顺序一致（定义改写先于推理规则），两张卡也正好成对。 */
+          helpCard('D', 'A∧B ⇄ ¬(A→¬B)', '定义展开：把公式里的 ∧/∨/↔/∃ 按定义改写成只用 ¬/→/∀ 的原始公式；只重写公式，不能凭空产生结论。') +
+          helpCard('D⁻', '¬(A→¬B) ⇄ A∧B', '定义收缩：把原始公式折叠回 ∧/∨/↔/∃ 的表面写法；只重写公式，不能凭空产生结论。') +
           helpCard('S', 'A[P↦B] ⇒ A′') +
           helpCard('M', 'A · A→B ⇒ B') +
           helpCard('∀I', 'A ⇒ ∀x A') +

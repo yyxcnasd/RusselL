@@ -143,6 +143,8 @@
     if (!n) return '?';
     var c = n.config || {};
     if (n.kind === 'axiom') return (c.schema || 'axiom') + (c.v ? '(' + c.v + ')' : '');
+    if (n.kind === 'def-expand') return 'D';
+    if (n.kind === 'def-contract') return 'D⁻';
     if (n.kind === 'theorem') {
       var m = /([ⅠⅡⅢⅣ])-(\d+)/.exec(String(c.code || ''));
       if (!m) return String(c.code || '⊢');
@@ -226,6 +228,8 @@
     var c = n.config || {};
     if (n.kind === 'theorem') return '定理 ' + String(c.code || '');
     if (n.kind === 'axiom') return 'axiom ' + (c.schema || '') + (c.v ? '(' + c.v + ')' : '');
+    if (n.kind === 'def-expand') return 'D 定义展开';
+    if (n.kind === 'def-contract') return 'D⁻ 定义收缩';
     if (n.kind === 'atom') return 'atom ' + (c.name || '');
     if (n.kind === 'term') return 'term ' + (c.name || '');
     if (n.kind === 'pred') return 'pred ' + (c.symbol || '');

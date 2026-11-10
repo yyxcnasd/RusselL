@@ -12,6 +12,8 @@
  *   - 谓词应用：['F', '(', 'x', ')']
  *   - 糖（∨ ∧ ↔ ∃）保留用于显示；比较时按 df-or/df-an/dfbi2/df-ex 展开，
  *     并按出现顺序对约束变元做 α 规范化。
+ *   - D 模块用公开接口 expandDefinitions / contractDefinitions 重写断言：
+ *     展开只用于比较与证明，显示（fmt/toHTML）永远保持玩家写下的表面语法。
  *
  * 结构视图：需要“子公式”时会用 read(tokens) 派生出 tree（只读）；token 才是真身，
  * tree 不落盘、不跨模块传递。
@@ -447,6 +449,78 @@
     return coreKey(expandNode(read(tokens)), Object.create(null), { n: 0 });
   }
   function eq(a, b) { return key(a) === key(b); }
+
+  /* =========================================================================
+   * 5b. D 定义重写（definition expand / contract）
+   *
+   * 公开接口只做两件事：
+   *   - expandDefinitions：按 df-or / df-an / dfbi2 / df-ex 把 ∧/∨/↔/∃ 全部展开，
+   *     输出只剩 ¬/→/∀（幂等）；
+   *   - contractDefinitions：反向折叠回表面语法（幂等，expand 与它互逆到规范化）。
+   * 两者都保留原类型码（'wff' / '|-' / 无类型），只重写 token，不碰显示（fmt/toHTML）。
+   * ========================================================================= */
+
+  /** 用原 token 的类型码重组结果：'wff' 还 'wff'，'|-' 还 '|-'，无类型码就不加。 */
+  function retypeLike(original, tree) {
+    var t = tokensOf(original);
+    var out = treeToBody(tree);
+    return TYPE_CODES[t[0]] === 1 ? [t[0]].concat(out) : out;
+  }
+
+  /** D：断言 / 公式按定义完全展开成原始公式。 */
+  function expandDefinitions(tokens) {
+    return retypeLike(tokens, expandNode(read(tokens)));
+  }
+
+  /* 自底向上折叠：先把子节点收缩成表面语法，再在收缩后的节点上判定义形。
+     这个顺序是必须的：¬A→B 的 ∨ 形极通用，若在收缩子节点之前先判 ∨，
+     ¬(P→¬Q)→P 会先命中 ∨ 变成 (P→¬Q)∨P；先收缩左件得到 P∧Q 之后，
+     整节点不再是 ¬A→B 的形状，才留下 (P∧Q)→P。 */
+  function contractKids(n) {
+    switch (n.k) {
+      case 'not': return { k: 'not', a: contractNode(n.a) };
+      case 'imp': return { k: 'imp', a: contractNode(n.a), b: contractNode(n.b) };
+      case 'all': return { k: 'all', v: n.v, a: contractNode(n.a) };
+      case 'atom': return { k: 'atom', name: n.name };
+      case 'var': return { k: 'var', name: n.name };
+      case 'pred':
+        return { k: 'pred', name: n.name, args: (n.args || []).map(function (t) { return { k: 'var', name: t.name }; }) };
+      default: fail('定义收缩不支持节点：' + n.k);
+    }
+  }
+
+  /* 在已收缩的节点 m 上判定义形：↔ → ∧ → ∨ → ∃。
+     ↔ 的展开形也满足 ∧ 的形状，必须先认 ↔。部件都已是表面语法，直接取用。 */
+  function foldCandidate(m) {
+    if (m.k === 'not' && m.a.k === 'imp') {
+      var inner = m.a;
+      if (inner.a.k === 'imp' && inner.b.k === 'not' && inner.b.a.k === 'imp') {
+        var iffA = inner.a.a, iffB = inner.a.b;
+        if (eqTree(iffA, inner.b.a.b) && eqTree(iffB, inner.b.a.a)) {
+          return { k: 'iff', a: iffA, b: iffB };
+        }
+      }
+      if (inner.b.k === 'not') return { k: 'and', a: inner.a, b: inner.b.a };
+      return null;
+    }
+    if (m.k === 'imp' && m.a.k === 'not') return { k: 'or', a: m.a.a, b: m.b };
+    if (m.k === 'not' && m.a.k === 'all' && m.a.a.k === 'not') return { k: 'exists', v: m.a.v, a: m.a.a.a };
+    return null;
+  }
+
+  /* eqTree 复核保留：折叠出的表面形必须与收缩前的节点定义等值（兜住误折叠，例如
+     ¬(¬A→B) 里 ∧ 与 ∨ 两种定义形互相干扰时不会引入 ¬¬）。 */
+  function contractNode(n) {
+    var m = contractKids(n);
+    var folded = foldCandidate(m);
+    if (folded && eqTree(m, folded)) return folded;
+    return m;
+  }
+
+  /** D⁻：把定义展开形折叠回 ∧/∨/↔/∃ 的表面语法；与 expandDefinitions 互为逆。 */
+  function contractDefinitions(tokens) {
+    return retypeLike(tokens, contractNode(expandNode(read(tokens))));
+  }
 
   /* =========================================================================
    * 6. 变元/原子分析
@@ -894,6 +968,8 @@
     key: key,
     eq: eq,
     eqTree: eqTree,
+    expandDefinitions: expandDefinitions,
+    contractDefinitions: contractDefinitions,
     atomsOf: atomsOf,
     freeVars: freeVars,
     isAtom: isAtom,

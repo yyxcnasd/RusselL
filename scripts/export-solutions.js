@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 'use strict';
-/* 从 src/levels.js 生成 docs/SOLUTIONS.md：154 关参考电路的可读清单。 */
+/* 从 src/levels.js 生成 docs/SOLUTIONS.md：全部关卡参考电路的可读清单（计数/编号运行时读取，不写死）。 */
 const fs = require('fs');
 const path = require('path');
 const levels = require('../src/levels.js');
@@ -25,12 +25,18 @@ function configText(cfg) {
   return parts.length ? '(' + parts.join(', ') + ')' : '';
 }
 
+function theoremLabel(cfg) {
+  cfg = cfg || {};
+  var m = /([ⅠⅡⅢⅣ])-(\d+)/.exec(String(cfg.code || ''));
+  if (m) return '定理 *' + m[2];
+  /* 兼容旧关卡的 config.n 写法；两边都没有时宁可显示 *? 也不输出 undefined。 */
+  if (cfg.n != null && !isNaN(Number(cfg.n))) return '定理 *' + String(Number(cfg.n)).padStart(2, '0');
+  return '定理 *?';
+}
+
 function nodeLine(n) {
   var kind = n.kind;
-  if (kind === 'theorem') {
-    var num = n.config && n.config.n;
-    return '定理 *' + String(num).padStart(2, '0');
-  }
+  if (kind === 'theorem') return theoremLabel(n.config);
   if (kind === 'axiom') {
     return 'axiom ' + ((n.config && n.config.schema) || '') + configText(n.config && n.config.v ? { v: n.config.v } : null);
   }
@@ -52,7 +58,7 @@ levels.forEach(function (lv) {
 });
 
 var md = [];
-md.push('# 公理板 · 154 关参考解法清单');
+md.push('# 公理板 · ' + levels.length + ' 关参考解法清单');
 md.push('');
 md.push('> 由 `scripts/export-solutions.js` 从 `src/levels.js` 自动生成。每个参考电路都先经过真实 Engine 求值验证；');
 md.push('> 清单里的模块按参考电路中的节点顺序排列，接线单独列出，按 `模块.端口 → 模块.端口` 连即可。');

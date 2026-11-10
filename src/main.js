@@ -183,15 +183,19 @@
     if (index <= 0) return true;
     var lv = state.levels[index];
     if (!lv) return false;
+    /* 普通关 = 非教学、非困难、非引理关。引理关（band 'lemma'）是可选的
+       「原始语言 → 定义 → 引理」内容，不参与章节/困难关解锁判定；
+       HANDOFF §7 的口径是「第 N 章在第 N−1 章普通关全部完成后解锁」。 */
+    function isNormal(x) { return !x.tutorial && !x.hard && x.band !== 'lemma'; }
     var chapterLevels = state.levels.filter(function (x) { return x.chapter === lv.chapter; });
     var firstOfChapter = chapterLevels[0] === lv;
     if (firstOfChapter) {
       if (lv.chapter === 0) return true;
-      var prevChapter = state.levels.filter(function (x) { return x.chapter === lv.chapter - 1 && !x.tutorial && !x.hard; });
+      var prevChapter = state.levels.filter(function (x) { return x.chapter === lv.chapter - 1 && isNormal(x); });
       return prevChapter.every(function (x) { return !!state.solved[x.id]; });
     }
     if (lv.hard) {
-      var normals = chapterLevels.filter(function (x) { return !x.tutorial && !x.hard; });
+      var normals = chapterLevels.filter(isNormal);
       if (normals.every(function (x) { return !!state.solved[x.id]; })) return true;
     }
     var prev = state.levels[index - 1];

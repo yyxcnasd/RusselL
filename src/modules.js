@@ -2,11 +2,12 @@
  * 公理板 / AXIOM BOARD — RSL.Modules
  *
  * 唯一模块注册表：构造（原子/个体/谓词与等词/∈/¬/→/∀/∃/∧/∨/↔）、
- * 公理图式 A1–A5、集合公理（外延/空集/配对/并集）、基本推理与连接词公理形式
+ * 公理图式 A1–A5、集合公理（外延/空集/配对/并集）、基本推理与定义重写
  * （subst、mp、gen、shift、all-inst、exists-gen、exists-elim、leibniz、eq-refl，
- * 以及 ∧、∨、↔ 的引入/消去公理形式），以及定理 theorem（*NN，只允许引用更早关卡）。
- * 能由更基本规则推出的重复规则不注册在这里：all-elim/exists-intro/and/or/iff 推理规则
- * 已删除，all-dist 也已删除（等价于 A5 公理 + 分离）。
+ * 以及 D 定义展开 / D⁻ 定义收缩），还有定理 theorem（*NN，只允许引用更早关卡）。
+ * 能由更基本规则推出的重复规则不注册在这里：all-elim/exists-intro 已删除；
+ * ∧/∨/↔ 的引入/消去不再是公理模块，而是可证明的引理关，本文件只保留
+ * def-expand / def-contract 两个「断言 → 断言」的定义重写（不能凭空产生结论）。
  *
  * 公式一律是 RSL.Term token 数组。失败抛 Error（消息即玩家看到的错误）。
  */
@@ -392,73 +393,34 @@
         };
       }
     },
-    'and-intro-ax': {
-      label: '合取引入公理', kindLabel: '∧I*', group: 'rule', symbol: '∧I*', construct: false,
-      ports: { inputs: [{ id: 'a', label: '公式 A', type: FORMULA }, { id: 'b', label: '公式 B', type: FORMULA }], outputs: [{ id: 'out', label: 'A→(B→A∧B)', type: ASSERTION }] },
+    'def-expand': {
+      label: '定义展开', kindLabel: 'D', group: 'rule', symbol: 'D', construct: false,
+      ports: {
+        inputs: [{ id: 'assertion', label: '断言', type: ASSERTION }],
+        outputs: [{ id: 'out', label: '重写后断言', type: ASSERTION }]
+      },
       config: {},
-      help: 'A→(B→(A∧B))：希尔伯特形式的合取引入。',
+      help: '把 ⊢ 断言里的 ∧/∨/↔/∃ 按定义展开成只用 ¬/→/∀ 的原始公式；只重写公式，不能凭空产生结论。',
       apply: function (inputs) {
-        var a = asBody(need(inputs, 'a', '公式 A')), b = asBody(need(inputs, 'b', '公式 B'));
-        return { tokens: assertionOf(['('].concat(a, ['->'], ['('].concat(b, ['->'], ['('].concat(a, ['/\\'], b, [')']), [')']), [')'])), note: '∧I*' };
+        var v = need(inputs, 'assertion', '断言');
+        if (T.typeOf(v) !== '|-') fail('输入必须是 ⊢ 断言');
+        var tokens = T.expandDefinitions(v);
+        return { tokens: tokens, note: 'D · 定义展开' };
       }
     },
-    'and-elim-ax': {
-      label: '合取消去公理', kindLabel: '∧E*', group: 'rule', symbol: '∧E*', construct: false,
-      ports: { inputs: [{ id: 'a', label: '公式 A', type: FORMULA }, { id: 'b', label: '公式 B', type: FORMULA }], outputs: [{ id: 'out', label: '(A∧B)→A / B', type: ASSERTION }] },
-      config: { side: 'l' },
-      help: '合取的希尔伯特消去：(A∧B)→A 或 (A∧B)→B。',
-      apply: function (inputs, cfg) {
-        var a = asBody(need(inputs, 'a', '公式 A')), b = asBody(need(inputs, 'b', '公式 B'));
-        var pick = cfg.side === 'r' ? b : a;
-        return { tokens: assertionOf(['('].concat(['('].concat(a, ['/\\'], b, [')']), ['->'], pick, [')'])), note: '∧E*' };
-      }
-    },
-    'or-intro-ax': {
-      label: '析取引入公理', kindLabel: '∨I*', group: 'rule', symbol: '∨I*', construct: false,
-      ports: { inputs: [{ id: 'a', label: '公式 A', type: FORMULA }, { id: 'b', label: '公式 B', type: FORMULA }], outputs: [{ id: 'out', label: 'A→A∨B / B→A∨B', type: ASSERTION }] },
-      config: { side: 'l' },
-      help: 'A→(A∨B) 或 B→(A∨B)。',
-      apply: function (inputs, cfg) {
-        var a = asBody(need(inputs, 'a', '公式 A')), b = asBody(need(inputs, 'b', '公式 B'));
-        var left = cfg.side === 'l' ? a : b;
-        return { tokens: assertionOf(['('].concat(left, ['->'], ['('].concat(a, ['\\/'], b, [')']), [')'])), note: '∨I*' };
-      }
-    },
-    'or-elim-ax': {
-      label: '析取消去公理', kindLabel: '∨E*', group: 'rule', symbol: '∨E*', construct: false,
-      ports: { inputs: [{ id: 'a', label: '公式 A', type: FORMULA }, { id: 'b', label: '公式 B', type: FORMULA }, { id: 'c', label: '公式 C', type: FORMULA }], outputs: [{ id: 'out', label: '(A∨B)→((A→C)→((B→C)→C))', type: ASSERTION }] },
+    'def-contract': {
+      label: '定义收缩', kindLabel: 'D⁻', group: 'rule', symbol: 'D⁻', construct: false,
+      ports: {
+        inputs: [{ id: 'assertion', label: '断言', type: ASSERTION }],
+        outputs: [{ id: 'out', label: '重写后断言', type: ASSERTION }]
+      },
       config: {},
-      help: '析取消去的希尔伯特形式。',
+      help: '把 ⊢ 断言里的原始公式折叠回 ∧/∨/↔/∃ 的表面写法；只重写公式，不能凭空产生结论。',
       apply: function (inputs) {
-        var a = asBody(need(inputs, 'a', '公式 A')), b = asBody(need(inputs, 'b', '公式 B')), c = asBody(need(inputs, 'c', '公式 C'));
-        var or = ['('].concat(a, ['\\/'], b, [')']);
-        var ac = ['('].concat(a, ['->'], c, [')']);
-        var bc = ['('].concat(b, ['->'], c, [')']);
-        return { tokens: assertionOf(['('].concat(or, ['->'], ['('].concat(ac, ['->'], ['('].concat(bc, ['->'], c, [')']), [')']), [')'])), note: '∨E*' };
-      }
-    },
-    'iff-intro-ax': {
-      label: '等值引入公理', kindLabel: '↔I*', group: 'rule', symbol: '↔I*', construct: false,
-      ports: { inputs: [{ id: 'a', label: '公式 A', type: FORMULA }, { id: 'b', label: '公式 B', type: FORMULA }], outputs: [{ id: 'out', label: '(A→B)→((B→A)→A↔B)', type: ASSERTION }] },
-      config: {},
-      help: '等值引入的希尔伯特形式。',
-      apply: function (inputs) {
-        var a = asBody(need(inputs, 'a', '公式 A')), b = asBody(need(inputs, 'b', '公式 B'));
-        var ab = ['('].concat(a, ['->'], b, [')']);
-        var ba = ['('].concat(b, ['->'], a, [')']);
-        return { tokens: assertionOf(['('].concat(ab, ['->'], ['('].concat(ba, ['->'], ['('].concat(a, ['<->'], b, [')']), [')']), [')'])), note: '↔I*' };
-      }
-    },
-    'iff-elim-ax': {
-      label: '等值消去公理', kindLabel: '↔E*', group: 'rule', symbol: '↔E*', construct: false,
-      ports: { inputs: [{ id: 'a', label: '公式 A', type: FORMULA }, { id: 'b', label: '公式 B', type: FORMULA }], outputs: [{ id: 'out', label: '(A↔B)→(A→B) / (B→A)', type: ASSERTION }] },
-      config: { dir: 'lr' },
-      help: '等值消去的希尔伯特形式。',
-      apply: function (inputs, cfg) {
-        var a = asBody(need(inputs, 'a', '公式 A')), b = asBody(need(inputs, 'b', '公式 B'));
-        var iff = ['('].concat(a, ['<->'], b, [')']);
-        var body = cfg.dir === 'rl' ? ['('].concat(b, ['->'], a, [')']) : ['('].concat(a, ['->'], b, [')']);
-        return { tokens: assertionOf(['('].concat(iff, ['->'], body, [')'])), note: '↔E*' };
+        var v = need(inputs, 'assertion', '断言');
+        if (T.typeOf(v) !== '|-') fail('输入必须是 ⊢ 断言');
+        var tokens = T.contractDefinitions(v);
+        return { tokens: tokens, note: 'D⁻ · 定义收缩' };
       }
     },
 

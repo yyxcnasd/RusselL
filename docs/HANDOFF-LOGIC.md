@@ -4,6 +4,9 @@
 
 ## 0. 当前基线
 
+> 以下是**重构前**的基线。本轮完成后实际为 **166 关 / 21 教学关**（6 个派生公理已删、9 个引理关已落地），
+> 详见 §10。
+
 - 分支：`main`
 - 最新提交：`81f8baf`（原子参数弹层事件隔离）
 - 关卡：**159**
@@ -211,3 +214,109 @@ node scripts/export-solutions.js
 - `.maintenance`
 - `maintenance.html`
 - `.github/workflows/pages.yml`
+
+## 10. 实际完成情况（verifier 收尾）
+
+> 本节只记录实际跑通、实际检查过的内容；未做到或与契约有偏差的条目写在最后，不写“完全达成”。
+> 验收日期：2026-11-10；`src/levels.js` 由 `scripts/restructure-levels.js` 重新生成后逐项实跑。
+
+### 对照 §1 目标：派生连接词从“公理模块”改为“定义 + 引理关”
+
+- 已做到：`and-intro-ax` / `and-elim-ax` / `or-intro-ax` / `or-elim-ax` / `iff-intro-ax` /
+  `iff-elim-ax` 六个模块已从 `src/modules.js` 删除；模块表、palette、参考解三处都不再出现
+  （测试逐关断言）。
+- 已做到：9 条派生规则成为第Ⅰ章引理关 Ⅰ-11…Ⅰ-19；参考解只用 A1–A3 + S/M + 更早引理关
+  `theorem` + `def-contract`，全部通过真实 `Engine.evaluate`。
+- 已做到：困难关/普通关中的派生规则改为 `theorem` 引用引理关或更早编号关；
+  `campaign/legacy-levels.json` 的 6 个派生节点由 `scripts/migrate-derived-modules.js` 迁移为
+  `theorem → subst`，脚本幂等。
+- 没有做到/限制：Ⅰ-16（析取消去）的原始语言参考解 **562 元件**，是从 A1–A3 真证 ∨E 的直接
+  后果，不是数据错误；引理关不套普通关 5–20 的限制。
+
+### 对照 §2 原始语言约定
+
+- 保留：`¬`、`→`、`∀`、`∃`、`∈`、`=`、A1–A3、A5、S/M、∀I/∀E*、∃I*/∃E、等词自反、Leibniz、
+  集合公理（外延/空集/配对/并集）；`npm test` 的模块表测试逐项断言。
+- 已改：`∧ / ∨ / ↔` 不再是引入/消去公理模块，只是表面语法；`∃` 仍是原始符号（∃I*/∃E 以 ∃
+  陈述），比较时按 `¬∀¬` 参与展开。
+
+### 对照 §3 D 定义设计
+
+- 已做到：`def-expand`（D）/ `def-contract`（D⁻），端口 `assertion` → `out`，`construct:false`，
+  只重写公式，不能凭空产生结论（无 `⊢` 输入会等待/报错）。
+- 已做到：`Term.expandDefinitions` / `Term.contractDefinitions` 公开；展开幂等、收缩与展开互逆到
+  规范化；`T.eq` 语义不变；`fmt/toHTML` 保持表面语法。
+- 已做到：第Ⅰ章教学关 vi（定义 D）/ vii（原始语法）演示定义入口；引理关参考解统一以
+  `def-contract` 收回表面语法后接目标焊盘。
+- 限制：`D⁻` 折叠按固定优先级（↔ → ∧ → ∨ → ∃）取一种表面写法；同一公式可能有多种表面写法，
+  折叠结果与玩家手写不完全一致，但 `T.eq` 意义下等价。
+
+### 对照 §4 派生规则必须做成关
+
+9 关全部通过真实 Engine，单关元件数：
+
+| 关 | Ⅰ-11 | Ⅰ-12 | Ⅰ-13 | Ⅰ-14 | Ⅰ-15 | Ⅰ-16 | Ⅰ-17 | Ⅰ-18 | Ⅰ-19 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 元件 | 118 | 8 | 145 | 138 | 107 | 562 | 9 | 9 | 9 |
+
+每关 `band === 'lemma'`、`hard === false`、`no` 11–19、solution 含 `def-contract`、
+palette/参考解无 6 个派生 kind、不强制 `mustUse`；困难关/后续关只以 `theorem` 引用。
+
+### 对照 §5 模块/引擎改动
+
+- `src/modules.js`：删除 6 个派生公理；新增 D/D⁻；`theorem` 仍拒绝引用当前及更晚关卡。
+- `src/term.js`：新增公开 D API；不改显示、不改 `T.eq`。
+- `src/engine.js`：**未改**。目标比较一直走 `T.eq`（已含定义展开），来源反作弊与 `mustUse` 保持原语义。
+- `src/board.js` / `src/catalog.js`：D/D⁻ 代号与排序、删除 6 个派生分支；`src/screens.js` /
+  `src/simple.css`：选关页 `band lemma` 分带（第Ⅰ章一行 9 格，`.band.lemma` 样式）。
+- 未做：没有把 D 全量插回旧关卡；旧关卡通过迁移脚本改写，而不是逐关重排。
+
+### 对照 §6 内容迁移
+
+- 已做到：`restructure-levels.js` 生成 166 关 = 21 教学（第Ⅰ/Ⅱ/Ⅲ/Ⅳ章 7/6/4/4）+ 40 普通 +
+  9 引理 + 96 困难；第Ⅰ章编号 Ⅰ-01…Ⅰ-10 普通、Ⅰ-11…Ⅰ-19 引理、Ⅰ-20…Ⅰ-43 困难，其它章不变。
+- 已做到：普通关 5–20 元件（实测 9–20）且 `mustUse` 非空；困难关 `hint === null`；
+  所有定理引用都指向数组里更早的关卡（含教学关引用第Ⅱ章 vi → Ⅰ-14）。
+- 已做到：原 5 个基于派生公理的教学关删除，替换为 3 个符号教学关（第Ⅰ章 vi/vii、第Ⅱ章 vi）。
+- 与契约偏差：契约 §7 写“159 → 168 关”，实际为 **166**（教学关 23 → 21：删 5 加 3），
+  与“若教学关数量变化以最终值为准”一致。
+
+### 对照 §7 已修 UI，不要回退
+
+- `node tests/game-ui.js` 61 checks 全过：原子参数弹层保持选中、浅色罗马数字底纹、深色模式、
+  教学浮窗只含符号、章节解锁、定理 tile、选关/帮助/提示/排行榜/成就面板、无 JS 错误。
+- 帮助图例从 9 卡变为 **11 卡**（D、D⁻ 加入，可见文本仍全符号；中文说明只在 `title` 属性）。
+- 深色截图：`screenshots/tutorial-dark.png`、`levels-dark.png`、`lemma-dark.png`、
+  `game-dark.png`、`help-dark.png`；README 引用的浅色 `tutorial.png` / `levels.png` 也重拍为当前 UI。
+
+### 对照 §8 必跑验收（实际输出）
+
+| 命令 | 结果 |
+| --- | --- |
+| `npm test` | 7/7 pass（模块表、D API、166 关布局、schema、逐关 Engine complete、定理越界） |
+| `npm run test:wire` | 10/10 pass |
+| `npm run test:leaderboard` | 2/2 pass |
+| `node tests/game-ui.js` | PASS（61 checks） |
+| `npm run test:acceptance` | PASS（26 checks）；dist 28 files / 7112.4 KB |
+| `node scripts/export-solutions.js` | 166 关、22476 行（非空 21472）、447.6 KB；`undefined` 0 处 |
+| `node tests/screenshots.js` | PASS（7 checks）；浅色 2 张 + 深色 5 张 |
+
+额外检查：
+
+- 参考解逐关 Engine 求值：166/166 complete。
+- palette / 参考解中 6 个派生 kind：0 个。
+- 编号唯一；定理引用全部更早；普通关 5–20 元件且 `mustUse` 非空；困难关 `hint === null`。
+- `.maintenance`、`maintenance.html`、`.github/workflows/pages.yml` 无改动（`git diff` 为空），维护页仍生效。
+- Toy 相关文件无改动（`git status` 无 release/ 或 Toy 包改动），本轮未更新 Toy。
+
+### 未做到 / 实际限制清单
+
+1. Ⅰ-16 参考解 562 元件（全项目最大），普通关的 5–20 上限不适用于引理关。
+2. 19 个编号关（另 3 个教学关：ii、iii、vii）的目标在 `contract(expand(target))` 后 token 序列
+   与原文不同；显示层不变，只在 `D⁻` 输出/参考解末节点体现，`T.eq` 等价。
+3. `D⁻` 折叠优先级固定，可能把玩家手写的另一种表面写法折叠成唯一形式。
+4. 契约 §7「每个 palette 中的非构造模块都有教学」只差一项：`exists-elim` 在 3 个 palette 中出现
+   但没有独立教学关（`theorem` 已由第Ⅱ章 vi 教学）。旧 `tests/game.test.js` 本就没有这条规则，
+   本轮没有为此新增硬断言，也没有为了变绿放宽其它核心不变量。
+5. 帮助图例 D/D⁻ 的中文说明只在 hover `title` 里，触屏看不到。
+6. 维护页仍生效、Toy 未更新是**有意保持**，不是未完成项。
