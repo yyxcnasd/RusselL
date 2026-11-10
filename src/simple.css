@@ -553,7 +553,9 @@ body.is-holding *{cursor:grabbing!important}
   padding:10px 12px;border-radius:var(--radius-lg);
   background:var(--card);border:1.5px solid var(--line);box-shadow:var(--pop-shadow);
   overflow-x:auto;scrollbar-width:none;overscroll-behavior-x:contain;
+  pointer-events:none;
 }
+.popover .opt,.popover button{pointer-events:auto}
 .popover::-webkit-scrollbar{display:none}
 
 /* 原子实例有 26 个字母：改成网格换行，不再拉成一整行横滚 */
