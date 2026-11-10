@@ -23,8 +23,6 @@
     });
   }
 
-  function chapterOf() { return ''; }
-
   function symbolOf(entry) {
     var kind = entry.kind;
     var cfg = entry.config || {};
@@ -118,9 +116,7 @@
   }
 
   host.RSL.Catalog = {
-    CHAPTERS: [],
     build: build,
-    chapterOf: chapterOf,
     partsForLevel: partsForLevel,
     levelById: levelById,
     levelByCode: levelByCode

@@ -15,7 +15,7 @@ const { ok, equal } = require('./lib/expect');
 
 const ROOT = path.join(__dirname, '..');
 const OUT = path.join(ROOT, 'screenshots');
-const TOTAL = 96;
+const TOTAL = 108;
 
 async function openLevels(page) {
   await page.js('document.querySelector("#levelBtn").click()');
@@ -64,19 +64,19 @@ runTest('screenshots', async ({ openPage }) => {
   })()`);
   await page.shot(path.join(OUT, 'levels-dark.png'));
 
-  /* 普通关 01 棋盘 */
+  /* 普通关 00 棋盘 */
   await page.js(`(function(){
     var app = window.RSL.APP;
-    app.loadLevel(app.state.levels.map(function(l){return l.code}).indexOf('01'));
+    app.loadLevel(app.state.levels.map(function(l){return l.code}).indexOf('00'));
   })()`);
   await page.sleep(250);
-  equal(await page.js('window.RSL.APP.state.level.code'), '01', '加载普通关 01');
+  equal(await page.js('window.RSL.APP.state.level.code'), '00', '加载普通关 00');
   ok(await page.js('document.querySelectorAll(".node").length > 0'), '普通关棋盘有模块');
   await page.shot(path.join(OUT, 'game-dark.png'));
 
-  /* 帮助面板（A1–A3 + S/M + D/D⁻） */
+  /* 帮助面板（S/M/D/D⁻） */
   await page.js('document.querySelector("#helpBtn").click()');
-  await page.waitFor('document.querySelectorAll(".help-card").length === 7');
+  await page.waitFor('document.querySelectorAll(".help-card").length === 4');
   await page.sleep(120);
   await page.shot(path.join(OUT, 'help-dark.png'));
 

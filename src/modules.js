@@ -408,12 +408,13 @@
         outputs: [{ id: 'out', label: '重写后断言', type: ASSERTION }]
       },
       config: {},
-      help: '把 ⊢ 断言里的 ∧/∨/↔/∃ 按定义展开成只用 ¬/→/∀ 的原始公式；只重写公式，不能凭空产生结论。',
-      apply: function (inputs) {
+      help: '把 ⊢ 断言里的 ∧/∨/↔/∃ 按定义展开成只用 ¬/→/∀ 的原始公式；只重写公式，不能凭空产生结论。选中节点后可只展开其中一处定义。',
+      apply: function (inputs, cfg) {
         var v = need(inputs, 'assertion', '断言');
         if (T.typeOf(v) !== '|-') fail('输入必须是 ⊢ 断言');
-        var tokens = T.expandDefinitions(v);
-        return { tokens: tokens, note: 'D · 定义展开' };
+        var at = cfg && Array.isArray(cfg.at) ? cfg.at : null;
+        var tokens = at ? T.expandAt(v, at) : T.expandDefinitions(v);
+        return { tokens: tokens, note: 'D · 定义展开' + (at ? ' · ' + (at.length ? '第 ' + at.join('.') + ' 处' : '根位置') : '') };
       }
     },
     'def-contract': {
@@ -423,12 +424,13 @@
         outputs: [{ id: 'out', label: '重写后断言', type: ASSERTION }]
       },
       config: {},
-      help: '把 ⊢ 断言里的原始公式折叠回 ∧/∨/↔/∃ 的表面写法；只重写公式，不能凭空产生结论。',
-      apply: function (inputs) {
+      help: '把 ⊢ 断言里的原始公式折叠回 ∧/∨/↔/∃ 的表面写法；只重写公式，不能凭空产生结论。选中节点后可只收缩其中一处定义。',
+      apply: function (inputs, cfg) {
         var v = need(inputs, 'assertion', '断言');
         if (T.typeOf(v) !== '|-') fail('输入必须是 ⊢ 断言');
-        var tokens = T.contractDefinitions(v);
-        return { tokens: tokens, note: 'D⁻ · 定义收缩' };
+        var at = cfg && Array.isArray(cfg.at) ? cfg.at : null;
+        var tokens = at ? T.contractAt(v, at) : T.contractDefinitions(v);
+        return { tokens: tokens, note: 'D⁻ · 定义收缩' + (at ? ' · ' + (at.length ? '第 ' + at.join('.') + ' 处' : '根位置') : '') };
       }
     },
 

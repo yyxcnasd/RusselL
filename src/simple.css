@@ -125,6 +125,17 @@
   /* 动效 */
   --ease:cubic-bezier(.2,.7,.3,1);
 
+  /* 玻璃浮层：教学浮窗 / 配置浮条 / 面板 / 提示面板共用同一套表面 token。
+     颜色走 --glass（明暗主题各自覆盖），滤镜/描边/圆角/阴影/内边距/动效只在这里定义一次。 */
+  --glass-filter:blur(7px);
+  --glass-border:1.5px solid var(--line);
+  --glass-radius:var(--radius-lg);
+  --glass-radius-sheet:var(--radius-sheet);
+  --glass-shadow:var(--pop-shadow);
+  --glass-shadow-sheet:var(--sheet-shadow);
+  --glass-pad:10px 12px;
+  --glass-motion:.18s var(--ease);
+
   /* 层级：board 内部 < 浮条 < 遮罩 < 面板滚动条 < toast < 拖拽残影 */
   --z-port:3;
   --z-marquee:6;
@@ -533,11 +544,11 @@ body.is-holding *{cursor:grabbing!important}
 .tutorial-tip{
   position:absolute;left:50%;top:48%;z-index:20;transform:translate(-50%,-50%);
   display:flex;align-items:center;gap:20px;max-width:min(640px,calc(100vw - 40px));
-  padding:20px 26px;border-radius:var(--radius-lg);
-  background:var(--glass);border:1.5px solid var(--line);
-  box-shadow:var(--pop-shadow);pointer-events:none;
-  -webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);
-  animation:tip-in .18s var(--ease);
+  padding:var(--glass-pad);border-radius:var(--glass-radius);
+  background:var(--glass);border:var(--glass-border);
+  box-shadow:var(--glass-shadow);pointer-events:none;
+  -webkit-backdrop-filter:var(--glass-filter);backdrop-filter:var(--glass-filter);
+  animation:tip-in var(--glass-motion);
 }
 .tip-code{
   display:grid;place-items:center;min-width:74px;height:74px;padding:0 14px;
@@ -555,8 +566,9 @@ body.is-holding *{cursor:grabbing!important}
   position:fixed;left:50%;bottom:calc(112px + env(safe-area-inset-bottom,0px));z-index:var(--z-popover);
   transform:translateX(-50%);
   display:flex;align-items:center;gap:8px;max-width:calc(100vw - 28px);
-  padding:10px 12px;border-radius:var(--radius-lg);
-  background:var(--card);border:1.5px solid var(--line);box-shadow:var(--pop-shadow);
+  padding:var(--glass-pad);border-radius:var(--glass-radius);
+  background:var(--glass);border:var(--glass-border);box-shadow:var(--glass-shadow);
+  -webkit-backdrop-filter:var(--glass-filter);backdrop-filter:var(--glass-filter);
   overflow-x:auto;scrollbar-width:none;overscroll-behavior-x:contain;
   pointer-events:none;
 }
@@ -596,6 +608,35 @@ body.is-holding *{cursor:grabbing!important}
 .opt-plus,.opt-minus{font-family:var(--font);font-size:24px;line-height:1;font-weight:400;padding:0}
 .opt-gap{flex:none;width:1px;height:30px;background:var(--line);margin:0 3px}
 
+/* D / D⁻ 重写位置：符号 + 公式前后对照，2 列网格；位置多时纵向滚动 */
+.popover.is-defs{
+  display:block;overflow-x:hidden;overflow-y:auto;
+  width:min(640px,calc(100vw - 28px));
+  max-height:min(46vh,300px);
+  padding:10px 12px;
+}
+.def-title{
+  margin:0 0 8px;text-align:center;
+  font-family:var(--font);font-size:12px;font-weight:600;letter-spacing:.08em;color:var(--muted);
+}
+.def-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%}
+.opt-def{
+  display:flex;align-items:center;justify-content:flex-start;gap:8px;
+  width:100%;min-width:0;height:auto;min-height:42px;padding:7px 10px;text-align:left;
+}
+.opt-def-sym{
+  flex:none;display:inline-grid;place-items:center;min-width:24px;height:24px;padding:0 4px;
+  border-radius:6px;background:var(--card);border:1px solid var(--line);
+  font-family:var(--math);font-size:15px;line-height:1;
+}
+.opt-def-flow{display:flex;align-items:center;flex-wrap:wrap;gap:4px;min-width:0}
+.opt-def-formula{font-size:13px;line-height:1.3;min-width:0}
+.opt-def-arrow{flex:none;font-family:var(--math);color:var(--muted)}
+.opt-def-all{
+  grid-column:1 / -1;justify-content:center;
+  font-family:var(--font);font-size:13px;font-weight:600;letter-spacing:.08em;
+}
+
 /* =========================================================================
  * 14 提示 toast
  * 与 .stage 同处 grid 第 3 行、靠上居中：位置 = 顶栏 + 进度条的真实高度 + 间距。
@@ -631,8 +672,9 @@ body.is-holding *{cursor:grabbing!important}
   position:relative;width:min(560px,100%);max-height:88dvh;overflow:auto;
   /* 顶部留白 ≥ sheet-x 的下缘，关闭按钮与内容永不重叠 */
   padding:56px 24px 24px;
-  background:var(--card);border-radius:var(--radius-sheet);
-  box-shadow:var(--sheet-shadow);
+  background:var(--glass);border:var(--glass-border);border-radius:var(--glass-radius-sheet);
+  box-shadow:var(--glass-shadow-sheet);
+  -webkit-backdrop-filter:var(--glass-filter);backdrop-filter:var(--glass-filter);
   scrollbar-width:none;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
 }
 .sheet::-webkit-scrollbar{display:none;width:0;height:0}
@@ -690,6 +732,8 @@ body.is-holding *{cursor:grabbing!important}
 .band-glyph .icon{width:15px;height:15px;stroke-width:var(--icon-stroke)}
 .band.tutorial .band-glyph,
 .band.challenge .band-glyph{color:var(--accent)}
+.band.demon{margin-top:10px;padding-top:9px;border-top:1px dashed var(--line)}
+.band.demon .band-glyph{color:var(--red)}
 /* 引理带（第Ⅰ章 9 关）：排布与 base 完全一致，只加一条虚线分隔和略暖的行首图标，
    让 9 个引理关在 base 与 challenge 之间成为看得见的中间层；颜色只用变量，深色模式同样成立。 */
 .band.lemma{margin-top:10px;padding-top:9px;border-top:1px dashed var(--line)}
@@ -846,6 +890,7 @@ body.is-holding *{cursor:grabbing!important}
 .save-btn .icon{width:18px;height:18px}
 
 .cloud-note{margin:14px 0 2px;text-align:center;font-size:12px;color:var(--muted)}
+/* 提示面板与 .sheet 共用同一套玻璃表面 token（背景/滤镜/描边/圆角/阴影），这里只覆盖内容留白。 */
 .hint-sheet{padding:4px 2px 2px;max-width:460px}
 .hint-kicker{font-family:var(--font);font-size:11px;font-weight:600;letter-spacing:.12em;color:var(--muted)}
 .hint-text{margin:12px 0 0;font-size:17px;line-height:1.75;color:var(--ink)}
@@ -1037,6 +1082,10 @@ body.is-holding *{cursor:grabbing!important}
 
   .popover{bottom:calc(96px + env(safe-area-inset-bottom,0px));gap:6px;padding:8px 10px;border-radius:var(--radius-lg)}
   .popover.is-grid{padding:10px}
+  .popover.is-defs{padding:9px 10px;max-height:min(44vh,270px)}
+  .def-grid{grid-template-columns:1fr}
+  .opt-def{min-height:40px;padding:6px 9px}
+  .opt-def-formula{font-size:12.5px}
   .letter-grid{grid-template-columns:repeat(6,minmax(0,1fr));gap:7px}
   .letter-grid .opt{height:44px;font-size:18px}
   .opt{min-width:44px;height:44px;border-radius:var(--radius-sm);font-size:16px}

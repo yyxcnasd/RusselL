@@ -10,8 +10,9 @@
     <a href="https://yyxcnasd.github.io/RusselL/"><img alt="网页版" src="https://img.shields.io/badge/PLAY-GitHub%20Pages-3f8e65?style=for-the-badge"></a>
     <img alt="B站 Toy" src="https://img.shields.io/badge/BILIBILI-Toy-e66f3f?style=for-the-badge">
     <img alt="版本" src="https://img.shields.io/badge/VERSION-v4.0.0-3f8e65?style=for-the-badge">
-    <img alt="编号关卡" src="https://img.shields.io/badge/LEVELS-88-4f7fb5?style=for-the-badge">
+    <img alt="编号关卡" src="https://img.shields.io/badge/LEVELS-100-4f7fb5?style=for-the-badge">
     <img alt="教学关" src="https://img.shields.io/badge/TUTORIAL-8-d3ad68?style=for-the-badge">
+    <img alt="魔王关" src="https://img.shields.io/badge/DEMON-10-8e2f2f?style=for-the-badge">
   </p>
 
   <p>
@@ -48,7 +49,7 @@
 2. **接线**：从模块右侧圆点拖到另一个模块左侧圆点；先点输出、再点输入也可以。
 3. **校验**：把最终断言接到右侧的 `⊢`，点顶栏最右边的播放键。
 
-右键删除模块或导线；把模块拖回下边栏也能删。已接线的输入端可以按住拖走拆线，拖到别的输入端重接。触屏支持双指缩放，双击空板回到适应视图。卡住时也可以看 [docs/SOLUTIONS.md](docs/SOLUTIONS.md)：96 关逐关列出参考电路的模块与接线。
+右键删除模块或导线；把模块拖回下边栏也能删。已接线的输入端可以按住拖走拆线，拖到别的输入端重接。触屏支持双指缩放，双击空板回到适应视图。卡住时也可以看 [docs/SOLUTIONS.md](docs/SOLUTIONS.md)：108 关逐关列出参考电路的模块与接线。
 
 框选多个模块后，直接拖其中任意一个就能整体移动，不用再按 Shift。`Ctrl/Cmd+C` 复制选中模块和它们之间的线，`Ctrl/Cmd+V` 粘贴成跟随鼠标的磁吸贴；左键放下。目标位置放不下时会留在鼠标上，不会把模块挪到别处。跨关粘贴只保留当前关允许使用的元件。
 
@@ -74,13 +75,17 @@ B 站 Toy 版有排行榜入口，和帮助、提示按钮并排在顶栏。GitH
 
 ## 关卡结构
 
-共 **96 关**：**8 个教学关**（i–viii）+ **32 个普通关**（01–32）+ **56 个困难关**（33–88）。只有一条课程线，不再分章节；教学关显示小写罗马数字，编号关从 01 连续到 88。
+共 **108 关**：**8 个教学关**（i–viii）+ **100 个编号关**（00–99）。只有一条课程线，不再分章节。
 
-- **普通关**：参考解 **5–21 个元件**，目标不超过 36 个 token，必须用到至少一条推理规则，都有定制提示。
-- **困难关**：参考解 **22–200 个元件**，整体从短到长；不提供提示，允许引用更早关卡的定理。
-- **教学关**：每关只演示一个元件或流程，参考证明最多 20 步；棋盘正中浮窗显示元件代号与规则式，点一下收起。
+| 编号 | 数量 | 参考解模块数 | 说明 |
+| --- | ---: | ---: | --- |
+| 00–19 | 20 | 10–30 | 普通关，必须用推理规则，有定制提示 |
+| 20–89 | 70 | 25–100 | 困难关，不提供提示，可引用更早定理 |
+| 90–99 | 10 | 70–500 | 魔王关，长证明与复杂目标 |
 
-内容以 set.mm 的命题演算定理为主：49 条定理的证明 DAG 经 `scripts/mm-import.js` 重放、`scripts/lib/mm-bridge.js` 翻译，再按真实模块数排成阶梯；大证明里的关键中间结论会单独成关，标题注明它属于哪条定理。∧/∨/↔ 由定义展开/收缩（D/D⁻）处理，∧/∨/↔ 的引入/消去规则由真实证明内联成困难关。
+普通/困难/魔王段内按模块数从短到长排序；局部倒挂只来自定理依赖。教学关显示小写罗马数字，编号关从 00 连续到 99。
+
+内容以 set.mm 的命题演算定理为主：49 条定理的证明 DAG 经 `scripts/mm-import.js` 重放、`scripts/lib/mm-bridge.js` 翻译，再按 mergeAll 压缩后的真实模块数排成阶梯；大证明里的关键中间结论会单独成关，标题注明它属于哪条定理。∧/∨/↔ 由定义展开/收缩（D/D⁻）处理，规则关由真实证明内联成困难/魔王关。
 
 谓词、等词、集合论三章已整体移出主线，冻结在 [archive/predicate-set](archive/predicate-set/README.md)（tag `archive/predicate-set-v1`），见 [docs/ARCHIVE-PREDICATE-SET.md](docs/ARCHIVE-PREDICATE-SET.md)。单章设计、构建管线与限制见 [docs/SINGLE-CHAPTER.md](docs/SINGLE-CHAPTER.md)。
 
@@ -96,20 +101,28 @@ B 站 Toy 版有排行榜入口，和帮助、提示按钮并排在顶栏。GitH
 | --- | --- |
 | 构造 | 命题原子 `P…V`，`¬`、`→`、`∧∨↔`（`∧/∨/↔` 是表面语法，比较时按定义展开） |
 | 公理 | A1、A2、A3 |
-| 定义重写 | `D` 定义展开 / `D⁻` 定义收缩：把断言在 `∧/∨/↔` 表面语法与只用 `¬/→` 的原始公式之间重写，不能凭空产生结论 |
+| 定义重写 | `D` 定义展开 / `D⁻` 定义收缩；选中节点后在弹层里逐处选择要重写的定义，`all` 处理全部 |
 | 基本推理 | 代入 `S`、分离 `M` |
-| 定理 | 关卡编号（如 `01`、`33`）：只能引用排在前面的关卡，引擎会校验 |
+| 定理 | 关卡编号（如 `00`、`35`、`96`）：只能引用排在前面的关卡，引擎会校验 |
 
-帮助页只列 A1–A3、S、M 与 D/D⁻ 七张图例，不列变元、连接词或未使用的规则。
+帮助页只列 S、M、D、D⁻ 四张图例（D/D⁻ 都是单向重写，用 `⇛`），不列 A1–A3、变元或连接词。
 
 ## 成就、存档与进度
 
-- 20 个成就，覆盖通关进度、教学/普通/困难分段、规则使用、短证明、干净通关和挑战完成度。
+- 20 个成就，重点覆盖困难 25/50/全通与魔王 1/5/全通，另有规则使用、干净困难、魔王效率与全干净。
 - **GitHub Pages / 本地**：存档写在浏览器 `localStorage`，可以从帮助页导出/导入 JSON。
 - **Bilibili Toy**：自动同步到当前 B 站账号的云存储，保存通关进度和当前关卡电路；帮助页不显示上传/下载存档的按钮。
 - 重进已通关的关卡会恢复你自己的电路，包括接到 `⊢` 的那根终点线。
 - 每关记录通关电路的模块数。选关格底部的绿条表示你离参考电路有多近，胜利面板会显示本次长度和参考长度。
 - 存档结构是 v4，带当前关卡集的指纹。旧 v1–v3 存档会按**目标公式**迁移：目标没变的关卡保留进度与最佳模块数，旧电路丢弃；迁移前备份到 `axiom-simple:pre-v4`，读档后提示保留/移除了多少关。
+
+## 亮点（Toy 版）
+
+- **三页提示**：方向、思路、完整接线；Toy 内按点赞视频 / 关注 UP 主逐页解锁，预览页和作者可直接看全。
+- **排行榜**：通关数优先、模块效率加权；同样通关数下，模块越少排名越高。
+- **云存档**：按 B 站账号自动同步，换设备登录同一账号继续玩；旧存档按目标公式迁移并备份。
+- **一条可玩的证明阶梯**：108 关从 A1 起步，到 100 个编号关的 70 个困难关和 10 个魔王关；D/D⁻ 可逐处选择要重写的定义。
+- **干净的界面**：单章、四条分带、小写罗马教学编号、English-only 参考解文字。
 
 ## 本地运行
 
@@ -121,23 +134,22 @@ python -m http.server 8000
 
 然后访问 `http://localhost:8000`。
 
-调试模式：在地址后加 `?godMode=1`，顶栏会多一个闪电按钮；点击它会按当前关的参考解把整块电路布置好，方便核对关卡或录素材。
 
 ## 开发
 
 ```bash
-npm run build                   # 生成 96 关数据（8 教学 + 32 普通 + 56 困难），逐关用真实 Engine 验证
-npm test                         # 96 关 schema、参考证明、目标不重复、定理引用越界
+npm run build                   # 生成 108 关数据（8 教学 + 20 普通 + 70 困难 + 10 魔王），逐关用真实 Engine 验证
+npm test                         # 108 关 schema、参考证明、目标不重复、定理引用越界
 npm run test:wire                # 走线/几何纯函数
 npm run test:leaderboard         # 排行榜分数算法
-npm run test:ui                  # Edge headless 浏览器回归（96 关、三条分带）
-npm run test:acceptance          # dist 构建产物与完整 96 关验收
+npm run test:ui                  # Edge headless 浏览器回归（108 关、四条分带、D 选择器）
+npm run test:acceptance          # dist 构建产物与完整 108 关验收
 npm run build:toy                # 生成可发布的 dist/ 游戏本体
-node scripts/export-solutions.js # 重新生成 docs/SOLUTIONS.md（96 关参考解清单）
+node scripts/export-solutions.js # 重新生成 docs/SOLUTIONS.md（108 关、English-only 参考解）
 node tests/screenshots.js        # 重拍 screenshots/ 浅色与深色验收图
 ```
 
-关卡内容手写在 `campaign/campaign2.js`，`src/levels.js` 是编译器产物，不要手改。`npm run build` 会编译证明、用 `scripts/lib/circuit-dedupe.js` 合并重复断言、提取中间结论、按目标去重、排序并跑门禁。set.mm 证明导入与翻译在 `scripts/mm-import.js`、`scripts/lib/mm-bridge.js`；旧的 166/152 关素材与四章源文件在 `archive/predicate-set/campaign-sources/`。
+关卡内容手写在 `campaign/campaign2.js`，`src/levels.js` 是编译器产物，不要手改。`npm run build` 会编译证明、用 `scripts/lib/circuit-dedupe.js` 的 mergeAll 合并全部同 token 节点、提取中间结论、按目标去重、排序并跑门禁。set.mm 证明导入与翻译在 `scripts/mm-import.js`、`scripts/lib/mm-bridge.js`；旧的 166/152 关素材与四章源文件在 `archive/predicate-set/campaign-sources/`。
 
 ### 主要文件
 
@@ -156,8 +168,8 @@ node tests/screenshots.js        # 重拍 screenshots/ 浅色与深色验收图
 | `src/screens.js` | 选关、帮助、提示、成就、通关面板 |
 | `src/catalog.js` | 关卡顺序、解锁链、元件栏条目（纯函数） |
 | `src/achievements.js` / `src/save.js` | 成就判定；存档结构与本地读写 |
-| `campaign/` | 当前 96 关内容源（`campaign2.js`）、set.mm 证明 DAG 与 5 个 legacy 电路 |
-| `scripts/build-campaign2.js` | 96 关编译器：证明→电路、去重、中间结论、排序与门禁 |
+| `campaign/` | 当前 108 关内容源（`campaign2.js`）、set.mm 证明 DAG 与 5 个 legacy 电路 |
+| `scripts/build-campaign2.js` | 108 关编译器：证明→电路、mergeAll 去重、中间结论、魔王拆分、排序与门禁 |
 | `archive/predicate-set/` | 冻结的谓词/等词/集合论四章版本、关卡切片与还原说明 |
 | `docs/` | 架构、设计、公理审计 |
 

@@ -118,7 +118,7 @@ function tutorialDefs() {
     T.body(T.expandDefinitions(['|-'].concat(a1And))), dExp(ax('A1', { P: AND(P, S) })));
   tut('contract', '定义收缩', 'D⁻', '¬(A→¬B) ⇒ A∧B', '先造原始公式，再用 D⁻ 折回 ∧。',
     tk('(P∧R)→(Q→(P∧R))'), dCon(ax('A1', { P: tk('¬(P→¬R)') })));
-  tut('thmref', '引用已证定理', '⊢', '第 i 关 · P:=(P→Q), Q:=R ⇒ (P→Q)→(R→(P→Q))',
+  tut('thmref', '引用已证定理', '⊢', 'theorem *i · P:=(P→Q), Q:=R ⇒ (P→Q)→(R→(P→Q))',
     '用 theorem 引用第 i 关，再代入。',
     tk('(P→Q)→(R→(P→Q))'), labelRef('tut_axiom', { P: tk('P→Q'), Q: ['R'] }));
   return out;

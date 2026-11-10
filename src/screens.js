@@ -7,7 +7,7 @@
  * 设计约定（见 docs/DESIGN.md）：
  *   - 少字：面板不写标题/说明，只保留数字、公式、代号与必要图例；
  *   - 面板内部是可点的 flat row（soft 底、无描边）；白贴纸材质只留给棋盘上的模块；
- *   - 对象语言用 → / ↔，规则层面用 ⇒ / ⇄；变量与公式一律 STIX 斜体。
+ *   - 对象语言用 → / ↔，规则层面用 ⇒ / ⇛；变量与公式一律 STIX 斜体。
  */
 (function (host) {
   'use strict';
@@ -53,7 +53,7 @@
     var cls = 'level-cell' + (i === ctx.state.index ? ' is-current' : '') +
       (ctx.state.solved[lv.id] ? ' is-solved' : '') +
       (unlocked ? '' : ' is-locked');
-    var no = Number(lv.no) || (i + 1);
+    var no = (lv.no == null ? i + 1 : Number(lv.no));
     var label = 'Level ' + String(no).padStart(2, '0') + (unlocked ? '' : ', locked');
     return '<button class="' + cls + '" data-level="' + i + '" aria-label="' + label + '"' +
       (unlocked ? '' : ' disabled') + style + '>' +
@@ -90,6 +90,7 @@
     var tut = items.filter(function (x) { return x.lv.band === 'tutorial'; });
     var base = items.filter(function (x) { return x.lv.band === 'base'; });
     var chal = items.filter(function (x) { return x.lv.band === 'challenge'; });
+    var demon = items.filter(function (x) { return x.lv.band === 'demon'; });
     var solved = items.filter(function (x) { return ctx.state.solved[x.lv.id]; }).length;
     return '<section class="chapter is-current">' +
       '<div class="chapter-head">' +
@@ -99,6 +100,7 @@
       bandHTML(tut, 'tutorial') +
       bandHTML(base, 'base') +
       bandHTML(chal, 'challenge') +
+      bandHTML(demon, 'demon') +
     '</section>';
   }
 
@@ -172,14 +174,11 @@
           helpStep('i-play') +
         '</div>' +
         '<div class="help-cards">' +
-          /* 单章命题演算：只需要三条公理、代入、分离与两条定义重写。 */
-          helpCard('A1', 'P→(Q→P)', '公理 1：任意命题蕴涵一切蕴涵它的命题。') +
-          helpCard('A2', '(P→(Q→R))→((P→Q)→(P→R))', '公理 2：蕴涵的分销。') +
-          helpCard('A3', '(¬P→¬Q)→(Q→P)', '公理 3：逆否与反证法的基础。') +
+          /* 单章命题演算：只列代入、分离与两条定义重写。 */
           helpCard('S', 'A[P↦B] ⇒ A′', '代入：把断言里的原子命题换成任意公式。') +
           helpCard('M', 'A · A→B ⇒ B', '分离：由 A 与 A→B 得到 B。') +
-          helpCard('D', 'A∧B ⇄ ¬(A→¬B)', '定义展开：把公式里的 ∧/∨/↔ 按定义改写成只用 ¬/→ 的原始公式；只重写公式，不能凭空产生结论。') +
-          helpCard('D⁻', '¬(A→¬B) ⇄ A∧B', '定义收缩：把原始公式折叠回 ∧/∨/↔ 的表面写法；只重写公式，不能凭空产生结论。') +
+          helpCard('D', 'A∧B ⇛ ¬(A→¬B)', '定义展开：把公式里的 ∧/∨/↔ 按定义改写成只用 ¬/→ 的原始公式；只重写公式，不能凭空产生结论。') +
+          helpCard('D⁻', '¬(A→¬B) ⇛ A∧B', '定义收缩：把原始公式折叠回 ∧/∨/↔ 的表面写法；只重写公式，不能凭空产生结论。') +
         '</div>' +
         (toy ? '<p class="cloud-note">存档自动同步到当前 B 站账号</p>' : '') +
         saveRow +

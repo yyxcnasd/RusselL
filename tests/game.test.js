@@ -1,5 +1,5 @@
 'use strict';
-/* 核心校验：96 关 = 8 教学 + 32 普通（5–21 模块）+ 56 困难（22–200 模块、hint=null）。
+/* 核心校验：108 关 = 8 教学 + 20 普通（10–30）+ 70 困难（25–100）+ 10 魔王（70–500）。
  * 单章命题演算：不允许谓词/等词/集合论元件或章节字段；目标不重复；
  * 全部参考解通过真实 Engine；定理只引用更早关卡。
  */
@@ -20,7 +20,7 @@ const RSL = loadRuntime({
   ],
 });
 
-const EXPECTED = { total: 96, tutorials: 8, base: 32, challenge: 56 };
+const EXPECTED = { total: 108, tutorials: 8, base: 20, challenge: 70, demon: 10 };
 const PROPOSITIONAL_KINDS = new Set([
   'atom', 'not', 'imp', 'and', 'or', 'iff',
   'axiom', 'subst', 'mp', 'def-expand', 'def-contract', 'theorem',
@@ -47,31 +47,31 @@ test('D 定义重写 API：expand/contract 幂等、互逆、不改变 T.eq 语�
   assert.throws(() => RSL.Modules.apply('def-contract', { assertion: ['wff', 'P'] }, {}, {}), /断言/);
 });
 
-test('96 关 = 8 教学 + 32 普通 + 56 困难，且只有一条课程线', () => {
+test('108 关 = 8 教学 + 20 普通 + 70 困难 + 10 魔王，且只有一条课程线', () => {
   const levels = RSL.LEVELS;
   assert.strictEqual(levels.length, EXPECTED.total, '总关数');
   const tutorials = levels.filter((lv) => lv.tutorial);
   const numbered = levels.filter((lv) => !lv.tutorial);
   assert.strictEqual(tutorials.length, EXPECTED.tutorials, '教学关数');
-  assert.strictEqual(numbered.length, EXPECTED.base + EXPECTED.challenge, '编号关数');
-  assert.strictEqual(numbered.filter((lv) => !lv.hard).length, EXPECTED.base, '普通关数');
-  assert.strictEqual(numbered.filter((lv) => lv.hard).length, EXPECTED.challenge, '困难关数');
+  assert.strictEqual(numbered.length, EXPECTED.base + EXPECTED.challenge + EXPECTED.demon, '编号关数');
+  assert.strictEqual(numbered.filter((lv) => lv.band === 'base').length, EXPECTED.base, '普通关数');
+  assert.strictEqual(numbered.filter((lv) => lv.band === 'challenge').length, EXPECTED.challenge, '困难关数');
+  assert.strictEqual(numbered.filter((lv) => lv.band === 'demon').length, EXPECTED.demon, '魔王关数');
   assert.strictEqual(levels.filter((lv) => lv.band === 'lemma').length, 0, '不应再有 lemma 带');
   levels.forEach((lv) => {
     assert.ok(!('chapter' in lv), lv.code + ' 不应有 chapter 字段');
     assert.ok(!('chapterGroup' in lv), lv.code + ' 不应有 chapterGroup 字段');
   });
   assert.ok(!/Ⅰ-|Ⅱ-|Ⅲ-|Ⅳ-|章/.test(levels.map((lv) => lv.title + lv.teaches).join(' ')), '标题里不应出现章节字样');
-  /* 教学关只显示小写罗马数字；编号关 01–88 连续。 */
   assert.strictEqual(JSON.stringify(tutorials.map((lv) => lv.code)),
     JSON.stringify(['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii']), '教学关代号');
   assert.strictEqual(JSON.stringify(numbered.map((lv) => lv.code)),
-    JSON.stringify(Array.from({ length: 88 }, (_, i) => String(i + 1).padStart(2, '0'))), '编号连续');
+    JSON.stringify(Array.from({ length: 100 }, (_, i) => String(i).padStart(2, '0'))), '编号 00–99 连续');
   const ids = levels.map((lv) => lv.id);
   assert.strictEqual(new Set(ids).size, ids.length, 'id 唯一');
 });
 
-test('每关 schema：普通 5–21 + mustUse，困难 22–200 + hint=null，教学 tip', () => {
+test('每关 schema：普通 10–30 + mustUse，困难 25–100 / 魔王 70–500 + hint=null，教学 tip', () => {
   const levels = RSL.LEVELS;
   levels.forEach((lv) => {
     assert.ok(Array.isArray(lv.targetTokens) && lv.targetTokens[0] === '|-', lv.code + ' targetTokens');
@@ -82,14 +82,18 @@ test('每关 schema：普通 5–21 + mustUse，困难 22–200 + hint=null，�
       assert.strictEqual(lv.no, null, lv.code + ' 教学关不占编号');
       assert.ok(lv.tip && lv.tip.code && lv.tip.flow, lv.code + ' 教学浮窗');
       assert.ok(lv.solution.nodes.length <= 20, lv.code + ' 教学关保持短小');
-    } else if (!lv.hard) {
+    } else if (lv.band === 'base') {
       const n = lv.solution.nodes.length;
-      assert.ok(n >= 5 && n <= 21, lv.code + ' 普通关 5–21 模块（实际 ' + n + '）');
+      assert.ok(n >= 10 && n <= 30, lv.code + ' 普通关 10–30 模块（实际 ' + n + '）');
       assert.ok(Array.isArray(lv.mustUse) && lv.mustUse.length > 0, lv.code + ' 普通关 mustUse');
+    } else if (lv.band === 'challenge') {
+      const n = lv.solution.nodes.length;
+      assert.ok(n >= 25 && n <= 100, lv.code + ' 困难关 25–100 模块（实际 ' + n + '）');
+      assert.strictEqual(lv.hint, null, lv.code + ' 困难关 hint=null');
     } else {
       const n = lv.solution.nodes.length;
-      assert.ok(n >= 22 && n <= 200, lv.code + ' 困难关 22–200 模块（实际 ' + n + '）');
-      assert.strictEqual(lv.hint, null, lv.code + ' 困难关 hint=null');
+      assert.ok(n >= 70 && n <= 500, lv.code + ' 魔王关 70–500 模块（实际 ' + n + '）');
+      assert.strictEqual(lv.hint, null, lv.code + ' 魔王关 hint=null');
     }
     (lv.palette || []).forEach((e) => {
       assert.ok(PROPOSITIONAL_KINDS.has(e.kind), lv.code + ' 出现非命题元件 ' + e.kind);
@@ -112,18 +116,27 @@ test('目标公式不重复（定义展开后比较）', () => {
   });
 });
 
-test('困难关模块数整体上升，且不超过 200', () => {
-  const hard = RSL.LEVELS.filter((lv) => lv.hard);
+test('困难/魔王模块数整体上升，且不超过 500', () => {
+  const hard = RSL.LEVELS.filter((lv) => lv.band === 'challenge');
   const sizes = hard.map((lv) => lv.solution.nodes.length);
-  assert.ok(Math.min.apply(null, sizes) >= 22, '困难关最小模块数');
-  assert.ok(Math.max.apply(null, sizes) <= 200, '困难关最大模块数');
-  assert.ok(sizes[sizes.length - 1] > sizes[0], '困难关应整体变长');
+  assert.ok(Math.min.apply(null, sizes) >= 25, '困难关最小模块数');
+  assert.ok(Math.max.apply(null, sizes) <= 100, '困难关最大模块数');
+  assert.ok(Math.max.apply(null, sizes) > Math.min.apply(null, sizes), '困难关应有明显跨度');
   let inversions = 0;
   for (let i = 1; i < sizes.length; i += 1) if (sizes[i] < sizes[i - 1]) inversions += 1;
-  assert.ok(inversions <= 10, '困难关倒挂过多：' + inversions);
+  assert.ok(inversions <= 8, '困难关倒挂过多：' + inversions);
+  const demon = RSL.LEVELS.filter((lv) => lv.band === 'demon').map((lv) => lv.solution.nodes.length);
+  assert.ok(Math.min.apply(null, demon) >= 70 && Math.max.apply(null, demon) <= 500, '魔王关 70–500');
 });
 
-test('96 关参考证明全部通过真实引擎（逐节点求值）', () => {
+test('教学浮窗只含代号/规则式，不含中文', () => {
+  RSL.LEVELS.filter((lv) => lv.tutorial).forEach((lv) => {
+    const text = String(lv.tip.code || '') + ' ' + String(lv.tip.flow || '');
+    assert.ok(!/[\u4e00-\u9fa5]/.test(text), lv.code + ' 教学浮窗含中文：' + text);
+  });
+});
+
+test('108 关参考证明全部通过真实引擎（逐节点求值）', () => {
   const levels = RSL.LEVELS;
   const failures = [];
   levels.forEach((lv) => {

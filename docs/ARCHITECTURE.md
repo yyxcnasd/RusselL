@@ -15,22 +15,22 @@
 
 ```
 term → levels → campaign-meta → modules → engine → wire → achievements
-     → legacy-targets → save → hints → cloudsave → leaderboard → ui → audio
+     → legacy-targets → legacy-targets-96 → save → hints → cloudsave → leaderboard → ui → audio
      → catalog → screens → board → main
 ```
 
 | 文件 | 职责 |
 | --- | --- |
-| `src/term.js` | **唯一表达式核心**：canonical set.mm token（首 token 类型码）；解析/格式化、key/eq（定义展开 + α 规范化）、原子代入、捕获规避变元替换、read 派生结构，以及 `expandDefinitions` / `contractDefinitions`（`D` 的公开接口） |
+| `src/term.js` | **唯一表达式核心**：canonical set.mm token（首 token 类型码）；解析/格式化、key/eq（定义展开 + α 规范化）、原子代入、捕获规避变元替换、read 派生结构，以及 `expandDefinitions` / `contractDefinitions`、`definitionSites` / `expandAt` / `contractAt`（D/D⁻ 的逐处重写 API） |
 | `src/modules.js` | **唯一模块注册表**。主线只用构造（原子/¬/→/∧/∨/↔）、A1–A3、S/M、**D 定义展开 / D⁻ 定义收缩**、定理 `theorem`；引擎仍保留谓词/等词/集合模块，供归档版本与未来扩展使用，但主线关卡不出现 |
 | `src/engine.js` | **唯一求值器**：拓扑、逐节点 apply、目标精确比较（`Term.eq`，定义展开后比较）、来源反作弊、定理引用越界校验 |
 | `src/catalog.js` | 关卡目录：单章顺序、band（tutorial/base/challenge）、解锁链、`palette` → 元件栏条目 |
-| `src/screens.js` | 选关/帮助/提示/成就/通关面板；选关页只有教学/普通/困难三条带 |
+| `src/screens.js` | 选关/帮助/提示/成就/通关面板；教学/普通/困难/魔王四条带 |
 | `src/hints.js` | 三页提示：方向 / 思路 / 参考接线；Toy 内按点赞视频与关注状态解锁 |
 | `src/cloudsave.js` | Toy 云存档：按账号分片写入、自动同步；网页版仍用 localStorage |
 | `src/leaderboard.js` | Toy 排行榜：通关数优先 + 模块效率加权的单整数分数、提交与榜单读取 |
 | `src/board.js` / `src/main.js` | 棋盘交互与关卡流程（一条 `loadLevel/refresh/check/win`） |
-| `src/levels.js` | 编译器产物：8 教学 + 32 普通 + 56 困难，共 **96** 关；教学号 i–viii，编号关 01–88 |
+| `src/levels.js` | 编译器产物：8 教学 + 20 普通 + 70 困难 + 10 魔王，共 **108** 关；教学号 i–viii，编号关 00–99 |
 | `campaign/` | 内容源：`campaign2.js` 是唯一编排入口；`mm/proofs/` 是 set.mm 证明 DAG；旧 152/166 关素材保留供对照 |
 
 ## 3. 数据流
@@ -43,7 +43,7 @@ campaign/campaign2.js（set.mm 定理 + 手写关 + 教学关）
 ```
 
 - 一条命令重建：`npm run build`（= build-campaign2 && write-levels）。
-- 单章：8 教学 + 32 普通（5–21 模块）+ 56 困难（22–200 模块、hint=null）；共 96 关。
+- 单章：8 教学 + 20 普通（10–30 模块）+ 70 困难（25–100 模块）+ 10 魔王（70–500 模块、hint=null）；共 108 关。
 - 普通关不能引用更晚的关卡；困难关可以引用更早关卡。
 - ∧/∨/↔ 规则关用真实证明内联；定义展开/收缩用 D/D⁻。
 - 49 条 set.mm 命题定理导入；大证明的中间结论按模块数拆成普通/困难关。
@@ -56,18 +56,20 @@ campaign/campaign2.js（set.mm 定理 + 手写关 + 教学关）
 - `scripts/mm-import.js` 用本地 `assets/data/set.mm` 重放证明并导出证明 DAG（开发期工具，
   构建时不需要 set.mm）。
 - `scripts/lib/mm-bridge.js` 把 set.mm 证明翻译成我们的证明项；只把目标里出现的变元传给 theorem 代入。
-- `scripts/lib/proof-dt.js` 是演绎定理工具（当前不用于主线，DT 证明项容易指数膨胀）。
+- 演绎定理工具已删除；主线不使用 DT。
 - 旧的 `build-campaign.js` / `restructure-levels.js` 管线已删除；旧四章内容在 `archive/predicate-set/`。
 
 ## 5. 测试
 
 | 命令 | 内容 |
 | --- | --- |
-| `npm test` | 96 关 schema（8 教学 + 32 普通 + 56 困难）、目标不重复、参考证明逐关真实 Engine 求值、定理只引更早 |
+| `npm test` | 108 关 schema（8 教学 + 20 普通 + 70 困难 + 10 魔王）、目标不重复、参考证明逐关真实 Engine 求值、定理只引更早 |
 | `npm run test:wire` | 端口布线纯函数 |
 | `npm run test:leaderboard` | 排行榜分数 |
-| `node tests/game-ui.js` | Edge headless：加载 96 关、三条分带/帮助/提示/排行榜面板、无 JS 错误 |
-| `npm run test:acceptance` | dist 清单与源码一致；dist 直接加载完整 96 关 |
+| `node tests/game-ui.js` | Edge headless：加载 108 关、四条分带/帮助/提示/排行榜面板、D 选择器、无 JS 错误 |
+| `npm run test:acceptance` | dist 清单与源码一致；dist 直接加载完整 108 关 |
 | `node tests/screenshots.js` | 浅色/深色截图 |
 | `npm run test:save` | v1–v3 存档迁移、campaign 指纹、云存档合并 |
-| `npm run test:dedupe` | 参考解同断言节点合并、环安全、真实关卡回归 |
+| `npm run test:dedupe` | mergeAll 合并全部同 token 节点、环安全、真实关卡回归 |
+| `npm run test:definitions` | D/D⁻ 逐处选择、全量兼容、浏览器弹层 |
+| `npm run test:text` | 参考解文字无中文、代码块 English-only |

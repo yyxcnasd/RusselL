@@ -67,14 +67,15 @@ fs.writeFileSync(OUT_LEVELS, header +
 fs.writeFileSync(OUT_META, header +
   '(function (host) {\n  \'use strict\';\n  host.RSL = host.RSL || {};\n' +
   '  host.RSL.CAMPAIGN = ' + JSON.stringify(chapters) + ';\n' +
-  '  host.RSL.CAMPAIGN_META = ' + JSON.stringify({ total: levels.length, id: 'prop-96' }) + ';\n' +
+  '  host.RSL.CAMPAIGN_META = ' + JSON.stringify({ total: levels.length, id: 'prop-108' }) + ';\n' +
   "})(typeof window !== 'undefined' ? window : globalThis);\n", 'utf8');
 
-const counts = { tutorial: 0, normal: 0, hard: 0 };
+const counts = { tutorial: 0, normal: 0, hard: 0, demon: 0 };
 levels.forEach((lv) => {
   if (lv.tutorial) counts.tutorial += 1;
-  else if (lv.hard) counts.hard += 1;
+  else if (lv.band === 'demon') counts.demon += 1;
+  else if (lv.band === 'challenge') counts.hard += 1;
   else counts.normal += 1;
 });
 console.log('写入 ' + path.relative(ROOT, OUT_LEVELS) + '：' + levels.length + ' 关（复验全部通过）');
-console.log('  教学 ' + counts.tutorial + ' · 普通 ' + counts.normal + ' · 困难 ' + counts.hard);
+console.log('  教学 ' + counts.tutorial + ' · 普通 ' + counts.normal + ' · 困难 ' + counts.hard + ' · 魔王 ' + counts.demon);

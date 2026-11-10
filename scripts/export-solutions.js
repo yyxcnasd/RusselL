@@ -27,15 +27,17 @@ function configText(cfg) {
 
 function theoremLabel(cfg) {
   cfg = cfg || {};
-  var code = String(cfg.code || '');
-  if (/^\d+$/.test(code)) return '定理 *' + code;
-  var m = /([ⅠⅡⅢⅣ])-(\d+)/.exec(code);
-  if (m) return '定理 *' + m[2];
-  /* 兼容旧关卡的 config.n 写法；两边都没有时宁可显示 *? 也不输出 undefined。 */
-  if (cfg.n != null && !isNaN(Number(cfg.n))) return '定理 *' + String(Number(cfg.n)).padStart(2, '0');
-  return '定理 *?';
+  var raw = cfg.code != null ? cfg.code : cfg.n;
+  if (raw == null || String(raw).trim() === '') return 'theorem *?';
+  var s = String(raw).trim();
+  var m = /([ⅠⅡⅢⅣ])-(\d+)/.exec(s);
+  if (m) return 'theorem *' + m[2];
+  if (/^\d+$/.test(s)) return 'theorem *' + s.padStart(2, '0');
+  if (/^[ivx]+$/.test(s)) return 'theorem *' + s;
+  return 'theorem *?';
 }
 
+/* 代码块里的节点标签一律 English/ASCII（周围 Markdown 标题/提示可以保持中文）。 */
 function nodeLine(n) {
   var kind = n.kind;
   if (kind === 'theorem') return theoremLabel(n.config);
@@ -45,12 +47,16 @@ function nodeLine(n) {
   if (kind === 'atom') return 'atom ' + ((n.config && n.config.name) || '');
   if (kind === 'term') return 'term ' + ((n.config && n.config.name) || '');
   if (kind === 'pred') return 'pred ' + ((n.config && n.config.symbol) || '');
+  if (kind === 'subst') return 'subst S';
+  if (kind === 'mp') return 'mp M';
+  if (kind === 'def-expand') return 'def-expand D';
+  if (kind === 'def-contract') return 'def-contract D⁻';
   if (kind === 'all' || kind === 'exists') return kind + configText(n.config);
   return kind + configText(n.config);
 }
 
 function edgeLine(e) {
-  return e.from.node + '.' + e.from.port + ' → ' + e.to.node + '.' + e.to.port;
+  return e.from.node + '.' + e.from.port + ' -> ' + e.to.node + '.' + e.to.port;
 }
 
 var groups = {};
@@ -94,14 +100,14 @@ Object.keys(groups).forEach(function (g) {
     md.push('<details><summary>展开参考电路</summary>');
     md.push('');
     md.push('```text');
-    md.push('模块：');
+    md.push('modules:');
     var targetNode = (lv.initialNodes || []).filter(function (n) { return n.kind === 'target'; })[0];
-    if (targetNode) md.push(targetNode.id + '  [target]');
+    if (targetNode) md.push(targetNode.id + '  target');
     lv.solution.nodes.forEach(function (n) {
       md.push(n.id + '  ' + nodeLine(n));
     });
     md.push('');
-    md.push('接线：');
+    md.push('wires:');
     lv.solution.edges.forEach(function (e) {
       md.push(edgeLine(e));
     });

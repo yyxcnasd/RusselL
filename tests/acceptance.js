@@ -1,5 +1,5 @@
 'use strict';
-/* dist 验收：构建产物与源码一致，dist 能直接加载完整 96 关。 */
+/* dist 验收：构建产物与源码一致，dist 能直接加载完整 108 关。 */
 const fs = require('fs');
 const path = require('path');
 const { runTest, fileUrl } = require('./lib/browser');
@@ -28,7 +28,7 @@ runTest('acceptance', async ({ openPage }) => {
 
   const page = await openPage({ width: 1440, height: 900, url: fileUrl('dist/index.html'), shotDir: '.research/shots' });
   await page.ready();
-  equal(await page.js('window.RSL.APP.state.levels.length'), 96, 'dist 加载 96 关');
+  equal(await page.js('window.RSL.APP.state.levels.length'), 108, 'dist 加载 108 关');
   equal(await page.js('window.RSL.APP.state.level.code'), 'i', 'dist 首关是教学关 i');
   equal(await page.js('!!window.RSL.Term && !window.RSL.Logic'), true, 'dist 只加载新表达式核心');
   equal(page.problems().length, 0, 'dist 页面无 JS 错误');

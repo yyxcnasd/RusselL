@@ -89,15 +89,19 @@ function buildDuplicateProofCircuit() {
   return { level, nodes: b.nodes, edges: b.edges, targetId, chain1, chain2, finalMP };
 }
 
-/** Map assertion key -> non-target node ids, using Engine results. */
-function assertionGroups(nodes, results) {
+/**
+ * Map canonical token key -> non-target nodes, using Engine results.
+ * `allTokens=true` also groups construction tokens (`wff …`, `setvar …`).
+ */
+function assertionGroups(nodes, results, allTokens) {
   const rows = results && results.results ? results.results : results;
   const groups = new Map();
   nodes.forEach((node) => {
     if (!node || node.kind === 'target') return;
     const row = rows && rows[node.id];
     const tokens = row && row.tokens;
-    if (!Array.isArray(tokens) || tokens[0] !== '|-') return;
+    if (!Array.isArray(tokens) || tokens.length === 0) return;
+    if (!allTokens && tokens[0] !== '|-') return;
     const key = tokens.join('\u0000');
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key).push(node);
@@ -105,12 +109,18 @@ function assertionGroups(nodes, results) {
   return groups;
 }
 
-function duplicateGroupCount(nodes, results) {
+function duplicateGroupCount(nodes, results, allTokens) {
   let count = 0;
-  for (const members of assertionGroups(nodes, results).values()) {
+  for (const members of assertionGroups(nodes, results, allTokens).values()) {
     if (members.length > 1) count += 1;
   }
   return count;
+}
+
+function tokensOfNode(results, nodeId) {
+  const rows = results && results.results ? results.results : results;
+  const row = rows && rows[nodeId];
+  return row && Array.isArray(row.tokens) ? row.tokens : null;
 }
 
 function idsOf(nodes) {
@@ -188,6 +198,78 @@ test('两条独立重复证明被合并为一个 survivor，接线重连后电�
   assert.strictEqual(post.errors.length, 0);
   assert.strictEqual(post.cycle.length, 0);
   assert.strictEqual(duplicateGroupCount(out.nodes, post), 0);
+});
+
+/* ------------------------------------------------------------------ */
+/* 1b. mergeAll: construction nodes (atom leaves / formula builders)   */
+/* ------------------------------------------------------------------ */
+
+test('mergeAll: 两条 proof 链的重复 atom P 叶子合并，电路仍完整求值', () => {
+  const { level, nodes, edges, targetId } = buildDuplicateProofCircuit();
+  const pre = Engine.evaluate(level, nodes, edges, {});
+  assert.strictEqual(pre.complete, true, JSON.stringify(pre.errors));
+
+  const atomKey = assertionKey(['wff', 'P']);
+  const atomsBefore = nodes.filter((node) => {
+    const tokens = tokensOfNode(pre, node.id);
+    return node.kind === 'atom' && tokens && tokens.join('\u0000') === atomKey;
+  });
+  assert.strictEqual(atomsBefore.length, 2, '两条独立 proof 链应各有一个 atom P 叶子');
+
+  const out = dedupeCircuit({ nodes, edges, targetId, results: pre, mergeAll: true });
+  const group = out.mergedGroups.find((candidate) => candidate.key === atomKey);
+  assert.ok(group, 'atom P 应形成合并组');
+  assert.strictEqual(group.removedIds.length, 1);
+  assert.ok(atomsBefore.some((node) => node.id === group.survivorId), 'survivor 应是原 atom P 叶子');
+
+  /* 被删 atom 的所有出边都已改接到 survivor */
+  const removedAtom = group.removedIds[0];
+  out.edges.forEach((edge) => assert.notStrictEqual(edge.from.node, removedAtom));
+  const survivor = nodes.find((node) => node.id === group.survivorId);
+  const post = Engine.evaluate(level, out.nodes, out.edges, {});
+  assert.strictEqual(post.complete, true, JSON.stringify(post.errors));
+  assert.strictEqual(post.errors.length, 0);
+
+  const atomsAfter = out.nodes.filter((node) => {
+    const tokens = tokensOfNode(post, node.id);
+    return node.kind === 'atom' && tokens && tokens.join('\u0000') === atomKey;
+  });
+  assert.strictEqual(atomsAfter.length, 1, '合并后只剩一个 atom P');
+  assert.strictEqual(atomsAfter[0], survivor, 'survivor 保留对象身份');
+
+  /* 默认（mergeAll=false）不会合并构造节点 */
+  const assertionOnly = dedupeCircuit({ nodes, edges, targetId, results: pre });
+  assert.ok(!assertionOnly.mergedGroups.some((candidate) => candidate.key === atomKey));
+});
+
+test('mergeAll: 重复构造 imp 节点（wff (Q→P)）合并，电路仍完整求值', () => {
+  const { level, nodes, edges, targetId } = buildDuplicateProofCircuit();
+  const pre = Engine.evaluate(level, nodes, edges, {});
+  assert.strictEqual(pre.complete, true, JSON.stringify(pre.errors));
+
+  const impKey = assertionKey(['wff', '(', 'Q', '->', 'P', ')']);
+  const impsBefore = nodes.filter((node) => {
+    const tokens = tokensOfNode(pre, node.id);
+    return node.kind === 'imp' && tokens && tokens.join('\u0000') === impKey;
+  });
+  assert.strictEqual(impsBefore.length, 2, '两条独立 proof 链应各有一个 imp (Q→P)');
+
+  const out = dedupeCircuit({ nodes, edges, targetId, results: pre, mergeAll: true });
+  const group = out.mergedGroups.find((candidate) => candidate.key === impKey);
+  assert.ok(group, '构造 imp 节点应形成合并组');
+  assert.strictEqual(group.removedIds.length, 1);
+  assert.ok(impsBefore.some((node) => node.id === group.survivorId));
+
+  const post = Engine.evaluate(level, out.nodes, out.edges, {});
+  assert.strictEqual(post.complete, true, JSON.stringify(post.errors));
+  assert.strictEqual(post.errors.length, 0);
+
+  const impsAfter = out.nodes.filter((node) => {
+    const tokens = tokensOfNode(post, node.id);
+    return node.kind === 'imp' && tokens && tokens.join('\u0000') === impKey;
+  });
+  assert.strictEqual(impsAfter.length, 1, '合并后只剩一个构造 imp 节点');
+  assert.strictEqual(impsAfter[0], nodes.find((node) => node.id === group.survivorId));
 });
 
 /* ------------------------------------------------------------------ */
@@ -430,33 +512,57 @@ test('null、空和构造模块 token（非 |-）不参与合并', () => {
 });
 
 /* ------------------------------------------------------------------ */
-/* 7. real current level                                              */
+/* 7. real current levels with mergeAll                               */
 /* ------------------------------------------------------------------ */
 
-test('真实关卡：参考解已无重复断言，dedupe 后仍能通关且不产生回路', () => {
-  const idx = levels.findIndex((level) => level.hard);
-  assert.ok(idx >= 0, '应存在困难关');
-  const level = levels[idx];
+test('真实 src/levels.js：mergeAll 后全部关卡仍通关、重复 token 组归零、节点数减少', (t) => {
+  const reductions = [];
 
-  const nodes = JSON.parse(JSON.stringify(level.solution.nodes))
-    .concat(JSON.parse(JSON.stringify(level.initialNodes)));
-  const edges = JSON.parse(JSON.stringify(level.solution.edges));
-  const targetNode = nodes.find((node) => node.kind === 'target');
-  assert.ok(targetNode, '关卡应有 target 节点');
+  levels.forEach((level, idx) => {
+    const nodes = JSON.parse(JSON.stringify(level.solution.nodes))
+      .concat(JSON.parse(JSON.stringify(level.initialNodes)));
+    const edges = JSON.parse(JSON.stringify(level.solution.edges));
+    const targetNode = nodes.find((node) => node.kind === 'target');
+    assert.ok(targetNode, level.code + ' 应有 target 节点');
 
-  const ctx = { levels: levels.slice(0, idx), levelIndex: idx };
-  const pre = Engine.evaluate(level, nodes, edges, ctx);
-  assert.strictEqual(pre.complete, true, JSON.stringify(pre.errors));
-  assert.strictEqual(duplicateGroupCount(nodes, pre), 0, '构建器应已消掉重复断言');
+    /* theorem 占位符解析更早关卡 */
+    const ctx = { levels: levels.slice(0, idx), levelIndex: idx };
+    const pre = Engine.evaluate(level, nodes, edges, ctx);
+    assert.strictEqual(pre.complete, true, level.code + ' 前置电路应完整：' + JSON.stringify(pre.errors));
 
-  const out = dedupeCircuit({ nodes, edges, targetId: targetNode.id, results: pre });
-  assert.strictEqual(out.nodes.find((node) => node.id === targetNode.id), targetNode, 'target 保留对象身份');
-  assert.strictEqual(duplicateGroupCount(out.nodes, pre), 0, '合并后不应再有非 target 重复断言组');
+    /* 统计所有 token（含 wff/setvar/构造公式）的重复组 */
+    const duplicateGroupsBefore = duplicateGroupCount(nodes, pre, true);
+    const out = dedupeCircuit({ nodes, edges, targetId: targetNode.id, results: pre, mergeAll: true });
 
-  const post = Engine.evaluate(level, out.nodes, out.edges, ctx);
-  assert.strictEqual(post.complete, true, JSON.stringify(post.errors));
-  assert.strictEqual(post.errors.length, 0);
-  assert.strictEqual(post.cycle.length, 0);
+    assert.strictEqual(out.nodes.find((node) => node.id === targetNode.id), targetNode,
+      level.code + ' target 不应被合并');
+    assert.ok(out.nodes.length <= nodes.length, level.code + ' 节点数不应增加');
+
+    const post = Engine.evaluate(level, out.nodes, out.edges, ctx);
+    assert.strictEqual(post.complete, true, level.code + ' dedupe 后应完整：' + JSON.stringify(post.errors));
+    assert.strictEqual(duplicateGroupCount(out.nodes, post, true), 0,
+      level.code + ' dedupe 后仍有重复 token 组');
+
+    if (duplicateGroupsBefore > 0) {
+      assert.ok(out.nodes.length < nodes.length, level.code + ' 有重复时节点数应减少');
+      reductions.push({
+        code: level.code,
+        before: nodes.length,
+        after: out.nodes.length,
+        removed: out.removed,
+        groups: out.mergedGroups.length,
+        duplicateGroupsBefore
+      });
+    }
+  });
+
+  t.diagnostic('real-level reductions: ' + reductions.length + ' / ' + levels.length);
+  if (reductions.length) {
+    const sample = reductions.slice().sort((a, b) => b.removed - a.removed)[0];
+    t.diagnostic('real-level sample ' + sample.code + ': ' + sample.before + ' -> ' + sample.after +
+      ' nodes (-' + sample.removed + '), mergedGroups=' + sample.groups +
+      ', duplicateTokenGroupsBefore=' + sample.duplicateGroupsBefore);
+  }
 });
 
 /* ------------------------------------------------------------------ */

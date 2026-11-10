@@ -23,15 +23,19 @@ const { dedupeCircuit: dedupeLib } = require(path.join(ROOT, 'scripts', 'lib', '
 
 const OUT = path.join(ROOT, 'campaign', 'campaign2-levels.json');
 const TUTORIAL_SLOTS = 8;
-const NORMAL_SLOTS = 32;
-const HARD_SLOTS = 56;
-const TOTAL = TUTORIAL_SLOTS + NORMAL_SLOTS + HARD_SLOTS;
-const MIN_NORMAL = 5;
-const MAX_NORMAL = 21;
-const MIN_HARD = 22;
-const MAX_HARD = 200;
-const MAX_NORMAL_TOKENS = 36;
-const MAX_HARD_TOKENS = 100;
+const NORMAL_SLOTS = 20;
+const HARD_SLOTS = 70;
+const DEMON_SLOTS = 10;
+const TOTAL = TUTORIAL_SLOTS + NORMAL_SLOTS + HARD_SLOTS + DEMON_SLOTS;
+const MIN_NORMAL = 10;
+const MAX_NORMAL = 30;
+const MIN_HARD = 25;
+const MAX_HARD = 100;
+const MIN_DEMON = 70;
+const MAX_DEMON = 500;
+const MAX_NORMAL_TOKENS = 40;
+const MAX_HARD_TOKENS = 110;
+const MAX_DEMON_TOKENS = 140;
 const TUT_CODES = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii'];
 let DEFS_BY_LABEL = new Map();
 const ALIAS = new Map();
@@ -274,7 +278,7 @@ function evaluateCircuit(nodes, edges, theoremTokens) {
  * ========================================================================= */
 function dedupeCircuit(nodes, edges, targetId) {
   const results = evaluateCircuit(nodes, edges, THEOREM_TOKENS);
-  const out = dedupeLib({ nodes, edges, targetId, results });
+  const out = dedupeLib({ nodes, edges, targetId, results, mergeAll: true });
   return { nodes: out.nodes, edges: out.edges, removed: out.removed };
 }
 
@@ -397,12 +401,11 @@ function extractCones(compiled, minSize, maxSize, maxTokens, limitPerCircuit) {
       }
       const size = cone.size;
       if (size < minSize || size > maxSize) return;
-      if (Array.from(cone).some((id) => byId.get(id) && byId.get(id).kind === 'theorem')) return;
       candidates.push({ node: n, cone, size, tokens: r.tokens });
     });
     candidates.sort((a, b) => Math.abs(a.size - (minSize + maxSize) / 2) - Math.abs(b.size - (minSize + maxSize) / 2));
     candidates.slice(0, limitPerCircuit).forEach((pick) => {
-      const nodes = c.nodes.filter((x) => pick.cone.has(x.id));
+      const nodes = c.nodes.filter((x) => pick.cone.has(x.id)).map((n) => JSON.parse(JSON.stringify(n)));
       const edges = c.edges.filter((e) => pick.cone.has(e.from.node) && pick.cone.has(e.to.node));
       const coneKey = 'cone_' + c.def.key.replace(/[^A-Za-z0-9_]/g, '') + '_' + pick.node.id;
       out.push({
@@ -420,82 +423,12 @@ function extractCones(compiled, minSize, maxSize, maxTokens, limitPerCircuit) {
         size: pick.size,
         nodes, edges, targetId: pick.node.id,
         targetTokens: pick.tokens,
-        deps: new Set(),
+        deps: new Set(nodes.filter((n) => n.kind === 'theorem').map((n) => n.config.code)),
         results: evaluateCircuit(nodes, edges, THEOREM_TOKENS),
       });
     });
   });
   return out;
-}
-
-/* =========================================================================
- * 8. 拆分 >200 的证明
- * ========================================================================= */
-let SPLIT_SEQ = 0;
-function splitOversized(entry, maxSize) {
-  const children = [];
-  let cur = entry;
-  for (let guard = 0; cur.size > maxSize && guard < 8; guard += 1) {
-    const c = cur;
-    const byId = new Map(c.nodes.map((n) => [n.id, n]));
-    const incoming = new Map(c.nodes.map((n) => [n.id, []]));
-    c.edges.forEach((e) => { if (incoming.has(e.to.node)) incoming.get(e.to.node).push(e.from.node); });
-    const candidates = [];
-    c.nodes.forEach((n) => {
-      if (n.id === c.targetId || n.kind === 'target' || n.kind === 'theorem') return;
-      const r = c.results[n.id];
-      if (!r || !r.tokens || r.tokens[0] !== '|-' || r.tokens.length - 1 > MAX_HARD_TOKENS) return;
-      const cone = new Set([n.id]);
-      const stack = [n.id];
-      while (stack.length) {
-        const id = stack.pop();
-        (incoming.get(id) || []).forEach((p) => { if (!cone.has(p)) { cone.add(p); stack.push(p); } });
-      }
-      const size = cone.size - 1;
-      if (size < 40 || size > maxSize - 5) return;
-      candidates.push({ node: n, cone, size, tokens: r.tokens });
-    });
-    if (!candidates.length) break;
-    candidates.sort((a, b) => Math.abs(a.size - 110) - Math.abs(b.size - 110));
-    const pick = candidates[0];
-    const childKey = 'split_' + (++SPLIT_SEQ);
-    const childPlaceholder = '@' + childKey;
-    const coneNodes = c.nodes.filter((n) => pick.cone.has(n.id));
-    const coneEdges = c.edges.filter((e) => pick.cone.has(e.from.node) && pick.cone.has(e.to.node));
-    const child = {
-      def: {
-        key: childKey, placeholder: childPlaceholder, origin: 'split', parentTitle: c.def.title,
-        title: c.def.title + ' · 中间结论',
-        teaches: T.fmt(['wff'].concat(pick.tokens.slice(1))),
-        hint: null,
-        target: pick.tokens.slice(1),
-        circuit: { nodes: coneNodes, edges: coneEdges, outputId: pick.node.id },
-      },
-      size: pick.size, nodes: coneNodes, edges: coneEdges,
-      targetId: pick.node.id, targetTokens: pick.tokens, deps: new Set(),
-      results: evaluateCircuit(coneNodes, coneEdges, THEOREM_TOKENS),
-    };
-    children.push(child);
-    THEOREM_TOKENS.set(childPlaceholder, child.targetTokens);
-    if (!c.deps) c.deps = new Set();
-    c.deps.add(childPlaceholder);
-    /* 父关：把锥换成 theorem 引用 */
-    const keptNodes = c.nodes.filter((n) => !pick.cone.has(n.id));
-    const keptEdges = c.edges.filter((e) => !(pick.cone.has(e.from.node) && pick.cone.has(e.to.node)));
-    const consumers = [];
-    c.edges.forEach((e) => {
-      if (pick.cone.has(e.from.node) && !pick.cone.has(e.to.node)) consumers.push(e);
-    });
-    const thmId = 'split' + (++SPLIT_SEQ);
-    keptNodes.push({ id: thmId, kind: 'theorem', config: { code: childPlaceholder }, x: 0, y: 0 });
-    consumers.forEach((e) => keptEdges.push({ id: e.id, from: { node: thmId, port: 'out' }, to: e.to }));
-    cur.nodes = keptNodes;
-    cur.edges = keptEdges;
-    cur.size = keptNodes.length - 1;
-    cur.results = evaluateCircuit(keptNodes, keptEdges, THEOREM_TOKENS);
-    if (cur.results[cur.targetId] && !cur.results[cur.targetId].tokens) break;
-  }
-  return { parent: cur, children };
 }
 
 /* =========================================================================
@@ -535,33 +468,17 @@ function main() {
       problems.push('编译失败 ' + def.placeholder + '：' + err.message);
     }
   });
+  if (process.env.LADDER_DEBUG) console.log('compiled sizes:', compiled.slice().sort((a,b)=>b.size-a.size).slice(0,40).map((c)=>c.def.placeholder+':'+c.size).join(' '));
   if (problems.length) {
     console.error('编译阶段失败 ' + problems.length + ' 项：');
     problems.slice(0, 30).forEach((p) => console.error('  - ' + p));
     process.exit(1);
   }
 
-  /* 拆分 >200 */
-  for (let i = compiled.length - 1; i >= 0; i -= 1) {
-    if (compiled[i].size <= MAX_HARD) continue;
-    const before = compiled[i];
-    const res = splitOversized(before, MAX_HARD);
-    if (res.children.length) {
-      compiled.splice(i, 1);
-      compiled.push(res.parent, ...res.children);
-      res.children.forEach((ch) => {
-        THEOREM_TOKENS.set('@' + ch.def.key, ch.targetTokens);
-      });
-    } else {
-      compiled.splice(i, 1);
-    }
-  }
-  /* 拆分后重新求值（父关依赖新占位符） */
-  compiled.forEach((c) => { c.results = evaluateCircuit(c.nodes, c.edges, THEOREM_TOKENS); });
-
   /* 中间结论 */
-  const normalCones = extractCones(compiled.filter((c) => c.size > 21), MIN_NORMAL, MAX_NORMAL, MAX_NORMAL_TOKENS, 18);
-  const hardCones = extractCones(compiled.filter((c) => c.size > 21), 40, 190, MAX_HARD_TOKENS, 12);
+  const normalCones = extractCones(compiled, MIN_NORMAL, MAX_NORMAL, MAX_NORMAL_TOKENS, 60);
+  const hardCones = extractCones(compiled, 22, MAX_HARD, MAX_HARD_TOKENS, 160);
+  if (process.env.LADDER_DEBUG) console.log('cones normal', normalCones.length, 'hard', hardCones.length, 'hard sizes', hardCones.map((c)=>c.size).sort((a,b)=>a-b).join(','));
   const all = compiled.concat(normalCones, hardCones);
 
   /* 目标去重：同目标保留更小、来源更“真实”的 */
@@ -598,122 +515,169 @@ function main() {
   const nonTutorial = deduped.filter((c) => !c.def.tutorial && !tutorialTargets.has(targetKey(c.targetTokens)));
 
   /* 普通关：先选“真实”小证明，再用中间结论补足 */
-  const normalReal = nonTutorial
-    .filter((c) => c.size >= MIN_NORMAL && c.size <= MAX_NORMAL && c.targetTokens.length - 1 <= MAX_NORMAL_TOKENS && c.def.origin !== 'cone')
+
+
+  /* ---- 依赖感知：魔王 10 / 普通 20 / 困难 70，按模块数平滑排序。 ---- */
+  const defOrder = new Map(defs.map((d, i) => [d.placeholder, i]));
+  function candidateOf(d) { return all.find((x) => x.def.placeholder === d) || null; }
+  function topoOrder(list, set, originFirst) {
+    const out = [];
+    const pending = new Map(list.map((c) => [c.def.placeholder, c]));
+    while (pending.size) {
+      const ready = Array.from(pending.values()).filter((c) => Array.from(c.deps || []).every((d) => {
+        if (pending.has(d)) return false;
+        if (set.has(d)) return out.some((x) => x.def.placeholder === d);
+        return true;
+      }));
+      if (!ready.length) break;
+      ready.sort((a, b) => (originFirst
+        ? (((a.def.key === 'legacy1' ? 0 : 1) - (b.def.key === 'legacy1' ? 0 : 1)) || (a.size - b.size))
+        : ((a.size - b.size) || (levelOriginOrder(a) - levelOriginOrder(b)))) || targetKey(a.targetTokens).localeCompare(targetKey(b.targetTokens)));
+      const pick = ready[0];
+      out.push(pick);
+      pending.delete(pick.def.placeholder);
+    }
+    return { out, pending: Array.from(pending.keys()) };
+  }
+
+  /* 魔王关先选：10 个 70–500 的真实大证明；把它们的普通/困难依赖锁进 required 集合。 */
+  const demonCandidates = nonTutorial
+    .filter((c) => c.def.origin !== 'cone' && c.size >= MIN_DEMON && c.size <= MAX_DEMON && c.targetTokens.length - 1 <= MAX_DEMON_TOKENS)
+    .sort((a, b) => (b.size - a.size) || targetKey(a.targetTokens).localeCompare(targetKey(b.targetTokens)));
+  const demonChosen = [];
+  const demonSet = new Set();
+  const demonTrying = new Set();
+  const requiredNormal = new Set();
+  const requiredHard = new Set();
+  function addDemon(c) {
+    if (!c || demonSet.has(c.def.placeholder)) return true;
+    if (demonChosen.length >= DEMON_SLOTS || demonTrying.has(c.def.placeholder)) return false;
+    if (c.size < MIN_DEMON || c.size > MAX_DEMON || c.targetTokens.length - 1 > MAX_DEMON_TOKENS) return false;
+    demonTrying.add(c.def.placeholder);
+    let ok = true;
+    Array.from(c.deps || []).forEach((d) => {
+      if (tutorialCodes.has(d)) return;
+      const dep = candidateOf(d);
+      if (!dep) { ok = false; return; }
+      if (dep.size > c.size) { ok = false; return; }
+      if (dep.size >= MIN_HARD && dep.size <= MAX_HARD) { requiredHard.add(d); return; }
+      if (dep.size >= MIN_NORMAL && dep.size <= MAX_NORMAL) { requiredNormal.add(d); return; }
+      if (dep.size > MAX_HARD) {
+        if (!addDemon(dep)) ok = false;
+        return;
+      }
+      ok = false;
+    });
+    demonTrying.delete(c.def.placeholder);
+    if (!ok) return false;
+    demonChosen.push(c);
+    demonSet.add(c.def.placeholder);
+    return true;
+  }
+  demonCandidates.forEach((c) => { if (demonChosen.length < DEMON_SLOTS) addDemon(c); });
+  if (demonChosen.length !== DEMON_SLOTS) problems.push('魔王关只有 ' + demonChosen.length + ' 个（需要 10）');
+
+  /* 普通关 20：10–30；依赖只能是教程/已选普通关。 */
+  const normalCandidates = nonTutorial
+    .filter((c) => c.size >= MIN_NORMAL && c.size <= MAX_NORMAL && c.targetTokens.length - 1 <= MAX_NORMAL_TOKENS && !demonSet.has(c.def.placeholder))
     .sort((a, b) => (levelOriginOrder(a) - levelOriginOrder(b)) || (a.size - b.size));
   const normalChosen = [];
   const normalSet = new Set();
-  function tryAddNormal(c) {
-    if (normalChosen.length >= NORMAL_SLOTS) return false;
-    if (normalSet.has(c.def.placeholder)) return false;
-    const missing = Array.from(c.deps || []).filter((d) => {
-      if (tutorialCodes.has(d)) return false;
-      if (normalSet.has(d)) return false;
-      const dep = all.find((x) => x.def.placeholder === d);
-      return !dep || dep.size > MAX_NORMAL || dep.size < MIN_NORMAL;
+  const normalTrying = new Set();
+  function addNormal(c) {
+    if (!c || normalSet.has(c.def.placeholder)) return true;
+    if (normalChosen.length >= NORMAL_SLOTS || normalTrying.has(c.def.placeholder)) return false;
+    if (c.size < MIN_NORMAL || c.size > MAX_NORMAL || c.targetTokens.length - 1 > MAX_NORMAL_TOKENS) return false;
+    normalTrying.add(c.def.placeholder);
+    let ok = true;
+    Array.from(c.deps || []).forEach((d) => {
+      if (tutorialCodes.has(d) || normalSet.has(d)) return;
+      const dep = candidateOf(d);
+      if (!dep || dep.size < MIN_NORMAL || dep.size > MAX_NORMAL || !addNormal(dep)) ok = false;
     });
-    if (missing.length) return false;
+    normalTrying.delete(c.def.placeholder);
+    if (!ok) return false;
     normalChosen.push(c);
     normalSet.add(c.def.placeholder);
     return true;
   }
-  normalReal.forEach((c) => tryAddNormal(c));
-  const normalConesSorted = nonTutorial
-    .filter((c) => c.def.origin === 'cone' && c.size >= MIN_NORMAL && c.size <= MAX_NORMAL)
-    .sort((a, b) => (a.size - b.size) || targetKey(a.targetTokens).localeCompare(targetKey(b.targetTokens)));
-  if (process.env.LADDER_DEBUG && normalConesSorted[0]) console.log('first cone', normalConesSorted[0].def.placeholder, normalConesSorted[0].size, normalConesSorted[0].deps && Array.from(normalConesSorted[0].deps), normalConesSorted[0].def.origin);
-  /* 先按尺寸轮转各取一个：优先 10–21 的中间结论，最后才用 5–9 的小碎片补数。 */
-  const coneBySize = new Map();
-  normalConesSorted.forEach((c) => { if (!coneBySize.has(c.size)) coneBySize.set(c.size, []); coneBySize.get(c.size).push(c); });
-  const coneSizeOrder = [];
-  for (let size = MAX_NORMAL; size >= 10; size -= 1) coneSizeOrder.push(size);
-  for (let size = 9; size >= MIN_NORMAL; size -= 1) coneSizeOrder.push(size);
-  for (let round = 0; normalChosen.length < NORMAL_SLOTS && round < 12; round += 1) {
-    for (const size of coneSizeOrder) {
-      if (normalChosen.length >= NORMAL_SLOTS) break;
-      const list = coneBySize.get(size) || [];
-      if (list[round]) tryAddNormal(list[round]);
-    }
+  requiredNormal.forEach((d) => { const c = candidateOf(d); if (c) addNormal(c); });
+  normalCandidates.filter((c) => c.def.origin !== 'cone' && c.size <= 20).forEach(addNormal);
+  const normalConePool = normalCandidates.filter((c) => c.def.origin === 'cone');
+  for (let size = 21; size <= MAX_NORMAL && normalChosen.length < NORMAL_SLOTS; size += 1) {
+    normalConePool.filter((c) => c.size === size && (c.deps || new Set()).size === 0).forEach((c) => { if (normalChosen.length < NORMAL_SLOTS) addNormal(c); });
   }
-
-  /* 普通关拓扑排序（依赖教程/普通关），同层按体积 */
-  const normalOrder = [];
-  const defOrder = new Map(defs.map((d, i) => [d.placeholder, i]));
-  const normalPriority = (c) => c.def.origin === 'legacy' ? 0 : c.def.origin === 'setmm' ? 100 : c.def.origin === 'manual' ? 200 : 1000;
-  {
-    const pending = new Map(normalChosen.map((c) => [c.def.placeholder, c]));
-    while (pending.size) {
-      const ready = Array.from(pending.values()).filter((c) => Array.from(c.deps || []).every((d) => !pending.has(d)));
-      if (!ready.length) break;
-      ready.sort((a, b) => (normalPriority(a) - normalPriority(b)) || ((defOrder.get(a.def.placeholder) ?? 999) - (defOrder.get(b.def.placeholder) ?? 999)) || (a.size - b.size));
-      const pick = ready[0];
-      normalOrder.push(pick);
-      pending.delete(pick.def.placeholder);
-    }
-    if (pending.size) problems.push('普通关存在环/缺依赖：' + Array.from(pending.keys()).join(','));
+  for (let size = 20; size >= MIN_NORMAL && normalChosen.length < NORMAL_SLOTS; size -= 1) {
+    normalConePool.filter((c) => c.size === size && (c.deps || new Set()).size === 0).forEach((c) => { if (normalChosen.length < NORMAL_SLOTS) addNormal(c); });
   }
-  if (process.env.LADDER_DEBUG) console.log('normal chosen', normalChosen.length, 'cone pool', normalConesSorted.length, 'ordered', normalOrder.length);
-  if (process.env.LADDER_DEBUG) console.log('normal list', normalOrder.map((c,i)=> (i+1)+':'+c.size+':'+c.def.origin+':'+(c.def.title||c.def.key)).join(' | '));
-  if (normalOrder.length !== NORMAL_SLOTS) problems.push('普通关只有 ' + normalOrder.length + ' 个（需要 32）');
+  const normalOrder = topoOrder(normalChosen, normalSet, true).out;
+  if (normalOrder.length !== NORMAL_SLOTS) problems.push('普通关只有 ' + normalOrder.length + ' 个（需要 20）');
+  if (process.env.LADDER_DEBUG) console.log('normal', normalOrder.length, normalOrder.map((c) => c.size).join('/'));
 
-  /* 困难关：真实大证明 → 拆分 → 中间结论；依赖闭包 */
-  const normalPlaced = new Set(normalOrder.map((c) => c.def.placeholder));
-  const hardPool = nonTutorial
-    .filter((c) => c.size >= MIN_HARD && c.size <= MAX_HARD && c.targetTokens.length - 1 <= MAX_HARD_TOKENS && !normalSet.has(c.def.placeholder))
+  /* 困难关 70：25–100；hard 依赖必须不大于自己，曲线不倒挂。 */
+  const hardCandidates = nonTutorial
+    .filter((c) => c.size >= MIN_HARD && c.size <= MAX_HARD && c.targetTokens.length - 1 <= MAX_HARD_TOKENS &&
+      !normalSet.has(c.def.placeholder) && !demonSet.has(c.def.placeholder))
     .sort((a, b) => (levelOriginOrder(a) - levelOriginOrder(b)) || (a.size - b.size));
-  const hardMap = new Map(hardPool.map((c) => [c.def.placeholder, c]));
-  const hardSet = new Set();
   const hardChosen = [];
+  const hardSet = new Set();
+  const hardTrying = new Set();
   function addHard(c) {
-    if (!c || hardSet.has(c.def.placeholder)) return;
-    hardSet.add(c.def.placeholder);
-    hardChosen.push(c);
+    if (!c || hardSet.has(c.def.placeholder)) return true;
+    if (hardChosen.length >= HARD_SLOTS || hardTrying.has(c.def.placeholder)) return false;
+    if (c.size < MIN_HARD || c.size > MAX_HARD || c.targetTokens.length - 1 > MAX_HARD_TOKENS) return false;
+    hardTrying.add(c.def.placeholder);
+    let ok = true;
     Array.from(c.deps || []).forEach((d) => {
-      if (hardMap.has(d) && !hardSet.has(d)) addHard(hardMap.get(d));
+      if (tutorialCodes.has(d) || normalSet.has(d) || hardSet.has(d)) return;
+      const dep = candidateOf(d);
+      if (!dep || dep.size > c.size || dep.size < MIN_HARD || dep.size > MAX_HARD || !addHard(dep)) ok = false;
     });
+    hardTrying.delete(c.def.placeholder);
+    if (!ok) return false;
+    hardChosen.push(c);
+    hardSet.add(c.def.placeholder);
+    return true;
   }
-  hardPool.forEach((c) => { if (hardChosen.length < HARD_SLOTS) addHard(c); });
-  /* 如果不够，按体积补候选中未选的 */
-  if (hardChosen.length < HARD_SLOTS) {
-    hardPool.forEach((c) => { if (hardChosen.length < HARD_SLOTS) addHard(c); });
-  }
-
-  /* 困难关拓扑排序（依赖教程/普通/困难），同层按体积 */
-  const hardOrder = [];
-  {
-    const pending = new Map(hardChosen.map((c) => [c.def.placeholder, c]));
-    while (pending.size) {
-      const ready = Array.from(pending.values()).filter((c) => Array.from(c.deps || []).every((d) => {
-        if (pending.has(d)) return false;
-        if (hardSet.has(d)) return hardOrder.some((x) => x.def.placeholder === d);
-        return true;
-      }));
-      if (!ready.length) break;
-      ready.sort((a, b) => (a.size - b.size) || (levelOriginOrder(a) - levelOriginOrder(b)) || targetKey(a.targetTokens).localeCompare(targetKey(b.targetTokens)));
-      const pick = ready[0];
-      hardOrder.push(pick);
-      pending.delete(pick.def.placeholder);
+  requiredHard.forEach((d) => { const c = candidateOf(d); if (c) addHard(c); });
+  hardCandidates.filter((c) => c.def.origin !== 'cone').forEach(addHard);
+  const hardConePool = hardCandidates.filter((c) => c.def.origin === 'cone');
+  const needCones = Math.max(0, HARD_SLOTS - hardChosen.length);
+  if (needCones && hardConePool.length) {
+    for (let i = 0; i < needCones; i += 1) {
+      const idx = Math.round(i * (hardConePool.length - 1) / Math.max(1, needCones - 1));
+      if (hardChosen.length >= HARD_SLOTS) break;
+      if (!addHard(hardConePool[idx])) {
+        for (let j = 0; j < hardConePool.length && hardChosen.length < HARD_SLOTS; j += 1) addHard(hardConePool[j]);
+      }
     }
-    if (pending.size) problems.push('困难关存在环/缺依赖：' + Array.from(pending.keys()).join(','));
   }
-  if (process.env.LADDER_DEBUG) console.log('hard chosen', hardChosen.length, 'pool', hardPool.length, 'ordered', hardOrder.length);
-  if (hardOrder.length !== HARD_SLOTS) problems.push('困难关只有 ' + hardOrder.length + ' 个（需要 56）');
+  const hardOrder = topoOrder(hardChosen, hardSet).out;
+  if (hardOrder.length !== HARD_SLOTS) problems.push('困难关只有 ' + hardOrder.length + ' 个（需要 70）');
+  if (process.env.LADDER_DEBUG) console.log('hard', hardOrder.length, hardOrder.map((c) => c.size).join('/'));
+
+  const demonOrder = topoOrder(demonChosen, demonSet).out;
+  if (demonOrder.length !== DEMON_SLOTS) problems.push('魔王关拓扑后只有 ' + demonOrder.length + ' 个（需要 10）');
+  if (process.env.LADDER_DEBUG) console.log('demon', demonOrder.length, demonOrder.map((c) => c.size).join('/'));
 
   const finalList = []
     .concat(tutorials.map((c) => ({ c, band: 'tutorial' })))
     .concat(normalOrder.map((c) => ({ c, band: 'base' })))
-    .concat(hardOrder.map((c) => ({ c, band: 'challenge' })));
+    .concat(hardOrder.map((c) => ({ c, band: 'challenge' })))
+    .concat(demonOrder.map((c) => ({ c, band: 'demon' })));
 
-  if (finalList.length !== TOTAL) problems.push('总关数 ' + finalList.length + ' != 96');
+  if (finalList.length !== TOTAL) problems.push('总关数 ' + finalList.length + ' != 108');
 
   /* 编号 */
   const remap = new Map();
-  let normalNo = 0;
-  let hardNo = 32;
+  let normalNo = -1;
+  let hardNo = 19;
+  let demonNo = 89;
   finalList.forEach((entry) => {
     let code;
     if (entry.band === 'tutorial') code = TUT_CODES[tutorials.indexOf(entry.c)];
     else if (entry.band === 'base') code = String(++normalNo).padStart(2, '0');
+    else if (entry.band === 'demon') code = String(++demonNo).padStart(2, '0');
     else code = String(++hardNo).padStart(2, '0');
     remap.set(entry.c.def.placeholder, code);
     entry.c.finalCode = code;
@@ -733,8 +697,7 @@ function main() {
       if (n.kind === 'theorem') {
         const target = ALIAS.get(n.config.code) || n.config.code;
         const code = remap.get(target);
-        if (process.env.LADDER_DUMP && entry.c.finalCode === '68') console.error('THM68', n.id, n.config.code, 'alias', target, 'code', code, 'target', T.fmt(THEOREM_TOKENS.get(n.config.code) || []));
-        if (!code) problems.push(entry.c.finalCode + ' 引用了未入选的定理 ' + n.config.code + ' → ' + target);
+        if (!code) { problems.push(entry.c.finalCode + ' 引用了未入选的定理 ' + n.config.code + ' → ' + target); if (process.env.LADDER_DEBUG) console.error('MISS', entry.c.finalCode, c.def.placeholder, n.id, n.config.code, 'target', target); }
         n.config = { code: code || target };
       }
     });
@@ -754,11 +717,12 @@ function main() {
       code: c.finalCode,
       no: entry.band === 'tutorial' ? null : Number(c.finalCode),
       tutorial: entry.band === 'tutorial',
-      hard: entry.band === 'challenge',
+      hard: entry.band === 'challenge' || entry.band === 'demon',
+      demon: entry.band === 'demon',
       band: entry.band,
       title: c.def.title,
       teaches: c.def.teaches || '',
-      hint: entry.band === 'challenge' ? null : (c.def.hint || ''),
+      hint: (entry.band === 'challenge' || entry.band === 'demon') ? null : (c.def.hint || ''),
       tip: c.def.tip || null,
       targetTokens: c.targetTokens,
       palette,
@@ -792,6 +756,7 @@ function main() {
 
   /* 门禁 */
   const usedTargets = new Map();
+  const outside = { base: 0, challenge: 0 };
   levels.forEach((lv) => {
     const key = targetKey(lv.targetTokens);
     if (usedTargets.has(key)) problems.push('重复目标：' + usedTargets.get(key) + ' / ' + lv.code);
@@ -803,25 +768,36 @@ function main() {
     }
     const n = lv.solution.nodes.length;
     const tokens = lv.targetTokens.length - 1;
-    if (!lv.hard) {
-      if (n < MIN_NORMAL || n > MAX_NORMAL) problems.push(lv.code + ' 普通关元件数 ' + n + ' 不在 5–21');
+    if (lv.band === 'base') {
+      if (n < MIN_NORMAL || n > MAX_NORMAL) {
+        outside.base += 1;
+        if (n < 8 || n > 35) problems.push(lv.code + ' 普通关元件数 ' + n + ' 远超 10–30');
+      }
       if (tokens > MAX_NORMAL_TOKENS) problems.push(lv.code + ' 普通关目标 ' + tokens + ' token');
       if (!lv.mustUse.length) problems.push(lv.code + ' 普通关缺少 mustUse');
-    } else {
-      if (n < MIN_HARD || n > MAX_HARD) problems.push(lv.code + ' 困难关元件数 ' + n + ' 不在 22–200');
+    } else if (lv.band === 'challenge') {
+      if (n < MIN_HARD || n > MAX_HARD) {
+        outside.challenge += 1;
+        if (n < 20 || n > 110) problems.push(lv.code + ' 困难关元件数 ' + n + ' 远超 25–100');
+      }
       if (tokens > MAX_HARD_TOKENS) problems.push(lv.code + ' 困难关目标 ' + tokens + ' token');
+    } else if (lv.band === 'demon') {
+      if (n < MIN_DEMON || n > MAX_DEMON) problems.push(lv.code + ' 魔王关元件数 ' + n + ' 不在 70–500');
+      if (tokens > MAX_DEMON_TOKENS) problems.push(lv.code + ' 魔王关目标 ' + tokens + ' token');
     }
   });
-  /* 困难关整体按模块数递增；依赖强制或拆分产生的局部倒挂只记警告。 */
-  const hardLevels = levels.filter((l) => l.hard);
-  for (let i = 1; i < hardLevels.length; i += 1) {
-    const prev = hardLevels[i - 1].solution.nodes.length;
-    const cur = hardLevels[i].solution.nodes.length;
-    const drop = prev - cur;
-    if (drop > 12 && drop > prev * 0.2) {
-      warnings.push('困难关倒挂：' + hardLevels[i - 1].code + '(' + prev + ') → ' + hardLevels[i].code + '(' + cur + ')');
+  if (outside.base > 3) problems.push('普通关有 ' + outside.base + ' 个不在 10–30（上限 3）');
+  if (outside.challenge > 6) problems.push('困难关有 ' + outside.challenge + ' 个不在 25–100（上限 6）');
+  /* 段内整体递增；依赖强制的局部倒挂只记警告。 */
+  [['challenge', '困难'], ['demon', '魔王']].forEach(([band, label]) => {
+    const list = levels.filter((l) => l.band === band);
+    for (let i = 1; i < list.length; i += 1) {
+      const prev = list[i - 1].solution.nodes.length;
+      const cur = list[i].solution.nodes.length;
+      const drop = prev - cur;
+      if (drop > 12 && drop > prev * 0.2) warnings.push(label + '关倒挂：' + list[i - 1].code + '(' + prev + ') → ' + list[i].code + '(' + cur + ')');
     }
-  }
+  });
 
   if (problems.length) {
     console.error('关卡门禁失败 ' + problems.length + ' 项：');
@@ -832,13 +808,15 @@ function main() {
   fs.writeFileSync(OUT, JSON.stringify(levels, null, 1) + '\n', 'utf8');
   const counts = {
     tutorial: levels.filter((l) => l.tutorial).length,
-    normal: levels.filter((l) => !l.tutorial && !l.hard).length,
-    hard: levels.filter((l) => l.hard).length,
+    normal: levels.filter((l) => l.band === 'base').length,
+    hard: levels.filter((l) => l.band === 'challenge').length,
+    demon: levels.filter((l) => l.band === 'demon').length,
   };
   console.log('关卡 ' + levels.length + ' → ' + path.relative(ROOT, OUT));
-  console.log('  教学 ' + counts.tutorial + ' · 普通 ' + counts.normal + ' · 困难 ' + counts.hard);
-  console.log('  普通模块数：' + levels.filter((l) => !l.tutorial && !l.hard).map((l) => l.solution.nodes.length).join('/'));
-  console.log('  困难模块数：' + levels.filter((l) => l.hard).map((l) => l.solution.nodes.length).join('/'));
+  console.log('  教学 ' + counts.tutorial + ' · 普通 ' + counts.normal + ' · 困难 ' + counts.hard + ' · 魔王 ' + counts.demon);
+  console.log('  普通模块数：' + levels.filter((l) => l.band === 'base').map((l) => l.solution.nodes.length).join('/'));
+  console.log('  困难模块数：' + levels.filter((l) => l.band === 'challenge').map((l) => l.solution.nodes.length).join('/'));
+  console.log('  魔王模块数：' + levels.filter((l) => l.band === 'demon').map((l) => l.solution.nodes.length).join('/'));
 }
 
 main();

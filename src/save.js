@@ -249,6 +249,10 @@
    */
   function migrate(raw, levels, legacy) {
     var src = clean(raw);
+    /* 152 关旧档与 96 关旧档各有一张 code→target 表；按 code 合并且不覆盖。 */
+    if (root.RSL.LEGACY_TARGETS_96) legacy = Object.assign({}, legacy || {}, root.RSL.LEGACY_TARGETS_96);
+    /* 152 关旧档与 96 关旧档各有一张 code→target 表；按 code 合并且不覆盖。 */
+    if (root.RSL.LEGACY_TARGETS_96) legacy = Object.assign({}, legacy || {}, root.RSL.LEGACY_TARGETS_96);
     var current = Array.isArray(levels) ? levels.filter(function (lv) { return lv && typeof lv === 'object'; }) : [];
     var toCampaign = campaignOf(current);
     var report = reportBase(src, toCampaign);

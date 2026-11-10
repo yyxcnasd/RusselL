@@ -7,7 +7,9 @@
  * last module feeds the level's `target` pad.  Several reference circuits contain
  * repeated *identical assertions*: the same proposition is proved twice (for
  * example two copies of an imported theorem, or two copies created by circuit
- * splitting).  Those duplicates are harmless for the evaluator but noise for the
+ * splitting).  They also often contain repeated *construction* nodes: several
+ * `atom P` leaves, `term x` nodes, or identical `imp`/`not`/`all` formula
+ * builders.  Those duplicates are harmless for the evaluator but noise for the
  * reference solution, so they are merged here.
  *
  * The old inline implementation in scripts/build-campaign2.js had two blind
@@ -19,24 +21,31 @@
  *
  * API
  * ---
- *   dedupeCircuit({ nodes, edges, targetId, results, tokensOf })
+ *   dedupeCircuit({ nodes, edges, targetId, results, tokensOf, mergeAll })
  *     -> { nodes, edges, removed, mergedGroups }
  *
  *   tokensOf(nodeId) -> string[] | null
- *     Canonical assertion tokens for a node (e.g. ['|-', '(', 'P', '->', 'P', ')']),
- *     or null when the node is unresolved / is not an assertion.  Callers usually
- *     combine `results.results[id].tokens` with a map of theorem placeholder code
- *     -> level targetTokens.
+ *     Canonical formula/assertion tokens for a node (for example
+ *     ['|-', '(', 'P', '->', 'P', ')'] or ['wff', 'P']), or null when the node
+ *     is unresolved.  Callers usually combine `results.results[id].tokens` with a
+ *     map of theorem placeholder code -> level targetTokens.
  *
  *     When `tokensOf` is omitted the default resolver reads
  *     `results.results[nodeId].tokens` (and also accepts a plain id -> result map
  *     for convenience).
  *
+ *   mergeAll (default false)
+ *     false: only assertion tokens (first token `'|-'`) are merged, which is the
+ *            historical reference-solution cleanup.
+ *     true : any non-empty token array is merged, including `['wff','P']`,
+ *            `['setvar','x']`, constructed formulas and assertions.  Null and
+ *            empty token arrays are never merged.
+ *
  * Rules
  * -----
- *   - Only non-target nodes are merged, and only when both token arrays are
- *     assertions (first token `'|-'`) and exactly equal after joining with
- *     `\u0000`.  Null/empty/non-assertion tokens never merge.
+ *   - Only non-target nodes are merged, and only when their token arrays are
+ *     exactly equal after joining with `\u0000` (and, unless `mergeAll` is true,
+ *     only for assertions whose first token is `'|-'`).
  *   - Survivor preference: theorem > axiom > subst > def-contract/def-expand >
  *     every other kind; ties are broken by the earliest position in the original
  *     node array.  Node creation order is not topological, so if the preferred
@@ -279,14 +288,15 @@ function pruneUnreachable(nodes, edges, targetId) {
 }
 
 /**
- * Merge nodes carrying the same assertion and prune the disconnected remainder.
+ * Merge nodes carrying the same tokens and prune the disconnected remainder.
  *
  * @param {{
  *   nodes?: Array<object>,
  *   edges?: Array<object>,
  *   targetId?: string,
  *   results?: object,
- *   tokensOf?: (nodeId: string) => Array<string>|null
+ *   tokensOf?: (nodeId: string) => Array<string>|null,
+ *   mergeAll?: boolean
  * }} options
  * @returns {{
  *   nodes: Array<object>,
@@ -302,6 +312,7 @@ function dedupeCircuit(options) {
   const inputNodes = Array.isArray(options.nodes) ? options.nodes : [];
   const inputEdges = Array.isArray(options.edges) ? options.edges : [];
   const targetId = options.targetId;
+  const mergeAll = options.mergeAll === true;
   const resolveTokens = makeTokenResolver(options.results, options.tokensOf);
 
   /* Original order is the tie breaker; keep it stable across iterations. */
@@ -324,7 +335,10 @@ function dedupeCircuit(options) {
       if (!node || typeof node.id !== 'string') continue;
       if (node.id === targetId || node.kind === 'target') continue;
       const tokens = resolveTokens(node);
-      if (!isAssertionTokens(tokens)) continue;
+      const mergeable = mergeAll
+        ? Array.isArray(tokens) && tokens.length > 0
+        : isAssertionTokens(tokens);
+      if (!mergeable) continue;
       const key = assertionKey(tokens);
       if (key === null) continue;
       if (!groups.has(key)) groups.set(key, []);

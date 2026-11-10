@@ -172,17 +172,17 @@
   function tier3(level) {
     var info = graphInfo(level);
     var sol = level.solution || { nodes: [], edges: [] };
-    var lines = ['按这个顺序放模块：'];
+    var lines = ['modules:'];
     info.order.forEach(function (n) {
       lines.push('#' + info.index[n.id] + '  ' + nodeLabel(n));
     });
-    lines.push('', '接线：');
+    lines.push('', 'wires:');
     sol.edges.forEach(function (e) {
       var from = info.index[e.from.node] ? '#' + info.index[e.from.node] : '?';
       var to = e.to.node === (info.target && info.target.id)
-        ? '目标'
+        ? 'target'
         : (info.index[e.to.node] ? '#' + info.index[e.to.node] : '?');
-      lines.push(from + '.' + e.from.port + ' → ' + to + '.' + e.to.port);
+      lines.push(from + '.' + e.from.port + ' -> ' + to + '.' + e.to.port);
     });
     return lines.join('\n');
   }
@@ -197,15 +197,31 @@
     return parts.length ? '(' + parts.join(', ') + ')' : '';
   }
 
+  /** 定理编号统一成 English 标签：theorem *NN；教学关引用显示 theorem *i 之类。 */
+  function theoremLabel(cfg) {
+    cfg = cfg || {};
+    var raw = cfg.code != null ? cfg.code : cfg.n;
+    if (raw == null || String(raw).trim() === '') return 'theorem *?';
+    var s = String(raw).trim();
+    var m = /([ⅠⅡⅢⅣ])-(\d+)/.exec(s);
+    if (m) return 'theorem *' + m[2];
+    if (/^\d+$/.test(s)) return 'theorem *' + s.padStart(2, '0');
+    if (/^[ivx]+$/.test(s)) return 'theorem *' + s;
+    return 'theorem *?';
+  }
+
+  /* 参考解页的节点标签：English/ASCII，公式保持符号（tier3 不含中文）。 */
   function nodeLabel(n) {
     var c = n.config || {};
-    if (n.kind === 'theorem') return '定理 ' + String(c.code || '');
-    if (n.kind === 'axiom') return 'axiom ' + (c.schema || '') + (c.v ? '(' + c.v + ')' : '');
-    if (n.kind === 'def-expand') return 'D 定义展开';
-    if (n.kind === 'def-contract') return 'D⁻ 定义收缩';
-    if (n.kind === 'atom') return 'atom ' + (c.name || '');
-    if (n.kind === 'term') return 'term ' + (c.name || '');
-    if (n.kind === 'pred') return 'pred ' + (c.symbol || '');
+    if (n.kind === 'theorem') return theoremLabel(c);
+    if (n.kind === 'axiom') return 'axiom ' + (c.schema || 'A?') + (c.v ? '(' + c.v + ')' : '');
+    if (n.kind === 'def-expand') return 'def-expand D';
+    if (n.kind === 'def-contract') return 'def-contract D⁻';
+    if (n.kind === 'atom') return 'atom ' + (c.name || 'P');
+    if (n.kind === 'term') return 'term ' + (c.name || 'x');
+    if (n.kind === 'pred') return 'pred ' + (c.symbol || 'F');
+    if (n.kind === 'subst') return 'subst S';
+    if (n.kind === 'mp') return 'mp M';
     if (n.kind === 'all' || n.kind === 'exists') return n.kind + configText(c);
     return n.kind + configText(c);
   }

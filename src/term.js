@@ -12,7 +12,8 @@
  *   - 谓词应用：['F', '(', 'x', ')']
  *   - 糖（∨ ∧ ↔ ∃）保留用于显示；比较时按 df-or/df-an/dfbi2/df-ex 展开，
  *     并按出现顺序对约束变元做 α 规范化。
- *   - D 模块用公开接口 expandDefinitions / contractDefinitions 重写断言：
+ *   - D 模块用公开接口 expandDefinitions / contractDefinitions 全量重写断言，
+ *     或用 definitionSites / expandAt / contractAt 按子节点路径只重写一处定义；
  *     展开只用于比较与证明，显示（fmt/toHTML）永远保持玩家写下的表面语法。
  *
  * 结构视图：需要“子公式”时会用 read(tokens) 派生出 tree（只读）；token 才是真身，
@@ -523,6 +524,175 @@
   }
 
   /* =========================================================================
+   * 5c. 选择性 D / D⁻：按子节点下标路径只重写一处定义
+   *
+   * 路径相对公式体（去掉类型码后）的结构下标：[] 是根，[0] 是第一个子式，
+   * [0,1] 是第一个子式的第二个子式。¬ / ∀ / ∃ 只有一个子式 0；二元连接词
+   * 有 0、1 两个子式。expandAt / contractAt 只改路径所指的那一处，其余子式
+   * 原样保留；path 为 null / undefined 时退回全量重写（旧行为）。
+   * ========================================================================= */
+
+  var DEF_SYMBOL = { and: '∧', or: '∨', iff: '↔', exists: '∃' };
+
+  function normalizeDefPath(path) {
+    if (!Array.isArray(path)) fail('定义重写路径必须是子节点下标数组，例如 [0, 1]');
+    var out = [];
+    for (var i = 0; i < path.length; i += 1) {
+      var step = path[i];
+      if (typeof step !== 'number' || !isFinite(step) || step < 0 || Math.floor(step) !== step) {
+        fail('定义重写路径含非法下标：' + JSON.stringify(path));
+      }
+      out.push(step);
+    }
+    return out;
+  }
+
+  function defPathText(path) { return path.length ? '[' + path.join(', ') + ']' : '根位置 []'; }
+
+  function defChildAt(node, index) {
+    switch (node.k) {
+      case 'not': case 'all': case 'exists':
+        return index === 0 ? node.a : null;
+      case 'or': case 'and': case 'imp': case 'iff':
+        return index === 0 ? node.a : (index === 1 ? node.b : null);
+      default:
+        return null;
+    }
+  }
+
+  function defNodeAt(root, path) {
+    var cur = root;
+    for (var i = 0; i < path.length; i += 1) {
+      var next = defChildAt(cur, path[i]);
+      if (!next) fail('定义重写路径越界：' + defPathText(path) + ' 在第 ' + (i + 1) + ' 段没有子式');
+      cur = next;
+    }
+    return cur;
+  }
+
+  /* 结构树不可变替换：只复制路径上的节点，其余子式保持引用。 */
+  function defReplaceAt(node, path, index, replacement) {
+    if (index === path.length) return clone(replacement);
+    var copy;
+    switch (node.k) {
+      case 'not': copy = { k: 'not', a: node.a }; break;
+      case 'all': copy = { k: 'all', v: node.v, a: node.a }; break;
+      case 'exists': copy = { k: 'exists', v: node.v, a: node.a }; break;
+      case 'or': copy = { k: 'or', a: node.a, b: node.b }; break;
+      case 'imp': copy = { k: 'imp', a: node.a, b: node.b }; break;
+      case 'and': copy = { k: 'and', a: node.a, b: node.b }; break;
+      case 'iff': copy = { k: 'iff', a: node.a, b: node.b }; break;
+      default: fail('定义重写路径落在没有子式的节点上：' + node.k);
+    }
+    var step = path[index];
+    var key = (node.k === 'not' || node.k === 'all' || node.k === 'exists') ? 'a' : (step === 1 ? 'b' : 'a');
+    copy[key] = defReplaceAt(node[key], path, index + 1, replacement);
+    return copy;
+  }
+
+  /* 只展开当前节点的定义，子式保持原样（全量 expandDefinitions 是递归版）。 */
+  function expandShallow(n) {
+    switch (n.k) {
+      case 'or':
+        return { k: 'imp', a: { k: 'not', a: clone(n.a) }, b: clone(n.b) };
+      case 'and':
+        return { k: 'not', a: { k: 'imp', a: clone(n.a), b: { k: 'not', a: clone(n.b) } } };
+      case 'iff':
+        return {
+          k: 'not',
+          a: {
+            k: 'imp',
+            a: { k: 'imp', a: clone(n.a), b: clone(n.b) },
+            b: { k: 'not', a: { k: 'imp', a: clone(n.b), b: clone(n.a) } }
+          }
+        };
+      case 'exists':
+        return { k: 'not', a: { k: 'all', v: n.v, a: { k: 'not', a: clone(n.a) } } };
+      default:
+        return null;
+    }
+  }
+
+  /* 当前节点是否已经是某种定义展开形：用于同一路径重复调用时保持幂等。 */
+  function looksExpanded(n) {
+    if (n.k === 'imp' && n.a.k === 'not') return true;
+    if (n.k === 'not' && n.a.k === 'all' && n.a.a.k === 'not') return true;
+    if (n.k === 'not' && n.a.k === 'imp' && n.a.b.k === 'not') return true;
+    return false;
+  }
+
+  /* 只收缩当前节点的原始定义形，子式保持原样（全量 contractDefinitions 会先展开）。 */
+  function foldShallow(n) {
+    var folded = foldCandidate(n);
+    if (!folded) return null;
+    return eqTree(n, folded) ? folded : null;
+  }
+
+  function defSiteRecord(beforeNode, afterNode, path, kind) {
+    return {
+      path: path.slice(),
+      kind: kind,
+      symbol: DEF_SYMBOL[kind],
+      before: fmtNode(beforeNode),
+      after: fmtNode(afterNode)
+    };
+  }
+
+  /**
+   * 列出断言里每一处可单点重写的位置。
+   * mode = 'expand'：∧/∨/↔/∃ 节点，每处展开自己的定义（子式不动）；
+   * mode = 'contract'：原始定义形节点（¬A→B、¬(A→¬B)、¬((A→B)→¬(B→A))、
+   *   ¬∀x¬A），每处收缩成自己的表面形（子式不动）。
+   * 返回 [{ path, kind, symbol, before, after }]，path 稳定、路径 [] 表示根。
+   */
+  function definitionSites(tokens, mode) {
+    if (mode !== 'expand' && mode !== 'contract') fail('definitionSites 的 mode 只能是 "expand" 或 "contract"');
+    var sites = [];
+    (function walk(node, path) {
+      if (mode === 'expand') {
+        var expanded = expandShallow(node);
+        if (expanded) sites.push(defSiteRecord(node, expanded, path, node.k));
+      } else {
+        var folded = foldShallow(node);
+        if (folded) sites.push(defSiteRecord(node, folded, path, folded.k));
+      }
+      if (node.k === 'not' || node.k === 'all' || node.k === 'exists') {
+        walk(node.a, path.concat([0]));
+      } else if (BINARY[node.k]) {
+        walk(node.a, path.concat([0]));
+        walk(node.b, path.concat([1]));
+      }
+    })(read(tokens), []);
+    return sites;
+  }
+
+  /** 只展开 path 处的定义；path 为 null/undefined 时保持旧的展开全部行为。 */
+  function expandAt(tokens, path) {
+    var t = tokensOf(tokens);
+    if (path === null || path === undefined) return expandDefinitions(tokens);
+    var p = normalizeDefPath(path);
+    var root = read(t);
+    var node = defNodeAt(root, p);
+    var expanded = expandShallow(node);
+    if (expanded) return retypeLike(tokens, defReplaceAt(root, p, 0, expanded));
+    if (looksExpanded(node)) return t.slice();
+    fail('路径 ' + defPathText(p) + ' 不是定义展开位置：' + fmtNode(node) + ' 不是 ∧/∨/↔/∃');
+  }
+
+  /** 只收缩 path 处的原始定义形；path 为 null/undefined 时保持旧的收缩全部行为。 */
+  function contractAt(tokens, path) {
+    var t = tokensOf(tokens);
+    if (path === null || path === undefined) return contractDefinitions(tokens);
+    var p = normalizeDefPath(path);
+    var root = read(t);
+    var node = defNodeAt(root, p);
+    var folded = foldShallow(node);
+    if (folded) return retypeLike(tokens, defReplaceAt(root, p, 0, folded));
+    if (node.k === 'and' || node.k === 'or' || node.k === 'iff' || node.k === 'exists') return t.slice();
+    fail('路径 ' + defPathText(p) + ' 不是定义收缩位置：' + fmtNode(node) + ' 不是 ∧/∨/↔/∃ 的原始定义形');
+  }
+
+  /* =========================================================================
    * 6. 变元/原子分析
    * ========================================================================= */
 
@@ -970,6 +1140,9 @@
     eqTree: eqTree,
     expandDefinitions: expandDefinitions,
     contractDefinitions: contractDefinitions,
+    definitionSites: definitionSites,
+    expandAt: expandAt,
+    contractAt: contractAt,
     atomsOf: atomsOf,
     freeVars: freeVars,
     isAtom: isAtom,

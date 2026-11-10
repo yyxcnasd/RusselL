@@ -3,5 +3,5 @@
   'use strict';
   host.RSL = host.RSL || {};
   host.RSL.CAMPAIGN = [{"key":"logic","id":"","title":"命题演算"}];
-  host.RSL.CAMPAIGN_META = {"total":96,"id":"prop-96"};
+  host.RSL.CAMPAIGN_META = {"total":108,"id":"prop-108"};
 })(typeof window !== 'undefined' ? window : globalThis);

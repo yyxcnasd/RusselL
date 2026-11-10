@@ -311,7 +311,7 @@
       els.levelBtn.textContent = level.code || '';
       return;
     }
-    els.levelBtn.textContent = '*' + String(level.no || '').padStart(2, '0');
+    els.levelBtn.textContent = '*' + String(level.no == null ? '' : level.no).padStart(2, '0');
   }
 
   /* 载入关卡：初始图/元件来自关卡数据（targetTokens / palette / initialNodes / solution），
@@ -407,8 +407,8 @@
   }
 
   function buildTray() {
-    var VARIABLES = { atom: 1, pred: 1, term: 1 };
-    var SYMBOLS = { not: 1, imp: 1, or: 1, and: 1, iff: 1, all: 1, exists: 1, mem: 1 };
+    var VARIABLES = { atom: 1 };
+    var SYMBOLS = { not: 1, imp: 1, or: 1, and: 1, iff: 1 };
     els.tray.innerHTML = state.parts.map(function (part) {
       var symbol = part.symbol || '·';
       var variant = VARIABLES[part.kind] ? ' is-var' : (SYMBOLS[part.kind] ? ' is-symbol' : ' is-code');
@@ -729,10 +729,70 @@
   var PRED_CHOICES = ['F', 'G', 'H', '='];
   var VAR_CHOICES = 'xyzuvw'.split('');
 
+  /* D / D⁻：沿 assertion 输入边找到上游断言，列出可单点重写的位置。 */
+  function definitionInputTokens(nodeId) {
+    if (!state.board || !state.results || !state.results.results) return null;
+    var data;
+    try { data = state.board.getData(); } catch (e) { return null; }
+    var edges = data.edges || [];
+    var edge = null;
+    for (var i = 0; i < edges.length; i += 1) {
+      var e = edges[i];
+      if (e && e.to && e.to.node === nodeId && e.to.port === 'assertion') { edge = e; break; }
+    }
+    if (!edge) return null;
+    var upstream = state.results.results[edge.from.node];
+    return upstream && upstream.tokens ? upstream.tokens : null;
+  }
+
+  function defPathKey(path) { return path && path.length ? path.join('.') : '@'; }
+
+  function defPathSame(a, b) {
+    if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return false;
+    for (var i = 0; i < a.length; i += 1) if (a[i] !== b[i]) return false;
+    return true;
+  }
+
+  function defFormulaHTML(text) {
+    var T = window.RSL.Term;
+    try { return T.toHTML(T.parse(text), { full: true }); } catch (e) { return UI.esc(text); }
+  }
+
+  function defSiteChipHTML(site, on) {
+    return '<button class="opt opt-def' + (on ? ' is-on' : '') + '" data-config="at" data-at="' +
+      defPathKey(site.path) + '" title="' + UI.esc(site.before + ' ⇛ ' + site.after) + '">' +
+      '<span class="opt-def-sym">' + UI.esc(site.symbol) + '</span>' +
+      '<span class="opt-def-flow">' +
+        '<span class="formula opt-def-formula">' + defFormulaHTML(site.before) + '</span>' +
+        '<span class="opt-def-arrow">⇛</span>' +
+        '<span class="formula opt-def-formula">' + defFormulaHTML(site.after) + '</span>' +
+      '</span></button>';
+  }
+
+  function definitionPickerHTML(node) {
+    var T = window.RSL.Term;
+    if (!T) return '';
+    var input = definitionInputTokens(node.id);
+    if (!input) return '';
+    var mode = node.kind === 'def-expand' ? 'expand' : 'contract';
+    var sites;
+    try { sites = T.definitionSites(input, mode); } catch (e) { return ''; }
+    var current = node.config && Array.isArray(node.config.at) ? node.config.at : null;
+    var html = sites.map(function (site) {
+      return defSiteChipHTML(site, !!current && defPathSame(current, site.path));
+    }).join('');
+    /* 即使当前断言没有可重写位置也保留 all 芯片，便于清掉上游变化后失效的 at。 */
+    html += '<button class="opt opt-def opt-def-all' + (current ? '' : ' is-on') +
+      '" data-config="at" data-at="all" title="all">all</button>';
+    return '<div class="def-title">rewrite</div><div class="def-grid">' + html + '</div>';
+  }
+
   function renderPopover() {
     var node = state.selectedNode ? state.board.node(state.selectedNode) : null;
-    var isGrid = !!node && (node.kind === 'atom' || node.kind === 'term');
+    var isGrid = !!node && node.kind === 'atom';
+    var isDefs = !!node && (node.kind === 'def-expand' || node.kind === 'def-contract');
     els.popover.classList.toggle('is-grid', isGrid);
+    els.popover.classList.toggle('is-defs', isDefs);
     if (!node || node.kind === 'target') { els.popover.hidden = true; return; }
     var config = node.config || {};
     var html = '';
@@ -756,17 +816,19 @@
     } else if (node.kind === 'subst') {
       var extras = substExtras(config);
       html = (extras >= 1
-        ? '<button class="opt opt-minus" data-config="removeGroup" data-value="1" aria-label="减少一组代入" title="减少一组代入">−</button>'
+        ? '<button class="opt opt-minus" data-config="removeGroup" data-value="1" aria-label="remove group" title="remove group">−</button>'
         : '') +
         (extras < 4
-          ? '<button class="opt opt-plus" data-config="dual" data-value="1" aria-label="加一组代入" title="加一组代入">＋</button>'
+          ? '<button class="opt opt-plus" data-config="dual" data-value="1" aria-label="add group" title="add group">＋</button>'
           : '');
     } else if (node.kind === 'all-inst' || node.kind === 'exists-gen' || node.kind === 'gen' || node.kind === 'shift') {
       html = VAR_CHOICES.map(function (v) {
         return '<button class="opt opt-var' + (config.v === v ? ' is-on' : '') + '" data-config="v" data-value="' + v + '">' + v + '</button>';
       }).join('');
+    } else if (node.kind === 'def-expand' || node.kind === 'def-contract') {
+      html = definitionPickerHTML(node);
     }
-    if (!html) { els.popover.hidden = true; els.popover.classList.remove('is-grid'); return; }
+    if (!html) { els.popover.hidden = true; els.popover.classList.remove('is-grid'); els.popover.classList.remove('is-defs'); return; }
     els.popover.innerHTML = html;
     els.popover.hidden = false;
   }
@@ -952,6 +1014,22 @@
     els.popover.addEventListener('click', function (e) {
       var opt = e.target.closest('[data-config]');
       if (opt && state.selectedNode) {
+        if (opt.dataset.config === 'at') {
+          var defNode = state.board.node(state.selectedNode);
+          if (defNode && (defNode.kind === 'def-expand' || defNode.kind === 'def-contract')) {
+            var at = opt.dataset.at;
+            if (at === 'all') {
+              if (defNode.config) delete defNode.config.at;
+              state.board.render();
+            } else {
+              var path = at === '@' ? [] : at.split('.').map(function (x) { return parseInt(x, 10); });
+              state.board.updateConfig(state.selectedNode, { at: path });
+            }
+          }
+          state.selectedNode = state.board.selectedNode;
+          refresh();
+          return;
+        }
         if (opt.dataset.config === 'dual') {
           var current = state.board.node(state.selectedNode);
           if (current && current.kind === 'subst') {

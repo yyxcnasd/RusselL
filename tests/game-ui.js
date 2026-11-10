@@ -3,9 +3,11 @@
 const { runTest, fileUrl } = require('./lib/browser');
 const { ok, equal, includes } = require('./lib/expect');
 
-const TOTAL = 96;
+const TOTAL = 108;
 const TUTORIALS = 8;
-const BASE = 32;
+const BASE = 20;
+const HARD = 70;
+const DEMON = 10;
 
 runTest('game-ui', async ({ openPage }) => {
   const page = await openPage({ width: 1440, height: 900, url: fileUrl('index.html'), shotDir: '.research/shots' });
@@ -23,7 +25,7 @@ runTest('game-ui', async ({ openPage }) => {
       hasLogic: !!window.RSL.Logic
     };
   })()`);
-  equal(home.levels, TOTAL, '游戏加载 88 编号关 + 8 教学关');
+  equal(home.levels, TOTAL, '游戏加载 100 编号关 + 8 教学关');
   equal(home.code, 'i', '首关是教学关 i');
   includes(home.goal.replace(/\s+/g, ''), 'P→(Q→P)', '教学关目标 A1 实例');
   ok(home.tiles > 0, '元件栏有构造/规则/公理');
@@ -69,23 +71,25 @@ runTest('game-ui', async ({ openPage }) => {
       tutorialCells: document.querySelectorAll('.band.tutorial [data-level]').length,
       baseCells: document.querySelectorAll('.band.base [data-level]').length,
       challengeCells: document.querySelectorAll('.band.challenge [data-level]').length,
+      demonCells: document.querySelectorAll('.band.demon [data-level]').length,
       labels: labels
     };
   })()`);
   equal(sheet.chapters, 1, '选关只有一条课程线');
   equal(sheet.tutorials, 1, '一条教学分带');
   equal(sheet.tutorialCells, 8, '教学分带 8 格');
-  equal(sheet.baseCells, 32, '普通分带 32 格');
-  equal(sheet.challengeCells, 56, '困难分带 56 格');
-  includes(sheet.labels.join('|'), 'Level 88', '有 88 号编号关');
+  equal(sheet.baseCells, BASE, '普通分带 20 格');
+  equal(sheet.challengeCells, HARD, '困难分带 70 格');
+  equal(sheet.demonCells, DEMON, '魔王分带 10 格');
+  includes(sheet.labels.join('|'), 'Level 99', '有 99 号编号关');
   await page.shot('levels');
 
-  /* 点困难关格：应直接加载 33。 */
+  /* 点困难关格：应直接加载 20。 */
   await page.js(`(function(){
     var app = window.RSL.APP;
-    var idx = app.state.levels.map(function(l){return l.code}).indexOf('33');
+    var idx = app.state.levels.map(function(l){return l.code}).indexOf('20');
     var cell = document.querySelector('[data-level="' + idx + '"]');
-    if (!cell) throw new Error('找不到 33 的选关格');
+    if (!cell) throw new Error('找不到 20 的选关格');
     cell.click();
   })()`);
   await page.sleep(200);
@@ -100,9 +104,9 @@ runTest('game-ui', async ({ openPage }) => {
       sheetOpen: document.querySelectorAll('[data-level]').length > 0
     };
   })()`);
-  equal(lemmaView.code, '33', '点击困难关加载 33');
+  equal(lemmaView.code, '20', '点击困难关加载 20');
   equal(lemmaView.band, 'challenge', '困难关 band 为 challenge');
-  equal(lemmaView.hard, true, '33 是困难关');
+  equal(lemmaView.hard, true, '20 是困难关');
   ok(lemmaView.goal.length > 0, '引理关目标渲染');
   ok(lemmaView.tiles > 0, '引理关元件栏有可放置模块');
   equal(lemmaView.sheetOpen, false, '点击关卡后选关面板关闭');
@@ -110,12 +114,12 @@ runTest('game-ui', async ({ openPage }) => {
 
   /* 帮助只保留推理/定义规则图例，不列变元/连接词/公理（D/D⁻ 本轮新增）。 */
   await page.js('document.querySelector("#helpBtn").click()');
-  await page.waitFor('document.querySelectorAll(".help-card").length === 7');
+  await page.waitFor('document.querySelectorAll(".help-card").length === 4');
   const help = await page.js(`(function(){
     return {labels: Array.from(document.querySelectorAll('.help-card b')).map(function(b){return b.textContent}),
             text: document.querySelector('.help-cards').textContent};
   })()`);
-  equal(help.labels.join(','), 'A1,A2,A3,S,M,D,D⁻', '帮助列三条公理、代入、分离与定义重写');
+  equal(help.labels.join(','), 'S,M,D,D⁻', '帮助列 S/M/D/D⁻');
   ok(!/[\u4e00-\u9fa5]/.test(help.text), '帮助图例不含汉字');
   await page.shot('help');
   await page.js('window.RSL.UI.closeSheet()');
@@ -145,8 +149,8 @@ runTest('game-ui', async ({ openPage }) => {
   })()`);
   ok(hint.text.length > 0, '提示面板显示第一层提示');
   ok(/1\s*\/\s*3/.test(hint.nav), '提示面板有三页导航');
-  equal(hint.count, TUTORIALS + BASE, '8 教学 + 32 普通关参与提示检查');
-  equal(hint.missing, 0, '40 个教学/普通关都有定制提示');
+  equal(hint.count, TUTORIALS + BASE, '8 教学 + 20 普通关参与提示检查');
+  equal(hint.missing, 0, '28 个教学/普通关都有定制提示');
   equal(hint.unique, TUTORIALS + BASE, '教学/普通关提示内容互不重复');
   ok(hint.lemmaHints === 0 || hint.lemmaUnique === hint.lemmaHints, '引理关提示若存在则互不重复');
   await page.js('window.RSL.UI.closeSheet()');
@@ -193,7 +197,8 @@ runTest('game-ui', async ({ openPage }) => {
   await page.js('document.querySelector("[data-hint-next]").click()');
   await page.waitFor('document.querySelector(".hint-page.is-recipe") !== null');
   const tier3 = await page.js(`document.querySelector('.hint-page.is-recipe').textContent`);
-  ok(/模块：/.test(tier3) && /接线：/.test(tier3), '提示3给出完整接线清单');
+  ok(/modules:/.test(tier3) && /wires:/.test(tier3), '提示3给出完整接线清单（English 标签）');
+  ok(!/[\u4e00-\u9fa5]/.test(tier3), '提示3参考解不含汉字');
   await page.js(`window.RSL.UI.closeSheet();
     delete window.toy;
     window.RSL.Hints.isToyHost = window.__realHintHost;
@@ -246,7 +251,7 @@ runTest('game-ui', async ({ openPage }) => {
   /* 元件栏合并：原子 P/Q/R 共享一个 tile，具体字母在配置弹层里选 */
   const mergedTray = await page.js(`(function(){
     var app = window.RSL.APP;
-    var idx = app.state.levels.map(function(l){return l.code}).indexOf('01');
+    var idx = app.state.levels.map(function(l){return l.code}).indexOf('00');
     app.loadLevel(idx);
     var parts = window.RSL.Catalog.partsForLevel(app.state.level);
     var atom = parts.filter(function(p){return p.kind==='atom'})[0];
@@ -337,18 +342,18 @@ runTest('game-ui', async ({ openPage }) => {
   })()`);
   equal(zoomMin, 0.05, '缩放下限为 0.05');
 
-  /* 最后一关：88 与目标 */
-  await page.js('window.RSL.APP.loadLevel(window.RSL.APP.state.levels.map(function(l){return l.code}).indexOf("88"))');
+  /* 最后一关：99 与目标 */
+  await page.js('window.RSL.APP.loadLevel(window.RSL.APP.state.levels.map(function(l){return l.code}).indexOf("99"))');
   await page.sleep(300);
   const last = await page.js(`(function(){
     return {code: window.RSL.APP.state.level.code,
             goal: document.getElementById('goalFormula').textContent.trim(),
             tiles: document.querySelectorAll('.tile').length};
   })()`);
-  equal(last.code, '88', '可以进入最后一关 88');
+  equal(last.code, '99', '可以进入最后一关 99');
   ok(last.goal.length > 0, '最后一关目标渲染');
   ok(last.tiles > 0, '最后一关元件栏');
   ok(await page.js('window.RSL.APP.state.level.solution.nodes.length > 0'), '最后一关有参考电路');
   equal(page.problems().length, 0, '页面无 JS 错误：' + JSON.stringify(page.problems().slice(0, 3)));
-  await page.shot('game-96');
+  await page.shot('game-108');
 });
