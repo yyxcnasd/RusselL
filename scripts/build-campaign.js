@@ -129,8 +129,52 @@ function createBuilder() {
 /* ---------- 证明项 → 断言电路 ---------- */
 function compileProof(proof, builder, ctx) {
   const proofCache = new WeakMap();
+  const keyCache = new WeakMap();
+  const byKey = new Map();
+
+  function arrayKey(a) {
+    return Array.isArray(a) ? a.join('\u0001') : String(a);
+  }
+  function atomsKey(atoms) {
+    const o = atoms || {};
+    return Object.keys(o).sort().map((k) => k + '=' + arrayKey(o[k])).join('\u0002');
+  }
+  function proofKey(pt) {
+    if (!pt || typeof pt !== 'object') return String(pt);
+    if (keyCache.has(pt)) return keyCache.get(pt);
+    let k;
+    switch (pt.op) {
+      case 'axiom': k = 'ax|' + pt.schema + '|' + (pt.v || '') + '|' + atomsKey(pt.atoms); break;
+      case 'lemma': k = 'thm|' + pt.n + '|' + atomsKey(pt.atoms); break;
+      case 'subst': k = 'sub|' + proofKey(pt.of) + '|' + atomsKey(pt.atoms) + '|' + JSON.stringify(pt.vars || null); break;
+      case 'mp': k = 'mp|' + proofKey(pt.a) + '|' + proofKey(pt.b); break;
+      case 'gen': k = 'gen|' + proofKey(pt.of) + '|' + pt.v; break;
+      case 'shift': k = 'shift|' + arrayKey(pt.formula) + '|' + pt.v; break;
+      case 'allInst': k = 'allInst|' + arrayKey(pt.formula) + '|' + pt.v + '|' + pt.t; break;
+      case 'existsGen': k = 'existsGen|' + arrayKey(pt.formula) + '|' + pt.v + '|' + pt.t; break;
+      case 'existsE': k = 'existsE|' + proofKey(pt.ex) + '|' + proofKey(pt.imp); break;
+      default:
+        k = pt.op + '|' + JSON.stringify(pt || {});
+        break;
+    }
+    keyCache.set(pt, k);
+    return k;
+  }
+
+  function cleanAtoms(atoms) {
+    const out = {};
+    Object.keys(atoms || {}).forEach((name) => {
+      const body = atoms[name];
+      /* P ↦ P 这种空代换不生成 S 节点。 */
+      if (Array.isArray(body) && body.length === 1 && body[0] === name) return;
+      out[name] = body;
+    });
+    return out;
+  }
 
   function resolve(pt) {
+    const pk = proofKey(pt);
+    if (byKey.has(pk)) return byKey.get(pk);
     if (proofCache.has(pt)) return proofCache.get(pt);
     let id;
     switch (pt.op) {
@@ -142,11 +186,11 @@ function compileProof(proof, builder, ctx) {
             if (pt.n >= ctx.no) throw new Error('关卡 *' + PAD(ctx.no) + ' 不能引用自己或更晚的 *' + PAD(pt.n));
             return builder.addNode('theorem', { n: pt.n });
           })();
-        const atoms = pt.atoms || {};
+        const atoms = cleanAtoms(pt.atoms);
         const names = Object.keys(atoms);
         if (!names.length) { id = base; break; }
         if (names.length > 3) throw new Error('一个实例最多 3 组原子代入');
-        id = builder.addNode('subst', {});
+        id = builder.addNode('subst', { groups: Math.max(0, names.length - 1) });
         builder.connect(base, 'out', id, 'assertion');
         names.forEach((name, i) => {
           const atomNode = builder.addNode('atom', { name });
@@ -157,20 +201,27 @@ function compileProof(proof, builder, ctx) {
         break;
       }
       case 'subst': {
-        id = builder.addNode('subst', {});
+        const atoms = cleanAtoms(pt.atoms);
+        const atomNames = Object.keys(atoms);
+        if (atomNames.length > 3) throw new Error('subst 最多 3 组原子');
+        let vars = null;
+        if (pt.vars) {
+          const from = Object.keys(pt.vars)[0];
+          if (from !== pt.vars[from]) vars = pt.vars;
+        }
         const src = resolve(pt.of);
+        if (!atomNames.length && !vars) { id = src; break; }
+        id = builder.addNode('subst', { groups: Math.max(0, atomNames.length - 1) });
         builder.connect(src, 'out', id, 'assertion');
-        const atoms = Object.keys(pt.atoms || {});
-        if (atoms.length > 3) throw new Error('subst 最多 3 组原子');
-        atoms.forEach((name, i) => {
+        atomNames.forEach((name, i) => {
           const atomNode = builder.addNode('atom', { name });
-          const formulaNode = builder.formula(pt.atoms[name]);
+          const formulaNode = builder.formula(atoms[name]);
           builder.connect(atomNode, 'out', id, 'atom' + (i + 1));
           builder.connect(formulaNode, 'out', id, 'formula' + (i + 1));
         });
-        if (pt.vars) {
-          const from = Object.keys(pt.vars)[0];
-          const to = pt.vars[from];
+        if (vars) {
+          const from = Object.keys(vars)[0];
+          const to = vars[from];
           const a = builder.termNode(from);
           const b = builder.termNode(to);
           builder.connect(a, 'out', id, 'vleft');
@@ -287,14 +338,76 @@ function compileProof(proof, builder, ctx) {
         throw new Error('未知证明项 ' + pt.op);
     }
     proofCache.set(pt, id);
+    byKey.set(pk, id);
     return id;
   }
 
   return resolve(proof);
 }
 
+/* ---------- 证明节点去重 ---------- */
+function dedupeProofNodes(nodes, edges, targetId, evalResult) {
+  const byId = new Map(nodes.map((n) => [n.id, n]));
+  const rank = (n) => {
+    if (n.kind === 'theorem') return 0;
+    if (n.kind === 'axiom') return 1;
+    if (n.kind === 'subst') return 2;
+    return 3;
+  };
+  const groups = new Map();
+  const orderIndex = new Map();
+  (evalResult.order || []).forEach((id, i) => orderIndex.set(id, i));
+  nodes.forEach((n) => {
+    const r = evalResult.results && evalResult.results[n.id];
+    if (!r || !r.tokens || r.tokens[0] !== '|-' || n.kind === 'target') return;
+    const key = r.tokens.join('\u0000');
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(n);
+  });
+  const replace = new Map();
+  groups.forEach((list) => {
+    if (list.length < 2) return;
+    list.sort((a, b) => {
+      const ra = rank(a), rb = rank(b);
+      if (ra !== rb) return ra - rb;
+      return (orderIndex.get(a.id) || 0) - (orderIndex.get(b.id) || 0);
+    });
+    const keep = list[0];
+    list.slice(1).forEach((n) => { replace.set(n.id, keep.id); });
+  });
+  if (!replace.size) return { nodes: nodes, edges: edges, removed: 0 };
+  const keptEdges = [];
+  edges.forEach((e) => {
+    const from = replace.get(e.from.node) || e.from.node;
+    if (from === e.to.node) return;
+    keptEdges.push({
+      id: e.id,
+      from: { node: from, port: e.from.port },
+      to: { node: e.to.node, port: e.to.port }
+    });
+  });
+  const needed = new Set([targetId]);
+  let changed = true;
+  while (changed) {
+    changed = false;
+    keptEdges.forEach((e) => {
+      if (needed.has(e.to.node) && !needed.has(e.from.node)) {
+        needed.add(e.from.node);
+        changed = true;
+      }
+    });
+  }
+  const keptNodes = nodes.filter((n) => needed.has(n.id) || n.kind === 'target');
+  const keptIds = new Set(keptNodes.map((n) => n.id));
+  return {
+    nodes: keptNodes,
+    edges: keptEdges.filter((e) => keptIds.has(e.from.node) && keptIds.has(e.to.node)),
+    removed: nodes.length - keptNodes.length
+  };
+}
+
 /* ---------- 布局 ---------- */
-function layout(nodes, edges, targetId) {
+function layout(nodes, edges, targetId, results) {
   const incoming = new Map();
   nodes.forEach((n) => incoming.set(n.id, []));
   edges.forEach((e) => { if (incoming.has(e.to.node)) incoming.get(e.to.node).push(e.from.node); });
@@ -319,13 +432,34 @@ function layout(nodes, edges, targetId) {
     columns.get(c).push(n);
   });
   const COL_W = 268;
-  const ROW_H = 178;
   const PAD_X = 40;
   const PAD_Y = 40;
+  const GAP = 28;
+  function inputCount(n) {
+    if (n.kind === 'target') return 1;
+    if (n.kind === 'subst') {
+      const extras = Math.max(0, Math.min(4, (n.config && n.config.groups) || 0));
+      return 1 + 2 * (1 + extras);
+    }
+    const info = Engine.info(n.kind);
+    return info && info.ports ? (info.ports.inputs || []).length : 1;
+  }
+  function nodeHeight(n) {
+    const r = results && results[n.id];
+    const tokenCount = r && r.tokens ? r.tokens.length : 16;
+    const lines = Math.max(1, Math.ceil(tokenCount / 18));
+    const formulaH = 64 + lines * 27;
+    const portH = n.kind === 'target'
+      ? 46 + 29
+      : 47 + Math.max(0, inputCount(n) - 1) * 32 + 29;
+    return Math.max(112, formulaH, portH);
+  }
   columns.forEach((list, c) => {
-    list.forEach((n, i) => {
+    let y = PAD_Y;
+    list.forEach((n) => {
       n.x = PAD_X + c * COL_W;
-      n.y = PAD_Y + i * ROW_H;
+      n.y = y;
+      y += nodeHeight(n) + GAP;
     });
   });
   const maxDepth = Math.max.apply(null, Array.from(depth.values()).concat([0]));
@@ -344,20 +478,52 @@ function compileLevel(def, prevLevels) {
   const finalId = compileProof(def.proof, builder, { no: isTutorial ? 1 : def.no });
   const targetId = builder.addNode('target', {});
   builder.connect(finalId, 'out', targetId, 'proof');
-  const nodes = builder.nodes;
-  layout(nodes, builder.edges, targetId);
   const targetTokens = ['|-'].concat(def.target);
+  const currentNo = isTutorial ? 1 : def.no;
+  let nodes = builder.nodes;
+  let edges = builder.edges;
+
+  /* 先按“输出断言”合并语义相同的证明节点，再清掉只剩构造节点的死支。
+   * 同一个 |- 公式可以由不同路径证明；下游只关心输出，所以可以安全共享。 */
+  const pre = Engine.evaluate({ targetTokens: targetTokens }, nodes, edges, { levels: prevLevels, levelNo: currentNo });
+  if (pre.complete) {
+    const merged = dedupeProofNodes(nodes, edges, targetId, pre);
+    if (merged.removed > 0) {
+      nodes = merged.nodes;
+      edges = merged.edges;
+    }
+  }
+
+  layout(nodes, edges, targetId, pre.results);
   nodes.find((n) => n.id === targetId).targetTokens = targetTokens;
+
+  /* S 的可见引脚组必须覆盖它所有 atom/formula 接线。 */
+  nodes.forEach((n) => {
+    if (n.kind !== 'subst') return;
+    let maxGroup = 1;
+    edges.forEach((e) => {
+      if (e.to.node !== n.id) return;
+      const m = /^(?:atom|formula)(\d+)$/.exec(e.to.port);
+      if (m) maxGroup = Math.max(maxGroup, Number(m[1]));
+    });
+    const groups = (n.config && n.config.groups) || 0;
+    if (groups < maxGroup - 1) {
+      throw new Error(displayCode + ' 的 S 元件少生成了引脚组：需要 ' + (maxGroup - 1) + '，实际 ' + groups);
+    }
+  });
 
   /* 只收录参考证明实际用到的模块：元件栏保持精简，玩家按参考解法即可通关。 */
   const mergedPalette = [];
   const seenPalette = new Set();
-  builder.used().forEach((entry) => {
+  nodes.forEach((entry) => {
     if (entry.kind === 'target') return;
     const k = entry.kind + ':' + JSON.stringify(entry.config || {});
     if (seenPalette.has(k)) return;
     seenPalette.add(k);
-    mergedPalette.push(entry);
+    mergedPalette.push({
+      kind: entry.kind,
+      config: entry.kind === 'subst' ? {} : (entry.config || {})
+    });
   });
 
   const level = {
@@ -374,7 +540,7 @@ function compileLevel(def, prevLevels) {
     targetTokens,
     palette: mergedPalette,
     initialNodes: [],
-    solution: { nodes: nodes.filter((n) => n.id !== targetId), edges: builder.edges },
+    solution: { nodes: nodes.filter((n) => n.id !== targetId), edges: edges },
     difficulty: 0,
     stats: { steps: 0 }
   };
@@ -384,14 +550,13 @@ function compileLevel(def, prevLevels) {
   level.stats.steps = countSteps(level.solution.nodes);
   level.difficulty = countSteps(level.solution.nodes) + 0.1 * (def.target.length / 4);
 
-  const currentNo = isTutorial ? 1 : def.no;
-  const result = Engine.evaluate(level, nodes, builder.edges, { levels: prevLevels, levelNo: currentNo });
+  const result = Engine.evaluate(level, nodes, edges, { levels: prevLevels, levelNo: currentNo });
   if (!result.complete) {
     const first = (result.errors || [])[0];
     let detail = '';
     if (first) {
       const bad = nodes.filter((n) => n.id === first.nodeId)[0];
-      const ins = builder.edges.filter((e) => e.to.node === first.nodeId);
+      const ins = edges.filter((e) => e.to.node === first.nodeId);
       detail = ' @' + (bad ? bad.kind + '/' + JSON.stringify(bad.config) : first.nodeId) +
         ' inputs=' + ins.map((e) => {
           const r = result.results[e.from.node];
