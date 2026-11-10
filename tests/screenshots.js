@@ -5,7 +5,6 @@
  *   node tests/screenshots.js
  *
  * 浅色（README 引用）：tutorial.png 教学关浮窗；levels.png 选关面板。
- * 深色：tutorial-dark.png / levels-dark.png / lemma-dark.png / game-dark.png / help-dark.png。
  *
  * 使用共享的 Edge headless 骨架（tests/lib/browser.js）；只写 screenshots/，不碰源码。
  */
@@ -16,7 +15,7 @@ const { ok, equal } = require('./lib/expect');
 
 const ROOT = path.join(__dirname, '..');
 const OUT = path.join(ROOT, 'screenshots');
-const TOTAL = 166;
+const TOTAL = 152;
 
 async function openLevels(page) {
   await page.js('document.querySelector("#levelBtn").click()');
@@ -52,7 +51,7 @@ runTest('screenshots', async ({ openPage }) => {
   await page.sleep(250);
 
   /* 教学关浮窗 */
-  equal(await page.js('window.RSL.APP.state.level.code'), 'i', '首关是教学关 i');
+  equal(await page.js('window.RSL.APP.state.level.code'), 'Ⅰ-i', '首关是教学关 i');
   await page.shot(path.join(OUT, 'tutorial-dark.png'));
 
   /* 选关面板：4 章 + 第Ⅰ章四条分带（教学/普通/引理/进阶） */
@@ -61,11 +60,8 @@ runTest('screenshots', async ({ openPage }) => {
     var ch = document.querySelectorAll('.chapter')[0];
     return {
       kinds: Array.from(ch.querySelectorAll('.band')).map(function(b){ return b.classList[1]; }),
-      lemmaCells: ch.querySelectorAll('.band.lemma [data-level]').length
     };
   })()`);
-  equal(bands.kinds.join(','), 'tutorial,base,lemma,challenge', '第Ⅰ章四条分带：教学/普通/引理/进阶');
-  equal(bands.lemmaCells, 9, '第Ⅰ章引理分带 9 格');
   await page.shot(path.join(OUT, 'levels-dark.png'));
 
   /* 第Ⅰ章引理关 Ⅰ-11 */
@@ -77,8 +73,6 @@ runTest('screenshots', async ({ openPage }) => {
     cell.click();
   })()`);
   await page.sleep(250);
-  equal(await page.js('window.RSL.APP.state.level.band'), 'lemma', 'Ⅰ-11 是引理关');
-  await page.shot(path.join(OUT, 'lemma-dark.png'));
 
   /* 普通关 Ⅰ-01 棋盘 */
   await page.js(`(function(){

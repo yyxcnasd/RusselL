@@ -177,16 +177,19 @@
         inputs: [{ id: 't1', label: '个体 1', type: TERM }, { id: 't2', label: '个体 2', type: TERM }],
         outputs: [{ id: 'out', label: 'F(x) / x=y', type: FORMULA }]
       },
-      config: { symbol: 'F' },
+      config: { symbol: 'F', arity: 1 },
       help: 'F(x)、G(x)、H(x) 或等词 x = y（符号选“=”，需要两个个体）。',
       apply: function (inputs, cfg) {
         var sym = cfg.symbol || 'F';
         var t1 = termOf(inputs, 't1', 'x');
+        var t2 = termOf(inputs, 't2', 'y');
         if (sym === '=') {
-          var t2 = termOf(inputs, 't2', 'x');
           return { tokens: wffOf([t1, '=', t2]), note: t1 + ' = ' + t2 };
         }
         if (!/^[FGH]$/.test(sym)) sym = 'F';
+        if (Number(cfg.arity) === 2) {
+          return { tokens: wffOf([sym, '(', t1, ',', t2, ')']), note: sym + '(' + t1 + ',' + t2 + ')' };
+        }
         return { tokens: wffOf([sym, '(', t1, ')']), note: sym + '(' + t1 + ')' };
       }
     },

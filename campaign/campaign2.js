@@ -198,6 +198,62 @@ function hintFor(text) {
   return '目标是 ' + text + '。先看最外层是蕴涵还是否定：蕴涵就从前提接起，否定就先接到「¬(…)→…」的实例上。';
 }
 
+
+/* =========================================================================
+ * 教学关（每章 4 个，只教模块怎么用；目标使用与主线关卡不同的变元组合，避免重题）
+ * ========================================================================= */
+const tk = (text) => T.body(T.parse(text));
+function tutorialDefs() {
+  const out = [];
+  const tut = (chapter, chapterGroup, key, title, code, flow, teaches, target, proof) => {
+    out.push({
+      key: 'tut_' + key, chapter, chapterGroup, tutorial: true, band: 'tutorial',
+      title, teaches, hint: teaches, tip: { code, flow }, target, proof,
+    });
+  };
+  /* 第Ⅰ章 */
+  tut(0, 'Ⅰ', 'axiom', '取出公理', 'A1', 'A1 ⇒ (P→(Q→P))', '接一块 A1。',
+    tk('P→(Q→P)'), { op: 'axiom', schema: 'A1' });
+  tut(0, 'Ⅰ', 'subst', '代入', 'S', 'A1 · P:=(R→Q) ⇒ (R→Q)→(Q→(R→Q))', '取 A1，把 P 代入 (R→Q)。',
+    tk('(R→Q)→(Q→(R→Q))'), { op: 'axiom', schema: 'A1', atoms: { P: tk('R→Q') } });
+  tut(0, 'Ⅰ', 'mp', '分离', 'M', 'A · A→B ⇒ B', 'A1 与它的实例接 M。',
+    tk('S→(P→(Q→P))'), { op: 'mp', a: { op: 'axiom', schema: 'A1' },
+      b: { op: 'axiom', schema: 'A1', atoms: { P: tk('P→(Q→P)'), Q: ['S'] } } });
+  tut(0, 'Ⅰ', 'dcontract', '定义收缩', 'D⁻', '¬(A→¬B) ⇒ A∧B', '先造原始公式，再用 D⁻ 折回 ∧。',
+    tk('(P∧R)→(Q→(P∧R))'),
+    { op: 'defContract', of: { op: 'axiom', schema: 'A1', atoms: { P: tk('¬(P→¬R)') } } });
+  /* 第Ⅱ章 */
+  tut(1, 'Ⅱ', 'alle', '全称例化', '∀E*', 'A · x→t ⇒ ∀xA→A[t/x]', '接一块 ∀E*：公式 F(x)、个体 z。',
+    tk('∀x F(x)→F(z)'), { op: 'allInst', formula: ['F', '(', 'x', ')'], v: 'x', t: 'z' });
+  tut(1, 'Ⅱ', 'allgen', '全称推广', '∀I', 'A ⇒ ∀xA', '接一块 ∀I：给 A1 的断言加 ∀x。',
+    tk('∀x (P→(Q→P))'), { op: 'gen', of: { op: 'axiom', schema: 'A1' }, v: 'x' });
+  tut(1, 'Ⅱ', 'shift', '全称引入（∀*）', '∀*', 'A ⇒ A→∀xA', '接一块 ∀*：x 不在 R 中自由出现。',
+    tk('R→∀x R'), { op: 'shift', formula: ['R'], v: 'x' });
+  tut(1, 'Ⅱ', 'existsi', '存在推广', '∃I*', 'A[t/x] ⇒ ∃xA', '接一块 ∃I*：公式 F(x)、个体 z。',
+    tk('F(z)→∃x F(x)'), { op: 'existsGen', formula: ['F', '(', 'x', ')'], v: 'x', t: 'z' });
+  /* 第Ⅲ章 */
+  tut(2, 'Ⅲ', 'eqrefl', '等词自反', '=I', 't ⇒ t=t', '接一块 =I。', tk('y=y'), { op: 'eqRefl', t: 'y' });
+  tut(2, 'Ⅲ', 'leibniz', '等词替换', '=L', 'y=x ⇒ F(y)→F(x)', '接一块 =L：把 F(y) 里的 y 换成 x。',
+    tk('y=x→(F(y)→F(x))'),
+    { op: 'leibniz', x: 'y', y: 'x', formula: ['F', '(', 'y', ')'], mode: 'replace' });
+  tut(2, 'Ⅲ', 'leibniz2', '等词替换（抽象）', '=L·z', 'y=x ⇒ G(y)→G(x)', '=L 的抽象模式。',
+    tk('y=x→(G(y)→G(x))'),
+    { op: 'leibniz', x: 'y', y: 'x', formula: ['G', '(', 'z', ')'], mode: 'abstract', v: 'z' });
+  tut(2, 'Ⅲ', 'thmref', '引用已证定理', '⊢·S', 'Ⅱ-01 · P:=F(z) ⇒ …', '用 theorem 引用前章关卡再代入。',
+    tk('∀x (F(z)→G(z))→(∀x F(z)→∀x G(z))'),
+    { op: 'lemma', code: '@pred_alim', atoms: { P: ['F', '(', 'z', ')'], Q: ['G', '(', 'z', ')'] } });
+  /* 第Ⅳ章 */
+  tut(3, 'Ⅳ', 'ext', '外延公理', 'EXT', '∀x(x∈a↔x∈b) ⇒ a=b', '接一块 EXT。',
+    tk('(∀z (z∈x↔z∈y))→x=y'), { op: 'setExt', a: 'x', b: 'y' });
+  tut(3, 'Ⅳ', 'pair', '配对公理', '{,}', '∃z∀w((w=x∨w=y)↔w∈z)', '接一块配对公理（u=y、v=x）。',
+    tk('∃u ∀z ((z=y∨z=x)↔z∈u)'), { op: 'setPair', u: 'y', v: 'x' });
+  tut(3, 'Ⅳ', 'union', '并集公理', '∪', '∃z∀w(∃y(w∈y∧y∈x)↔w∈z)', '接一块并集公理（a=y）。',
+    tk('∃x ∀z ((∃u (z∈u∧u∈y))↔z∈x)'), { op: 'setUnion', a: 'y' });
+  tut(3, 'Ⅳ', 'ext2', '外延公理（换序）', 'EXT·2', '∀x(x∈b↔x∈a) ⇒ b=a', 'EXT 换一组变量。',
+    tk('(∀z (z∈y↔z∈x))→y=x'), { op: 'setExt', a: 'y', b: 'x' });
+  return out;
+}
+
 function buildDefs() {
   const closed = CHAPTER1_LABELS.filter((label) => {
     const dag = loadDag(label);
@@ -355,6 +411,35 @@ function buildDefs() {
     proof: { op: 'existsGen', formula: ['F', '(', 'x', ')'], v: 'x', t: 'y' },
   });
 
+
+  /* 二元谓词的 ∀E* 实例：∀x F(x,y)→F(z,y) */
+  defs.push({
+    key: 'predBinaryA4', chapter: 1, chapterGroup: 'Ⅱ',
+    title: '二元谓词例化', teaches: '关系 F(x,y) 也能做全称例化。',
+    hint: '目标是 ∀x F(x,y)→F(z,y)：接一块 ∀E*，公式填 F(x,y)、个体填 z。',
+    target: ["(","A.","x","F","(","x",",","y",")","->","F","(","z",",","y",")",")"] ,
+    proof: { op: 'allInst', formula: ['F', '(', 'x', ',', 'y', ')'], v: 'x', t: 'z' },
+  });
+
+
+  /* 长公式的 A5 实例（目标超过普通关长度上限，放进困难带） */
+  defs.push({
+    key: 'predA5Long', chapter: 1, chapterGroup: 'Ⅱ',
+    title: '全称分配（长公式）', teaches: '量词分配对任意复杂公式都成立。',
+    hint: '目标是 ∀x((F→G→H)→F)→(∀x(F→G→H)→∀xF)：接一块 A5 代入 P、Q。',
+    target: ["(","A.","x","(","(","F","(","x",")","->","(","G","(","x",")","->","H","(","x",")",")",")","->","F","(","x",")",")","->","(","A.","x","(","F","(","x",")","->","(","G","(","x",")","->","H","(","x",")",")",")","->","A.","x","F","(","x",")",")",")"],
+    proof: { op: 'axiom', schema: 'A5', v: 'x', atoms: { P: ["(","F","(","x",")","->","(","G","(","x",")","->","H","(","x",")",")",")"], Q: ["F","(","x",")"] } },
+  });
+
+
+  defs.push({
+    key: 'predA5Long2', chapter: 1, chapterGroup: 'Ⅱ',
+    title: '全称分配（长公式二）', teaches: '量词分配对任意复杂公式都成立。',
+    hint: '目标是 ∀x((F→G)→H)→(∀x(F→G)→∀xH)：接一块 A5 代入 P、Q。',
+    target: ["(","A.","x","(","(","F","(","x",")","->","G","(","x",")",")","->","H","(","x",")",")","->","(","A.","x","(","F","(","x",")","->","G","(","x",")",")","->","A.","x","H","(","x",")",")",")"],
+    proof: { op: 'axiom', schema: 'A5', v: 'x', atoms: { P: ["(","F","(","x",")","->","G","(","x",")",")"], Q: ["H","(","x",")"] } },
+  });
+
   MANUAL.forEach((m) => {
     defs.push({
       key: m.key, chapter: 0, chapterGroup: 'Ⅰ',
@@ -363,6 +448,8 @@ function buildDefs() {
       target: m.target, proof: m.proof || m.dtProof,
     });
   });
+  tutorialDefs().forEach((t) => defs.push(t));
+
   return { chapters: [
     { key: 'prop', id: 'Ⅰ', title: '命题演算' },
     { key: 'pred', id: 'Ⅱ', title: '谓词与量词' },

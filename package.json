@@ -11,6 +11,6 @@
     "test:acceptance": "npm run build:toy && node tests/acceptance.js",
     "test:all": "npm test && npm run test:wire && npm run test:leaderboard && npm run test:ui && npm run test:acceptance",
     "build:toy": "node scripts/build-toy.js",
-    "build": "node scripts/restructure-levels.js"
+    "build": "node scripts/build-campaign2.js && node scripts/write-levels.js"
   }
 }

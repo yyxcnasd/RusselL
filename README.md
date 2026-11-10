@@ -10,8 +10,8 @@
     <a href="https://yyxcnasd.github.io/RusselL/"><img alt="网页版" src="https://img.shields.io/badge/PLAY-GitHub%20Pages-3f8e65?style=for-the-badge"></a>
     <img alt="B站 Toy" src="https://img.shields.io/badge/BILIBILI-Toy-e66f3f?style=for-the-badge">
     <img alt="版本" src="https://img.shields.io/badge/VERSION-v4.0.0-3f8e65?style=for-the-badge">
-    <img alt="主线关卡" src="https://img.shields.io/badge/MAIN-145-4f7fb5?style=for-the-badge">
-    <img alt="教学关" src="https://img.shields.io/badge/TUTORIAL-21-d3ad68?style=for-the-badge">
+    <img alt="主线关卡" src="https://img.shields.io/badge/MAIN-136-4f7fb5?style=for-the-badge">
+    <img alt="教学关" src="https://img.shields.io/badge/TUTORIAL-16-d3ad68?style=for-the-badge">
   </p>
 
   <p>

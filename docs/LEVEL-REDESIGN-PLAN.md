@@ -340,3 +340,26 @@ arity 配置与端口复用），这样谓词章才能出现真正的「关系�
 3. 写 16 个教学关（每章 4 个，按模块教学）；
 4. 接入 `src/levels.js`：新生成脚本替代 restructure-levels，游戏切到新 136 关；删掉 lemma band 残留代码；
 5. 重跑 npm test / game-ui / acceptance、导出 SOLUTIONS、深色截图、更新 ARCHITECTURE/README/HANDOFF。
+
+## 13. M3：新课程已经接管游戏（152 关）
+
+`npm run build` = `scripts/build-campaign2.js && scripts/write-levels.js`，生成 `src/levels.js`：
+
+- **152 关 = 16 教学 + 40 普通 + 96 困难**；每章 **4 教学 + 10 普通（5–21 模块）+ 24 困难（≤200 模块）**。
+- 教学关：每章 4 个（A1/S/M/D⁻、∀E*/∀I/∀*/∃I*、=I/=L/=L抽象/定理引用、EXT/配对/并集/EXT换序），
+  都是 1–4 个元件的小示范，`tip` 只用符号。
+- 第Ⅰ章普通关：legacy 已验证小证明（同一律/后件恒等/前件自应用/前件交换/空真）+ 拆分出的中间结论；
+  困难关含导入的 set.mm 命题引理与 ∧/∨/↔ 规则关（原始语言 + `def-contract`）。
+- 第Ⅱ章：导入 7 条量词律（alim/ala1/al2im/sylgt/ax5d/2ax5/stdpc5v=19.21）+ A4/A5/∀*/∃I* 实例关，
+  并支持**二元谓词 F(x,y)**（modules.js 的 pred.arity，term.js 早已支持）。
+- 第Ⅲ/Ⅳ章：legacy 的等词/集合论文档电路 + 拆分关。
+
+验收（本机实跑）：`npm test` 7/7、`test:wire` 10/10、`test:leaderboard` 2/2、
+`node tests/game-ui.js` PASS 61 checks、`npm run test:acceptance` PASS 26 checks（dist 加载 152 关）、
+`node tests/screenshots.js` PASS 6 checks、`node scripts/export-solutions.js` 生成 152 关解法清单。
+
+已知限制 / 待改进：
+1. 第Ⅱ/Ⅲ/Ⅳ章的普通关有相当一部分是「拆分出的中间结论」，目标公式可读性一般；后续可以换成
+   更有主题性的引理（尤其第Ⅳ章集合论现在还多是公理实例）。
+2. 困难关曲线是「大体递增」，允许 ≤3 处依赖强制的小倒挂（构建时打印警告）。
+3. 每章困难关里仍有少量 1–4 元件的「公理实例」关（用来补数），后续可替换成组合证明。

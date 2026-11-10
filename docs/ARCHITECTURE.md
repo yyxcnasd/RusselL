@@ -35,42 +35,37 @@ term → levels → campaign-meta → modules → engine → wire → achievemen
 ## 3. 数据流
 
 ```
-campaign/*.json + scripts/build-campaign.js / scripts/restructure-levels.js
-  └─ 证明项 → 棋盘电路（公式用构造模块搭、自动布局、Engine 验证）
-       └─ src/levels.js
-            └─ loadLevel(i) → Board.setData(initialNodes/存档) → Engine.evaluate
-                 → check → win
+campaign/campaign2.js（有序课程 + 证明项）
+  └─ scripts/build-campaign2.js（编译 + 真实 Engine 求值 + 按模块数排阶梯 + 门禁）
+       └─ campaign/campaign2-levels.json
+            └─ scripts/write-levels.js → src/levels.js + src/campaign-meta.js
 ```
 
-- 目标比较用 `Term.eq`：定义展开（∧/∨/↔/∃ → 只用 ¬/→/∀）+ α 规范化后比较；**显示**仍用 `Term.fmt/toHTML` 的表面语法，所以 `∧/∨/↔` 不会在棋盘上被拆成原始公式。
-- `D`（def-expand）把断言重写成原始公式，`D⁻`（def-contract）折叠回表面语法；两者只重写公式、需要 `⊢` 输入，不能凭空产生结论。引理关的参考解统一是“原始语言证明 → def-contract → 目标焊盘”。
-- 证明编译先做结构哈希共享，再按“输出断言相同”合并证明节点，并清掉因此失效的构造支路；空 S 代换直接短路，S 的引脚组按实际代入组生成；原子 P/Q/R 与所有 wff 构造节点按 canonical token 全局共享；输出命中前面关卡目标的子证明改为直接引用该关定理。所有关卡参考解仍逐关经过真实 Engine 求值。
-- 定理模块按关卡号查找，且引擎拒绝 `index >= 当前关卡`（只能引用数组里更早的关卡，教学关同样适用）。
-- 存档在 localStorage（版本 3 key 保留），重进关卡可恢复自己的电路。
-- B 站 Toy 版在 localStorage 之外把精简存档分片写入 Toy 云存储；网页版/本地不加载 SDK，仍只读本地存档。
+- 一条命令重建：`npm run build`（= build-campaign2 && write-levels）。
+- 每章：4 教学 + 10 普通（5–21 模块）+ 24 困难（≤200 模块、hint=null）；共 152 关。
+- 普通关不能引用更晚的关卡；困难关可以引用前章已选关卡。
+- 第Ⅰ章的 ∧/∨/↔ 规则关用原始语言证明、末尾 `def-contract` 折回表面语法。
+- 第Ⅱ章含从本地 set.mm 重放导入的量词律（alim / stdpc5v 等）；第Ⅲ/Ⅳ章复用 legacy 已验证电路。
+- 存档在 localStorage（版本 3 key 保留）。
 
 ## 4. 作者链路
 
-- `campaign/legacy-levels.json` 保留原 114 关素材；`scripts/migrate-derived-modules.js`（幂等）把其中的
-  6 个派生公理节点改写成 `theorem{引理关} → subst`；`scripts/restructure-levels.js` 生成第Ⅰ章
-  10 普通 + 9 引理 + 24 困难与其它章的 10 普通 + 24 困难；`campaign/tutorials.json`
-  是已有教学关，另有 3 个 D 定义 / 原始语法 / 引用已证定理的教学关由 restructure 生成。
-  困难关可使用前面编号关的定理，引用形如 `Ⅰ-13`。
-  `scripts/authoring/harden-*.js` 用演绎定理引擎把个别关卡升级为组合证明（改完后必须重跑
-  `build-campaign` 与测试），`make-tutorials.js` 生成教学关。
-- 第Ⅰ/Ⅱ章的参考证明历史上来自 set.mm 真实证明（ax-1…ax-gen 与 a1i/mpd 等推理式引理的内联展开），
-  生成工具已随旧重放体系一起移除；仓库只保留已编译好的参考证明，不再引入 archive/重放模块。
-- 第Ⅰ章的 9 个引理关（析取引入左/右、合取引入、合取消去左/右、析取消去、等值引入、等值消去左/右）
-  的参考解只用 A1–A3 + S/M + 更早引理关 theorem + def-contract，禁止任何已删除的派生公理。
-- 等词章用 Leibniz 规则（抽象/直接替换两种模式）+ 等词自反，与第Ⅰ/Ⅱ章定理组合。
+- `campaign/campaign2.js` 是唯一课程编排入口：导入关（set.mm 重放证明，`campaign/mm/proofs/*.json`）
+  与手写关（证明项）按依赖拓扑排序；`campaign/legacy-levels.json` 提供已验证的 legacy 电路
+  （第Ⅱ/Ⅲ/Ⅳ章内容与第Ⅰ章基座）。
+- `scripts/mm-import.js` 用本地 `assets/data/set.mm` 重放证明并导出证明 DAG（开发期工具，
+  构建时不需要 set.mm）。
+- `scripts/lib/mm-bridge.js` 把 set.mm 证明翻译成我们的证明项；`scripts/lib/proof-dt.js` 提供
+  演绎定理工具（手写紧凑普通关用）。
+- 旧的 `build-campaign.js` / `restructure-levels.js` 管线已删除。
 
 ## 5. 测试
 
 | 命令 | 内容 |
 | --- | --- |
-| `npm test` | 166 关 schema（40 普通 + 9 引理 + 96 困难 + 21 教学）、模块表（无 6 个派生公理、有 D）、定理引用只指向更早关卡、参考证明逐关真实 Engine 求值、编号越界拒绝 |
-| `npm run test:wire` | 端口布线纯函数：直线、障碍绕行、近端口、并行车道 |
-| `npm run test:leaderboard` | 排行榜分数：通关数优先、效率次之，落在 Toy 分数范围 |
-| `npm run test:ui` | Edge headless：加载 166 关、选关/教学分带/第Ⅰ章引理分带、点击引理关加载、合并元件、帮助/提示/排行榜面板、无 JS 错误 |
-| `npm run test:acceptance` | dist 清单与源码一致；dist 直接加载完整 166 关 |
-| `node tests/screenshots.js` | 深色模式截图：`screenshots/*-dark.png`（选关/教学/引理/普通关/帮助） |
+| `npm test` | 152 关 schema（每章 4 教学 + 10 普通 + 24 困难）、模块表、参考证明逐关真实 Engine 求值、定理只引更早 |
+| `npm run test:wire` | 端口布线纯函数 |
+| `npm run test:leaderboard` | 排行榜分数 |
+| `node tests/game-ui.js` | Edge headless：加载 152 关、选关/教学分带/帮助/提示/排行榜面板、无 JS 错误 |
+| `npm run test:acceptance` | dist 清单与源码一致；dist 直接加载完整 152 关 |
+| `node tests/screenshots.js` | 浅色/深色截图 |

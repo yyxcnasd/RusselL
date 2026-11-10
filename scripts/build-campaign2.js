@@ -437,7 +437,7 @@ function coneCandidates(compiled, limitPerLevel) {
           chapter: c.def.chapter, chapterGroup: c.def.chapterGroup,
           title: '引理 ' + T.fmt(['wff'].concat(tokens)).slice(0, 24),
           teaches: tokens.join(' '),
-          hint: '把目标公式按接线一路拆到公理；这一关的结论在后面的关卡里会当作黑盒使用。',
+          hint: '目标 ' + T.fmt(['wff'].concat(tokens)) + '：把这段子证明按接线一路拆到公理，后面会把它当黑盒。',
           target: tokens, circuit: { nodes, edges, outputId: n.id }, forceBand: 'base',
           placeholder: '@cone_' + c.def.placeholder.replace(/[^A-Za-z0-9_]/g, '') + '_' + n.id,
         },
@@ -731,8 +731,12 @@ function main() {
   const chapterOrder = ['Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ'].filter((g) => groups[g]);
   const finalList = [];
   const globalPlaced = new Set();
+  const ROMAN = ['i', 'ii', 'iii', 'iv', 'v', 'vi'];
   chapterOrder.forEach((g) => {
-    const { normal, hard } = orderAndBand(groups[g], 24, globalPlaced);
+    const tuts = groups[g].filter((c2) => c2.def.tutorial);
+    tuts.forEach((c2) => { finalList.push({ c: c2, band: 'tutorial' }); globalPlaced.add(c2.def.placeholder); });
+    const rest = groups[g].filter((c2) => !c2.def.tutorial);
+    const { normal, hard } = orderAndBand(rest, 25, globalPlaced);
     if (normal.length < NORMAL_SLOTS && groups[g].length >= NORMAL_SLOTS) {
       problems.push(g + ' 章只有 ' + normal.length + ' 个满足 5–21 模块的普通关候选（需要 ' + NORMAL_SLOTS + '）');
     }
@@ -778,13 +782,35 @@ function main() {
     if (twin) alias.set(c.def.placeholder, twin.c.def.placeholder);
   });
 
+  /* 每章困难关裁到 24（不裁仍被引用的） */
+  {
+    const referenced = new Set();
+    finalList.forEach((e) => (e.c.deps || []).forEach((d) => referenced.add(d)));
+    chapterOrder.forEach((g) => {
+      for (;;) {
+        const hards = finalList.filter((e) => e.band === 'challenge' && (e.c.def.chapterGroup || 'Ⅰ') === g);
+        if (hards.length <= 24) break;
+        const victim = hards.filter((e) => !referenced.has(e.c.def.placeholder)).pop();
+        if (!victim) break;
+        finalList.splice(finalList.indexOf(victim), 1);
+      }
+    });
+  }
+
   /* 重映射代号：@label → Ⅰ-01 … */
   const remap = new Map();
+  const countersTut = {};
   const counters = { 'Ⅰ': 0, 'Ⅱ': 0, 'Ⅲ': 0, 'Ⅳ': 0 };
   finalList.forEach((entry) => {
     const g = entry.c.def.chapterGroup || 'Ⅰ';
-    counters[g] += 1;
-    const code = g + '-' + String(counters[g]).padStart(2, '0');
+    let code;
+    if (entry.band === 'tutorial') {
+      countersTut[g] = (countersTut[g] || 0) + 1;
+      code = g + '-' + ROMAN[countersTut[g] - 1];
+    } else {
+      counters[g] += 1;
+      code = g + '-' + String(counters[g]).padStart(2, '0');
+    }
     remap.set(entry.c.def.placeholder, code);
     entry.c.finalCode = code;
     entry.c.finalBand = entry.band;
@@ -809,8 +835,8 @@ function main() {
     const level = {
       id: c.finalCode,
       code: c.finalCode,
-      no: Number(c.finalCode.split('-')[1]),
-      tutorial: false,
+      no: entry.band === 'tutorial' ? null : Number(c.finalCode.split('-')[1]),
+      tutorial: entry.band === 'tutorial',
       hard: entry.band === 'challenge',
       band: entry.band,
       chapter: def.chapter != null ? def.chapter : 0,
@@ -818,7 +844,7 @@ function main() {
       title: def.title,
       teaches: def.teaches || '',
       hint: entry.band === 'challenge' ? null : (def.hint || ''),
-      tip: null,
+      tip: def.tip || null,
       targetTokens: c.targetTokens,
       palette: c.palette,
       initialNodes: [JSON.parse(JSON.stringify(c.nodes.find((n) => n.id === c.targetId)))],
@@ -856,6 +882,11 @@ function main() {
 
   /* 门禁 */
   levels.forEach((lv) => {
+    if (lv.tutorial) {
+      if (lv.solution.nodes.length > 20) problems.push(lv.code + ' 教学关元件数超过 20');
+      if (!lv.tip || !lv.tip.code || !lv.tip.flow) problems.push(lv.code + ' 教学关缺少 tip');
+      return;
+    }
     const n = lv.solution.nodes.length;
     const tokens = lv.targetTokens.length - 1;
     if (!lv.hard) {

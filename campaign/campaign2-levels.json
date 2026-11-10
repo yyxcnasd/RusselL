@@ -1,5 +1,948 @@
 [
  {
+  "id": "Ⅰ-i",
+  "code": "Ⅰ-i",
+  "no": null,
+  "tutorial": true,
+  "hard": false,
+  "band": "tutorial",
+  "chapter": 0,
+  "chapterGroup": "Ⅰ",
+  "title": "取出公理",
+  "teaches": "接一块 A1。",
+  "hint": "接一块 A1。",
+  "tip": {
+   "code": "A1",
+   "flow": "A1 ⇒ (P→(Q→P))"
+  },
+  "targetTokens": [
+   "|-",
+   "(",
+   "P",
+   "->",
+   "(",
+   "Q",
+   "->",
+   "P",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "axiom",
+    "config": {
+     "schema": "A1"
+    }
+   }
+  ],
+  "initialNodes": [
+   {
+    "id": "n2",
+    "kind": "target",
+    "config": {},
+    "x": 576,
+    "y": 40,
+    "targetTokens": [
+     "|-",
+     "(",
+     "P",
+     "->",
+     "(",
+     "Q",
+     "->",
+     "P",
+     ")",
+     ")"
+    ]
+   }
+  ],
+  "solution": {
+   "nodes": [
+    {
+     "id": "n1",
+     "kind": "axiom",
+     "config": {
+      "schema": "A1"
+     },
+     "x": 40,
+     "y": 40
+    }
+   ],
+   "edges": [
+    {
+     "id": "e1",
+     "from": {
+      "node": "n1",
+      "port": "out"
+     },
+     "to": {
+      "node": "n2",
+      "port": "proof"
+     }
+    }
+   ]
+  },
+  "difficulty": 1,
+  "stats": {
+   "steps": 1
+  },
+  "mustUse": [
+   "axiom"
+  ],
+  "depCodes": []
+ },
+ {
+  "id": "Ⅰ-ii",
+  "code": "Ⅰ-ii",
+  "no": null,
+  "tutorial": true,
+  "hard": false,
+  "band": "tutorial",
+  "chapter": 0,
+  "chapterGroup": "Ⅰ",
+  "title": "代入",
+  "teaches": "取 A1，把 P 代入 (R→Q)。",
+  "hint": "取 A1，把 P 代入 (R→Q)。",
+  "tip": {
+   "code": "S",
+   "flow": "A1 · P:=(R→Q) ⇒ (R→Q)→(Q→(R→Q))"
+  },
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "R",
+   "->",
+   "Q",
+   ")",
+   "->",
+   "(",
+   "Q",
+   "->",
+   "(",
+   "R",
+   "->",
+   "Q",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "axiom",
+    "config": {
+     "schema": "A1"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {
+     "name": "P"
+    }
+   },
+   {
+    "kind": "atom",
+    "config": {
+     "name": "R"
+    }
+   },
+   {
+    "kind": "atom",
+    "config": {
+     "name": "Q"
+    }
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   }
+  ],
+  "initialNodes": [
+   {
+    "id": "n7",
+    "kind": "target",
+    "config": {},
+    "x": 1112,
+    "y": 40,
+    "targetTokens": [
+     "|-",
+     "(",
+     "(",
+     "R",
+     "->",
+     "Q",
+     ")",
+     "->",
+     "(",
+     "Q",
+     "->",
+     "(",
+     "R",
+     "->",
+     "Q",
+     ")",
+     ")",
+     ")"
+    ]
+   }
+  ],
+  "solution": {
+   "nodes": [
+    {
+     "id": "n1",
+     "kind": "axiom",
+     "config": {
+      "schema": "A1"
+     },
+     "x": 40,
+     "y": 40
+    },
+    {
+     "id": "n2",
+     "kind": "subst",
+     "config": {
+      "groups": 0
+     },
+     "x": 576,
+     "y": 40
+    },
+    {
+     "id": "n3",
+     "kind": "atom",
+     "config": {
+      "name": "P"
+     },
+     "x": 40,
+     "y": 180
+    },
+    {
+     "id": "n4",
+     "kind": "atom",
+     "config": {
+      "name": "R"
+     },
+     "x": 40,
+     "y": 320
+    },
+    {
+     "id": "n5",
+     "kind": "atom",
+     "config": {
+      "name": "Q"
+     },
+     "x": 40,
+     "y": 460
+    },
+    {
+     "id": "n6",
+     "kind": "imp",
+     "config": {},
+     "x": 308,
+     "y": 40
+    }
+   ],
+   "edges": [
+    {
+     "id": "e1",
+     "from": {
+      "node": "n1",
+      "port": "out"
+     },
+     "to": {
+      "node": "n2",
+      "port": "assertion"
+     }
+    },
+    {
+     "id": "e2",
+     "from": {
+      "node": "n3",
+      "port": "out"
+     },
+     "to": {
+      "node": "n2",
+      "port": "atom1"
+     }
+    },
+    {
+     "id": "e3",
+     "from": {
+      "node": "n4",
+      "port": "out"
+     },
+     "to": {
+      "node": "n6",
+      "port": "a"
+     }
+    },
+    {
+     "id": "e4",
+     "from": {
+      "node": "n5",
+      "port": "out"
+     },
+     "to": {
+      "node": "n6",
+      "port": "b"
+     }
+    },
+    {
+     "id": "e5",
+     "from": {
+      "node": "n6",
+      "port": "out"
+     },
+     "to": {
+      "node": "n2",
+      "port": "formula1"
+     }
+    },
+    {
+     "id": "e6",
+     "from": {
+      "node": "n2",
+      "port": "out"
+     },
+     "to": {
+      "node": "n7",
+      "port": "proof"
+     }
+    }
+   ]
+  },
+  "difficulty": 6,
+  "stats": {
+   "steps": 6
+  },
+  "mustUse": [
+   "axiom",
+   "subst"
+  ],
+  "depCodes": []
+ },
+ {
+  "id": "Ⅰ-iii",
+  "code": "Ⅰ-iii",
+  "no": null,
+  "tutorial": true,
+  "hard": false,
+  "band": "tutorial",
+  "chapter": 0,
+  "chapterGroup": "Ⅰ",
+  "title": "分离",
+  "teaches": "A1 与它的实例接 M。",
+  "hint": "A1 与它的实例接 M。",
+  "tip": {
+   "code": "M",
+   "flow": "A · A→B ⇒ B"
+  },
+  "targetTokens": [
+   "|-",
+   "(",
+   "S",
+   "->",
+   "(",
+   "P",
+   "->",
+   "(",
+   "Q",
+   "->",
+   "P",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "mp",
+    "config": {}
+   },
+   {
+    "kind": "axiom",
+    "config": {
+     "schema": "A1"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {
+     "name": "P"
+    }
+   },
+   {
+    "kind": "atom",
+    "config": {
+     "name": "Q"
+    }
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {
+     "name": "S"
+    }
+   }
+  ],
+  "initialNodes": [
+   {
+    "id": "n12",
+    "kind": "target",
+    "config": {},
+    "x": 1648,
+    "y": 40,
+    "targetTokens": [
+     "|-",
+     "(",
+     "S",
+     "->",
+     "(",
+     "P",
+     "->",
+     "(",
+     "Q",
+     "->",
+     "P",
+     ")",
+     ")",
+     ")"
+    ]
+   }
+  ],
+  "solution": {
+   "nodes": [
+    {
+     "id": "n1",
+     "kind": "mp",
+     "config": {},
+     "x": 1112,
+     "y": 40
+    },
+    {
+     "id": "n2",
+     "kind": "axiom",
+     "config": {
+      "schema": "A1"
+     },
+     "x": 40,
+     "y": 40
+    },
+    {
+     "id": "n4",
+     "kind": "subst",
+     "config": {
+      "groups": 1
+     },
+     "x": 844,
+     "y": 40
+    },
+    {
+     "id": "n5",
+     "kind": "atom",
+     "config": {
+      "name": "P"
+     },
+     "x": 40,
+     "y": 180
+    },
+    {
+     "id": "n6",
+     "kind": "atom",
+     "config": {
+      "name": "P"
+     },
+     "x": 40,
+     "y": 320
+    },
+    {
+     "id": "n7",
+     "kind": "atom",
+     "config": {
+      "name": "Q"
+     },
+     "x": 40,
+     "y": 460
+    },
+    {
+     "id": "n8",
+     "kind": "imp",
+     "config": {},
+     "x": 308,
+     "y": 40
+    },
+    {
+     "id": "n9",
+     "kind": "imp",
+     "config": {},
+     "x": 576,
+     "y": 40
+    },
+    {
+     "id": "n10",
+     "kind": "atom",
+     "config": {
+      "name": "Q"
+     },
+     "x": 40,
+     "y": 600
+    },
+    {
+     "id": "n11",
+     "kind": "atom",
+     "config": {
+      "name": "S"
+     },
+     "x": 40,
+     "y": 740
+    }
+   ],
+   "edges": [
+    {
+     "id": "e1",
+     "from": {
+      "node": "n2",
+      "port": "out"
+     },
+     "to": {
+      "node": "n1",
+      "port": "a"
+     }
+    },
+    {
+     "id": "e2",
+     "from": {
+      "node": "n2",
+      "port": "out"
+     },
+     "to": {
+      "node": "n4",
+      "port": "assertion"
+     }
+    },
+    {
+     "id": "e3",
+     "from": {
+      "node": "n5",
+      "port": "out"
+     },
+     "to": {
+      "node": "n4",
+      "port": "atom1"
+     }
+    },
+    {
+     "id": "e4",
+     "from": {
+      "node": "n7",
+      "port": "out"
+     },
+     "to": {
+      "node": "n8",
+      "port": "a"
+     }
+    },
+    {
+     "id": "e5",
+     "from": {
+      "node": "n6",
+      "port": "out"
+     },
+     "to": {
+      "node": "n8",
+      "port": "b"
+     }
+    },
+    {
+     "id": "e6",
+     "from": {
+      "node": "n6",
+      "port": "out"
+     },
+     "to": {
+      "node": "n9",
+      "port": "a"
+     }
+    },
+    {
+     "id": "e7",
+     "from": {
+      "node": "n8",
+      "port": "out"
+     },
+     "to": {
+      "node": "n9",
+      "port": "b"
+     }
+    },
+    {
+     "id": "e8",
+     "from": {
+      "node": "n9",
+      "port": "out"
+     },
+     "to": {
+      "node": "n4",
+      "port": "formula1"
+     }
+    },
+    {
+     "id": "e9",
+     "from": {
+      "node": "n10",
+      "port": "out"
+     },
+     "to": {
+      "node": "n4",
+      "port": "atom2"
+     }
+    },
+    {
+     "id": "e10",
+     "from": {
+      "node": "n11",
+      "port": "out"
+     },
+     "to": {
+      "node": "n4",
+      "port": "formula2"
+     }
+    },
+    {
+     "id": "e11",
+     "from": {
+      "node": "n4",
+      "port": "out"
+     },
+     "to": {
+      "node": "n1",
+      "port": "b"
+     }
+    },
+    {
+     "id": "e12",
+     "from": {
+      "node": "n1",
+      "port": "out"
+     },
+     "to": {
+      "node": "n12",
+      "port": "proof"
+     }
+    }
+   ]
+  },
+  "difficulty": 10,
+  "stats": {
+   "steps": 10
+  },
+  "mustUse": [
+   "mp",
+   "axiom",
+   "subst"
+  ],
+  "depCodes": []
+ },
+ {
+  "id": "Ⅰ-iv",
+  "code": "Ⅰ-iv",
+  "no": null,
+  "tutorial": true,
+  "hard": false,
+  "band": "tutorial",
+  "chapter": 0,
+  "chapterGroup": "Ⅰ",
+  "title": "定义收缩",
+  "teaches": "先造原始公式，再用 D⁻ 折回 ∧。",
+  "hint": "先造原始公式，再用 D⁻ 折回 ∧。",
+  "tip": {
+   "code": "D⁻",
+   "flow": "¬(A→¬B) ⇒ A∧B"
+  },
+  "targetTokens": [
+   "|-",
+   "(",
+   "(",
+   "P",
+   "/\\",
+   "R",
+   ")",
+   "->",
+   "(",
+   "Q",
+   "->",
+   "(",
+   "P",
+   "/\\",
+   "R",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "def-contract",
+    "config": {}
+   },
+   {
+    "kind": "axiom",
+    "config": {
+     "schema": "A1"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {
+     "name": "P"
+    }
+   },
+   {
+    "kind": "atom",
+    "config": {
+     "name": "R"
+    }
+   },
+   {
+    "kind": "not",
+    "config": {}
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   }
+  ],
+  "initialNodes": [
+   {
+    "id": "n10",
+    "kind": "target",
+    "config": {},
+    "x": 1916,
+    "y": 40,
+    "targetTokens": [
+     "|-",
+     "(",
+     "(",
+     "P",
+     "/\\",
+     "R",
+     ")",
+     "->",
+     "(",
+     "Q",
+     "->",
+     "(",
+     "P",
+     "/\\",
+     "R",
+     ")",
+     ")",
+     ")"
+    ]
+   }
+  ],
+  "solution": {
+   "nodes": [
+    {
+     "id": "n1",
+     "kind": "def-contract",
+     "config": {},
+     "x": 1380,
+     "y": 40
+    },
+    {
+     "id": "n2",
+     "kind": "axiom",
+     "config": {
+      "schema": "A1"
+     },
+     "x": 40,
+     "y": 40
+    },
+    {
+     "id": "n3",
+     "kind": "subst",
+     "config": {
+      "groups": 0
+     },
+     "x": 1112,
+     "y": 40
+    },
+    {
+     "id": "n4",
+     "kind": "atom",
+     "config": {
+      "name": "P"
+     },
+     "x": 40,
+     "y": 180
+    },
+    {
+     "id": "n5",
+     "kind": "atom",
+     "config": {
+      "name": "P"
+     },
+     "x": 40,
+     "y": 320
+    },
+    {
+     "id": "n6",
+     "kind": "atom",
+     "config": {
+      "name": "R"
+     },
+     "x": 40,
+     "y": 460
+    },
+    {
+     "id": "n7",
+     "kind": "not",
+     "config": {},
+     "x": 308,
+     "y": 40
+    },
+    {
+     "id": "n8",
+     "kind": "imp",
+     "config": {},
+     "x": 576,
+     "y": 40
+    },
+    {
+     "id": "n9",
+     "kind": "not",
+     "config": {},
+     "x": 844,
+     "y": 40
+    }
+   ],
+   "edges": [
+    {
+     "id": "e1",
+     "from": {
+      "node": "n2",
+      "port": "out"
+     },
+     "to": {
+      "node": "n3",
+      "port": "assertion"
+     }
+    },
+    {
+     "id": "e2",
+     "from": {
+      "node": "n4",
+      "port": "out"
+     },
+     "to": {
+      "node": "n3",
+      "port": "atom1"
+     }
+    },
+    {
+     "id": "e3",
+     "from": {
+      "node": "n6",
+      "port": "out"
+     },
+     "to": {
+      "node": "n7",
+      "port": "a"
+     }
+    },
+    {
+     "id": "e4",
+     "from": {
+      "node": "n5",
+      "port": "out"
+     },
+     "to": {
+      "node": "n8",
+      "port": "a"
+     }
+    },
+    {
+     "id": "e5",
+     "from": {
+      "node": "n7",
+      "port": "out"
+     },
+     "to": {
+      "node": "n8",
+      "port": "b"
+     }
+    },
+    {
+     "id": "e6",
+     "from": {
+      "node": "n8",
+      "port": "out"
+     },
+     "to": {
+      "node": "n9",
+      "port": "a"
+     }
+    },
+    {
+     "id": "e7",
+     "from": {
+      "node": "n9",
+      "port": "out"
+     },
+     "to": {
+      "node": "n3",
+      "port": "formula1"
+     }
+    },
+    {
+     "id": "e8",
+     "from": {
+      "node": "n3",
+      "port": "out"
+     },
+     "to": {
+      "node": "n1",
+      "port": "assertion"
+     }
+    },
+    {
+     "id": "e9",
+     "from": {
+      "node": "n1",
+      "port": "out"
+     },
+     "to": {
+      "node": "n10",
+      "port": "proof"
+     }
+    }
+   ]
+  },
+  "difficulty": 9,
+  "stats": {
+   "steps": 9
+  },
+  "mustUse": [
+   "def-contract",
+   "axiom",
+   "subst"
+  ],
+  "depCodes": []
+ },
+ {
   "id": "Ⅰ-01",
   "code": "Ⅰ-01",
   "no": 1,
@@ -3604,7 +4547,7 @@
   "chapterGroup": "Ⅰ",
   "title": "引理 (P→(P→P)→P)→(P→P→P)→P→P",
   "teaches": "( ( P -> ( ( P -> P ) -> P ) ) -> ( ( P -> ( P -> P ) ) -> ( P -> P ) ) )",
-  "hint": "把目标公式按接线一路拆到公理；这一关的结论在后面的关卡里会当作黑盒使用。",
+  "hint": "目标 (P→(P→P)→P)→(P→P→P)→P→P：把这段子证明按接线一路拆到公理，后面会把它当黑盒。",
   "tip": null,
   "targetTokens": [
    "|-",
@@ -3888,7 +4831,7 @@
   "chapterGroup": "Ⅰ",
   "title": "引理 (P→Q)→R→P→Q",
   "teaches": "( ( P -> Q ) -> ( R -> ( P -> Q ) ) )",
-  "hint": "把目标公式按接线一路拆到公理；这一关的结论在后面的关卡里会当作黑盒使用。",
+  "hint": "目标 (P→Q)→R→P→Q：把这段子证明按接线一路拆到公理，后面会把它当黑盒。",
   "tip": null,
   "targetTokens": [
    "|-",
@@ -4140,7 +5083,7 @@
   "chapterGroup": "Ⅰ",
   "title": "引理 ¬P→¬Q→¬P",
   "teaches": "( -. P -> ( -. Q -> -. P ) )",
-  "hint": "把目标公式按接线一路拆到公理；这一关的结论在后面的关卡里会当作黑盒使用。",
+  "hint": "目标 ¬P→¬Q→¬P：把这段子证明按接线一路拆到公理，后面会把它当黑盒。",
   "tip": null,
   "targetTokens": [
    "|-",
@@ -35769,6 +36712,599 @@
   ]
  },
  {
+  "id": "Ⅱ-i",
+  "code": "Ⅱ-i",
+  "no": null,
+  "tutorial": true,
+  "hard": false,
+  "band": "tutorial",
+  "chapter": 1,
+  "chapterGroup": "Ⅱ",
+  "title": "全称例化",
+  "teaches": "接一块 ∀E*：公式 F(x)、个体 z。",
+  "hint": "接一块 ∀E*：公式 F(x)、个体 z。",
+  "tip": {
+   "code": "∀E*",
+   "flow": "A · x→t ⇒ ∀xA→A[t/x]"
+  },
+  "targetTokens": [
+   "|-",
+   "(",
+   "A.",
+   "x",
+   "F",
+   "(",
+   "x",
+   ")",
+   "->",
+   "F",
+   "(",
+   "z",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "all-inst",
+    "config": {
+     "v": "x"
+    }
+   },
+   {
+    "kind": "term",
+    "config": {
+     "name": "x"
+    }
+   },
+   {
+    "kind": "pred",
+    "config": {
+     "symbol": "F"
+    }
+   },
+   {
+    "kind": "term",
+    "config": {
+     "name": "z"
+    }
+   }
+  ],
+  "initialNodes": [
+   {
+    "id": "n5",
+    "kind": "target",
+    "config": {},
+    "x": 1112,
+    "y": 40,
+    "targetTokens": [
+     "|-",
+     "(",
+     "A.",
+     "x",
+     "F",
+     "(",
+     "x",
+     ")",
+     "->",
+     "F",
+     "(",
+     "z",
+     ")",
+     ")"
+    ]
+   }
+  ],
+  "solution": {
+   "nodes": [
+    {
+     "id": "n1",
+     "kind": "all-inst",
+     "config": {
+      "v": "x"
+     },
+     "x": 576,
+     "y": 40
+    },
+    {
+     "id": "n2",
+     "kind": "term",
+     "config": {
+      "name": "x"
+     },
+     "x": 40,
+     "y": 40
+    },
+    {
+     "id": "n3",
+     "kind": "pred",
+     "config": {
+      "symbol": "F"
+     },
+     "x": 308,
+     "y": 40
+    },
+    {
+     "id": "n4",
+     "kind": "term",
+     "config": {
+      "name": "z"
+     },
+     "x": 40,
+     "y": 180
+    }
+   ],
+   "edges": [
+    {
+     "id": "e1",
+     "from": {
+      "node": "n2",
+      "port": "out"
+     },
+     "to": {
+      "node": "n3",
+      "port": "t1"
+     }
+    },
+    {
+     "id": "e2",
+     "from": {
+      "node": "n3",
+      "port": "out"
+     },
+     "to": {
+      "node": "n1",
+      "port": "formula"
+     }
+    },
+    {
+     "id": "e3",
+     "from": {
+      "node": "n4",
+      "port": "out"
+     },
+     "to": {
+      "node": "n1",
+      "port": "term"
+     }
+    },
+    {
+     "id": "e4",
+     "from": {
+      "node": "n1",
+      "port": "out"
+     },
+     "to": {
+      "node": "n5",
+      "port": "proof"
+     }
+    }
+   ]
+  },
+  "difficulty": 4,
+  "stats": {
+   "steps": 4
+  },
+  "mustUse": [
+   "all-inst"
+  ],
+  "depCodes": []
+ },
+ {
+  "id": "Ⅱ-ii",
+  "code": "Ⅱ-ii",
+  "no": null,
+  "tutorial": true,
+  "hard": false,
+  "band": "tutorial",
+  "chapter": 1,
+  "chapterGroup": "Ⅱ",
+  "title": "全称推广",
+  "teaches": "接一块 ∀I：给 A1 的断言加 ∀x。",
+  "hint": "接一块 ∀I：给 A1 的断言加 ∀x。",
+  "tip": {
+   "code": "∀I",
+   "flow": "A ⇒ ∀xA"
+  },
+  "targetTokens": [
+   "|-",
+   "A.",
+   "x",
+   "(",
+   "P",
+   "->",
+   "(",
+   "Q",
+   "->",
+   "P",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "gen",
+    "config": {
+     "v": "x"
+    }
+   },
+   {
+    "kind": "axiom",
+    "config": {
+     "schema": "A1"
+    }
+   }
+  ],
+  "initialNodes": [
+   {
+    "id": "n3",
+    "kind": "target",
+    "config": {},
+    "x": 844,
+    "y": 40,
+    "targetTokens": [
+     "|-",
+     "A.",
+     "x",
+     "(",
+     "P",
+     "->",
+     "(",
+     "Q",
+     "->",
+     "P",
+     ")",
+     ")"
+    ]
+   }
+  ],
+  "solution": {
+   "nodes": [
+    {
+     "id": "n1",
+     "kind": "gen",
+     "config": {
+      "v": "x"
+     },
+     "x": 308,
+     "y": 40
+    },
+    {
+     "id": "n2",
+     "kind": "axiom",
+     "config": {
+      "schema": "A1"
+     },
+     "x": 40,
+     "y": 40
+    }
+   ],
+   "edges": [
+    {
+     "id": "e1",
+     "from": {
+      "node": "n2",
+      "port": "out"
+     },
+     "to": {
+      "node": "n1",
+      "port": "assertion"
+     }
+    },
+    {
+     "id": "e2",
+     "from": {
+      "node": "n1",
+      "port": "out"
+     },
+     "to": {
+      "node": "n3",
+      "port": "proof"
+     }
+    }
+   ]
+  },
+  "difficulty": 2,
+  "stats": {
+   "steps": 2
+  },
+  "mustUse": [
+   "gen",
+   "axiom"
+  ],
+  "depCodes": []
+ },
+ {
+  "id": "Ⅱ-iii",
+  "code": "Ⅱ-iii",
+  "no": null,
+  "tutorial": true,
+  "hard": false,
+  "band": "tutorial",
+  "chapter": 1,
+  "chapterGroup": "Ⅱ",
+  "title": "全称引入（∀*）",
+  "teaches": "接一块 ∀*：x 不在 R 中自由出现。",
+  "hint": "接一块 ∀*：x 不在 R 中自由出现。",
+  "tip": {
+   "code": "∀*",
+   "flow": "A ⇒ A→∀xA"
+  },
+  "targetTokens": [
+   "|-",
+   "(",
+   "R",
+   "->",
+   "A.",
+   "x",
+   "R",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "shift",
+    "config": {
+     "v": "x"
+    }
+   },
+   {
+    "kind": "atom",
+    "config": {
+     "name": "R"
+    }
+   }
+  ],
+  "initialNodes": [
+   {
+    "id": "n3",
+    "kind": "target",
+    "config": {},
+    "x": 844,
+    "y": 40,
+    "targetTokens": [
+     "|-",
+     "(",
+     "R",
+     "->",
+     "A.",
+     "x",
+     "R",
+     ")"
+    ]
+   }
+  ],
+  "solution": {
+   "nodes": [
+    {
+     "id": "n1",
+     "kind": "shift",
+     "config": {
+      "v": "x"
+     },
+     "x": 308,
+     "y": 40
+    },
+    {
+     "id": "n2",
+     "kind": "atom",
+     "config": {
+      "name": "R"
+     },
+     "x": 40,
+     "y": 40
+    }
+   ],
+   "edges": [
+    {
+     "id": "e1",
+     "from": {
+      "node": "n2",
+      "port": "out"
+     },
+     "to": {
+      "node": "n1",
+      "port": "formula"
+     }
+    },
+    {
+     "id": "e2",
+     "from": {
+      "node": "n1",
+      "port": "out"
+     },
+     "to": {
+      "node": "n3",
+      "port": "proof"
+     }
+    }
+   ]
+  },
+  "difficulty": 2,
+  "stats": {
+   "steps": 2
+  },
+  "mustUse": [
+   "shift"
+  ],
+  "depCodes": []
+ },
+ {
+  "id": "Ⅱ-iv",
+  "code": "Ⅱ-iv",
+  "no": null,
+  "tutorial": true,
+  "hard": false,
+  "band": "tutorial",
+  "chapter": 1,
+  "chapterGroup": "Ⅱ",
+  "title": "存在推广",
+  "teaches": "接一块 ∃I*：公式 F(x)、个体 z。",
+  "hint": "接一块 ∃I*：公式 F(x)、个体 z。",
+  "tip": {
+   "code": "∃I*",
+   "flow": "A[t/x] ⇒ ∃xA"
+  },
+  "targetTokens": [
+   "|-",
+   "(",
+   "F",
+   "(",
+   "z",
+   ")",
+   "->",
+   "E.",
+   "x",
+   "F",
+   "(",
+   "x",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "exists-gen",
+    "config": {
+     "v": "x"
+    }
+   },
+   {
+    "kind": "term",
+    "config": {
+     "name": "x"
+    }
+   },
+   {
+    "kind": "pred",
+    "config": {
+     "symbol": "F"
+    }
+   },
+   {
+    "kind": "term",
+    "config": {
+     "name": "z"
+    }
+   }
+  ],
+  "initialNodes": [
+   {
+    "id": "n5",
+    "kind": "target",
+    "config": {},
+    "x": 1112,
+    "y": 40,
+    "targetTokens": [
+     "|-",
+     "(",
+     "F",
+     "(",
+     "z",
+     ")",
+     "->",
+     "E.",
+     "x",
+     "F",
+     "(",
+     "x",
+     ")",
+     ")"
+    ]
+   }
+  ],
+  "solution": {
+   "nodes": [
+    {
+     "id": "n1",
+     "kind": "exists-gen",
+     "config": {
+      "v": "x"
+     },
+     "x": 576,
+     "y": 40
+    },
+    {
+     "id": "n2",
+     "kind": "term",
+     "config": {
+      "name": "x"
+     },
+     "x": 40,
+     "y": 40
+    },
+    {
+     "id": "n3",
+     "kind": "pred",
+     "config": {
+      "symbol": "F"
+     },
+     "x": 308,
+     "y": 40
+    },
+    {
+     "id": "n4",
+     "kind": "term",
+     "config": {
+      "name": "z"
+     },
+     "x": 40,
+     "y": 180
+    }
+   ],
+   "edges": [
+    {
+     "id": "e1",
+     "from": {
+      "node": "n2",
+      "port": "out"
+     },
+     "to": {
+      "node": "n3",
+      "port": "t1"
+     }
+    },
+    {
+     "id": "e2",
+     "from": {
+      "node": "n3",
+      "port": "out"
+     },
+     "to": {
+      "node": "n1",
+      "port": "formula"
+     }
+    },
+    {
+     "id": "e3",
+     "from": {
+      "node": "n4",
+      "port": "out"
+     },
+     "to": {
+      "node": "n1",
+      "port": "term"
+     }
+    },
+    {
+     "id": "e4",
+     "from": {
+      "node": "n1",
+      "port": "out"
+     },
+     "to": {
+      "node": "n5",
+      "port": "proof"
+     }
+    }
+   ]
+  },
+  "difficulty": 4,
+  "stats": {
+   "steps": 4
+  },
+  "mustUse": [
+   "exists-gen"
+  ],
+  "depCodes": []
+ },
+ {
   "id": "Ⅱ-01",
   "code": "Ⅱ-01",
   "no": 1,
@@ -38625,6 +40161,217 @@
   "band": "base",
   "chapter": 1,
   "chapterGroup": "Ⅱ",
+  "title": "二元谓词例化",
+  "teaches": "关系 F(x,y) 也能做全称例化。",
+  "hint": "目标是 ∀x F(x,y)→F(z,y)：接一块 ∀E*，公式填 F(x,y)、个体填 z。",
+  "tip": null,
+  "targetTokens": [
+   "|-",
+   "(",
+   "A.",
+   "x",
+   "F",
+   "(",
+   "x",
+   ",",
+   "y",
+   ")",
+   "->",
+   "F",
+   "(",
+   "z",
+   ",",
+   "y",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "all-inst",
+    "config": {
+     "v": "x"
+    }
+   },
+   {
+    "kind": "term",
+    "config": {
+     "name": "x"
+    }
+   },
+   {
+    "kind": "term",
+    "config": {
+     "name": "y"
+    }
+   },
+   {
+    "kind": "pred",
+    "config": {
+     "symbol": "F",
+     "arity": 2
+    }
+   },
+   {
+    "kind": "term",
+    "config": {
+     "name": "z"
+    }
+   }
+  ],
+  "initialNodes": [
+   {
+    "id": "n6",
+    "kind": "target",
+    "config": {},
+    "x": 1112,
+    "y": 40,
+    "targetTokens": [
+     "|-",
+     "(",
+     "A.",
+     "x",
+     "F",
+     "(",
+     "x",
+     ",",
+     "y",
+     ")",
+     "->",
+     "F",
+     "(",
+     "z",
+     ",",
+     "y",
+     ")",
+     ")"
+    ]
+   }
+  ],
+  "solution": {
+   "nodes": [
+    {
+     "id": "n1",
+     "kind": "all-inst",
+     "config": {
+      "v": "x"
+     },
+     "x": 576,
+     "y": 40
+    },
+    {
+     "id": "n2",
+     "kind": "term",
+     "config": {
+      "name": "x"
+     },
+     "x": 40,
+     "y": 40
+    },
+    {
+     "id": "n3",
+     "kind": "term",
+     "config": {
+      "name": "y"
+     },
+     "x": 40,
+     "y": 180
+    },
+    {
+     "id": "n4",
+     "kind": "pred",
+     "config": {
+      "symbol": "F",
+      "arity": 2
+     },
+     "x": 308,
+     "y": 40
+    },
+    {
+     "id": "n5",
+     "kind": "term",
+     "config": {
+      "name": "z"
+     },
+     "x": 40,
+     "y": 320
+    }
+   ],
+   "edges": [
+    {
+     "id": "e1",
+     "from": {
+      "node": "n2",
+      "port": "out"
+     },
+     "to": {
+      "node": "n4",
+      "port": "t1"
+     }
+    },
+    {
+     "id": "e2",
+     "from": {
+      "node": "n3",
+      "port": "out"
+     },
+     "to": {
+      "node": "n4",
+      "port": "t2"
+     }
+    },
+    {
+     "id": "e3",
+     "from": {
+      "node": "n4",
+      "port": "out"
+     },
+     "to": {
+      "node": "n1",
+      "port": "formula"
+     }
+    },
+    {
+     "id": "e4",
+     "from": {
+      "node": "n5",
+      "port": "out"
+     },
+     "to": {
+      "node": "n1",
+      "port": "term"
+     }
+    },
+    {
+     "id": "e5",
+     "from": {
+      "node": "n1",
+      "port": "out"
+     },
+     "to": {
+      "node": "n6",
+      "port": "proof"
+     }
+    }
+   ]
+  },
+  "difficulty": 5,
+  "stats": {
+   "steps": 5
+  },
+  "mustUse": [
+   "all-inst"
+  ],
+  "depCodes": []
+ },
+ {
+  "id": "Ⅱ-07",
+  "code": "Ⅱ-07",
+  "no": 7,
+  "tutorial": false,
+  "hard": false,
+  "band": "base",
+  "chapter": 1,
+  "chapterGroup": "Ⅱ",
   "title": "全称分配（实例）",
   "teaches": "把 A5 的 wff 变元换成 F(x)、G(x)。",
   "hint": "目标是 ∀x(F(x)→G(x))→(∀xF(x)→∀xG(x))：接一块 A5，把 P、Q 分别代入 F(x)、G(x)。",
@@ -38918,9 +40665,9 @@
   "depCodes": []
  },
  {
-  "id": "Ⅱ-07",
-  "code": "Ⅱ-07",
-  "no": 7,
+  "id": "Ⅱ-08",
+  "code": "Ⅱ-08",
+  "no": 8,
   "tutorial": false,
   "hard": false,
   "band": "base",
@@ -39248,9 +40995,9 @@
   "depCodes": []
  },
  {
-  "id": "Ⅱ-08",
-  "code": "Ⅱ-08",
-  "no": 8,
+  "id": "Ⅱ-09",
+  "code": "Ⅱ-09",
+  "no": 9,
   "tutorial": false,
   "hard": false,
   "band": "base",
@@ -39258,7 +41005,7 @@
   "chapterGroup": "Ⅱ",
   "title": "引理 ∀x ∀y F(x)→∀y F(x)",
   "teaches": "( A. x A. y F ( x ) -> A. y F ( x ) )",
-  "hint": "把目标公式按接线一路拆到公理；这一关的结论在后面的关卡里会当作黑盒使用。",
+  "hint": "目标 ∀x ∀y F(x)→∀y F(x)：把这段子证明按接线一路拆到公理，后面会把它当黑盒。",
   "tip": null,
   "targetTokens": [
    "|-",
@@ -39484,9 +41231,9 @@
   "depCodes": []
  },
  {
-  "id": "Ⅱ-09",
-  "code": "Ⅱ-09",
-  "no": 9,
+  "id": "Ⅱ-10",
+  "code": "Ⅱ-10",
+  "no": 10,
   "tutorial": false,
   "hard": false,
   "band": "base",
@@ -39494,7 +41241,7 @@
   "chapterGroup": "Ⅱ",
   "title": "引理 H(x)→H(x)→H(x)",
   "teaches": "( H ( x ) -> ( H ( x ) -> H ( x ) ) )",
-  "hint": "把目标公式按接线一路拆到公理；这一关的结论在后面的关卡里会当作黑盒使用。",
+  "hint": "目标 H(x)→H(x)→H(x)：把这段子证明按接线一路拆到公理，后面会把它当黑盒。",
   "tip": null,
   "targetTokens": [
    "|-",
@@ -39711,283 +41458,6 @@
      "id": "eT",
      "from": {
       "node": "n24",
-      "port": "out"
-     },
-     "to": {
-      "node": "tgt",
-      "port": "proof"
-     }
-    }
-   ]
-  },
-  "difficulty": 5,
-  "stats": {
-   "steps": 5
-  },
-  "mustUse": [
-   "axiom",
-   "subst"
-  ],
-  "depCodes": []
- },
- {
-  "id": "Ⅱ-10",
-  "code": "Ⅱ-10",
-  "no": 10,
-  "tutorial": false,
-  "hard": false,
-  "band": "base",
-  "chapter": 1,
-  "chapterGroup": "Ⅱ",
-  "title": "引理 (P→∀y P→∀y P)→(P→∀y P)→P",
-  "teaches": "( ( P -> ( A. y P -> A. y P ) ) -> ( ( P -> A. y P ) -> ( P -> A. y P ) ) )",
-  "hint": "把目标公式按接线一路拆到公理；这一关的结论在后面的关卡里会当作黑盒使用。",
-  "tip": null,
-  "targetTokens": [
-   "|-",
-   "(",
-   "(",
-   "P",
-   "->",
-   "(",
-   "A.",
-   "y",
-   "P",
-   "->",
-   "A.",
-   "y",
-   "P",
-   ")",
-   ")",
-   "->",
-   "(",
-   "(",
-   "P",
-   "->",
-   "A.",
-   "y",
-   "P",
-   ")",
-   "->",
-   "(",
-   "P",
-   "->",
-   "A.",
-   "y",
-   "P",
-   ")",
-   ")",
-   ")"
-  ],
-  "palette": [
-   {
-    "kind": "atom",
-    "config": {
-     "name": "P"
-    }
-   },
-   {
-    "kind": "all",
-    "config": {
-     "v": "y"
-    }
-   },
-   {
-    "kind": "axiom",
-    "config": {
-     "schema": "A2"
-    }
-   },
-   {
-    "kind": "subst",
-    "config": {}
-   },
-   {
-    "kind": "atom",
-    "config": {
-     "name": "Q"
-    }
-   },
-   {
-    "kind": "atom",
-    "config": {
-     "name": "R"
-    }
-   }
-  ],
-  "initialNodes": [
-   {
-    "id": "tgt",
-    "kind": "target",
-    "config": {},
-    "x": 0,
-    "y": 0,
-    "targetTokens": [
-     "|-",
-     "(",
-     "(",
-     "P",
-     "->",
-     "(",
-     "A.",
-     "y",
-     "P",
-     "->",
-     "A.",
-     "y",
-     "P",
-     ")",
-     ")",
-     "->",
-     "(",
-     "(",
-     "P",
-     "->",
-     "A.",
-     "y",
-     "P",
-     ")",
-     "->",
-     "(",
-     "P",
-     "->",
-     "A.",
-     "y",
-     "P",
-     ")",
-     ")",
-     ")"
-    ]
-   }
-  ],
-  "solution": {
-   "nodes": [
-    {
-     "id": "n3",
-     "kind": "atom",
-     "config": {
-      "name": "P"
-     },
-     "x": 40,
-     "y": 40
-    },
-    {
-     "id": "n36",
-     "kind": "all",
-     "config": {
-      "v": "y"
-     },
-     "x": 308,
-     "y": 796
-    },
-    {
-     "id": "n39",
-     "kind": "axiom",
-     "config": {
-      "schema": "A2"
-     },
-     "x": 40,
-     "y": 2146
-    },
-    {
-     "id": "n40",
-     "kind": "subst",
-     "config": {
-      "groups": 1
-     },
-     "x": 576,
-     "y": 748
-    },
-    {
-     "id": "n41",
-     "kind": "atom",
-     "config": {
-      "name": "Q"
-     },
-     "x": 40,
-     "y": 2292
-    },
-    {
-     "id": "n42",
-     "kind": "atom",
-     "config": {
-      "name": "R"
-     },
-     "x": 40,
-     "y": 2432
-    }
-   ],
-   "edges": [
-    {
-     "id": "e34",
-     "from": {
-      "node": "n3",
-      "port": "out"
-     },
-     "to": {
-      "node": "n36",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e42",
-     "from": {
-      "node": "n39",
-      "port": "out"
-     },
-     "to": {
-      "node": "n40",
-      "port": "assertion"
-     }
-    },
-    {
-     "id": "e43",
-     "from": {
-      "node": "n41",
-      "port": "out"
-     },
-     "to": {
-      "node": "n40",
-      "port": "atom1"
-     }
-    },
-    {
-     "id": "e44",
-     "from": {
-      "node": "n36",
-      "port": "out"
-     },
-     "to": {
-      "node": "n40",
-      "port": "formula1"
-     }
-    },
-    {
-     "id": "e45",
-     "from": {
-      "node": "n42",
-      "port": "out"
-     },
-     "to": {
-      "node": "n40",
-      "port": "atom2"
-     }
-    },
-    {
-     "id": "e46",
-     "from": {
-      "node": "n36",
-      "port": "out"
-     },
-     "to": {
-      "node": "n40",
-      "port": "formula2"
-     }
-    },
-    {
-     "id": "eT",
-     "from": {
-      "node": "n40",
       "port": "out"
      },
      "to": {
@@ -41031,6 +42501,839 @@
   "band": "challenge",
   "chapter": 1,
   "chapterGroup": "Ⅱ",
+  "title": "全称分配（长公式二）",
+  "teaches": "量词分配对任意复杂公式都成立。",
+  "hint": null,
+  "tip": null,
+  "targetTokens": [
+   "|-",
+   "(",
+   "A.",
+   "x",
+   "(",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "->",
+   "G",
+   "(",
+   "x",
+   ")",
+   ")",
+   "->",
+   "H",
+   "(",
+   "x",
+   ")",
+   ")",
+   "->",
+   "(",
+   "A.",
+   "x",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "->",
+   "G",
+   "(",
+   "x",
+   ")",
+   ")",
+   "->",
+   "A.",
+   "x",
+   "H",
+   "(",
+   "x",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "axiom",
+    "config": {
+     "schema": "A5",
+     "v": "x"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {
+     "name": "P"
+    }
+   },
+   {
+    "kind": "term",
+    "config": {
+     "name": "x"
+    }
+   },
+   {
+    "kind": "pred",
+    "config": {
+     "symbol": "F"
+    }
+   },
+   {
+    "kind": "pred",
+    "config": {
+     "symbol": "G"
+    }
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {
+     "name": "Q"
+    }
+   },
+   {
+    "kind": "pred",
+    "config": {
+     "symbol": "H"
+    }
+   }
+  ],
+  "initialNodes": [
+   {
+    "id": "n10",
+    "kind": "target",
+    "config": {},
+    "x": 1380,
+    "y": 40,
+    "targetTokens": [
+     "|-",
+     "(",
+     "A.",
+     "x",
+     "(",
+     "(",
+     "F",
+     "(",
+     "x",
+     ")",
+     "->",
+     "G",
+     "(",
+     "x",
+     ")",
+     ")",
+     "->",
+     "H",
+     "(",
+     "x",
+     ")",
+     ")",
+     "->",
+     "(",
+     "A.",
+     "x",
+     "(",
+     "F",
+     "(",
+     "x",
+     ")",
+     "->",
+     "G",
+     "(",
+     "x",
+     ")",
+     ")",
+     "->",
+     "A.",
+     "x",
+     "H",
+     "(",
+     "x",
+     ")",
+     ")",
+     ")"
+    ]
+   }
+  ],
+  "solution": {
+   "nodes": [
+    {
+     "id": "n1",
+     "kind": "axiom",
+     "config": {
+      "schema": "A5",
+      "v": "x"
+     },
+     "x": 40,
+     "y": 40
+    },
+    {
+     "id": "n2",
+     "kind": "subst",
+     "config": {
+      "groups": 1
+     },
+     "x": 844,
+     "y": 40
+    },
+    {
+     "id": "n3",
+     "kind": "atom",
+     "config": {
+      "name": "P"
+     },
+     "x": 40,
+     "y": 186
+    },
+    {
+     "id": "n4",
+     "kind": "term",
+     "config": {
+      "name": "x"
+     },
+     "x": 40,
+     "y": 326
+    },
+    {
+     "id": "n5",
+     "kind": "pred",
+     "config": {
+      "symbol": "F"
+     },
+     "x": 308,
+     "y": 40
+    },
+    {
+     "id": "n6",
+     "kind": "pred",
+     "config": {
+      "symbol": "G"
+     },
+     "x": 308,
+     "y": 180
+    },
+    {
+     "id": "n7",
+     "kind": "imp",
+     "config": {},
+     "x": 576,
+     "y": 40
+    },
+    {
+     "id": "n8",
+     "kind": "atom",
+     "config": {
+      "name": "Q"
+     },
+     "x": 40,
+     "y": 466
+    },
+    {
+     "id": "n9",
+     "kind": "pred",
+     "config": {
+      "symbol": "H"
+     },
+     "x": 308,
+     "y": 320
+    }
+   ],
+   "edges": [
+    {
+     "id": "e1",
+     "from": {
+      "node": "n1",
+      "port": "out"
+     },
+     "to": {
+      "node": "n2",
+      "port": "assertion"
+     }
+    },
+    {
+     "id": "e2",
+     "from": {
+      "node": "n3",
+      "port": "out"
+     },
+     "to": {
+      "node": "n2",
+      "port": "atom1"
+     }
+    },
+    {
+     "id": "e3",
+     "from": {
+      "node": "n4",
+      "port": "out"
+     },
+     "to": {
+      "node": "n5",
+      "port": "t1"
+     }
+    },
+    {
+     "id": "e4",
+     "from": {
+      "node": "n4",
+      "port": "out"
+     },
+     "to": {
+      "node": "n6",
+      "port": "t1"
+     }
+    },
+    {
+     "id": "e5",
+     "from": {
+      "node": "n5",
+      "port": "out"
+     },
+     "to": {
+      "node": "n7",
+      "port": "a"
+     }
+    },
+    {
+     "id": "e6",
+     "from": {
+      "node": "n6",
+      "port": "out"
+     },
+     "to": {
+      "node": "n7",
+      "port": "b"
+     }
+    },
+    {
+     "id": "e7",
+     "from": {
+      "node": "n7",
+      "port": "out"
+     },
+     "to": {
+      "node": "n2",
+      "port": "formula1"
+     }
+    },
+    {
+     "id": "e8",
+     "from": {
+      "node": "n8",
+      "port": "out"
+     },
+     "to": {
+      "node": "n2",
+      "port": "atom2"
+     }
+    },
+    {
+     "id": "e9",
+     "from": {
+      "node": "n4",
+      "port": "out"
+     },
+     "to": {
+      "node": "n9",
+      "port": "t1"
+     }
+    },
+    {
+     "id": "e10",
+     "from": {
+      "node": "n9",
+      "port": "out"
+     },
+     "to": {
+      "node": "n2",
+      "port": "formula2"
+     }
+    },
+    {
+     "id": "e11",
+     "from": {
+      "node": "n2",
+      "port": "out"
+     },
+     "to": {
+      "node": "n10",
+      "port": "proof"
+     }
+    }
+   ]
+  },
+  "difficulty": 9,
+  "stats": {
+   "steps": 9
+  },
+  "mustUse": [
+   "axiom",
+   "subst"
+  ],
+  "depCodes": []
+ },
+ {
+  "id": "Ⅱ-18",
+  "code": "Ⅱ-18",
+  "no": 18,
+  "tutorial": false,
+  "hard": true,
+  "band": "challenge",
+  "chapter": 1,
+  "chapterGroup": "Ⅱ",
+  "title": "全称分配（长公式）",
+  "teaches": "量词分配对任意复杂公式都成立。",
+  "hint": null,
+  "tip": null,
+  "targetTokens": [
+   "|-",
+   "(",
+   "A.",
+   "x",
+   "(",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "->",
+   "(",
+   "G",
+   "(",
+   "x",
+   ")",
+   "->",
+   "H",
+   "(",
+   "x",
+   ")",
+   ")",
+   ")",
+   "->",
+   "F",
+   "(",
+   "x",
+   ")",
+   ")",
+   "->",
+   "(",
+   "A.",
+   "x",
+   "(",
+   "F",
+   "(",
+   "x",
+   ")",
+   "->",
+   "(",
+   "G",
+   "(",
+   "x",
+   ")",
+   "->",
+   "H",
+   "(",
+   "x",
+   ")",
+   ")",
+   ")",
+   "->",
+   "A.",
+   "x",
+   "F",
+   "(",
+   "x",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "axiom",
+    "config": {
+     "schema": "A5",
+     "v": "x"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {
+     "name": "P"
+    }
+   },
+   {
+    "kind": "term",
+    "config": {
+     "name": "x"
+    }
+   },
+   {
+    "kind": "pred",
+    "config": {
+     "symbol": "F"
+    }
+   },
+   {
+    "kind": "pred",
+    "config": {
+     "symbol": "G"
+    }
+   },
+   {
+    "kind": "pred",
+    "config": {
+     "symbol": "H"
+    }
+   },
+   {
+    "kind": "imp",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {
+     "name": "Q"
+    }
+   }
+  ],
+  "initialNodes": [
+   {
+    "id": "n11",
+    "kind": "target",
+    "config": {},
+    "x": 1648,
+    "y": 40,
+    "targetTokens": [
+     "|-",
+     "(",
+     "A.",
+     "x",
+     "(",
+     "(",
+     "F",
+     "(",
+     "x",
+     ")",
+     "->",
+     "(",
+     "G",
+     "(",
+     "x",
+     ")",
+     "->",
+     "H",
+     "(",
+     "x",
+     ")",
+     ")",
+     ")",
+     "->",
+     "F",
+     "(",
+     "x",
+     ")",
+     ")",
+     "->",
+     "(",
+     "A.",
+     "x",
+     "(",
+     "F",
+     "(",
+     "x",
+     ")",
+     "->",
+     "(",
+     "G",
+     "(",
+     "x",
+     ")",
+     "->",
+     "H",
+     "(",
+     "x",
+     ")",
+     ")",
+     ")",
+     "->",
+     "A.",
+     "x",
+     "F",
+     "(",
+     "x",
+     ")",
+     ")",
+     ")"
+    ]
+   }
+  ],
+  "solution": {
+   "nodes": [
+    {
+     "id": "n1",
+     "kind": "axiom",
+     "config": {
+      "schema": "A5",
+      "v": "x"
+     },
+     "x": 40,
+     "y": 40
+    },
+    {
+     "id": "n2",
+     "kind": "subst",
+     "config": {
+      "groups": 1
+     },
+     "x": 1112,
+     "y": 40
+    },
+    {
+     "id": "n3",
+     "kind": "atom",
+     "config": {
+      "name": "P"
+     },
+     "x": 40,
+     "y": 186
+    },
+    {
+     "id": "n4",
+     "kind": "term",
+     "config": {
+      "name": "x"
+     },
+     "x": 40,
+     "y": 326
+    },
+    {
+     "id": "n5",
+     "kind": "pred",
+     "config": {
+      "symbol": "F"
+     },
+     "x": 308,
+     "y": 40
+    },
+    {
+     "id": "n6",
+     "kind": "pred",
+     "config": {
+      "symbol": "G"
+     },
+     "x": 308,
+     "y": 180
+    },
+    {
+     "id": "n7",
+     "kind": "pred",
+     "config": {
+      "symbol": "H"
+     },
+     "x": 308,
+     "y": 320
+    },
+    {
+     "id": "n8",
+     "kind": "imp",
+     "config": {},
+     "x": 576,
+     "y": 40
+    },
+    {
+     "id": "n9",
+     "kind": "imp",
+     "config": {},
+     "x": 844,
+     "y": 40
+    },
+    {
+     "id": "n10",
+     "kind": "atom",
+     "config": {
+      "name": "Q"
+     },
+     "x": 40,
+     "y": 466
+    }
+   ],
+   "edges": [
+    {
+     "id": "e1",
+     "from": {
+      "node": "n1",
+      "port": "out"
+     },
+     "to": {
+      "node": "n2",
+      "port": "assertion"
+     }
+    },
+    {
+     "id": "e2",
+     "from": {
+      "node": "n3",
+      "port": "out"
+     },
+     "to": {
+      "node": "n2",
+      "port": "atom1"
+     }
+    },
+    {
+     "id": "e3",
+     "from": {
+      "node": "n4",
+      "port": "out"
+     },
+     "to": {
+      "node": "n5",
+      "port": "t1"
+     }
+    },
+    {
+     "id": "e4",
+     "from": {
+      "node": "n4",
+      "port": "out"
+     },
+     "to": {
+      "node": "n6",
+      "port": "t1"
+     }
+    },
+    {
+     "id": "e5",
+     "from": {
+      "node": "n4",
+      "port": "out"
+     },
+     "to": {
+      "node": "n7",
+      "port": "t1"
+     }
+    },
+    {
+     "id": "e6",
+     "from": {
+      "node": "n6",
+      "port": "out"
+     },
+     "to": {
+      "node": "n8",
+      "port": "a"
+     }
+    },
+    {
+     "id": "e7",
+     "from": {
+      "node": "n7",
+      "port": "out"
+     },
+     "to": {
+      "node": "n8",
+      "port": "b"
+     }
+    },
+    {
+     "id": "e8",
+     "from": {
+      "node": "n5",
+      "port": "out"
+     },
+     "to": {
+      "node": "n9",
+      "port": "a"
+     }
+    },
+    {
+     "id": "e9",
+     "from": {
+      "node": "n8",
+      "port": "out"
+     },
+     "to": {
+      "node": "n9",
+      "port": "b"
+     }
+    },
+    {
+     "id": "e10",
+     "from": {
+      "node": "n9",
+      "port": "out"
+     },
+     "to": {
+      "node": "n2",
+      "port": "formula1"
+     }
+    },
+    {
+     "id": "e11",
+     "from": {
+      "node": "n10",
+      "port": "out"
+     },
+     "to": {
+      "node": "n2",
+      "port": "atom2"
+     }
+    },
+    {
+     "id": "e12",
+     "from": {
+      "node": "n5",
+      "port": "out"
+     },
+     "to": {
+      "node": "n2",
+      "port": "formula2"
+     }
+    },
+    {
+     "id": "e13",
+     "from": {
+      "node": "n2",
+      "port": "out"
+     },
+     "to": {
+      "node": "n11",
+      "port": "proof"
+     }
+    }
+   ]
+  },
+  "difficulty": 10,
+  "stats": {
+   "steps": 10
+  },
+  "mustUse": [
+   "axiom",
+   "subst"
+  ],
+  "depCodes": []
+ },
+ {
+  "id": "Ⅱ-19",
+  "code": "Ⅱ-19",
+  "no": 19,
+  "tutorial": false,
+  "hard": true,
+  "band": "challenge",
+  "chapter": 1,
+  "chapterGroup": "Ⅱ",
   "title": "双重量词引入",
   "teaches": "F(z)→∀x ∀y F(z)",
   "hint": null,
@@ -41767,9 +44070,9 @@
   "depCodes": []
  },
  {
-  "id": "Ⅱ-18",
-  "code": "Ⅱ-18",
-  "no": 18,
+  "id": "Ⅱ-20",
+  "code": "Ⅱ-20",
+  "no": 20,
   "tutorial": false,
   "hard": true,
   "band": "challenge",
@@ -42998,9 +45301,9 @@
   "depCodes": []
  },
  {
-  "id": "Ⅱ-19",
-  "code": "Ⅱ-19",
-  "no": 19,
+  "id": "Ⅱ-21",
+  "code": "Ⅱ-21",
+  "no": 21,
   "tutorial": false,
   "hard": true,
   "band": "challenge",
@@ -44279,9 +46582,9 @@
   "depCodes": []
  },
  {
-  "id": "Ⅱ-20",
-  "code": "Ⅱ-20",
-  "no": 20,
+  "id": "Ⅱ-22",
+  "code": "Ⅱ-22",
+  "no": 22,
   "tutorial": false,
   "hard": true,
   "band": "challenge",
@@ -45610,9 +47913,9 @@
   "depCodes": []
  },
  {
-  "id": "Ⅱ-21",
-  "code": "Ⅱ-21",
-  "no": 21,
+  "id": "Ⅱ-23",
+  "code": "Ⅱ-23",
+  "no": 23,
   "tutorial": false,
   "hard": true,
   "band": "challenge",
@@ -45970,7 +48273,7 @@
      "id": "n20",
      "kind": "theorem",
      "config": {
-      "code": "Ⅱ-20"
+      "code": "Ⅱ-22"
      },
      "x": 40,
      "y": 886
@@ -46607,13 +48910,13 @@
    "subst"
   ],
   "depCodes": [
-   "Ⅱ-20"
+   "Ⅱ-22"
   ]
  },
  {
-  "id": "Ⅱ-22",
-  "code": "Ⅱ-22",
-  "no": 22,
+  "id": "Ⅱ-24",
+  "code": "Ⅱ-24",
+  "no": 24,
   "tutorial": false,
   "hard": true,
   "band": "challenge",
@@ -47942,9 +50245,9 @@
   "depCodes": []
  },
  {
-  "id": "Ⅱ-23",
-  "code": "Ⅱ-23",
-  "no": 23,
+  "id": "Ⅱ-25",
+  "code": "Ⅱ-25",
+  "no": 25,
   "tutorial": false,
   "hard": true,
   "band": "challenge",
@@ -49359,9 +51662,9 @@
   "depCodes": []
  },
  {
-  "id": "Ⅱ-24",
-  "code": "Ⅱ-24",
-  "no": 24,
+  "id": "Ⅱ-26",
+  "code": "Ⅱ-26",
+  "no": 26,
   "tutorial": false,
   "hard": true,
   "band": "challenge",
@@ -51119,9 +53422,9 @@
   "depCodes": []
  },
  {
-  "id": "Ⅱ-25",
-  "code": "Ⅱ-25",
-  "no": 25,
+  "id": "Ⅱ-27",
+  "code": "Ⅱ-27",
+  "no": 27,
   "tutorial": false,
   "hard": true,
   "band": "challenge",
@@ -52879,9 +55182,9 @@
   "depCodes": []
  },
  {
-  "id": "Ⅱ-26",
-  "code": "Ⅱ-26",
-  "no": 26,
+  "id": "Ⅱ-28",
+  "code": "Ⅱ-28",
+  "no": 28,
   "tutorial": false,
   "hard": true,
   "band": "challenge",
@@ -54639,9 +56942,9 @@
   "depCodes": []
  },
  {
-  "id": "Ⅱ-27",
-  "code": "Ⅱ-27",
-  "no": 27,
+  "id": "Ⅱ-29",
+  "code": "Ⅱ-29",
+  "no": 29,
   "tutorial": false,
   "hard": true,
   "band": "challenge",
@@ -55863,9 +58166,9 @@
   ]
  },
  {
-  "id": "Ⅱ-28",
-  "code": "Ⅱ-28",
-  "no": 28,
+  "id": "Ⅱ-30",
+  "code": "Ⅱ-30",
+  "no": 30,
   "tutorial": false,
   "hard": true,
   "band": "challenge",
@@ -57816,9 +60119,9 @@
   "depCodes": []
  },
  {
-  "id": "Ⅱ-29",
-  "code": "Ⅱ-29",
-  "no": 29,
+  "id": "Ⅱ-31",
+  "code": "Ⅱ-31",
+  "no": 31,
   "tutorial": false,
   "hard": true,
   "band": "challenge",
@@ -59769,9 +62072,9 @@
   "depCodes": []
  },
  {
-  "id": "Ⅱ-30",
-  "code": "Ⅱ-30",
-  "no": 30,
+  "id": "Ⅱ-32",
+  "code": "Ⅱ-32",
+  "no": 32,
   "tutorial": false,
   "hard": true,
   "band": "challenge",
@@ -61078,9 +63381,9 @@
   ]
  },
  {
-  "id": "Ⅱ-31",
-  "code": "Ⅱ-31",
-  "no": 31,
+  "id": "Ⅱ-33",
+  "code": "Ⅱ-33",
+  "no": 33,
   "tutorial": false,
   "hard": true,
   "band": "challenge",
@@ -63015,9 +65318,9 @@
   "depCodes": []
  },
  {
-  "id": "Ⅱ-32",
-  "code": "Ⅱ-32",
-  "no": 32,
+  "id": "Ⅱ-34",
+  "code": "Ⅱ-34",
+  "no": 34,
   "tutorial": false,
   "hard": true,
   "band": "challenge",
@@ -64472,127 +66775,133 @@
   ]
  },
  {
-  "id": "Ⅱ-33",
-  "code": "Ⅱ-33",
-  "no": 33,
-  "tutorial": false,
-  "hard": true,
-  "band": "challenge",
-  "chapter": 1,
-  "chapterGroup": "Ⅱ",
-  "title": "全称合并",
-  "teaches": "(∀x F(x)→∀x ∀x F(x))→(∀x (∀x F(x)→G(x))→∀x ∀x F(x)→∀x G(x))→∀x (∀x F(x)→G(x))→∀x F(x)→∀x G(x)",
-  "hint": null,
-  "tip": null,
+  "id": "Ⅲ-i",
+  "code": "Ⅲ-i",
+  "no": null,
+  "tutorial": true,
+  "hard": false,
+  "band": "tutorial",
+  "chapter": 2,
+  "chapterGroup": "Ⅲ",
+  "title": "等词自反",
+  "teaches": "接一块 =I。",
+  "hint": "接一块 =I。",
+  "tip": {
+   "code": "=I",
+   "flow": "t ⇒ t=t"
+  },
+  "targetTokens": [
+   "|-",
+   "y",
+   "=",
+   "y"
+  ],
+  "palette": [
+   {
+    "kind": "eq-refl",
+    "config": {
+     "t": "y"
+    }
+   }
+  ],
+  "initialNodes": [
+   {
+    "id": "n2",
+    "kind": "target",
+    "config": {},
+    "x": 576,
+    "y": 40,
+    "targetTokens": [
+     "|-",
+     "y",
+     "=",
+     "y"
+    ]
+   }
+  ],
+  "solution": {
+   "nodes": [
+    {
+     "id": "n1",
+     "kind": "eq-refl",
+     "config": {
+      "t": "y"
+     },
+     "x": 40,
+     "y": 40
+    }
+   ],
+   "edges": [
+    {
+     "id": "e1",
+     "from": {
+      "node": "n1",
+      "port": "out"
+     },
+     "to": {
+      "node": "n2",
+      "port": "proof"
+     }
+    }
+   ]
+  },
+  "difficulty": 1,
+  "stats": {
+   "steps": 1
+  },
+  "mustUse": [
+   "eq-refl"
+  ],
+  "depCodes": []
+ },
+ {
+  "id": "Ⅲ-ii",
+  "code": "Ⅲ-ii",
+  "no": null,
+  "tutorial": true,
+  "hard": false,
+  "band": "tutorial",
+  "chapter": 2,
+  "chapterGroup": "Ⅲ",
+  "title": "等词替换",
+  "teaches": "接一块 =L：把 F(y) 里的 y 换成 x。",
+  "hint": "接一块 =L：把 F(y) 里的 y 换成 x。",
+  "tip": {
+   "code": "=L",
+   "flow": "y=x ⇒ F(y)→F(x)"
+  },
   "targetTokens": [
    "|-",
    "(",
-   "(",
-   "A.",
+   "y",
+   "=",
    "x",
+   "->",
+   "(",
+   "F",
+   "(",
+   "y",
+   ")",
+   "->",
    "F",
    "(",
    "x",
-   ")",
-   "->",
-   "A.",
-   "x",
-   "A.",
-   "x",
-   "F",
-   "(",
-   "x",
-   ")",
-   ")",
-   "->",
-   "(",
-   "(",
-   "A.",
-   "x",
-   "(",
-   "A.",
-   "x",
-   "F",
-   "(",
-   "x",
-   ")",
-   "->",
-   "G",
-   "(",
-   "x",
-   ")",
-   ")",
-   "->",
-   "(",
-   "A.",
-   "x",
-   "A.",
-   "x",
-   "F",
-   "(",
-   "x",
-   ")",
-   "->",
-   "A.",
-   "x",
-   "G",
-   "(",
-   "x",
-   ")",
-   ")",
-   ")",
-   "->",
-   "(",
-   "A.",
-   "x",
-   "(",
-   "A.",
-   "x",
-   "F",
-   "(",
-   "x",
-   ")",
-   "->",
-   "G",
-   "(",
-   "x",
-   ")",
-   ")",
-   "->",
-   "(",
-   "A.",
-   "x",
-   "F",
-   "(",
-   "x",
-   ")",
-   "->",
-   "A.",
-   "x",
-   "G",
-   "(",
-   "x",
-   ")",
-   ")",
    ")",
    ")",
    ")"
   ],
   "palette": [
    {
-    "kind": "mp",
-    "config": {}
-   },
-   {
-    "kind": "axiom",
+    "kind": "leibniz",
     "config": {
-     "schema": "A1"
+     "mode": "replace",
+     "v": "z"
     }
    },
    {
-    "kind": "atom",
+    "kind": "term",
     "config": {
-     "name": "P"
+     "name": "y"
     }
    },
    {
@@ -64606,143 +66915,31 @@
     "config": {
      "symbol": "F"
     }
-   },
-   {
-    "kind": "all",
-    "config": {
-     "v": "x"
-    }
-   },
-   {
-    "kind": "imp",
-    "config": {}
-   },
-   {
-    "kind": "atom",
-    "config": {
-     "name": "Q"
-    }
-   },
-   {
-    "kind": "axiom",
-    "config": {
-     "schema": "A2"
-    }
-   },
-   {
-    "kind": "atom",
-    "config": {
-     "name": "R"
-    }
-   },
-   {
-    "kind": "subst",
-    "config": {}
-   },
-   {
-    "kind": "pred",
-    "config": {
-     "symbol": "G"
-    }
    }
   ],
   "initialNodes": [
    {
-    "id": "n94",
+    "id": "n6",
     "kind": "target",
     "config": {},
-    "x": 5936,
+    "x": 1112,
     "y": 40,
     "targetTokens": [
      "|-",
      "(",
-     "(",
-     "A.",
+     "y",
+     "=",
      "x",
+     "->",
+     "(",
+     "F",
+     "(",
+     "y",
+     ")",
+     "->",
      "F",
      "(",
      "x",
-     ")",
-     "->",
-     "A.",
-     "x",
-     "A.",
-     "x",
-     "F",
-     "(",
-     "x",
-     ")",
-     ")",
-     "->",
-     "(",
-     "(",
-     "A.",
-     "x",
-     "(",
-     "A.",
-     "x",
-     "F",
-     "(",
-     "x",
-     ")",
-     "->",
-     "G",
-     "(",
-     "x",
-     ")",
-     ")",
-     "->",
-     "(",
-     "A.",
-     "x",
-     "A.",
-     "x",
-     "F",
-     "(",
-     "x",
-     ")",
-     "->",
-     "A.",
-     "x",
-     "G",
-     "(",
-     "x",
-     ")",
-     ")",
-     ")",
-     "->",
-     "(",
-     "A.",
-     "x",
-     "(",
-     "A.",
-     "x",
-     "F",
-     "(",
-     "x",
-     ")",
-     "->",
-     "G",
-     "(",
-     "x",
-     ")",
-     ")",
-     "->",
-     "(",
-     "A.",
-     "x",
-     "F",
-     "(",
-     "x",
-     ")",
-     "->",
-     "A.",
-     "x",
-     "G",
-     "(",
-     "x",
-     ")",
-     ")",
      ")",
      ")",
      ")"
@@ -64753,36 +66950,489 @@
    "nodes": [
     {
      "id": "n1",
-     "kind": "mp",
-     "config": {},
-     "x": 5400,
+     "kind": "leibniz",
+     "config": {
+      "mode": "replace",
+      "v": "z"
+     },
+     "x": 576,
      "y": 40
     },
     {
      "id": "n2",
-     "kind": "mp",
-     "config": {},
-     "x": 5132,
-     "y": 40
-    },
-    {
-     "id": "n3",
-     "kind": "mp",
-     "config": {},
-     "x": 4864,
-     "y": 40
-    },
-    {
-     "id": "n4",
-     "kind": "axiom",
+     "kind": "term",
      "config": {
-      "schema": "A1"
+      "name": "y"
      },
      "x": 40,
      "y": 40
     },
     {
+     "id": "n3",
+     "kind": "term",
+     "config": {
+      "name": "x"
+     },
+     "x": 40,
+     "y": 180
+    },
+    {
+     "id": "n4",
+     "kind": "term",
+     "config": {
+      "name": "y"
+     },
+     "x": 40,
+     "y": 320
+    },
+    {
      "id": "n5",
+     "kind": "pred",
+     "config": {
+      "symbol": "F"
+     },
+     "x": 308,
+     "y": 40
+    }
+   ],
+   "edges": [
+    {
+     "id": "e1",
+     "from": {
+      "node": "n2",
+      "port": "out"
+     },
+     "to": {
+      "node": "n1",
+      "port": "x"
+     }
+    },
+    {
+     "id": "e2",
+     "from": {
+      "node": "n3",
+      "port": "out"
+     },
+     "to": {
+      "node": "n1",
+      "port": "y"
+     }
+    },
+    {
+     "id": "e3",
+     "from": {
+      "node": "n4",
+      "port": "out"
+     },
+     "to": {
+      "node": "n5",
+      "port": "t1"
+     }
+    },
+    {
+     "id": "e4",
+     "from": {
+      "node": "n5",
+      "port": "out"
+     },
+     "to": {
+      "node": "n1",
+      "port": "formula"
+     }
+    },
+    {
+     "id": "e5",
+     "from": {
+      "node": "n1",
+      "port": "out"
+     },
+     "to": {
+      "node": "n6",
+      "port": "proof"
+     }
+    }
+   ]
+  },
+  "difficulty": 5,
+  "stats": {
+   "steps": 5
+  },
+  "mustUse": [
+   "leibniz"
+  ],
+  "depCodes": []
+ },
+ {
+  "id": "Ⅲ-iii",
+  "code": "Ⅲ-iii",
+  "no": null,
+  "tutorial": true,
+  "hard": false,
+  "band": "tutorial",
+  "chapter": 2,
+  "chapterGroup": "Ⅲ",
+  "title": "等词替换（抽象）",
+  "teaches": "=L 的抽象模式。",
+  "hint": "=L 的抽象模式。",
+  "tip": {
+   "code": "=L·z",
+   "flow": "y=x ⇒ G(y)→G(x)"
+  },
+  "targetTokens": [
+   "|-",
+   "(",
+   "y",
+   "=",
+   "x",
+   "->",
+   "(",
+   "G",
+   "(",
+   "y",
+   ")",
+   "->",
+   "G",
+   "(",
+   "x",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "leibniz",
+    "config": {
+     "mode": "abstract",
+     "v": "z"
+    }
+   },
+   {
+    "kind": "term",
+    "config": {
+     "name": "y"
+    }
+   },
+   {
+    "kind": "term",
+    "config": {
+     "name": "x"
+    }
+   },
+   {
+    "kind": "term",
+    "config": {
+     "name": "z"
+    }
+   },
+   {
+    "kind": "pred",
+    "config": {
+     "symbol": "G"
+    }
+   }
+  ],
+  "initialNodes": [
+   {
+    "id": "n6",
+    "kind": "target",
+    "config": {},
+    "x": 1112,
+    "y": 40,
+    "targetTokens": [
+     "|-",
+     "(",
+     "y",
+     "=",
+     "x",
+     "->",
+     "(",
+     "G",
+     "(",
+     "y",
+     ")",
+     "->",
+     "G",
+     "(",
+     "x",
+     ")",
+     ")",
+     ")"
+    ]
+   }
+  ],
+  "solution": {
+   "nodes": [
+    {
+     "id": "n1",
+     "kind": "leibniz",
+     "config": {
+      "mode": "abstract",
+      "v": "z"
+     },
+     "x": 576,
+     "y": 40
+    },
+    {
+     "id": "n2",
+     "kind": "term",
+     "config": {
+      "name": "y"
+     },
+     "x": 40,
+     "y": 40
+    },
+    {
+     "id": "n3",
+     "kind": "term",
+     "config": {
+      "name": "x"
+     },
+     "x": 40,
+     "y": 180
+    },
+    {
+     "id": "n4",
+     "kind": "term",
+     "config": {
+      "name": "z"
+     },
+     "x": 40,
+     "y": 320
+    },
+    {
+     "id": "n5",
+     "kind": "pred",
+     "config": {
+      "symbol": "G"
+     },
+     "x": 308,
+     "y": 40
+    }
+   ],
+   "edges": [
+    {
+     "id": "e1",
+     "from": {
+      "node": "n2",
+      "port": "out"
+     },
+     "to": {
+      "node": "n1",
+      "port": "x"
+     }
+    },
+    {
+     "id": "e2",
+     "from": {
+      "node": "n3",
+      "port": "out"
+     },
+     "to": {
+      "node": "n1",
+      "port": "y"
+     }
+    },
+    {
+     "id": "e3",
+     "from": {
+      "node": "n4",
+      "port": "out"
+     },
+     "to": {
+      "node": "n5",
+      "port": "t1"
+     }
+    },
+    {
+     "id": "e4",
+     "from": {
+      "node": "n5",
+      "port": "out"
+     },
+     "to": {
+      "node": "n1",
+      "port": "formula"
+     }
+    },
+    {
+     "id": "e5",
+     "from": {
+      "node": "n1",
+      "port": "out"
+     },
+     "to": {
+      "node": "n6",
+      "port": "proof"
+     }
+    }
+   ]
+  },
+  "difficulty": 5,
+  "stats": {
+   "steps": 5
+  },
+  "mustUse": [
+   "leibniz"
+  ],
+  "depCodes": []
+ },
+ {
+  "id": "Ⅲ-iv",
+  "code": "Ⅲ-iv",
+  "no": null,
+  "tutorial": true,
+  "hard": false,
+  "band": "tutorial",
+  "chapter": 2,
+  "chapterGroup": "Ⅲ",
+  "title": "引用已证定理",
+  "teaches": "用 theorem 引用前章关卡再代入。",
+  "hint": "用 theorem 引用前章关卡再代入。",
+  "tip": {
+   "code": "⊢·S",
+   "flow": "Ⅱ-01 · P:=F(z) ⇒ …"
+  },
+  "targetTokens": [
+   "|-",
+   "(",
+   "A.",
+   "x",
+   "(",
+   "F",
+   "(",
+   "z",
+   ")",
+   "->",
+   "G",
+   "(",
+   "z",
+   ")",
+   ")",
+   "->",
+   "(",
+   "A.",
+   "x",
+   "F",
+   "(",
+   "z",
+   ")",
+   "->",
+   "A.",
+   "x",
+   "G",
+   "(",
+   "z",
+   ")",
+   ")",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "theorem",
+    "config": {
+     "code": "@pred_alim"
+    }
+   },
+   {
+    "kind": "subst",
+    "config": {}
+   },
+   {
+    "kind": "atom",
+    "config": {
+     "name": "P"
+    }
+   },
+   {
+    "kind": "term",
+    "config": {
+     "name": "z"
+    }
+   },
+   {
+    "kind": "pred",
+    "config": {
+     "symbol": "F"
+    }
+   },
+   {
+    "kind": "atom",
+    "config": {
+     "name": "Q"
+    }
+   },
+   {
+    "kind": "pred",
+    "config": {
+     "symbol": "G"
+    }
+   }
+  ],
+  "initialNodes": [
+   {
+    "id": "n8",
+    "kind": "target",
+    "config": {},
+    "x": 1112,
+    "y": 40,
+    "targetTokens": [
+     "|-",
+     "(",
+     "A.",
+     "x",
+     "(",
+     "F",
+     "(",
+     "z",
+     ")",
+     "->",
+     "G",
+     "(",
+     "z",
+     ")",
+     ")",
+     "->",
+     "(",
+     "A.",
+     "x",
+     "F",
+     "(",
+     "z",
+     ")",
+     "->",
+     "A.",
+     "x",
+     "G",
+     "(",
+     "z",
+     ")",
+     ")",
+     ")"
+    ]
+   }
+  ],
+  "solution": {
+   "nodes": [
+    {
+     "id": "n1",
+     "kind": "theorem",
+     "config": {
+      "code": "Ⅱ-11"
+     },
+     "x": 40,
+     "y": 40
+    },
+    {
+     "id": "n2",
+     "kind": "subst",
+     "config": {
+      "groups": 1
+     },
+     "x": 576,
+     "y": 40
+    },
+    {
+     "id": "n3",
      "kind": "atom",
      "config": {
       "name": "P"
@@ -64791,16 +67441,16 @@
      "y": 180
     },
     {
-     "id": "n6",
+     "id": "n4",
      "kind": "term",
      "config": {
-      "name": "x"
+      "name": "z"
      },
      "x": 40,
      "y": 320
     },
     {
-     "id": "n7",
+     "id": "n5",
      "kind": "pred",
      "config": {
       "symbol": "F"
@@ -64809,32 +67459,7 @@
      "y": 40
     },
     {
-     "id": "n8",
-     "kind": "all",
-     "config": {
-      "v": "x"
-     },
-     "x": 576,
-     "y": 40
-    },
-    {
-     "id": "n9",
-     "kind": "all",
-     "config": {
-      "v": "x"
-     },
-     "x": 844,
-     "y": 40
-    },
-    {
-     "id": "n10",
-     "kind": "imp",
-     "config": {},
-     "x": 1112,
-     "y": 40
-    },
-    {
-     "id": "n11",
+     "id": "n6",
      "kind": "atom",
      "config": {
       "name": "Q"
@@ -64843,702 +67468,69 @@
      "y": 460
     },
     {
-     "id": "n12",
-     "kind": "axiom",
-     "config": {
-      "schema": "A2"
-     },
-     "x": 40,
-     "y": 600
-    },
-    {
-     "id": "n13",
-     "kind": "atom",
-     "config": {
-      "name": "R"
-     },
-     "x": 40,
-     "y": 746
-    },
-    {
-     "id": "n14",
-     "kind": "subst",
-     "config": {
-      "groups": 1
-     },
-     "x": 1380,
-     "y": 40
-    },
-    {
-     "id": "n15",
+     "id": "n7",
      "kind": "pred",
      "config": {
       "symbol": "G"
      },
      "x": 308,
      "y": 180
-    },
-    {
-     "id": "n16",
-     "kind": "all",
-     "config": {
-      "v": "x"
-     },
-     "x": 576,
-     "y": 180
-    },
-    {
-     "id": "n17",
-     "kind": "imp",
-     "config": {},
-     "x": 1112,
-     "y": 180
-    },
-    {
-     "id": "n18",
-     "kind": "imp",
-     "config": {},
-     "x": 1380,
-     "y": 272
-    },
-    {
-     "id": "n19",
-     "kind": "mp",
-     "config": {},
-     "x": 4596,
-     "y": 40
-    },
-    {
-     "id": "n20",
-     "kind": "mp",
-     "config": {},
-     "x": 4328,
-     "y": 40
-    },
-    {
-     "id": "n21",
-     "kind": "mp",
-     "config": {},
-     "x": 4060,
-     "y": 40
-    },
-    {
-     "id": "n22",
-     "kind": "mp",
-     "config": {},
-     "x": 2720,
-     "y": 40
-    },
-    {
-     "id": "n23",
-     "kind": "mp",
-     "config": {},
-     "x": 2452,
-     "y": 40
-    },
-    {
-     "id": "n24",
-     "kind": "mp",
-     "config": {},
-     "x": 1916,
-     "y": 40
-    },
-    {
-     "id": "n25",
-     "kind": "mp",
-     "config": {},
-     "x": 1648,
-     "y": 40
-    },
-    {
-     "id": "n26",
-     "kind": "subst",
-     "config": {
-      "groups": 1
-     },
-     "x": 844,
-     "y": 180
-    },
-    {
-     "id": "n27",
-     "kind": "mp",
-     "config": {},
-     "x": 1380,
-     "y": 445
-    },
-    {
-     "id": "n28",
-     "kind": "subst",
-     "config": {
-      "groups": 1
-     },
-     "x": 1112,
-     "y": 320
-    },
-    {
-     "id": "n29",
-     "kind": "imp",
-     "config": {},
-     "x": 844,
-     "y": 412
-    },
-    {
-     "id": "n30",
-     "kind": "subst",
-     "config": {
-      "groups": 2
-     },
-     "x": 1112,
-     "y": 552
-    },
-    {
-     "id": "n31",
-     "kind": "subst",
-     "config": {
-      "groups": 1
-     },
-     "x": 1380,
-     "y": 618
-    },
-    {
-     "id": "n32",
-     "kind": "mp",
-     "config": {},
-     "x": 2184,
-     "y": 40
-    },
-    {
-     "id": "n33",
-     "kind": "mp",
-     "config": {},
-     "x": 1916,
-     "y": 186
-    },
-    {
-     "id": "n34",
-     "kind": "subst",
-     "config": {
-      "groups": 1
-     },
-     "x": 1112,
-     "y": 848
-    },
-    {
-     "id": "n35",
-     "kind": "subst",
-     "config": {
-      "groups": 1
-     },
-     "x": 1648,
-     "y": 180
-    },
-    {
-     "id": "n36",
-     "kind": "imp",
-     "config": {},
-     "x": 1112,
-     "y": 1080
-    },
-    {
-     "id": "n37",
-     "kind": "imp",
-     "config": {},
-     "x": 1380,
-     "y": 850
-    },
-    {
-     "id": "n38",
-     "kind": "subst",
-     "config": {
-      "groups": 2
-     },
-     "x": 1380,
-     "y": 1023
-    },
-    {
-     "id": "n39",
-     "kind": "mp",
-     "config": {},
-     "x": 2452,
-     "y": 213
-    },
-    {
-     "id": "n40",
-     "kind": "mp",
-     "config": {},
-     "x": 2184,
-     "y": 267
-    },
-    {
-     "id": "n41",
-     "kind": "subst",
-     "config": {
-      "groups": 2
-     },
-     "x": 1112,
-     "y": 1226
-    },
-    {
-     "id": "n42",
-     "kind": "subst",
-     "config": {
-      "groups": 1
-     },
-     "x": 1916,
-     "y": 386
-    },
-    {
-     "id": "n43",
-     "kind": "imp",
-     "config": {},
-     "x": 1380,
-     "y": 1358
-    },
-    {
-     "id": "n44",
-     "kind": "imp",
-     "config": {},
-     "x": 1648,
-     "y": 461
-    },
-    {
-     "id": "n45",
-     "kind": "subst",
-     "config": {
-      "groups": 2
-     },
-     "x": 1648,
-     "y": 661
-    },
-    {
-     "id": "n46",
-     "kind": "mp",
-     "config": {},
-     "x": 3792,
-     "y": 40
-    },
-    {
-     "id": "n47",
-     "kind": "mp",
-     "config": {},
-     "x": 3524,
-     "y": 40
-    },
-    {
-     "id": "n48",
-     "kind": "mp",
-     "config": {},
-     "x": 3256,
-     "y": 40
-    },
-    {
-     "id": "n49",
-     "kind": "mp",
-     "config": {},
-     "x": 2988,
-     "y": 40
-    },
-    {
-     "id": "n50",
-     "kind": "mp",
-     "config": {},
-     "x": 2720,
-     "y": 240
-    },
-    {
-     "id": "n51",
-     "kind": "subst",
-     "config": {
-      "groups": 1
-     },
-     "x": 1380,
-     "y": 1531
-    },
-    {
-     "id": "n52",
-     "kind": "imp",
-     "config": {},
-     "x": 1380,
-     "y": 1763
-    },
-    {
-     "id": "n53",
-     "kind": "mp",
-     "config": {},
-     "x": 2452,
-     "y": 467
-    },
-    {
-     "id": "n54",
-     "kind": "mp",
-     "config": {},
-     "x": 2184,
-     "y": 494
-    },
-    {
-     "id": "n55",
-     "kind": "subst",
-     "config": {
-      "groups": 2
-     },
-     "x": 1112,
-     "y": 1522
-    },
-    {
-     "id": "n56",
-     "kind": "subst",
-     "config": {
-      "groups": 1
-     },
-     "x": 1916,
-     "y": 721
-    },
-    {
-     "id": "n57",
-     "kind": "imp",
-     "config": {},
-     "x": 844,
-     "y": 552
-    },
-    {
-     "id": "n58",
-     "kind": "imp",
-     "config": {},
-     "x": 1380,
-     "y": 1909
-    },
-    {
-     "id": "n59",
-     "kind": "imp",
-     "config": {},
-     "x": 1648,
-     "y": 1050
-    },
-    {
-     "id": "n60",
-     "kind": "subst",
-     "config": {
-      "groups": 2
-     },
-     "x": 1648,
-     "y": 1250
-    },
-    {
-     "id": "n61",
-     "kind": "subst",
-     "config": {
-      "groups": 1
-     },
-     "x": 1916,
-     "y": 1056
-    },
-    {
-     "id": "n62",
-     "kind": "imp",
-     "config": {},
-     "x": 1648,
-     "y": 1639
-    },
-    {
-     "id": "n63",
-     "kind": "subst",
-     "config": {
-      "groups": 2
-     },
-     "x": 1648,
-     "y": 1839
-    },
-    {
-     "id": "n64",
-     "kind": "subst",
-     "config": {
-      "groups": 1
-     },
-     "x": 2184,
-     "y": 721
-    },
-    {
-     "id": "n65",
-     "kind": "imp",
-     "config": {},
-     "x": 1916,
-     "y": 1364
-    },
-    {
-     "id": "n66",
-     "kind": "subst",
-     "config": {
-      "groups": 2
-     },
-     "x": 1916,
-     "y": 1618
-    },
-    {
-     "id": "n67",
-     "kind": "mp",
-     "config": {},
-     "x": 2720,
-     "y": 440
-    },
-    {
-     "id": "n68",
-     "kind": "mp",
-     "config": {},
-     "x": 2452,
-     "y": 721
-    },
-    {
-     "id": "n69",
-     "kind": "subst",
-     "config": {
-      "groups": 2
-     },
-     "x": 1380,
-     "y": 2055
-    },
-    {
-     "id": "n70",
-     "kind": "subst",
-     "config": {
-      "groups": 1
-     },
-     "x": 2184,
-     "y": 1137
-    },
-    {
-     "id": "n71",
-     "kind": "imp",
-     "config": {},
-     "x": 1380,
-     "y": 2363
-    },
-    {
-     "id": "n72",
-     "kind": "imp",
-     "config": {},
-     "x": 1648,
-     "y": 2201
-    },
-    {
-     "id": "n73",
-     "kind": "imp",
-     "config": {},
-     "x": 1916,
-     "y": 2115
-    },
-    {
-     "id": "n74",
-     "kind": "subst",
-     "config": {
-      "groups": 2
-     },
-     "x": 1916,
-     "y": 2423
-    },
-    {
-     "id": "n75",
-     "kind": "subst",
-     "config": {
-      "groups": 2
-     },
-     "x": 1648,
-     "y": 2428
-    },
-    {
-     "id": "n76",
-     "kind": "mp",
-     "config": {},
-     "x": 2720,
-     "y": 802
-    },
-    {
-     "id": "n77",
-     "kind": "mp",
-     "config": {},
-     "x": 2452,
-     "y": 1056
-    },
-    {
-     "id": "n78",
-     "kind": "subst",
-     "config": {
-      "groups": 1
-     },
-     "x": 1648,
-     "y": 2844
-    },
-    {
-     "id": "n79",
-     "kind": "imp",
-     "config": {},
-     "x": 844,
-     "y": 692
-    },
-    {
-     "id": "n80",
-     "kind": "all",
-     "config": {
-      "v": "x"
-     },
-     "x": 1112,
-     "y": 1818
-    },
-    {
-     "id": "n81",
-     "kind": "subst",
-     "config": {
-      "groups": 1
-     },
-     "x": 2184,
-     "y": 1688
-    },
-    {
-     "id": "n82",
-     "kind": "imp",
-     "config": {},
-     "x": 1648,
-     "y": 3098
-    },
-    {
-     "id": "n83",
-     "kind": "imp",
-     "config": {},
-     "x": 1916,
-     "y": 3028
-    },
-    {
-     "id": "n84",
-     "kind": "subst",
-     "config": {
-      "groups": 2
-     },
-     "x": 1916,
-     "y": 3282
-    },
-    {
-     "id": "n85",
-     "kind": "mp",
-     "config": {},
-     "x": 2720,
-     "y": 1110
-    },
-    {
-     "id": "n86",
-     "kind": "mp",
-     "config": {},
-     "x": 2452,
-     "y": 1337
-    },
-    {
-     "id": "n87",
-     "kind": "subst",
-     "config": {
-      "groups": 2
-     },
-     "x": 1380,
-     "y": 2509
-    },
-    {
-     "id": "n88",
-     "kind": "subst",
-     "config": {
-      "groups": 1
-     },
-     "x": 2184,
-     "y": 2104
-    },
-    {
-     "id": "n89",
-     "kind": "imp",
-     "config": {},
-     "x": 1380,
-     "y": 2817
-    },
-    {
-     "id": "n90",
-     "kind": "imp",
-     "config": {},
-     "x": 1380,
-     "y": 2963
-    },
-    {
-     "id": "n91",
-     "kind": "imp",
-     "config": {},
-     "x": 1648,
-     "y": 3271
-    },
-    {
-     "id": "n92",
-     "kind": "imp",
-     "config": {},
-     "x": 1916,
-     "y": 3752
-    },
-    {
-     "id": "n93",
-     "kind": "subst",
-     "config": {
-      "groups": 2
-     },
-     "x": 1916,
-     "y": 4060
     }
    ],
    "edges": [
     {
      "id": "e1",
      "from": {
-      "node": "n6",
+      "node": "n1",
       "port": "out"
      },
      "to": {
-      "node": "n7",
-      "port": "t1"
+      "node": "n2",
+      "port": "assertion"
      }
     },
     {
      "id": "e2",
      "from": {
-      "node": "n7",
+      "node": "n3",
       "port": "out"
      },
      "to": {
-      "node": "n8",
-      "port": "a"
+      "node": "n2",
+      "port": "atom1"
      }
     },
     {
      "id": "e3",
      "from": {
-      "node": "n8",
+      "node": "n4",
       "port": "out"
      },
      "to": {
-      "node": "n9",
-      "port": "a"
+      "node": "n5",
+      "port": "t1"
      }
     },
     {
      "id": "e4",
      "from": {
-      "node": "n8",
+      "node": "n5",
       "port": "out"
      },
      "to": {
-      "node": "n10",
-      "port": "a"
+      "node": "n2",
+      "port": "formula1"
      }
     },
     {
      "id": "e5",
      "from": {
-      "node": "n9",
+      "node": "n6",
       "port": "out"
      },
      "to": {
-      "node": "n10",
-      "port": "b"
+      "node": "n2",
+      "port": "atom2"
      }
     },
     {
@@ -65548,3080 +67540,44 @@
       "port": "out"
      },
      "to": {
-      "node": "n14",
-      "port": "assertion"
+      "node": "n7",
+      "port": "t1"
      }
     },
     {
      "id": "e7",
      "from": {
-      "node": "n5",
+      "node": "n7",
       "port": "out"
      },
      "to": {
-      "node": "n14",
-      "port": "atom1"
+      "node": "n2",
+      "port": "formula2"
      }
     },
     {
      "id": "e8",
      "from": {
-      "node": "n10",
-      "port": "out"
-     },
-     "to": {
-      "node": "n14",
-      "port": "formula1"
-     }
-    },
-    {
-     "id": "e9",
-     "from": {
-      "node": "n6",
-      "port": "out"
-     },
-     "to": {
-      "node": "n15",
-      "port": "t1"
-     }
-    },
-    {
-     "id": "e10",
-     "from": {
-      "node": "n15",
-      "port": "out"
-     },
-     "to": {
-      "node": "n16",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e11",
-     "from": {
-      "node": "n9",
-      "port": "out"
-     },
-     "to": {
-      "node": "n17",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e12",
-     "from": {
-      "node": "n16",
-      "port": "out"
-     },
-     "to": {
-      "node": "n17",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e13",
-     "from": {
-      "node": "n11",
-      "port": "out"
-     },
-     "to": {
-      "node": "n14",
-      "port": "atom2"
-     }
-    },
-    {
-     "id": "e14",
-     "from": {
-      "node": "n17",
-      "port": "out"
-     },
-     "to": {
-      "node": "n14",
-      "port": "formula2"
-     }
-    },
-    {
-     "id": "e15",
-     "from": {
-      "node": "n17",
-      "port": "out"
-     },
-     "to": {
-      "node": "n18",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e16",
-     "from": {
-      "node": "n10",
-      "port": "out"
-     },
-     "to": {
-      "node": "n18",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e17",
-     "from": {
-      "node": "n4",
-      "port": "out"
-     },
-     "to": {
-      "node": "n26",
-      "port": "assertion"
-     }
-    },
-    {
-     "id": "e18",
-     "from": {
-      "node": "n5",
-      "port": "out"
-     },
-     "to": {
-      "node": "n26",
-      "port": "atom1"
-     }
-    },
-    {
-     "id": "e19",
-     "from": {
-      "node": "n16",
-      "port": "out"
-     },
-     "to": {
-      "node": "n26",
-      "port": "formula1"
-     }
-    },
-    {
-     "id": "e20",
-     "from": {
-      "node": "n11",
-      "port": "out"
-     },
-     "to": {
-      "node": "n26",
-      "port": "atom2"
-     }
-    },
-    {
-     "id": "e21",
-     "from": {
-      "node": "n16",
-      "port": "out"
-     },
-     "to": {
-      "node": "n26",
-      "port": "formula2"
-     }
-    },
-    {
-     "id": "e22",
-     "from": {
-      "node": "n4",
-      "port": "out"
-     },
-     "to": {
-      "node": "n28",
-      "port": "assertion"
-     }
-    },
-    {
-     "id": "e23",
-     "from": {
-      "node": "n5",
-      "port": "out"
-     },
-     "to": {
-      "node": "n28",
-      "port": "atom1"
-     }
-    },
-    {
-     "id": "e24",
-     "from": {
-      "node": "n16",
-      "port": "out"
-     },
-     "to": {
-      "node": "n28",
-      "port": "formula1"
-     }
-    },
-    {
-     "id": "e25",
-     "from": {
-      "node": "n16",
-      "port": "out"
-     },
-     "to": {
-      "node": "n29",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e26",
-     "from": {
-      "node": "n16",
-      "port": "out"
-     },
-     "to": {
-      "node": "n29",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e27",
-     "from": {
-      "node": "n11",
-      "port": "out"
-     },
-     "to": {
-      "node": "n28",
-      "port": "atom2"
-     }
-    },
-    {
-     "id": "e28",
-     "from": {
-      "node": "n29",
-      "port": "out"
-     },
-     "to": {
-      "node": "n28",
-      "port": "formula2"
-     }
-    },
-    {
-     "id": "e29",
-     "from": {
-      "node": "n12",
-      "port": "out"
-     },
-     "to": {
-      "node": "n30",
-      "port": "assertion"
-     }
-    },
-    {
-     "id": "e30",
-     "from": {
-      "node": "n5",
-      "port": "out"
-     },
-     "to": {
-      "node": "n30",
-      "port": "atom1"
-     }
-    },
-    {
-     "id": "e31",
-     "from": {
-      "node": "n16",
-      "port": "out"
-     },
-     "to": {
-      "node": "n30",
-      "port": "formula1"
-     }
-    },
-    {
-     "id": "e32",
-     "from": {
-      "node": "n11",
-      "port": "out"
-     },
-     "to": {
-      "node": "n30",
-      "port": "atom2"
-     }
-    },
-    {
-     "id": "e33",
-     "from": {
-      "node": "n29",
-      "port": "out"
-     },
-     "to": {
-      "node": "n30",
-      "port": "formula2"
-     }
-    },
-    {
-     "id": "e34",
-     "from": {
-      "node": "n13",
-      "port": "out"
-     },
-     "to": {
-      "node": "n30",
-      "port": "atom3"
-     }
-    },
-    {
-     "id": "e35",
-     "from": {
-      "node": "n16",
-      "port": "out"
-     },
-     "to": {
-      "node": "n30",
-      "port": "formula3"
-     }
-    },
-    {
-     "id": "e36",
-     "from": {
-      "node": "n28",
-      "port": "out"
-     },
-     "to": {
-      "node": "n27",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e37",
-     "from": {
-      "node": "n30",
-      "port": "out"
-     },
-     "to": {
-      "node": "n27",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e38",
-     "from": {
-      "node": "n26",
-      "port": "out"
-     },
-     "to": {
-      "node": "n25",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e39",
-     "from": {
-      "node": "n27",
-      "port": "out"
-     },
-     "to": {
-      "node": "n25",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e40",
-     "from": {
-      "node": "n4",
-      "port": "out"
-     },
-     "to": {
-      "node": "n31",
-      "port": "assertion"
-     }
-    },
-    {
-     "id": "e41",
-     "from": {
-      "node": "n5",
-      "port": "out"
-     },
-     "to": {
-      "node": "n31",
-      "port": "atom1"
-     }
-    },
-    {
-     "id": "e42",
-     "from": {
-      "node": "n29",
-      "port": "out"
-     },
-     "to": {
-      "node": "n31",
-      "port": "formula1"
-     }
-    },
-    {
-     "id": "e43",
-     "from": {
-      "node": "n11",
-      "port": "out"
-     },
-     "to": {
-      "node": "n31",
-      "port": "atom2"
-     }
-    },
-    {
-     "id": "e44",
-     "from": {
-      "node": "n10",
-      "port": "out"
-     },
-     "to": {
-      "node": "n31",
-      "port": "formula2"
-     }
-    },
-    {
-     "id": "e45",
-     "from": {
-      "node": "n25",
-      "port": "out"
-     },
-     "to": {
-      "node": "n24",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e46",
-     "from": {
-      "node": "n31",
-      "port": "out"
-     },
-     "to": {
-      "node": "n24",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e47",
-     "from": {
-      "node": "n4",
-      "port": "out"
-     },
-     "to": {
-      "node": "n34",
-      "port": "assertion"
-     }
-    },
-    {
-     "id": "e48",
-     "from": {
-      "node": "n5",
-      "port": "out"
-     },
-     "to": {
-      "node": "n34",
-      "port": "atom1"
-     }
-    },
-    {
-     "id": "e49",
-     "from": {
-      "node": "n29",
-      "port": "out"
-     },
-     "to": {
-      "node": "n34",
-      "port": "formula1"
-     }
-    },
-    {
-     "id": "e50",
-     "from": {
-      "node": "n11",
-      "port": "out"
-     },
-     "to": {
-      "node": "n34",
-      "port": "atom2"
-     }
-    },
-    {
-     "id": "e51",
-     "from": {
-      "node": "n9",
-      "port": "out"
-     },
-     "to": {
-      "node": "n34",
-      "port": "formula2"
-     }
-    },
-    {
-     "id": "e52",
-     "from": {
-      "node": "n4",
-      "port": "out"
-     },
-     "to": {
-      "node": "n35",
-      "port": "assertion"
-     }
-    },
-    {
-     "id": "e53",
-     "from": {
-      "node": "n9",
-      "port": "out"
-     },
-     "to": {
-      "node": "n36",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e54",
-     "from": {
-      "node": "n29",
-      "port": "out"
-     },
-     "to": {
-      "node": "n36",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e55",
-     "from": {
-      "node": "n29",
-      "port": "out"
-     },
-     "to": {
-      "node": "n37",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e56",
-     "from": {
-      "node": "n36",
-      "port": "out"
-     },
-     "to": {
-      "node": "n37",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e57",
-     "from": {
-      "node": "n5",
-      "port": "out"
-     },
-     "to": {
-      "node": "n35",
-      "port": "atom1"
-     }
-    },
-    {
-     "id": "e58",
-     "from": {
-      "node": "n37",
-      "port": "out"
-     },
-     "to": {
-      "node": "n35",
-      "port": "formula1"
-     }
-    },
-    {
-     "id": "e59",
-     "from": {
-      "node": "n11",
-      "port": "out"
-     },
-     "to": {
-      "node": "n35",
-      "port": "atom2"
-     }
-    },
-    {
-     "id": "e60",
-     "from": {
-      "node": "n10",
-      "port": "out"
-     },
-     "to": {
-      "node": "n35",
-      "port": "formula2"
-     }
-    },
-    {
-     "id": "e61",
-     "from": {
-      "node": "n34",
-      "port": "out"
-     },
-     "to": {
-      "node": "n33",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e62",
-     "from": {
-      "node": "n35",
-      "port": "out"
-     },
-     "to": {
-      "node": "n33",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e63",
-     "from": {
-      "node": "n12",
-      "port": "out"
-     },
-     "to": {
-      "node": "n38",
-      "port": "assertion"
-     }
-    },
-    {
-     "id": "e64",
-     "from": {
-      "node": "n5",
-      "port": "out"
-     },
-     "to": {
-      "node": "n38",
-      "port": "atom1"
-     }
-    },
-    {
-     "id": "e65",
-     "from": {
-      "node": "n10",
-      "port": "out"
-     },
-     "to": {
-      "node": "n38",
-      "port": "formula1"
-     }
-    },
-    {
-     "id": "e66",
-     "from": {
-      "node": "n11",
-      "port": "out"
-     },
-     "to": {
-      "node": "n38",
-      "port": "atom2"
-     }
-    },
-    {
-     "id": "e67",
-     "from": {
-      "node": "n29",
-      "port": "out"
-     },
-     "to": {
-      "node": "n38",
-      "port": "formula2"
-     }
-    },
-    {
-     "id": "e68",
-     "from": {
-      "node": "n13",
-      "port": "out"
-     },
-     "to": {
-      "node": "n38",
-      "port": "atom3"
-     }
-    },
-    {
-     "id": "e69",
-     "from": {
-      "node": "n36",
-      "port": "out"
-     },
-     "to": {
-      "node": "n38",
-      "port": "formula3"
-     }
-    },
-    {
-     "id": "e70",
-     "from": {
-      "node": "n33",
-      "port": "out"
-     },
-     "to": {
-      "node": "n32",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e71",
-     "from": {
-      "node": "n38",
-      "port": "out"
-     },
-     "to": {
-      "node": "n32",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e72",
-     "from": {
-      "node": "n24",
-      "port": "out"
-     },
-     "to": {
-      "node": "n23",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e73",
-     "from": {
-      "node": "n32",
-      "port": "out"
-     },
-     "to": {
-      "node": "n23",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e74",
-     "from": {
-      "node": "n12",
-      "port": "out"
-     },
-     "to": {
-      "node": "n41",
-      "port": "assertion"
-     }
-    },
-    {
-     "id": "e75",
-     "from": {
-      "node": "n5",
-      "port": "out"
-     },
-     "to": {
-      "node": "n41",
-      "port": "atom1"
-     }
-    },
-    {
-     "id": "e76",
-     "from": {
-      "node": "n9",
-      "port": "out"
-     },
-     "to": {
-      "node": "n41",
-      "port": "formula1"
-     }
-    },
-    {
-     "id": "e77",
-     "from": {
-      "node": "n11",
-      "port": "out"
-     },
-     "to": {
-      "node": "n41",
-      "port": "atom2"
-     }
-    },
-    {
-     "id": "e78",
-     "from": {
-      "node": "n16",
-      "port": "out"
-     },
-     "to": {
-      "node": "n41",
-      "port": "formula2"
-     }
-    },
-    {
-     "id": "e79",
-     "from": {
-      "node": "n13",
-      "port": "out"
-     },
-     "to": {
-      "node": "n41",
-      "port": "atom3"
-     }
-    },
-    {
-     "id": "e80",
-     "from": {
-      "node": "n16",
-      "port": "out"
-     },
-     "to": {
-      "node": "n41",
-      "port": "formula3"
-     }
-    },
-    {
-     "id": "e81",
-     "from": {
-      "node": "n4",
-      "port": "out"
-     },
-     "to": {
-      "node": "n42",
-      "port": "assertion"
-     }
-    },
-    {
-     "id": "e82",
-     "from": {
-      "node": "n17",
-      "port": "out"
-     },
-     "to": {
-      "node": "n43",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e83",
-     "from": {
-      "node": "n17",
-      "port": "out"
-     },
-     "to": {
-      "node": "n43",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e84",
-     "from": {
-      "node": "n36",
-      "port": "out"
-     },
-     "to": {
-      "node": "n44",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e85",
-     "from": {
-      "node": "n43",
-      "port": "out"
-     },
-     "to": {
-      "node": "n44",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e86",
-     "from": {
-      "node": "n5",
-      "port": "out"
-     },
-     "to": {
-      "node": "n42",
-      "port": "atom1"
-     }
-    },
-    {
-     "id": "e87",
-     "from": {
-      "node": "n44",
-      "port": "out"
-     },
-     "to": {
-      "node": "n42",
-      "port": "formula1"
-     }
-    },
-    {
-     "id": "e88",
-     "from": {
-      "node": "n11",
-      "port": "out"
-     },
-     "to": {
-      "node": "n42",
-      "port": "atom2"
-     }
-    },
-    {
-     "id": "e89",
-     "from": {
-      "node": "n10",
-      "port": "out"
-     },
-     "to": {
-      "node": "n42",
-      "port": "formula2"
-     }
-    },
-    {
-     "id": "e90",
-     "from": {
-      "node": "n41",
-      "port": "out"
-     },
-     "to": {
-      "node": "n40",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e91",
-     "from": {
-      "node": "n42",
-      "port": "out"
-     },
-     "to": {
-      "node": "n40",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e92",
-     "from": {
-      "node": "n12",
-      "port": "out"
-     },
-     "to": {
-      "node": "n45",
-      "port": "assertion"
-     }
-    },
-    {
-     "id": "e93",
-     "from": {
-      "node": "n5",
-      "port": "out"
-     },
-     "to": {
-      "node": "n45",
-      "port": "atom1"
-     }
-    },
-    {
-     "id": "e94",
-     "from": {
-      "node": "n10",
-      "port": "out"
-     },
-     "to": {
-      "node": "n45",
-      "port": "formula1"
-     }
-    },
-    {
-     "id": "e95",
-     "from": {
-      "node": "n11",
-      "port": "out"
-     },
-     "to": {
-      "node": "n45",
-      "port": "atom2"
-     }
-    },
-    {
-     "id": "e96",
-     "from": {
-      "node": "n36",
-      "port": "out"
-     },
-     "to": {
-      "node": "n45",
-      "port": "formula2"
-     }
-    },
-    {
-     "id": "e97",
-     "from": {
-      "node": "n13",
-      "port": "out"
-     },
-     "to": {
-      "node": "n45",
-      "port": "atom3"
-     }
-    },
-    {
-     "id": "e98",
-     "from": {
-      "node": "n43",
-      "port": "out"
-     },
-     "to": {
-      "node": "n45",
-      "port": "formula3"
-     }
-    },
-    {
-     "id": "e99",
-     "from": {
-      "node": "n40",
-      "port": "out"
-     },
-     "to": {
-      "node": "n39",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e100",
-     "from": {
-      "node": "n45",
-      "port": "out"
-     },
-     "to": {
-      "node": "n39",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e101",
-     "from": {
-      "node": "n23",
-      "port": "out"
-     },
-     "to": {
-      "node": "n22",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e102",
-     "from": {
-      "node": "n39",
-      "port": "out"
-     },
-     "to": {
-      "node": "n22",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e103",
-     "from": {
-      "node": "n4",
-      "port": "out"
-     },
-     "to": {
-      "node": "n51",
-      "port": "assertion"
-     }
-    },
-    {
-     "id": "e104",
-     "from": {
-      "node": "n5",
-      "port": "out"
-     },
-     "to": {
-      "node": "n51",
-      "port": "atom1"
-     }
-    },
-    {
-     "id": "e105",
-     "from": {
-      "node": "n17",
-      "port": "out"
-     },
-     "to": {
-      "node": "n51",
-      "port": "formula1"
-     }
-    },
-    {
-     "id": "e106",
-     "from": {
-      "node": "n11",
-      "port": "out"
-     },
-     "to": {
-      "node": "n51",
-      "port": "atom2"
-     }
-    },
-    {
-     "id": "e107",
-     "from": {
-      "node": "n8",
-      "port": "out"
-     },
-     "to": {
-      "node": "n51",
-      "port": "formula2"
-     }
-    },
-    {
-     "id": "e108",
-     "from": {
-      "node": "n8",
-      "port": "out"
-     },
-     "to": {
-      "node": "n52",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e109",
-     "from": {
-      "node": "n17",
-      "port": "out"
-     },
-     "to": {
-      "node": "n52",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e110",
-     "from": {
-      "node": "n12",
-      "port": "out"
-     },
-     "to": {
-      "node": "n55",
-      "port": "assertion"
-     }
-    },
-    {
-     "id": "e111",
-     "from": {
-      "node": "n5",
-      "port": "out"
-     },
-     "to": {
-      "node": "n55",
-      "port": "atom1"
-     }
-    },
-    {
-     "id": "e112",
-     "from": {
-      "node": "n8",
-      "port": "out"
-     },
-     "to": {
-      "node": "n55",
-      "port": "formula1"
-     }
-    },
-    {
-     "id": "e113",
-     "from": {
-      "node": "n11",
-      "port": "out"
-     },
-     "to": {
-      "node": "n55",
-      "port": "atom2"
-     }
-    },
-    {
-     "id": "e114",
-     "from": {
-      "node": "n9",
-      "port": "out"
-     },
-     "to": {
-      "node": "n55",
-      "port": "formula2"
-     }
-    },
-    {
-     "id": "e115",
-     "from": {
-      "node": "n13",
-      "port": "out"
-     },
-     "to": {
-      "node": "n55",
-      "port": "atom3"
-     }
-    },
-    {
-     "id": "e116",
-     "from": {
-      "node": "n16",
-      "port": "out"
-     },
-     "to": {
-      "node": "n55",
-      "port": "formula3"
-     }
-    },
-    {
-     "id": "e117",
-     "from": {
-      "node": "n4",
-      "port": "out"
-     },
-     "to": {
-      "node": "n56",
-      "port": "assertion"
-     }
-    },
-    {
-     "id": "e118",
-     "from": {
-      "node": "n8",
-      "port": "out"
-     },
-     "to": {
-      "node": "n57",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e119",
-     "from": {
-      "node": "n16",
-      "port": "out"
-     },
-     "to": {
-      "node": "n57",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e120",
-     "from": {
-      "node": "n10",
-      "port": "out"
-     },
-     "to": {
-      "node": "n58",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e121",
-     "from": {
-      "node": "n57",
-      "port": "out"
-     },
-     "to": {
-      "node": "n58",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e122",
-     "from": {
-      "node": "n52",
-      "port": "out"
-     },
-     "to": {
-      "node": "n59",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e123",
-     "from": {
-      "node": "n58",
-      "port": "out"
-     },
-     "to": {
-      "node": "n59",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e124",
-     "from": {
-      "node": "n5",
-      "port": "out"
-     },
-     "to": {
-      "node": "n56",
-      "port": "atom1"
-     }
-    },
-    {
-     "id": "e125",
-     "from": {
-      "node": "n59",
-      "port": "out"
-     },
-     "to": {
-      "node": "n56",
-      "port": "formula1"
-     }
-    },
-    {
-     "id": "e126",
-     "from": {
-      "node": "n11",
-      "port": "out"
-     },
-     "to": {
-      "node": "n56",
-      "port": "atom2"
-     }
-    },
-    {
-     "id": "e127",
-     "from": {
-      "node": "n17",
-      "port": "out"
-     },
-     "to": {
-      "node": "n56",
-      "port": "formula2"
-     }
-    },
-    {
-     "id": "e128",
-     "from": {
-      "node": "n55",
-      "port": "out"
-     },
-     "to": {
-      "node": "n54",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e129",
-     "from": {
-      "node": "n56",
-      "port": "out"
-     },
-     "to": {
-      "node": "n54",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e130",
-     "from": {
-      "node": "n12",
-      "port": "out"
-     },
-     "to": {
-      "node": "n60",
-      "port": "assertion"
-     }
-    },
-    {
-     "id": "e131",
-     "from": {
-      "node": "n5",
-      "port": "out"
-     },
-     "to": {
-      "node": "n60",
-      "port": "atom1"
-     }
-    },
-    {
-     "id": "e132",
-     "from": {
-      "node": "n17",
-      "port": "out"
-     },
-     "to": {
-      "node": "n60",
-      "port": "formula1"
-     }
-    },
-    {
-     "id": "e133",
-     "from": {
-      "node": "n11",
-      "port": "out"
-     },
-     "to": {
-      "node": "n60",
-      "port": "atom2"
-     }
-    },
-    {
-     "id": "e134",
-     "from": {
-      "node": "n52",
-      "port": "out"
-     },
-     "to": {
-      "node": "n60",
-      "port": "formula2"
-     }
-    },
-    {
-     "id": "e135",
-     "from": {
-      "node": "n13",
-      "port": "out"
-     },
-     "to": {
-      "node": "n60",
-      "port": "atom3"
-     }
-    },
-    {
-     "id": "e136",
-     "from": {
-      "node": "n58",
-      "port": "out"
-     },
-     "to": {
-      "node": "n60",
-      "port": "formula3"
-     }
-    },
-    {
-     "id": "e137",
-     "from": {
-      "node": "n54",
-      "port": "out"
-     },
-     "to": {
-      "node": "n53",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e138",
-     "from": {
-      "node": "n60",
-      "port": "out"
-     },
-     "to": {
-      "node": "n53",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e139",
-     "from": {
-      "node": "n51",
-      "port": "out"
-     },
-     "to": {
-      "node": "n50",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e140",
-     "from": {
-      "node": "n53",
-      "port": "out"
-     },
-     "to": {
-      "node": "n50",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e141",
-     "from": {
-      "node": "n4",
-      "port": "out"
-     },
-     "to": {
-      "node": "n61",
-      "port": "assertion"
-     }
-    },
-    {
-     "id": "e142",
-     "from": {
-      "node": "n17",
-      "port": "out"
-     },
-     "to": {
-      "node": "n62",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e143",
-     "from": {
-      "node": "n58",
-      "port": "out"
-     },
-     "to": {
-      "node": "n62",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e144",
-     "from": {
-      "node": "n5",
-      "port": "out"
-     },
-     "to": {
-      "node": "n61",
-      "port": "atom1"
-     }
-    },
-    {
-     "id": "e145",
-     "from": {
-      "node": "n62",
-      "port": "out"
-     },
-     "to": {
-      "node": "n61",
-      "port": "formula1"
-     }
-    },
-    {
-     "id": "e146",
-     "from": {
-      "node": "n11",
-      "port": "out"
-     },
-     "to": {
-      "node": "n61",
-      "port": "atom2"
-     }
-    },
-    {
-     "id": "e147",
-     "from": {
-      "node": "n17",
-      "port": "out"
-     },
-     "to": {
-      "node": "n61",
-      "port": "formula2"
-     }
-    },
-    {
-     "id": "e148",
-     "from": {
-      "node": "n50",
-      "port": "out"
-     },
-     "to": {
-      "node": "n49",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e149",
-     "from": {
-      "node": "n61",
-      "port": "out"
-     },
-     "to": {
-      "node": "n49",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e150",
-     "from": {
-      "node": "n12",
-      "port": "out"
-     },
-     "to": {
-      "node": "n63",
-      "port": "assertion"
-     }
-    },
-    {
-     "id": "e151",
-     "from": {
-      "node": "n5",
-      "port": "out"
-     },
-     "to": {
-      "node": "n63",
-      "port": "atom1"
-     }
-    },
-    {
-     "id": "e152",
-     "from": {
-      "node": "n17",
-      "port": "out"
-     },
-     "to": {
-      "node": "n63",
-      "port": "formula1"
-     }
-    },
-    {
-     "id": "e153",
-     "from": {
-      "node": "n11",
-      "port": "out"
-     },
-     "to": {
-      "node": "n63",
-      "port": "atom2"
-     }
-    },
-    {
-     "id": "e154",
-     "from": {
-      "node": "n17",
-      "port": "out"
-     },
-     "to": {
-      "node": "n63",
-      "port": "formula2"
-     }
-    },
-    {
-     "id": "e155",
-     "from": {
-      "node": "n13",
-      "port": "out"
-     },
-     "to": {
-      "node": "n63",
-      "port": "atom3"
-     }
-    },
-    {
-     "id": "e156",
-     "from": {
-      "node": "n58",
-      "port": "out"
-     },
-     "to": {
-      "node": "n63",
-      "port": "formula3"
-     }
-    },
-    {
-     "id": "e157",
-     "from": {
-      "node": "n49",
-      "port": "out"
-     },
-     "to": {
-      "node": "n48",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e158",
-     "from": {
-      "node": "n63",
-      "port": "out"
-     },
-     "to": {
-      "node": "n48",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e159",
-     "from": {
-      "node": "n4",
-      "port": "out"
-     },
-     "to": {
-      "node": "n64",
-      "port": "assertion"
-     }
-    },
-    {
-     "id": "e160",
-     "from": {
-      "node": "n43",
-      "port": "out"
-     },
-     "to": {
-      "node": "n65",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e161",
-     "from": {
-      "node": "n62",
-      "port": "out"
-     },
-     "to": {
-      "node": "n65",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e162",
-     "from": {
-      "node": "n5",
-      "port": "out"
-     },
-     "to": {
-      "node": "n64",
-      "port": "atom1"
-     }
-    },
-    {
-     "id": "e163",
-     "from": {
-      "node": "n65",
-      "port": "out"
-     },
-     "to": {
-      "node": "n64",
-      "port": "formula1"
-     }
-    },
-    {
-     "id": "e164",
-     "from": {
-      "node": "n11",
-      "port": "out"
-     },
-     "to": {
-      "node": "n64",
-      "port": "atom2"
-     }
-    },
-    {
-     "id": "e165",
-     "from": {
-      "node": "n10",
-      "port": "out"
-     },
-     "to": {
-      "node": "n64",
-      "port": "formula2"
-     }
-    },
-    {
-     "id": "e166",
-     "from": {
-      "node": "n48",
-      "port": "out"
-     },
-     "to": {
-      "node": "n47",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e167",
-     "from": {
-      "node": "n64",
-      "port": "out"
-     },
-     "to": {
-      "node": "n47",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e168",
-     "from": {
-      "node": "n12",
-      "port": "out"
-     },
-     "to": {
-      "node": "n66",
-      "port": "assertion"
-     }
-    },
-    {
-     "id": "e169",
-     "from": {
-      "node": "n5",
-      "port": "out"
-     },
-     "to": {
-      "node": "n66",
-      "port": "atom1"
-     }
-    },
-    {
-     "id": "e170",
-     "from": {
-      "node": "n10",
-      "port": "out"
-     },
-     "to": {
-      "node": "n66",
-      "port": "formula1"
-     }
-    },
-    {
-     "id": "e171",
-     "from": {
-      "node": "n11",
-      "port": "out"
-     },
-     "to": {
-      "node": "n66",
-      "port": "atom2"
-     }
-    },
-    {
-     "id": "e172",
-     "from": {
-      "node": "n43",
-      "port": "out"
-     },
-     "to": {
-      "node": "n66",
-      "port": "formula2"
-     }
-    },
-    {
-     "id": "e173",
-     "from": {
-      "node": "n13",
-      "port": "out"
-     },
-     "to": {
-      "node": "n66",
-      "port": "atom3"
-     }
-    },
-    {
-     "id": "e174",
-     "from": {
-      "node": "n62",
-      "port": "out"
-     },
-     "to": {
-      "node": "n66",
-      "port": "formula3"
-     }
-    },
-    {
-     "id": "e175",
-     "from": {
-      "node": "n47",
-      "port": "out"
-     },
-     "to": {
-      "node": "n46",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e176",
-     "from": {
-      "node": "n66",
-      "port": "out"
-     },
-     "to": {
-      "node": "n46",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e177",
-     "from": {
-      "node": "n22",
-      "port": "out"
-     },
-     "to": {
-      "node": "n21",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e178",
-     "from": {
-      "node": "n46",
-      "port": "out"
-     },
-     "to": {
-      "node": "n21",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e179",
-     "from": {
-      "node": "n12",
-      "port": "out"
-     },
-     "to": {
-      "node": "n69",
-      "port": "assertion"
-     }
-    },
-    {
-     "id": "e180",
-     "from": {
-      "node": "n5",
-      "port": "out"
-     },
-     "to": {
-      "node": "n69",
-      "port": "atom1"
-     }
-    },
-    {
-     "id": "e181",
-     "from": {
-      "node": "n17",
-      "port": "out"
-     },
-     "to": {
-      "node": "n69",
-      "port": "formula1"
-     }
-    },
-    {
-     "id": "e182",
-     "from": {
-      "node": "n11",
-      "port": "out"
-     },
-     "to": {
-      "node": "n69",
-      "port": "atom2"
-     }
-    },
-    {
-     "id": "e183",
-     "from": {
-      "node": "n10",
-      "port": "out"
-     },
-     "to": {
-      "node": "n69",
-      "port": "formula2"
-     }
-    },
-    {
-     "id": "e184",
-     "from": {
-      "node": "n13",
-      "port": "out"
-     },
-     "to": {
-      "node": "n69",
-      "port": "atom3"
-     }
-    },
-    {
-     "id": "e185",
-     "from": {
-      "node": "n57",
-      "port": "out"
-     },
-     "to": {
-      "node": "n69",
-      "port": "formula3"
-     }
-    },
-    {
-     "id": "e186",
-     "from": {
-      "node": "n4",
-      "port": "out"
-     },
-     "to": {
-      "node": "n70",
-      "port": "assertion"
-     }
-    },
-    {
-     "id": "e187",
-     "from": {
-      "node": "n17",
-      "port": "out"
-     },
-     "to": {
-      "node": "n71",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e188",
-     "from": {
-      "node": "n57",
-      "port": "out"
-     },
-     "to": {
-      "node": "n71",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e189",
-     "from": {
-      "node": "n18",
-      "port": "out"
-     },
-     "to": {
-      "node": "n72",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e190",
-     "from": {
-      "node": "n71",
-      "port": "out"
-     },
-     "to": {
-      "node": "n72",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e191",
-     "from": {
-      "node": "n62",
-      "port": "out"
-     },
-     "to": {
-      "node": "n73",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e192",
-     "from": {
-      "node": "n72",
-      "port": "out"
-     },
-     "to": {
-      "node": "n73",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e193",
-     "from": {
-      "node": "n5",
-      "port": "out"
-     },
-     "to": {
-      "node": "n70",
-      "port": "atom1"
-     }
-    },
-    {
-     "id": "e194",
-     "from": {
-      "node": "n73",
-      "port": "out"
-     },
-     "to": {
-      "node": "n70",
-      "port": "formula1"
-     }
-    },
-    {
-     "id": "e195",
-     "from": {
-      "node": "n11",
-      "port": "out"
-     },
-     "to": {
-      "node": "n70",
-      "port": "atom2"
-     }
-    },
-    {
-     "id": "e196",
-     "from": {
-      "node": "n10",
-      "port": "out"
-     },
-     "to": {
-      "node": "n70",
-      "port": "formula2"
-     }
-    },
-    {
-     "id": "e197",
-     "from": {
-      "node": "n69",
-      "port": "out"
-     },
-     "to": {
-      "node": "n68",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e198",
-     "from": {
-      "node": "n70",
-      "port": "out"
-     },
-     "to": {
-      "node": "n68",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e199",
-     "from": {
-      "node": "n12",
-      "port": "out"
-     },
-     "to": {
-      "node": "n74",
-      "port": "assertion"
-     }
-    },
-    {
-     "id": "e200",
-     "from": {
-      "node": "n5",
-      "port": "out"
-     },
-     "to": {
-      "node": "n74",
-      "port": "atom1"
-     }
-    },
-    {
-     "id": "e201",
-     "from": {
-      "node": "n10",
-      "port": "out"
-     },
-     "to": {
-      "node": "n74",
-      "port": "formula1"
-     }
-    },
-    {
-     "id": "e202",
-     "from": {
-      "node": "n11",
-      "port": "out"
-     },
-     "to": {
-      "node": "n74",
-      "port": "atom2"
-     }
-    },
-    {
-     "id": "e203",
-     "from": {
-      "node": "n62",
-      "port": "out"
-     },
-     "to": {
-      "node": "n74",
-      "port": "formula2"
-     }
-    },
-    {
-     "id": "e204",
-     "from": {
-      "node": "n13",
-      "port": "out"
-     },
-     "to": {
-      "node": "n74",
-      "port": "atom3"
-     }
-    },
-    {
-     "id": "e205",
-     "from": {
-      "node": "n72",
-      "port": "out"
-     },
-     "to": {
-      "node": "n74",
-      "port": "formula3"
-     }
-    },
-    {
-     "id": "e206",
-     "from": {
-      "node": "n68",
-      "port": "out"
-     },
-     "to": {
-      "node": "n67",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e207",
-     "from": {
-      "node": "n74",
-      "port": "out"
-     },
-     "to": {
-      "node": "n67",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e208",
-     "from": {
-      "node": "n21",
-      "port": "out"
-     },
-     "to": {
-      "node": "n20",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e209",
-     "from": {
-      "node": "n67",
-      "port": "out"
-     },
-     "to": {
-      "node": "n20",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e210",
-     "from": {
-      "node": "n12",
-      "port": "out"
-     },
-     "to": {
-      "node": "n75",
-      "port": "assertion"
-     }
-    },
-    {
-     "id": "e211",
-     "from": {
-      "node": "n5",
-      "port": "out"
-     },
-     "to": {
-      "node": "n75",
-      "port": "atom1"
-     }
-    },
-    {
-     "id": "e212",
-     "from": {
-      "node": "n10",
-      "port": "out"
-     },
-     "to": {
-      "node": "n75",
-      "port": "formula1"
-     }
-    },
-    {
-     "id": "e213",
-     "from": {
-      "node": "n11",
-      "port": "out"
-     },
-     "to": {
-      "node": "n75",
-      "port": "atom2"
-     }
-    },
-    {
-     "id": "e214",
-     "from": {
-      "node": "n18",
-      "port": "out"
-     },
-     "to": {
-      "node": "n75",
-      "port": "formula2"
-     }
-    },
-    {
-     "id": "e215",
-     "from": {
-      "node": "n13",
-      "port": "out"
-     },
-     "to": {
-      "node": "n75",
-      "port": "atom3"
-     }
-    },
-    {
-     "id": "e216",
-     "from": {
-      "node": "n71",
-      "port": "out"
-     },
-     "to": {
-      "node": "n75",
-      "port": "formula3"
-     }
-    },
-    {
-     "id": "e217",
-     "from": {
-      "node": "n20",
-      "port": "out"
-     },
-     "to": {
-      "node": "n19",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e218",
-     "from": {
-      "node": "n75",
-      "port": "out"
-     },
-     "to": {
-      "node": "n19",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e219",
-     "from": {
-      "node": "n14",
-      "port": "out"
-     },
-     "to": {
-      "node": "n3",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e220",
-     "from": {
-      "node": "n19",
-      "port": "out"
-     },
-     "to": {
-      "node": "n3",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e221",
-     "from": {
-      "node": "n4",
-      "port": "out"
-     },
-     "to": {
-      "node": "n78",
-      "port": "assertion"
-     }
-    },
-    {
-     "id": "e222",
-     "from": {
-      "node": "n5",
-      "port": "out"
-     },
-     "to": {
-      "node": "n78",
-      "port": "atom1"
-     }
-    },
-    {
-     "id": "e223",
-     "from": {
-      "node": "n71",
-      "port": "out"
-     },
-     "to": {
-      "node": "n78",
-      "port": "formula1"
-     }
-    },
-    {
-     "id": "e224",
-     "from": {
-      "node": "n8",
-      "port": "out"
-     },
-     "to": {
-      "node": "n79",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e225",
-     "from": {
-      "node": "n15",
-      "port": "out"
-     },
-     "to": {
-      "node": "n79",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e226",
-     "from": {
-      "node": "n79",
-      "port": "out"
-     },
-     "to": {
-      "node": "n80",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e227",
-     "from": {
-      "node": "n11",
-      "port": "out"
-     },
-     "to": {
-      "node": "n78",
-      "port": "atom2"
-     }
-    },
-    {
-     "id": "e228",
-     "from": {
-      "node": "n80",
-      "port": "out"
-     },
-     "to": {
-      "node": "n78",
-      "port": "formula2"
-     }
-    },
-    {
-     "id": "e229",
-     "from": {
-      "node": "n4",
-      "port": "out"
-     },
-     "to": {
-      "node": "n81",
-      "port": "assertion"
-     }
-    },
-    {
-     "id": "e230",
-     "from": {
-      "node": "n80",
-      "port": "out"
-     },
-     "to": {
-      "node": "n82",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e231",
-     "from": {
-      "node": "n71",
-      "port": "out"
-     },
-     "to": {
-      "node": "n82",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e232",
-     "from": {
-      "node": "n71",
-      "port": "out"
-     },
-     "to": {
-      "node": "n83",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e233",
-     "from": {
-      "node": "n82",
-      "port": "out"
-     },
-     "to": {
-      "node": "n83",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e234",
-     "from": {
-      "node": "n5",
-      "port": "out"
-     },
-     "to": {
-      "node": "n81",
-      "port": "atom1"
-     }
-    },
-    {
-     "id": "e235",
-     "from": {
-      "node": "n83",
-      "port": "out"
-     },
-     "to": {
-      "node": "n81",
-      "port": "formula1"
-     }
-    },
-    {
-     "id": "e236",
-     "from": {
-      "node": "n11",
-      "port": "out"
-     },
-     "to": {
-      "node": "n81",
-      "port": "atom2"
-     }
-    },
-    {
-     "id": "e237",
-     "from": {
-      "node": "n10",
-      "port": "out"
-     },
-     "to": {
-      "node": "n81",
-      "port": "formula2"
-     }
-    },
-    {
-     "id": "e238",
-     "from": {
-      "node": "n78",
-      "port": "out"
-     },
-     "to": {
-      "node": "n77",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e239",
-     "from": {
-      "node": "n81",
-      "port": "out"
-     },
-     "to": {
-      "node": "n77",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e240",
-     "from": {
-      "node": "n12",
-      "port": "out"
-     },
-     "to": {
-      "node": "n84",
-      "port": "assertion"
-     }
-    },
-    {
-     "id": "e241",
-     "from": {
-      "node": "n5",
-      "port": "out"
-     },
-     "to": {
-      "node": "n84",
-      "port": "atom1"
-     }
-    },
-    {
-     "id": "e242",
-     "from": {
-      "node": "n10",
-      "port": "out"
-     },
-     "to": {
-      "node": "n84",
-      "port": "formula1"
-     }
-    },
-    {
-     "id": "e243",
-     "from": {
-      "node": "n11",
-      "port": "out"
-     },
-     "to": {
-      "node": "n84",
-      "port": "atom2"
-     }
-    },
-    {
-     "id": "e244",
-     "from": {
-      "node": "n71",
-      "port": "out"
-     },
-     "to": {
-      "node": "n84",
-      "port": "formula2"
-     }
-    },
-    {
-     "id": "e245",
-     "from": {
-      "node": "n13",
-      "port": "out"
-     },
-     "to": {
-      "node": "n84",
-      "port": "atom3"
-     }
-    },
-    {
-     "id": "e246",
-     "from": {
-      "node": "n82",
-      "port": "out"
-     },
-     "to": {
-      "node": "n84",
-      "port": "formula3"
-     }
-    },
-    {
-     "id": "e247",
-     "from": {
-      "node": "n77",
-      "port": "out"
-     },
-     "to": {
-      "node": "n76",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e248",
-     "from": {
-      "node": "n84",
-      "port": "out"
-     },
-     "to": {
-      "node": "n76",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e249",
-     "from": {
-      "node": "n3",
-      "port": "out"
-     },
-     "to": {
-      "node": "n2",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e250",
-     "from": {
-      "node": "n76",
-      "port": "out"
-     },
-     "to": {
-      "node": "n2",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e251",
-     "from": {
-      "node": "n12",
-      "port": "out"
-     },
-     "to": {
-      "node": "n87",
-      "port": "assertion"
-     }
-    },
-    {
-     "id": "e252",
-     "from": {
-      "node": "n5",
-      "port": "out"
-     },
-     "to": {
-      "node": "n87",
-      "port": "atom1"
-     }
-    },
-    {
-     "id": "e253",
-     "from": {
-      "node": "n80",
-      "port": "out"
-     },
-     "to": {
-      "node": "n87",
-      "port": "formula1"
-     }
-    },
-    {
-     "id": "e254",
-     "from": {
-      "node": "n11",
-      "port": "out"
-     },
-     "to": {
-      "node": "n87",
-      "port": "atom2"
-     }
-    },
-    {
-     "id": "e255",
-     "from": {
-      "node": "n17",
-      "port": "out"
-     },
-     "to": {
-      "node": "n87",
-      "port": "formula2"
-     }
-    },
-    {
-     "id": "e256",
-     "from": {
-      "node": "n13",
-      "port": "out"
-     },
-     "to": {
-      "node": "n87",
-      "port": "atom3"
-     }
-    },
-    {
-     "id": "e257",
-     "from": {
-      "node": "n57",
-      "port": "out"
-     },
-     "to": {
-      "node": "n87",
-      "port": "formula3"
-     }
-    },
-    {
-     "id": "e258",
-     "from": {
-      "node": "n4",
-      "port": "out"
-     },
-     "to": {
-      "node": "n88",
-      "port": "assertion"
-     }
-    },
-    {
-     "id": "e259",
-     "from": {
-      "node": "n80",
-      "port": "out"
-     },
-     "to": {
-      "node": "n89",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e260",
-     "from": {
-      "node": "n17",
-      "port": "out"
-     },
-     "to": {
-      "node": "n89",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e261",
-     "from": {
-      "node": "n80",
-      "port": "out"
-     },
-     "to": {
-      "node": "n90",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e262",
-     "from": {
-      "node": "n57",
-      "port": "out"
-     },
-     "to": {
-      "node": "n90",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e263",
-     "from": {
-      "node": "n89",
-      "port": "out"
-     },
-     "to": {
-      "node": "n91",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e264",
-     "from": {
-      "node": "n90",
-      "port": "out"
-     },
-     "to": {
-      "node": "n91",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e265",
-     "from": {
-      "node": "n82",
-      "port": "out"
-     },
-     "to": {
-      "node": "n92",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e266",
-     "from": {
-      "node": "n91",
-      "port": "out"
-     },
-     "to": {
-      "node": "n92",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e267",
-     "from": {
-      "node": "n5",
-      "port": "out"
-     },
-     "to": {
-      "node": "n88",
-      "port": "atom1"
-     }
-    },
-    {
-     "id": "e268",
-     "from": {
-      "node": "n92",
-      "port": "out"
-     },
-     "to": {
-      "node": "n88",
-      "port": "formula1"
-     }
-    },
-    {
-     "id": "e269",
-     "from": {
-      "node": "n11",
-      "port": "out"
-     },
-     "to": {
-      "node": "n88",
-      "port": "atom2"
-     }
-    },
-    {
-     "id": "e270",
-     "from": {
-      "node": "n10",
-      "port": "out"
-     },
-     "to": {
-      "node": "n88",
-      "port": "formula2"
-     }
-    },
-    {
-     "id": "e271",
-     "from": {
-      "node": "n87",
-      "port": "out"
-     },
-     "to": {
-      "node": "n86",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e272",
-     "from": {
-      "node": "n88",
-      "port": "out"
-     },
-     "to": {
-      "node": "n86",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e273",
-     "from": {
-      "node": "n12",
-      "port": "out"
-     },
-     "to": {
-      "node": "n93",
-      "port": "assertion"
-     }
-    },
-    {
-     "id": "e274",
-     "from": {
-      "node": "n5",
-      "port": "out"
-     },
-     "to": {
-      "node": "n93",
-      "port": "atom1"
-     }
-    },
-    {
-     "id": "e275",
-     "from": {
-      "node": "n10",
-      "port": "out"
-     },
-     "to": {
-      "node": "n93",
-      "port": "formula1"
-     }
-    },
-    {
-     "id": "e276",
-     "from": {
-      "node": "n11",
-      "port": "out"
-     },
-     "to": {
-      "node": "n93",
-      "port": "atom2"
-     }
-    },
-    {
-     "id": "e277",
-     "from": {
-      "node": "n82",
-      "port": "out"
-     },
-     "to": {
-      "node": "n93",
-      "port": "formula2"
-     }
-    },
-    {
-     "id": "e278",
-     "from": {
-      "node": "n13",
-      "port": "out"
-     },
-     "to": {
-      "node": "n93",
-      "port": "atom3"
-     }
-    },
-    {
-     "id": "e279",
-     "from": {
-      "node": "n91",
-      "port": "out"
-     },
-     "to": {
-      "node": "n93",
-      "port": "formula3"
-     }
-    },
-    {
-     "id": "e280",
-     "from": {
-      "node": "n86",
-      "port": "out"
-     },
-     "to": {
-      "node": "n85",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e281",
-     "from": {
-      "node": "n93",
-      "port": "out"
-     },
-     "to": {
-      "node": "n85",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e282",
-     "from": {
       "node": "n2",
       "port": "out"
      },
      "to": {
-      "node": "n1",
-      "port": "a"
-     }
-    },
-    {
-     "id": "e283",
-     "from": {
-      "node": "n85",
-      "port": "out"
-     },
-     "to": {
-      "node": "n1",
-      "port": "b"
-     }
-    },
-    {
-     "id": "e284",
-     "from": {
-      "node": "n1",
-      "port": "out"
-     },
-     "to": {
-      "node": "n94",
+      "node": "n8",
       "port": "proof"
      }
     }
    ]
   },
-  "difficulty": 93,
+  "difficulty": 7,
   "stats": {
-   "steps": 93
+   "steps": 7
   },
   "mustUse": [
-   "mp",
-   "axiom",
    "subst"
   ],
-  "depCodes": []
+  "depCodes": [
+   "Ⅱ-11"
+  ]
  },
  {
   "id": "Ⅲ-01",
@@ -69467,7 +68423,7 @@
   "chapterGroup": "Ⅲ",
   "title": "引理 ∀z (P→Q)→P→∀z (P→Q)",
   "teaches": "( A. z ( P -> Q ) -> ( P -> A. z ( P -> Q ) ) )",
-  "hint": "把目标公式按接线一路拆到公理；这一关的结论在后面的关卡里会当作黑盒使用。",
+  "hint": "目标 ∀z (P→Q)→P→∀z (P→Q)：把这段子证明按接线一路拆到公理，后面会把它当黑盒。",
   "tip": null,
   "targetTokens": [
    "|-",
@@ -69738,7 +68694,7 @@
   "chapterGroup": "Ⅲ",
   "title": "引理 ∀z (x = y→z ∈ x→z ∈ y)",
   "teaches": "A. z ( x = y -> ( z e. x -> z e. y ) )",
-  "hint": "把目标公式按接线一路拆到公理；这一关的结论在后面的关卡里会当作黑盒使用。",
+  "hint": "目标 ∀z (x = y→z ∈ x→z ∈ y)：把这段子证明按接线一路拆到公理，后面会把它当黑盒。",
   "tip": null,
   "targetTokens": [
    "|-",
@@ -69983,7 +68939,7 @@
   "chapterGroup": "Ⅲ",
   "title": "引理 y = x→(F(y)→G(y))→F(x)→G",
   "teaches": "( y = x -> ( ( F ( y ) -> G ( y ) ) -> ( F ( x ) -> G ( x ) ) ) )",
-  "hint": "把目标公式按接线一路拆到公理；这一关的结论在后面的关卡里会当作黑盒使用。",
+  "hint": "目标 y = x→(F(y)→G(y))→F(x)→G(x)：把这段子证明按接线一路拆到公理，后面会把它当黑盒。",
   "tip": null,
   "targetTokens": [
    "|-",
@@ -70266,7 +69222,7 @@
   "chapterGroup": "Ⅲ",
   "title": "引理 y = x→∀z z = y→∀z z = x",
   "teaches": "( y = x -> ( A. z z = y -> A. z z = x ) )",
-  "hint": "把目标公式按接线一路拆到公理；这一关的结论在后面的关卡里会当作黑盒使用。",
+  "hint": "目标 y = x→∀z z = y→∀z z = x：把这段子证明按接线一路拆到公理，后面会把它当黑盒。",
   "tip": null,
   "targetTokens": [
    "|-",
@@ -70518,7 +69474,7 @@
   "chapterGroup": "Ⅲ",
   "title": "引理 F(y)→y = y→F(y)",
   "teaches": "( F ( y ) -> ( y = y -> F ( y ) ) )",
-  "hint": "把目标公式按接线一路拆到公理；这一关的结论在后面的关卡里会当作黑盒使用。",
+  "hint": "目标 F(y)→y = y→F(y)：把这段子证明按接线一路拆到公理，后面会把它当黑盒。",
   "tip": null,
   "targetTokens": [
    "|-",
@@ -70800,7 +69756,7 @@
   "chapterGroup": "Ⅲ",
   "title": "引理 (P→∀z P→∀z Q)→(P→∀z P)→P",
   "teaches": "( ( P -> ( A. z P -> A. z Q ) ) -> ( ( P -> A. z P ) -> ( P -> A. z Q ) ) )",
-  "hint": "把目标公式按接线一路拆到公理；这一关的结论在后面的关卡里会当作黑盒使用。",
+  "hint": "目标 (P→∀z P→∀z Q)→(P→∀z P)→P→∀z Q：把这段子证明按接线一路拆到公理，后面会把它当黑盒。",
   "tip": null,
   "targetTokens": [
    "|-",
@@ -71097,7 +70053,7 @@
   "chapterGroup": "Ⅲ",
   "title": "引理 ∀z (z ∈ y→z ∈ x)→z ∈ y→z",
   "teaches": "( A. z ( z e. y -> z e. x ) -> ( z e. y -> z e. x ) )",
-  "hint": "把目标公式按接线一路拆到公理；这一关的结论在后面的关卡里会当作黑盒使用。",
+  "hint": "目标 ∀z (z ∈ y→z ∈ x)→z ∈ y→z ∈ x：把这段子证明按接线一路拆到公理，后面会把它当黑盒。",
   "tip": null,
   "targetTokens": [
    "|-",
@@ -90648,6 +89604,616 @@
   "depCodes": []
  },
  {
+  "id": "Ⅳ-i",
+  "code": "Ⅳ-i",
+  "no": null,
+  "tutorial": true,
+  "hard": false,
+  "band": "tutorial",
+  "chapter": 3,
+  "chapterGroup": "Ⅳ",
+  "title": "外延公理",
+  "teaches": "接一块 EXT。",
+  "hint": "接一块 EXT。",
+  "tip": {
+   "code": "EXT",
+   "flow": "∀x(x∈a↔x∈b) ⇒ a=b"
+  },
+  "targetTokens": [
+   "|-",
+   "(",
+   "A.",
+   "z",
+   "(",
+   "z",
+   "e.",
+   "x",
+   "<->",
+   "z",
+   "e.",
+   "y",
+   ")",
+   "->",
+   "x",
+   "=",
+   "y",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "set-ext",
+    "config": {}
+   },
+   {
+    "kind": "term",
+    "config": {
+     "name": "x"
+    }
+   },
+   {
+    "kind": "term",
+    "config": {
+     "name": "y"
+    }
+   }
+  ],
+  "initialNodes": [
+   {
+    "id": "n4",
+    "kind": "target",
+    "config": {},
+    "x": 844,
+    "y": 40,
+    "targetTokens": [
+     "|-",
+     "(",
+     "A.",
+     "z",
+     "(",
+     "z",
+     "e.",
+     "x",
+     "<->",
+     "z",
+     "e.",
+     "y",
+     ")",
+     "->",
+     "x",
+     "=",
+     "y",
+     ")"
+    ]
+   }
+  ],
+  "solution": {
+   "nodes": [
+    {
+     "id": "n1",
+     "kind": "set-ext",
+     "config": {},
+     "x": 308,
+     "y": 40
+    },
+    {
+     "id": "n2",
+     "kind": "term",
+     "config": {
+      "name": "x"
+     },
+     "x": 40,
+     "y": 40
+    },
+    {
+     "id": "n3",
+     "kind": "term",
+     "config": {
+      "name": "y"
+     },
+     "x": 40,
+     "y": 180
+    }
+   ],
+   "edges": [
+    {
+     "id": "e1",
+     "from": {
+      "node": "n2",
+      "port": "out"
+     },
+     "to": {
+      "node": "n1",
+      "port": "a"
+     }
+    },
+    {
+     "id": "e2",
+     "from": {
+      "node": "n3",
+      "port": "out"
+     },
+     "to": {
+      "node": "n1",
+      "port": "b"
+     }
+    },
+    {
+     "id": "e3",
+     "from": {
+      "node": "n1",
+      "port": "out"
+     },
+     "to": {
+      "node": "n4",
+      "port": "proof"
+     }
+    }
+   ]
+  },
+  "difficulty": 3,
+  "stats": {
+   "steps": 3
+  },
+  "mustUse": [
+   "set-ext"
+  ],
+  "depCodes": []
+ },
+ {
+  "id": "Ⅳ-ii",
+  "code": "Ⅳ-ii",
+  "no": null,
+  "tutorial": true,
+  "hard": false,
+  "band": "tutorial",
+  "chapter": 3,
+  "chapterGroup": "Ⅳ",
+  "title": "配对公理",
+  "teaches": "接一块配对公理（u=y、v=x）。",
+  "hint": "接一块配对公理（u=y、v=x）。",
+  "tip": {
+   "code": "{,}",
+   "flow": "∃z∀w((w=x∨w=y)↔w∈z)"
+  },
+  "targetTokens": [
+   "|-",
+   "E.",
+   "u",
+   "A.",
+   "z",
+   "(",
+   "(",
+   "z",
+   "=",
+   "y",
+   "\\/",
+   "z",
+   "=",
+   "x",
+   ")",
+   "<->",
+   "z",
+   "e.",
+   "u",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "set-pair",
+    "config": {}
+   },
+   {
+    "kind": "term",
+    "config": {
+     "name": "y"
+    }
+   },
+   {
+    "kind": "term",
+    "config": {
+     "name": "x"
+    }
+   }
+  ],
+  "initialNodes": [
+   {
+    "id": "n4",
+    "kind": "target",
+    "config": {},
+    "x": 844,
+    "y": 40,
+    "targetTokens": [
+     "|-",
+     "E.",
+     "u",
+     "A.",
+     "z",
+     "(",
+     "(",
+     "z",
+     "=",
+     "y",
+     "\\/",
+     "z",
+     "=",
+     "x",
+     ")",
+     "<->",
+     "z",
+     "e.",
+     "u",
+     ")"
+    ]
+   }
+  ],
+  "solution": {
+   "nodes": [
+    {
+     "id": "n1",
+     "kind": "set-pair",
+     "config": {},
+     "x": 308,
+     "y": 40
+    },
+    {
+     "id": "n2",
+     "kind": "term",
+     "config": {
+      "name": "y"
+     },
+     "x": 40,
+     "y": 40
+    },
+    {
+     "id": "n3",
+     "kind": "term",
+     "config": {
+      "name": "x"
+     },
+     "x": 40,
+     "y": 180
+    }
+   ],
+   "edges": [
+    {
+     "id": "e1",
+     "from": {
+      "node": "n2",
+      "port": "out"
+     },
+     "to": {
+      "node": "n1",
+      "port": "u"
+     }
+    },
+    {
+     "id": "e2",
+     "from": {
+      "node": "n3",
+      "port": "out"
+     },
+     "to": {
+      "node": "n1",
+      "port": "v"
+     }
+    },
+    {
+     "id": "e3",
+     "from": {
+      "node": "n1",
+      "port": "out"
+     },
+     "to": {
+      "node": "n4",
+      "port": "proof"
+     }
+    }
+   ]
+  },
+  "difficulty": 3,
+  "stats": {
+   "steps": 3
+  },
+  "mustUse": [
+   "set-pair"
+  ],
+  "depCodes": []
+ },
+ {
+  "id": "Ⅳ-iii",
+  "code": "Ⅳ-iii",
+  "no": null,
+  "tutorial": true,
+  "hard": false,
+  "band": "tutorial",
+  "chapter": 3,
+  "chapterGroup": "Ⅳ",
+  "title": "并集公理",
+  "teaches": "接一块并集公理（a=y）。",
+  "hint": "接一块并集公理（a=y）。",
+  "tip": {
+   "code": "∪",
+   "flow": "∃z∀w(∃y(w∈y∧y∈x)↔w∈z)"
+  },
+  "targetTokens": [
+   "|-",
+   "E.",
+   "x",
+   "A.",
+   "z",
+   "(",
+   "E.",
+   "u",
+   "(",
+   "z",
+   "e.",
+   "u",
+   "/\\",
+   "u",
+   "e.",
+   "y",
+   ")",
+   "<->",
+   "z",
+   "e.",
+   "x",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "set-union",
+    "config": {}
+   },
+   {
+    "kind": "term",
+    "config": {
+     "name": "y"
+    }
+   }
+  ],
+  "initialNodes": [
+   {
+    "id": "n3",
+    "kind": "target",
+    "config": {},
+    "x": 844,
+    "y": 40,
+    "targetTokens": [
+     "|-",
+     "E.",
+     "x",
+     "A.",
+     "z",
+     "(",
+     "E.",
+     "u",
+     "(",
+     "z",
+     "e.",
+     "u",
+     "/\\",
+     "u",
+     "e.",
+     "y",
+     ")",
+     "<->",
+     "z",
+     "e.",
+     "x",
+     ")"
+    ]
+   }
+  ],
+  "solution": {
+   "nodes": [
+    {
+     "id": "n1",
+     "kind": "set-union",
+     "config": {},
+     "x": 308,
+     "y": 40
+    },
+    {
+     "id": "n2",
+     "kind": "term",
+     "config": {
+      "name": "y"
+     },
+     "x": 40,
+     "y": 40
+    }
+   ],
+   "edges": [
+    {
+     "id": "e1",
+     "from": {
+      "node": "n2",
+      "port": "out"
+     },
+     "to": {
+      "node": "n1",
+      "port": "a"
+     }
+    },
+    {
+     "id": "e2",
+     "from": {
+      "node": "n1",
+      "port": "out"
+     },
+     "to": {
+      "node": "n3",
+      "port": "proof"
+     }
+    }
+   ]
+  },
+  "difficulty": 2,
+  "stats": {
+   "steps": 2
+  },
+  "mustUse": [
+   "set-union"
+  ],
+  "depCodes": []
+ },
+ {
+  "id": "Ⅳ-iv",
+  "code": "Ⅳ-iv",
+  "no": null,
+  "tutorial": true,
+  "hard": false,
+  "band": "tutorial",
+  "chapter": 3,
+  "chapterGroup": "Ⅳ",
+  "title": "外延公理（换序）",
+  "teaches": "EXT 换一组变量。",
+  "hint": "EXT 换一组变量。",
+  "tip": {
+   "code": "EXT·2",
+   "flow": "∀x(x∈b↔x∈a) ⇒ b=a"
+  },
+  "targetTokens": [
+   "|-",
+   "(",
+   "A.",
+   "z",
+   "(",
+   "z",
+   "e.",
+   "y",
+   "<->",
+   "z",
+   "e.",
+   "x",
+   ")",
+   "->",
+   "y",
+   "=",
+   "x",
+   ")"
+  ],
+  "palette": [
+   {
+    "kind": "set-ext",
+    "config": {}
+   },
+   {
+    "kind": "term",
+    "config": {
+     "name": "y"
+    }
+   },
+   {
+    "kind": "term",
+    "config": {
+     "name": "x"
+    }
+   }
+  ],
+  "initialNodes": [
+   {
+    "id": "n4",
+    "kind": "target",
+    "config": {},
+    "x": 844,
+    "y": 40,
+    "targetTokens": [
+     "|-",
+     "(",
+     "A.",
+     "z",
+     "(",
+     "z",
+     "e.",
+     "y",
+     "<->",
+     "z",
+     "e.",
+     "x",
+     ")",
+     "->",
+     "y",
+     "=",
+     "x",
+     ")"
+    ]
+   }
+  ],
+  "solution": {
+   "nodes": [
+    {
+     "id": "n1",
+     "kind": "set-ext",
+     "config": {},
+     "x": 308,
+     "y": 40
+    },
+    {
+     "id": "n2",
+     "kind": "term",
+     "config": {
+      "name": "y"
+     },
+     "x": 40,
+     "y": 40
+    },
+    {
+     "id": "n3",
+     "kind": "term",
+     "config": {
+      "name": "x"
+     },
+     "x": 40,
+     "y": 180
+    }
+   ],
+   "edges": [
+    {
+     "id": "e1",
+     "from": {
+      "node": "n2",
+      "port": "out"
+     },
+     "to": {
+      "node": "n1",
+      "port": "a"
+     }
+    },
+    {
+     "id": "e2",
+     "from": {
+      "node": "n3",
+      "port": "out"
+     },
+     "to": {
+      "node": "n1",
+      "port": "b"
+     }
+    },
+    {
+     "id": "e3",
+     "from": {
+      "node": "n1",
+      "port": "out"
+     },
+     "to": {
+      "node": "n4",
+      "port": "proof"
+     }
+    }
+   ]
+  },
+  "difficulty": 3,
+  "stats": {
+   "steps": 3
+  },
+  "mustUse": [
+   "set-ext"
+  ],
+  "depCodes": []
+ },
+ {
   "id": "Ⅳ-01",
   "code": "Ⅳ-01",
   "no": 1,
@@ -92546,7 +92112,7 @@
   "chapterGroup": "Ⅳ",
   "title": "引理 ∀z (y = z→x ∈ y→x ∈ z)",
   "teaches": "A. z ( y = z -> ( x e. y -> x e. z ) )",
-  "hint": "把目标公式按接线一路拆到公理；这一关的结论在后面的关卡里会当作黑盒使用。",
+  "hint": "目标 ∀z (y = z→x ∈ y→x ∈ z)：把这段子证明按接线一路拆到公理，后面会把它当黑盒。",
   "tip": null,
   "targetTokens": [
    "|-",
@@ -92791,7 +92357,7 @@
   "chapterGroup": "Ⅳ",
   "title": "引理 ∀z (y = z→y ∈ x→z ∈ x)",
   "teaches": "A. z ( y = z -> ( y e. x -> z e. x ) )",
-  "hint": "把目标公式按接线一路拆到公理；这一关的结论在后面的关卡里会当作黑盒使用。",
+  "hint": "目标 ∀z (y = z→y ∈ x→z ∈ x)：把这段子证明按接线一路拆到公理，后面会把它当黑盒。",
   "tip": null,
   "targetTokens": [
    "|-",
