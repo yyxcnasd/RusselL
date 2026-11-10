@@ -688,7 +688,12 @@ body.is-holding *{cursor:grabbing!important}
 
 .levels{display:grid;grid-template-columns:repeat(12,42px);gap:7px;justify-content:space-between}
 .band .levels{padding-top:2px}
-.band.tutorial .levels{grid-template-columns:repeat(5,54px);gap:8px;align-items:center;justify-content:start}
+.band.tutorial .levels{
+  display:flex;flex-wrap:nowrap;overflow-x:auto;gap:8px;align-items:center;justify-content:flex-start;
+  scrollbar-width:none;
+}
+.band.tutorial .levels::-webkit-scrollbar{display:none}
+.level-cell.is-tutorial{flex:none}
 
 /* 关卡格只保留四种语义：默认 / 已通关 / 当前 / 锁定。 */
 .level-cell{

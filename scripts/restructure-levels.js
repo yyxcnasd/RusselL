@@ -91,7 +91,7 @@ function normalCandidates(level, hardTargets) {
   return picked;
 }
 
-function makeComponentTutorial(label, id, title, kind, config, targetTokens, hint) {
+function makeComponentTutorial(label, id, title, kind, config, targetTokens, hint, flow) {
   const p = { id: 'n1', kind: 'atom', config: { name: 'P' }, x: 40, y: 40 };
   const q = { id: 'n2', kind: 'atom', config: { name: 'Q' }, x: 40, y: 180 };
   const mod = { id: 'n3', kind: kind, config: config || {}, x: 308, y: 40 };
@@ -104,7 +104,7 @@ function makeComponentTutorial(label, id, title, kind, config, targetTokens, hin
   return {
     id: id, code: label, no: null, tutorial: true, hard: false, band: 'tutorial',
     chapter: 0, chapterGroup: 'Ⅰ', title: title,
-    teaches: hint, hint: hint, tip: { code: kind === 'and-intro-ax' ? '∧I*' : kind === 'and-elim-ax' ? '∧E*' : kind === 'or-intro-ax' ? '∨I*' : kind === 'iff-intro-ax' ? '↔I*' : '↔E*', flow: hint },
+    teaches: hint, hint: hint, tip: { code: kind === 'and-intro-ax' ? '∧I*' : kind === 'and-elim-ax' ? '∧E*' : kind === 'or-intro-ax' ? '∨I*' : kind === 'iff-intro-ax' ? '↔I*' : '↔E*', flow: flow },
     targetTokens: targetTokens, palette: paletteOf([p, q, mod]),
     initialNodes: [target], solution: { nodes: [p, q, mod], edges: edges },
     difficulty: 4, stats: { steps: 3 }
@@ -115,19 +115,24 @@ function componentTutorials() {
   return [
     makeComponentTutorial('vi', 'T0vi', '合取引入', 'and-intro-ax', {},
       ['|-', '(', 'P', '->', '(', 'Q', '->', '(', 'P', '/\\', 'Q', ')', ')', ')'],
-      '取 P、Q 两枚原子，接进合取引入；输出 P→(Q→(P∧Q))。'),
+      '取 P、Q 两枚原子，接进合取引入；输出 P→(Q→(P∧Q))。',
+      'P · Q → P→(Q→(P∧Q))'),
     makeComponentTutorial('vii', 'T0vii', '合取消去', 'and-elim-ax', { side: 'l' },
       ['|-', '(', '(', 'P', '/\\', 'Q', ')', '->', 'P', ')'],
-      '合取消去左右两边各取一个方向；本关取左边 (P∧Q)→P。'),
+      '合取消去左右两边各取一个方向；本关取左边 (P∧Q)→P。',
+      'P · Q → (P∧Q)→P'),
     makeComponentTutorial('viii', 'T0viii', '析取引入', 'or-intro-ax', { side: 'l' },
       ['|-', '(', 'P', '->', '(', 'P', '\\/', 'Q', ')', ')'],
-      '析取引入有左右两个方向；本关从 P 引入 P∨Q。'),
+      '析取引入有左右两个方向；本关从 P 引入 P∨Q。',
+      'P · Q → P→(P∨Q)'),
     makeComponentTutorial('ix', 'T0ix', '等值引入', 'iff-intro-ax', {},
       ['|-', '(', '(', 'P', '->', 'Q', ')', '->', '(', '(', 'Q', '->', 'P', ')', '->', '(', 'P', '<->', 'Q', ')', ')', ')'],
-      '等值引入要同时有 A→B 和 B→A 两个方向，输出 A↔B。'),
+      '等值引入要同时有 A→B 和 B→A 两个方向，输出 A↔B。',
+      '(P→Q) · (Q→P) → P↔Q'),
     makeComponentTutorial('x', 'T0x', '等值消去', 'iff-elim-ax', { dir: 'lr' },
       ['|-', '(', '(', 'P', '<->', 'Q', ')', '->', '(', 'P', '->', 'Q', ')', ')'],
-      '等值消去可从 A↔B 取出 A→B 或 B→A；本关取左到右。')
+      '等值消去可从 A↔B 取出 A→B 或 B→A；本关取左到右。',
+      '(P↔Q) → (P→Q)')
   ];
 }
 function makeSimpleNormal(chapterGroup, code, no) {
@@ -329,10 +334,42 @@ function main() {
     normalCounts[g] = picked.length;
   });
 
+  /* 章内困难关按定理依赖拓扑排序，同层优先放小证明，保证难度递增。 */
+  const hardOrders = {};
+  chapters.forEach((g) => {
+    const list = byChapter[g];
+    const byNo = new Map(list.map((l) => [l.no, l]));
+    const deps = new Map();
+    list.forEach((l) => {
+      const set = new Set();
+      l.solution.nodes.forEach((n) => {
+        if (n.kind === 'theorem' && n.config && n.config.n != null && byNo.has(n.config.n) && n.config.n !== l.no) {
+          set.add(n.config.n);
+        }
+      });
+      deps.set(l.no, set);
+    });
+    const order = [];
+    const done = new Set();
+    while (order.length < list.length) {
+      const ready = list.filter((l) => !done.has(l.no) &&
+        Array.from(deps.get(l.no)).every((d) => done.has(d) || !byNo.has(d)));
+      if (!ready.length) {
+        list.filter((l) => !done.has(l.no)).forEach((l) => { done.add(l.no); order.push(l); });
+        break;
+      }
+      ready.sort((a, b) => a.solution.nodes.length - b.solution.nodes.length || a.no - b.no);
+      const pick = ready[0];
+      done.add(pick.no);
+      order.push(pick);
+    }
+    hardOrders[g] = order;
+  });
+
   /* 先建立全关卡的旧号 → 新代码映射。 */
   const codeMap = new Map();
   chapters.forEach((g) => {
-    byChapter[g].forEach((l, i) => {
+    hardOrders[g].forEach((l, i) => {
       codeMap.set(l.no, g + '-' + PAD(normalCounts[g] + i + 1));
     });
   });
@@ -351,7 +388,7 @@ function main() {
       normalByTarget.set(key(lv.targetTokens), code);
       out.push(lv);
     });
-    byChapter[g].forEach((l, i) => {
+    hardOrders[g].forEach((l, i) => {
       const no = normalCounts[g] + i + 1;
       const code = g + '-' + PAD(no);
       out.push(makeHard(l, code, no, g, codeMap, normalByTarget));
