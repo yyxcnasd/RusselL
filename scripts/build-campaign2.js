@@ -26,7 +26,7 @@ const MAX_NORMAL = 21;
 const MIN_NORMAL = 5;
 const MAX_HARD = 200;
 const MAX_NORMAL_TOKENS = 36;
-const MAX_HARD_TOKENS = 60;
+const MAX_HARD_TOKENS = 100;
 const INVERSION_ABS = 12;
 const INVERSION_REL = 0.2;
 
@@ -570,52 +570,55 @@ function splitOversized(entry, maxSize, seq) {
 /* =========================================================================
  * 4. 排序 + 分带 + 重映射
  * ========================================================================= */
-function orderAndBand(compiled, hardSlots) {
+function orderAndBand(compiled, hardSlots, globalPlaced) {
+  const globalSet = globalPlaced || new Set();
   const byCode = new Map(compiled.map((c) => [c.def.placeholder, c]));
   const depsOf = new Map(compiled.map((c) => [c.def.placeholder, new Set(c.deps || [])]));
   const tokenLen = (c) => c.targetTokens.length - 1;
   const hardCap = hardSlots || 24;
+  const keyOf = (c) => String(c.def.key || c.def.label || '');
 
-  /* 普通关候选：手工基座（legacy）优先，其次拆分出的中间结论；必须 5–21 模块、目标 ≤36 token、
-   * 且依赖（只算同样是普通关的依赖）已经入选。挑满 10 个。 */
-  const isBaseCand = (c) => c.def.forceBand === 'base';
-  const basePool = compiled.filter(isBaseCand);
-  const baseSet = new Set(basePool.map((c) => c.def.placeholder));
-  const legacyFirst = basePool.filter((c) => String(c.def.key || '').indexOf('legacy') === 0);
-  const cones = basePool.filter((c) => String(c.def.key || '').indexOf('legacy') !== 0)
-    .sort((a, b) => a.size - b.size);
+  const pref = (c) => {
+    if (keyOf(c).indexOf('legacy') === 0) return 0;
+    if (keyOf(c).indexOf('cone_') === 0) return 2;
+    return 1;
+  };
+  const fitsNormal = (c) => c.size >= MIN_NORMAL && c.size <= MAX_NORMAL && tokenLen(c) <= MAX_NORMAL_TOKENS;
+  const fitSet = new Set(compiled.filter(fitsNormal).map((c) => c.def.placeholder));
+  const normalCands = compiled.filter((c) => fitsNormal(c) &&
+    (c.deps || []).every((d) => fitSet.has(d)))
+    .sort((a, b) => (pref(a) - pref(b)) || (a.size - b.size));
+  const candSet = new Set(normalCands.map((c) => c.def.placeholder));
+
   const normal = [];
   const placedN = new Set();
-  const orderedPool = legacyFirst.concat(cones);
-  for (const cand of orderedPool) {
+  for (const cand of normalCands) {
     if (normal.length >= NORMAL_SLOTS) break;
-    if (cand.size < MIN_NORMAL || cand.size > MAX_NORMAL) continue;
-    if (tokenLen(cand) > MAX_NORMAL_TOKENS) continue;
-    const ready = Array.from(depsOf.get(cand.def.placeholder)).every((d) => !baseSet.has(d) || placedN.has(d));
+    const ready = Array.from(depsOf.get(cand.def.placeholder)).every((d) => globalSet.has(d) || !candSet.has(d) || placedN.has(d));
     if (!ready) continue;
     normal.push(cand);
     placedN.add(cand.def.placeholder);
   }
   const normalSet = new Set(normal.map((c) => c.def.placeholder));
 
-  /* 困难关：其余关卡（未入选的拆分候选丢弃），依赖拓扑 + 小者优先，最多 hardCap 个 */
-  let hardPool = compiled.filter((c) => !normalSet.has(c.def.placeholder) && !isBaseCand(c));
+  /* 困难池 = 其余全部候选；先做依赖自洽过滤（依赖必须在池内或已入选普通关） */
+  let hardPool = compiled.filter((c) => !normalSet.has(c.def.placeholder));
   for (let changed = true; changed;) {
     changed = false;
-    const have = new Set(hardPool.map((c) => c.def.placeholder).concat(Array.from(normalSet)));
+    const have = new Set(hardPool.map((c) => c.def.placeholder).concat(Array.from(normalSet)).concat(Array.from(globalSet)));
     for (let i = hardPool.length - 1; i >= 0; i -= 1) {
       const missing = (hardPool[i].deps || []).filter((d) => !have.has(d));
       if (missing.length) { hardPool.splice(i, 1); changed = true; }
     }
   }
-  if (process.env.LADDER_DEBUG) console.log('hardPool:', hardPool.length, hardPool.map((c) => (c.def.key || c.def.label) + ':' + c.size).join(' '));
+  const prefHard = (c) => (keyOf(c).indexOf('cone_') === 0 ? 1 : 0);
   const placed = new Set();
   const orderedHard = [];
   while (orderedHard.length < hardCap) {
     const ready = hardPool.filter((c) => !placed.has(c.def.placeholder) &&
-      Array.from(depsOf.get(c.def.placeholder)).every((d) => !byCode.has(d) || placed.has(d) || normalSet.has(d)));
+      Array.from(depsOf.get(c.def.placeholder)).every((d) => globalSet.has(d) || !byCode.has(d) || placed.has(d) || normalSet.has(d)));
     if (!ready.length) break;
-    ready.sort((a, b) => a.size - b.size);
+    ready.sort((a, b) => (prefHard(a) - prefHard(b)) || (a.size - b.size));
     placed.add(ready[0].def.placeholder);
     orderedHard.push(ready[0]);
   }
@@ -654,9 +657,9 @@ function main() {
     });
   }
   /* 拆分候选：补足普通关（每章需要 10 个 5–21 模块的阶梯） */
-  const coneLimit = Number(process.env.LADDER_CONE_LIMIT || 1);
+  const coneLimit = Number(process.env.LADDER_CONE_LIMIT || 3);
   compiled.forEach((c) => {
-    if (c.def && c.def.chapterGroup === 'Ⅰ') {
+    if (c.def && c.def.chapterGroup) {
       coneCandidates([c], coneLimit).forEach((x) => compiled.push(x));
     }
   });
@@ -675,7 +678,8 @@ function main() {
     const drop = new Set();
     byTarget.forEach((list) => {
       if (list.length < 2) return;
-      list.sort((a, b) => a.size - b.size || (a.def.forceBand === 'base' ? -1 : 1));
+      const isCone = (c) => String(c.def.key || c.def.label || '').indexOf('cone_') === 0;
+      list.sort((a, b) => (isCone(a) - isCone(b)) || (a.size - b.size));
       const keep = list[0];
       list.slice(1).forEach((c) => {
         if (!referenced.has(c.def.placeholder)) drop.add(c.def.placeholder);
@@ -726,13 +730,14 @@ function main() {
   });
   const chapterOrder = ['Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ'].filter((g) => groups[g]);
   const finalList = [];
+  const globalPlaced = new Set();
   chapterOrder.forEach((g) => {
-    const { normal, hard } = orderAndBand(groups[g], 27);
+    const { normal, hard } = orderAndBand(groups[g], 24, globalPlaced);
     if (normal.length < NORMAL_SLOTS && groups[g].length >= NORMAL_SLOTS) {
       problems.push(g + ' 章只有 ' + normal.length + ' 个满足 5–21 模块的普通关候选（需要 ' + NORMAL_SLOTS + '）');
     }
-    normal.forEach((c) => finalList.push({ c, band: 'base' }));
-    hard.forEach((c) => finalList.push({ c, band: 'challenge' }));
+    normal.forEach((c) => { finalList.push({ c, band: 'base' }); globalPlaced.add(c.def.placeholder); });
+    hard.forEach((c) => { finalList.push({ c, band: 'challenge' }); globalPlaced.add(c.def.placeholder); });
   });
 
   /* 同目标去重：困难关若与普通关（或更小的困难关）目标相同，改为引用那一关并剔除自己 */
@@ -745,11 +750,14 @@ function main() {
       byKey.get(key).push(entry);
     });
     const removed = new Set();
+    const referenced = new Set();
+    finalList.forEach((e) => (e.c.deps || []).forEach((d) => referenced.add(d)));
     byKey.forEach((list) => {
       if (list.length < 2) return;
       list.sort((a, b) => (a.band === 'base' ? -1 : 1) || (a.c.size - b.c.size));
       const keep = list[0];
       list.slice(1).forEach((e) => {
+        if (referenced.has(e.c.def.placeholder)) return;   /* 仍被引用的重复关保留 */
         alias.set(e.c.def.placeholder, keep.c.def.placeholder);
         removed.add(e.c.def.placeholder);
       });
@@ -820,6 +828,10 @@ function main() {
       mustUse: Array.from(new Set(c.palette.map((e) => e.kind))).filter((k) => !RSL.Modules.isConstruct(k) && k !== 'theorem'),
       depCodes: (c.deps || []).map((d) => remap.get(alias.get(d) || d)).filter(Boolean),
     };
+    if (process.env.LADDER_DEBUG) {
+      const thms = c.nodes.filter((n) => n.kind === 'theorem').map((n) => n.config.code);
+      if (thms.length) console.log('LVL', c.finalCode, 'thmrefs', thms.join(','), '| size', c.size);
+    }
     const res = Engine.evaluate(level, c.nodes.concat([]), c.edges, { levels: levels.concat([level]), levelIndex: idx });
     if (!res.complete) {
       const first = (res.errors || [])[0];

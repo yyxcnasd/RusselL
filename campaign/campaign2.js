@@ -237,6 +237,26 @@ function buildDefs() {
       target: tr.target, proof: tr.proof,
     });
   });
+  /* 第Ⅱ/Ⅲ/Ⅳ 章：legacy 已验证电路（真实推导）；构建器按体积/长度挑普通关，其余困难关 */
+  const LEGACY_CHAPTERS = [
+    { group: 'Ⅱ', chapter: 1, min: 25, max: 48 },
+    { group: 'Ⅲ', chapter: 2, min: 49, max: 72 },
+    { group: 'Ⅳ', chapter: 3, min: 73, max: 96 },
+  ];
+  LEGACY_CHAPTERS.forEach((ch) => {
+    LEGACY_LEVELS.filter((lv) => lv.no != null && lv.no >= ch.min && lv.no <= ch.max).forEach((lv) => {
+      const target = lv.targetTokens.slice(1);
+      defs.push({
+        key: 'legacy' + lv.no, label: 'legacy' + lv.no,
+        chapter: ch.chapter, chapterGroup: ch.group,
+        title: lv.title || ('原始引理 *' + String(lv.no).padStart(2, '0')),
+        teaches: T.fmt(['wff'].concat(target)),
+        hint: '目标是 ' + T.fmt(['wff'].concat(target)) + '。从最左的构造块接起，按参考接线接到 ⊢。',
+        target, circuit: legacyCircuit(lv.no),
+      });
+    });
+  });
+
   MANUAL.forEach((m) => {
     defs.push({
       key: m.key, chapter: 0, chapterGroup: 'Ⅰ',
