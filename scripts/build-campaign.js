@@ -352,6 +352,50 @@ function compileProof(proof, builder, ctx) {
   return resolve(proof);
 }
 
+/* ---------- 复用前面关卡的引理 ---------- */
+function reusePriorTheorems(nodes, edges, targetId, evalResult, prevLevels) {
+  const prev = new Map();
+  (prevLevels || []).forEach((lv) => {
+    if (!lv || lv.tutorial || !lv.targetTokens) return;
+    const key = lv.targetTokens.join('\u0000');
+    if (!prev.has(key)) prev.set(key, lv.no);
+  });
+  if (!prev.size) return { nodes: nodes, edges: edges, reused: 0 };
+  let reused = 0;
+  const rewrite = new Set();
+  nodes.forEach((n) => {
+    if (n.id === targetId || n.kind === 'target') return;
+    const r = evalResult.results && evalResult.results[n.id];
+    if (!r || !r.tokens || r.tokens[0] !== '|-' || n.kind === 'theorem' || n.kind === 'axiom') return;
+    const hit = prev.get(r.tokens.join('\u0000'));
+    if (hit == null) return;
+    n.kind = 'theorem';
+    n.config = { n: hit };
+    rewrite.add(n.id);
+    reused += 1;
+  });
+  if (!reused) return { nodes: nodes, edges: edges, reused: 0 };
+  const keptEdges = edges.filter((e) => !rewrite.has(e.to.node));
+  const needed = new Set([targetId]);
+  let changed = true;
+  while (changed) {
+    changed = false;
+    keptEdges.forEach((e) => {
+      if (needed.has(e.to.node) && !needed.has(e.from.node)) {
+        needed.add(e.from.node);
+        changed = true;
+      }
+    });
+  }
+  const keptNodes = nodes.filter((n) => needed.has(n.id) || n.kind === 'target');
+  const keptIds = new Set(keptNodes.map((n) => n.id));
+  return {
+    nodes: keptNodes,
+    edges: keptEdges.filter((e) => keptIds.has(e.from.node) && keptIds.has(e.to.node)),
+    reused: reused
+  };
+}
+
 /* ---------- 证明节点去重 ---------- */
 function dedupeProofNodes(nodes, edges, targetId, evalResult) {
   const byId = new Map(nodes.map((n) => [n.id, n]));
@@ -494,6 +538,11 @@ function compileLevel(def, prevLevels) {
    * 同一个 |- 公式可以由不同路径证明；下游只关心输出，所以可以安全共享。 */
   const pre = Engine.evaluate({ targetTokens: targetTokens }, nodes, edges, { levels: prevLevels, levelNo: currentNo });
   if (pre.complete) {
+    const reused = reusePriorTheorems(nodes, edges, targetId, pre, prevLevels);
+    if (reused.reused > 0) {
+      nodes = reused.nodes;
+      edges = reused.edges;
+    }
     const merged = dedupeProofNodes(nodes, edges, targetId, pre);
     if (merged.removed > 0) {
       nodes = merged.nodes;

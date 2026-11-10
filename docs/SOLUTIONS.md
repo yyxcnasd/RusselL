@@ -54,14 +54,14 @@
 | Ⅱ | `*34` | 四段分配 | `⊢ ( ∀ x ( F ( x ) → ( G ( x ) → ( H ( x ) → F ( x ) ) ) ) → ( ∀ x F ( x ) → ( ∀ x G ( x ) → ( ∀ x H ( x ) → ∀ x F ( x ) ) ) ) )` | 连续三次分配。 | 49 / 117 |
 | Ⅱ | `*35` | 双重量词引入 | `⊢ ( F ( z ) → ∀ x ∀ y F ( z ) )` | 两次全称引入。 | 22 / 35 |
 | Ⅱ | `*36` | 辖域移动（变体二） | `⊢ ( ∀ x ( F ( y ) → G ( x ) ) → ( F ( y ) → ∀ x G ( x ) ) )` | 同 *38。 | 44 / 110 |
-| Ⅱ | `*37` | 全称后件组合 | `⊢ ( ( F ( x ) → ∀ x G ( x ) ) → ( ∀ x ( G ( x ) → H ( x ) ) → ( F ( x ) → ∀ x H ( x ) ) ) )` | 先分配，再三段论。 | 45 / 114 |
-| Ⅱ | `*38` | 辖域移动 | `⊢ ( ∀ x ( F ( y ) → G ( x ) ) → ( F ( y ) → ∀ x G ( x ) ) )` | 用全称引入与分配。 | 44 / 110 |
+| Ⅱ | `*37` | 全称后件组合 | `⊢ ( ( F ( x ) → ∀ x G ( x ) ) → ( ∀ x ( G ( x ) → H ( x ) ) → ( F ( x ) → ∀ x H ( x ) ) ) )` | 先分配，再三段论。 | 27 / 51 |
+| Ⅱ | `*38` | 辖域移动 | `⊢ ( ∀ x ( F ( y ) → G ( x ) ) → ( F ( y ) → ∀ x G ( x ) ) )` | 用全称引入与分配。 | 1 / 1 |
 | Ⅱ | `*39` | 全称替换前件 | `⊢ ( ( F ( x ) → G ( x ) ) → ( ∀ x F ( x ) → G ( x ) ) )` | 先全称例化，再三段论。 | 46 / 128 |
 | Ⅱ | `*40` | 全称合并 | `⊢ ( ( ∀ x F ( x ) → ∀ x ∀ x F ( x ) ) → ( ( ∀ x ( ∀ x F ( x ) → G ( x ) ) → ( ∀ x ∀ x F ( x ) → ∀ x G ( x ) ) ) → ( ∀ x ( ∀ x F ( x ) → G ( x ) ) → ( ∀ x F ( x ) → ∀ x G ( x ) ) ) ) )` | 分配、引入、再分配。 | 93 / 284 |
 | Ⅱ | `*41` | 全称三段论链 | `⊢ ( ∀ x ( F ( x ) → G ( x ) ) → ( ∀ x ( G ( x ) → H ( x ) ) → ∀ x ( F ( x ) → H ( x ) ) ) )` | 两次分配后接命题三段论。 | 96 / 283 |
 | Ⅱ | `*42` | 辖域移动（H/G） | `⊢ ( ∀ x ( H ( y ) → F ( x ) ) → ( H ( y ) → ∀ x F ( x ) ) )` | 同 *39，换谓词。 | 44 / 110 |
-| Ⅱ | `*43` | 全称三段论（换序） | `⊢ ( ∀ x ( F ( x ) → G ( x ) ) → ( ∀ x ( G ( x ) → H ( x ) ) → ∀ x ( F ( x ) → H ( x ) ) ) )` | 同 *42，换谓词顺序。 | 96 / 283 |
-| Ⅱ | `*44` | 辖域移动（变体三） | `⊢ ( ∀ x ( F ( y ) → G ( x ) ) → ( F ( y ) → ∀ x G ( x ) ) )` | 同 *38。 | 44 / 110 |
+| Ⅱ | `*43` | 全称三段论（换序） | `⊢ ( ∀ x ( F ( x ) → G ( x ) ) → ( ∀ x ( G ( x ) → H ( x ) ) → ∀ x ( F ( x ) → H ( x ) ) ) )` | 同 *42，换谓词顺序。 | 1 / 1 |
+| Ⅱ | `*44` | 辖域移动（变体三） | `⊢ ( ∀ x ( F ( y ) → G ( x ) ) → ( F ( y ) → ∀ x G ( x ) ) )` | 同 *38。 | 1 / 1 |
 | Ⅱ | `*45` | 全称三段论（H/F） | `⊢ ( ∀ x ( F ( x ) → H ( x ) ) → ( ( G ( x ) → ∀ x F ( x ) ) → ( G ( x ) → ∀ x H ( x ) ) ) )` | 同 *32，换谓词。 | 34 / 76 |
 | Ⅱ | `*46` | 全称合并（换序） | `⊢ ( ( ∀ x G ( x ) → ∀ x ∀ x G ( x ) ) → ( ( ∀ x ( ∀ x G ( x ) → F ( x ) ) → ( ∀ x ∀ x G ( x ) → ∀ x F ( x ) ) ) → ( ∀ x ( ∀ x G ( x ) → F ( x ) ) → ( ∀ x G ( x ) → ∀ x F ( x ) ) ) ) )` | 同 *41，换谓词。 | 93 / 284 |
 | Ⅱ | `*47` | 全称替换前件（G） | `⊢ ( ( G ( x ) → F ( x ) ) → ( ∀ x G ( x ) → F ( x ) ) )` | 同 *40，换谓词。 | 46 / 128 |
@@ -102,7 +102,7 @@
 | Ⅳ | `*74` | 元素等价的两个方向 | `⊢ ( ∀ z ( z ∈ x ↔ z ∈ y ) → ( ∀ z ( z ∈ x → z ∈ y ) ∧ ∀ z ( z ∈ y → z ∈ x ) ) )` | 分别用 ↔E 取两个方向，各自推广并移动 ∀，最后用 ∧I 与 A2 合并。 | 41 / 86 |
 | Ⅳ | `*75` | 元素等价的三重结论 | `⊢ ( ∀ z ( z ∈ x ↔ z ∈ y ) → ( ( ∀ z ( z ∈ x → z ∈ y ) ∧ ∀ z ( z ∈ y → z ∈ x ) ) ∧ ∀ z ( z ∈ y ↔ z ∈ x ) ) )` | 分别引用 *74 与 *73，再用 ∧I 与 A2 合并两个后件。 | 30 / 47 |
 | Ⅳ | `*76` | 元素等价的逐点传递 | `⊢ ( ∀ z ( z ∈ x ↔ z ∈ y ) → ( ∀ z ( z ∈ y ↔ z ∈ u ) → ( z ∈ x ↔ z ∈ u ) ) )` | 假设两个全称等价，逐点取出两个方向，用 HS 串起来再重建 ↔。 | 261 / 827 |
-| Ⅳ | `*77` | 元素等价的全称传递 | `⊢ ( ∀ z ( z ∈ x ↔ z ∈ y ) → ( ∀ z ( z ∈ y ↔ z ∈ u ) → ∀ z ( z ∈ x ↔ z ∈ u ) ) )` | 先逐点传递，再全称推广；两次假设用 DT 消去。 | 275 / 864 |
+| Ⅳ | `*77` | 元素等价的全称传递 | `⊢ ( ∀ z ( z ∈ x ↔ z ∈ y ) → ( ∀ z ( z ∈ y ↔ z ∈ u ) → ∀ z ( z ∈ x ↔ z ∈ u ) ) )` | 先逐点传递，再全称推广；两次假设用 DT 消去。 | 33 / 54 |
 | Ⅳ | `*78` | 属于替换（反向） | `⊢ ∀ x ∀ y ( x = y → ( y ∈ x → y ∈ y ) )` | Leibniz 替换。 | 6 / 8 |
 | Ⅳ | `*79` | 空集 | `⊢ ∃ z ∀ x ¬ x ∈ z` | 直接使用空集公理。 | 1 / 1 |
 | Ⅳ | `*80` | 外延公理（全称） | `⊢ ∀ x ∀ y ( ∀ z ( z ∈ x ↔ z ∈ y ) → x = y )` | 外延公理 + 全称推广。 | 5 / 5 |
@@ -111,7 +111,7 @@
 | Ⅳ | `*83` | 配对公理（实例） | `⊢ ∃ u ∀ z ( ( z = x ∨ z = y ) ↔ z ∈ u )` | 直接使用配对公理。 | 3 / 3 |
 | Ⅳ | `*84` | 并集公理（全称） | `⊢ ∀ x ∃ y ∀ z ( ∃ u ( z ∈ u ∧ u ∈ x ) ↔ z ∈ y )` | 并集公理 + 全称推广。 | 3 / 3 |
 | Ⅳ | `*85` | 并集公理（实例） | `⊢ ∃ y ∀ z ( ∃ u ( z ∈ u ∧ u ∈ x ) ↔ z ∈ y )` | 直接使用并集公理。 | 2 / 2 |
-| Ⅳ | `*86` | 等词的双向同余 | `⊢ ∀ x ∀ y ( x = y → ( x = z ↔ y = z ) )` | 正向用 Leibniz(x→y)，反向先用对称性得到 y=x 再用 Leibniz(y→x)；↔I 合成后 DT 消去假设。 | 55 / 132 |
+| Ⅳ | `*86` | 等词的双向同余 | `⊢ ∀ x ∀ y ( x = y → ( x = z ↔ y = z ) )` | 正向用 Leibniz(x→y)，反向先用对称性得到 y=x 再用 Leibniz(y→x)；↔I 合成后 DT 消去假设。 | 29 / 53 |
 | Ⅳ | `*87` | 等词进入属于（全称） | `⊢ ∀ y ∀ z ( y = z → ( x ∈ y → x ∈ z ) )` | Leibniz 替换后全称推广。 | 7 / 8 |
 | Ⅳ | `*88` | 等词进入属于（反向） | `⊢ ∀ y ∀ z ( y = z → ( y ∈ x → z ∈ x ) )` | Leibniz 替换。 | 7 / 8 |
 | Ⅳ | `*89` | 外延（y,z） | `⊢ ∀ y ∀ z ( ∀ x ( x ∈ y ↔ x ∈ z ) → y = z )` | 外延公理换变量。 | 5 / 5 |
@@ -119,9 +119,9 @@
 | Ⅳ | `*91` | 并集（y） | `⊢ ∀ y ∃ u ∀ z ( ∃ v ( z ∈ v ∧ v ∈ y ) ↔ z ∈ u )` | 并集公理换变量。 | 3 / 3 |
 | Ⅳ | `*92` | 属于替换的双向版 | `⊢ ∀ x ∀ y ∀ z ( x = y → ( x ∈ z ↔ y ∈ z ) )` | 同 *86，但替换作用在 ∈ 的左项；正向和反向各接一条 Leibniz 公理。 | 56 / 133 |
 | Ⅳ | `*93` | 三层等词链（双向） | `⊢ ∀ y ∀ z ∀ x ( y = z → ( x ∈ y ↔ x ∈ z ) )` | 反向需要 z=y：把 *56 连续例化两次；再用 Leibniz 两个方向、HS 与 ↔I，最后 DT 消去 y=z。 | 63 / 156 |
-| Ⅳ | `*94` | 配对集含左元 | `⊢ ∀ x ∀ y ∃ u x ∈ u` | 从配对公理取 u，全称例化到 x，用 x=x∨x=y 与 ↔E 得到 x∈u，再 ∃I/∃E 与全称推广。 | 54 / 117 |
-| Ⅳ | `*95` | 配对集含右元 | `⊢ ∀ x ∀ y ∃ u y ∈ u` | 同左元，但用 y=y 从析取的右支进入。 | 54 / 117 |
-| Ⅳ | `*96` | 综合：配对给出公共容器 | `⊢ ∀ x ∀ y ∃ u ( x ∈ u ∧ y ∈ u )` | 在同一个配对集 u 上分别取 x∈u、y∈u，用 ∧I 合并，再用 ∃I 收束；两次存在消去。 | 93 / 230 |
+| Ⅳ | `*94` | 配对集含左元 | `⊢ ∀ x ∀ y ∃ u x ∈ u` | 从配对公理取 u，全称例化到 x，用 x=x∨x=y 与 ↔E 得到 x∈u，再 ∃I/∃E 与全称推广。 | 54 / 115 |
+| Ⅳ | `*95` | 配对集含右元 | `⊢ ∀ x ∀ y ∃ u y ∈ u` | 同左元，但用 y=y 从析取的右支进入。 | 54 / 115 |
+| Ⅳ | `*96` | 综合：配对给出公共容器 | `⊢ ∀ x ∀ y ∃ u ( x ∈ u ∧ y ∈ u )` | 在同一个配对集 u 上分别取 x∈u、y∈u，用 ∧I 合并，再用 ∃I 收束；两次存在消去。 | 93 / 228 |
 
 ## Ⅰ 章
 
@@ -8450,7 +8450,7 @@ n1.out → n70.proof
 
 - 目标：`⊢ ( ( F ( x ) → ∀ x G ( x ) ) → ( ∀ x ( G ( x ) → H ( x ) ) → ( F ( x ) → ∀ x H ( x ) ) ) )`
 - 提示：先分配，再三段论。
-- 参考解：45 个模块 / 114 条接线
+- 参考解：27 个模块 / 51 条接线
 
 <details><summary>展开参考电路</summary>
 
@@ -8476,27 +8476,9 @@ n29  imp
 n33  mp
 n34  mp
 n35  mp
-n36  mp
-n37  mp
-n38  axiom A5(v=x)
-n39  subst(groups=1)
-n40  mp
-n41  mp
-n43  subst(groups=1)
+n36  定理 *31
 n44  all(v=x)
-n45  imp
-n47  subst(groups=1)
-n48  imp
-n49  imp
-n51  subst(groups=2)
-n52  mp
-n53  mp
-n55  subst(groups=2)
-n57  subst(groups=1)
 n58  imp
-n59  imp
-n60  imp
-n62  subst(groups=2)
 n64  subst(groups=2)
 n66  subst(groups=1)
 n67  imp
@@ -8520,72 +8502,9 @@ n12.out → n23.atom2
 n26.out → n23.formula2
 n26.out → n29.a
 n11.out → n29.b
-n38.out → n39.assertion
-n6.out → n39.atom1
-n9.out → n39.formula1
-n12.out → n39.atom2
-n24.out → n39.formula2
-n4.out → n43.assertion
 n24.out → n44.a
-n10.out → n45.a
-n44.out → n45.b
-n6.out → n43.atom1
-n45.out → n43.formula1
-n12.out → n43.atom2
-n8.out → n43.formula2
-n4.out → n47.assertion
-n8.out → n48.a
-n45.out → n48.b
-n45.out → n49.a
-n48.out → n49.b
-n6.out → n47.atom1
-n49.out → n47.formula1
-n12.out → n47.atom2
-n26.out → n47.formula2
-n43.out → n41.a
-n47.out → n41.b
-n17.out → n51.assertion
-n6.out → n51.atom1
-n26.out → n51.formula1
-n12.out → n51.atom2
-n45.out → n51.formula2
-n19.out → n51.atom3
-n48.out → n51.formula3
-n41.out → n40.a
-n51.out → n40.b
-n39.out → n37.a
-n40.out → n37.b
-n17.out → n55.assertion
-n6.out → n55.atom1
-n8.out → n55.formula1
-n12.out → n55.atom2
-n10.out → n55.formula2
-n19.out → n55.atom3
-n44.out → n55.formula3
-n4.out → n57.assertion
 n8.out → n58.a
 n44.out → n58.b
-n11.out → n59.a
-n58.out → n59.b
-n48.out → n60.a
-n59.out → n60.b
-n6.out → n57.atom1
-n60.out → n57.formula1
-n12.out → n57.atom2
-n26.out → n57.formula2
-n55.out → n53.a
-n57.out → n53.b
-n17.out → n62.assertion
-n6.out → n62.atom1
-n26.out → n62.formula1
-n12.out → n62.atom2
-n48.out → n62.formula2
-n19.out → n62.atom3
-n59.out → n62.formula3
-n53.out → n52.a
-n62.out → n52.b
-n37.out → n36.a
-n52.out → n36.b
 n17.out → n64.assertion
 n6.out → n64.atom1
 n26.out → n64.formula1
@@ -8626,168 +8545,16 @@ n1.out → n71.proof
 
 - 目标：`⊢ ( ∀ x ( F ( y ) → G ( x ) ) → ( F ( y ) → ∀ x G ( x ) ) )`
 - 提示：用全称引入与分配。
-- 参考解：44 个模块 / 110 条接线
+- 参考解：1 个模块 / 1 条接线
 
 <details><summary>展开参考电路</summary>
 
 ```text
 模块：
 n70  [target]
-n1  mp
-n4  axiom A1
-n6  atom P
-n7  term y
-n8  pred F
-n9  term x
-n10  pred G
-n11  imp
-n12  all(v=x)
-n13  atom Q
-n18  axiom A2
-n20  atom R
-n24  subst(groups=1)
-n27  imp
-n31  mp
-n32  mp
-n33  mp
-n34  mp
-n35  mp
-n36  shift(v=x)
-n37  mp
-n38  mp
-n40  subst(groups=1)
-n41  all(v=x)
-n43  subst(groups=1)
-n44  imp
-n45  imp
-n47  subst(groups=2)
-n48  mp
-n49  mp
-n50  mp
-n51  axiom A5(v=x)
-n52  subst(groups=1)
-n54  subst(groups=2)
-n55  all(v=x)
-n57  subst(groups=1)
-n58  imp
-n59  imp
-n61  subst(groups=2)
-n63  subst(groups=2)
-n65  subst(groups=1)
-n66  imp
-n67  imp
-n69  subst(groups=2)
+n1  定理 *36
 
 接线：
-n7.out → n8.t1
-n9.out → n10.t1
-n8.out → n11.a
-n10.out → n11.b
-n11.out → n12.a
-n4.out → n24.assertion
-n6.out → n24.atom1
-n12.out → n24.formula1
-n13.out → n24.atom2
-n8.out → n24.formula2
-n8.out → n27.a
-n12.out → n27.b
-n8.out → n36.formula
-n4.out → n40.assertion
-n8.out → n41.a
-n6.out → n40.atom1
-n41.out → n40.formula1
-n13.out → n40.atom2
-n12.out → n40.formula2
-n4.out → n43.assertion
-n12.out → n44.a
-n41.out → n44.b
-n41.out → n45.a
-n44.out → n45.b
-n6.out → n43.atom1
-n45.out → n43.formula1
-n13.out → n43.atom2
-n8.out → n43.formula2
-n40.out → n38.a
-n43.out → n38.b
-n18.out → n47.assertion
-n6.out → n47.atom1
-n8.out → n47.formula1
-n13.out → n47.atom2
-n41.out → n47.formula2
-n20.out → n47.atom3
-n44.out → n47.formula3
-n38.out → n37.a
-n47.out → n37.b
-n36.out → n35.a
-n37.out → n35.b
-n51.out → n52.assertion
-n6.out → n52.atom1
-n8.out → n52.formula1
-n13.out → n52.atom2
-n10.out → n52.formula2
-n18.out → n54.assertion
-n6.out → n54.atom1
-n12.out → n54.formula1
-n13.out → n54.atom2
-n41.out → n54.formula2
-n10.out → n55.a
-n20.out → n54.atom3
-n55.out → n54.formula3
-n52.out → n50.a
-n54.out → n50.b
-n4.out → n57.assertion
-n12.out → n58.a
-n55.out → n58.b
-n44.out → n59.a
-n58.out → n59.b
-n6.out → n57.atom1
-n59.out → n57.formula1
-n13.out → n57.atom2
-n8.out → n57.formula2
-n50.out → n49.a
-n57.out → n49.b
-n18.out → n61.assertion
-n6.out → n61.atom1
-n8.out → n61.formula1
-n13.out → n61.atom2
-n44.out → n61.formula2
-n20.out → n61.atom3
-n58.out → n61.formula3
-n49.out → n48.a
-n61.out → n48.b
-n35.out → n34.a
-n48.out → n34.b
-n18.out → n63.assertion
-n6.out → n63.atom1
-n8.out → n63.formula1
-n13.out → n63.atom2
-n12.out → n63.formula2
-n20.out → n63.atom3
-n55.out → n63.formula3
-n34.out → n33.a
-n63.out → n33.b
-n4.out → n65.assertion
-n8.out → n66.a
-n55.out → n66.b
-n27.out → n67.a
-n66.out → n67.b
-n6.out → n65.atom1
-n67.out → n65.formula1
-n13.out → n65.atom2
-n12.out → n65.formula2
-n33.out → n32.a
-n65.out → n32.b
-n18.out → n69.assertion
-n6.out → n69.atom1
-n12.out → n69.formula1
-n13.out → n69.atom2
-n27.out → n69.formula2
-n20.out → n69.atom3
-n66.out → n69.formula3
-n32.out → n31.a
-n69.out → n31.b
-n24.out → n1.a
-n31.out → n1.b
 n1.out → n70.proof
 ```
 
@@ -9949,393 +9716,16 @@ n1.out → n70.proof
 
 - 目标：`⊢ ( ∀ x ( F ( x ) → G ( x ) ) → ( ∀ x ( G ( x ) → H ( x ) ) → ∀ x ( F ( x ) → H ( x ) ) ) )`
 - 提示：同 *42，换谓词顺序。
-- 参考解：96 个模块 / 283 条接线
+- 参考解：1 个模块 / 1 条接线
 
 <details><summary>展开参考电路</summary>
 
 ```text
 模块：
 n156  [target]
-n1  mp
-n2  gen(v=x)
-n3  mp
-n6  axiom A1
-n8  atom P
-n9  term x
-n10  pred F
-n11  pred G
-n12  imp
-n13  atom Q
-n18  axiom A2
-n20  atom R
-n24  subst(groups=1)
-n25  pred H
-n26  imp
-n29  imp
-n33  mp
-n34  mp
-n35  mp
-n36  mp
-n37  mp
-n38  mp
-n39  mp
-n41  subst(groups=1)
-n42  mp
-n44  subst(groups=1)
-n45  imp
-n47  subst(groups=2)
-n49  subst(groups=1)
-n50  mp
-n51  mp
-n53  subst(groups=1)
-n55  subst(groups=1)
-n56  imp
-n57  imp
-n59  subst(groups=2)
-n60  mp
-n61  mp
-n63  subst(groups=2)
-n65  subst(groups=1)
-n66  imp
-n67  imp
-n69  subst(groups=2)
-n70  mp
-n71  mp
-n72  mp
-n73  mp
-n74  mp
-n87  subst(groups=1)
-n90  imp
-n94  mp
-n95  mp
-n97  subst(groups=2)
-n99  subst(groups=1)
-n100  imp
-n101  imp
-n102  imp
-n104  subst(groups=2)
-n106  subst(groups=1)
-n107  imp
-n109  subst(groups=2)
-n111  subst(groups=1)
-n112  imp
-n114  subst(groups=2)
-n115  mp
-n116  mp
-n118  subst(groups=2)
-n120  subst(groups=1)
-n121  imp
-n122  imp
-n123  imp
-n125  subst(groups=2)
-n127  subst(groups=2)
-n128  mp
-n129  axiom A5(v=x)
-n130  subst(groups=1)
-n131  mp
-n132  mp
-n133  mp
-n134  mp
-n136  subst(groups=1)
-n138  subst(groups=1)
-n139  all(v=x)
-n140  all(v=x)
-n141  all(v=x)
-n142  imp
-n143  imp
-n144  all(v=x)
-n146  subst(groups=2)
-n148  subst(groups=1)
-n149  imp
-n150  imp
-n151  imp
-n152  imp
-n153  all(v=x)
-n155  subst(groups=2)
+n1  定理 *41
 
 接线：
-n9.out → n10.t1
-n9.out → n11.t1
-n10.out → n12.a
-n11.out → n12.b
-n6.out → n24.assertion
-n8.out → n24.atom1
-n12.out → n24.formula1
-n9.out → n25.t1
-n11.out → n26.a
-n25.out → n26.b
-n13.out → n24.atom2
-n26.out → n24.formula2
-n26.out → n29.a
-n12.out → n29.b
-n6.out → n41.assertion
-n8.out → n41.atom1
-n25.out → n41.formula1
-n13.out → n41.atom2
-n25.out → n41.formula2
-n6.out → n44.assertion
-n8.out → n44.atom1
-n25.out → n44.formula1
-n25.out → n45.a
-n25.out → n45.b
-n13.out → n44.atom2
-n45.out → n44.formula2
-n18.out → n47.assertion
-n8.out → n47.atom1
-n25.out → n47.formula1
-n13.out → n47.atom2
-n45.out → n47.formula2
-n20.out → n47.atom3
-n25.out → n47.formula3
-n44.out → n42.a
-n47.out → n42.b
-n41.out → n39.a
-n42.out → n39.b
-n6.out → n49.assertion
-n8.out → n49.atom1
-n45.out → n49.formula1
-n13.out → n49.atom2
-n12.out → n49.formula2
-n39.out → n38.a
-n49.out → n38.b
-n6.out → n53.assertion
-n8.out → n53.atom1
-n45.out → n53.formula1
-n13.out → n53.atom2
-n11.out → n53.formula2
-n6.out → n55.assertion
-n11.out → n56.a
-n45.out → n56.b
-n45.out → n57.a
-n56.out → n57.b
-n8.out → n55.atom1
-n57.out → n55.formula1
-n13.out → n55.atom2
-n12.out → n55.formula2
-n53.out → n51.a
-n55.out → n51.b
-n18.out → n59.assertion
-n8.out → n59.atom1
-n12.out → n59.formula1
-n13.out → n59.atom2
-n45.out → n59.formula2
-n20.out → n59.atom3
-n56.out → n59.formula3
-n51.out → n50.a
-n59.out → n50.b
-n38.out → n37.a
-n50.out → n37.b
-n18.out → n63.assertion
-n8.out → n63.atom1
-n11.out → n63.formula1
-n13.out → n63.atom2
-n25.out → n63.formula2
-n20.out → n63.atom3
-n25.out → n63.formula3
-n6.out → n65.assertion
-n26.out → n66.a
-n26.out → n66.b
-n56.out → n67.a
-n66.out → n67.b
-n8.out → n65.atom1
-n67.out → n65.formula1
-n13.out → n65.atom2
-n12.out → n65.formula2
-n63.out → n61.a
-n65.out → n61.b
-n18.out → n69.assertion
-n8.out → n69.atom1
-n12.out → n69.formula1
-n13.out → n69.atom2
-n56.out → n69.formula2
-n20.out → n69.atom3
-n66.out → n69.formula3
-n61.out → n60.a
-n69.out → n60.b
-n37.out → n36.a
-n60.out → n36.b
-n6.out → n87.assertion
-n8.out → n87.atom1
-n26.out → n87.formula1
-n13.out → n87.atom2
-n10.out → n87.formula2
-n10.out → n90.a
-n26.out → n90.b
-n18.out → n97.assertion
-n8.out → n97.atom1
-n10.out → n97.formula1
-n13.out → n97.atom2
-n11.out → n97.formula2
-n20.out → n97.atom3
-n25.out → n97.formula3
-n6.out → n99.assertion
-n10.out → n100.a
-n25.out → n100.b
-n12.out → n101.a
-n100.out → n101.b
-n90.out → n102.a
-n101.out → n102.b
-n8.out → n99.atom1
-n102.out → n99.formula1
-n13.out → n99.atom2
-n26.out → n99.formula2
-n97.out → n95.a
-n99.out → n95.b
-n18.out → n104.assertion
-n8.out → n104.atom1
-n26.out → n104.formula1
-n13.out → n104.atom2
-n90.out → n104.formula2
-n20.out → n104.atom3
-n101.out → n104.formula3
-n95.out → n94.a
-n104.out → n94.b
-n87.out → n74.a
-n94.out → n74.b
-n6.out → n106.assertion
-n26.out → n107.a
-n101.out → n107.b
-n8.out → n106.atom1
-n107.out → n106.formula1
-n13.out → n106.atom2
-n26.out → n106.formula2
-n74.out → n73.a
-n106.out → n73.b
-n18.out → n109.assertion
-n8.out → n109.atom1
-n26.out → n109.formula1
-n13.out → n109.atom2
-n26.out → n109.formula2
-n20.out → n109.atom3
-n101.out → n109.formula3
-n73.out → n72.a
-n109.out → n72.b
-n6.out → n111.assertion
-n66.out → n112.a
-n107.out → n112.b
-n8.out → n111.atom1
-n112.out → n111.formula1
-n13.out → n111.atom2
-n12.out → n111.formula2
-n72.out → n71.a
-n111.out → n71.b
-n18.out → n114.assertion
-n8.out → n114.atom1
-n12.out → n114.formula1
-n13.out → n114.atom2
-n66.out → n114.formula2
-n20.out → n114.atom3
-n107.out → n114.formula3
-n71.out → n70.a
-n114.out → n70.b
-n36.out → n35.a
-n70.out → n35.b
-n18.out → n118.assertion
-n8.out → n118.atom1
-n26.out → n118.formula1
-n13.out → n118.atom2
-n12.out → n118.formula2
-n20.out → n118.atom3
-n100.out → n118.formula3
-n6.out → n120.assertion
-n26.out → n121.a
-n100.out → n121.b
-n29.out → n122.a
-n121.out → n122.b
-n107.out → n123.a
-n122.out → n123.b
-n8.out → n120.atom1
-n123.out → n120.formula1
-n13.out → n120.atom2
-n12.out → n120.formula2
-n118.out → n116.a
-n120.out → n116.b
-n18.out → n125.assertion
-n8.out → n125.atom1
-n12.out → n125.formula1
-n13.out → n125.atom2
-n107.out → n125.formula2
-n20.out → n125.atom3
-n122.out → n125.formula3
-n116.out → n115.a
-n125.out → n115.b
-n35.out → n34.a
-n115.out → n34.b
-n18.out → n127.assertion
-n8.out → n127.atom1
-n12.out → n127.formula1
-n13.out → n127.atom2
-n29.out → n127.formula2
-n20.out → n127.atom3
-n121.out → n127.formula3
-n34.out → n33.a
-n127.out → n33.b
-n24.out → n3.a
-n33.out → n3.b
-n3.out → n2.assertion
-n129.out → n130.assertion
-n8.out → n130.atom1
-n12.out → n130.formula1
-n13.out → n130.atom2
-n121.out → n130.formula2
-n129.out → n136.assertion
-n8.out → n136.atom1
-n26.out → n136.formula1
-n13.out → n136.atom2
-n100.out → n136.formula2
-n6.out → n138.assertion
-n121.out → n139.a
-n26.out → n140.a
-n100.out → n141.a
-n140.out → n142.a
-n141.out → n142.b
-n139.out → n143.a
-n142.out → n143.b
-n8.out → n138.atom1
-n143.out → n138.formula1
-n12.out → n144.a
-n13.out → n138.atom2
-n144.out → n138.formula2
-n136.out → n134.a
-n138.out → n134.b
-n18.out → n146.assertion
-n8.out → n146.atom1
-n144.out → n146.formula1
-n13.out → n146.atom2
-n139.out → n146.formula2
-n20.out → n146.atom3
-n142.out → n146.formula3
-n134.out → n133.a
-n146.out → n133.b
-n6.out → n148.assertion
-n144.out → n149.a
-n139.out → n149.b
-n144.out → n150.a
-n142.out → n150.b
-n149.out → n151.a
-n150.out → n151.b
-n8.out → n148.atom1
-n151.out → n148.formula1
-n12.out → n152.a
-n121.out → n152.b
-n152.out → n153.a
-n13.out → n148.atom2
-n153.out → n148.formula2
-n133.out → n132.a
-n148.out → n132.b
-n18.out → n155.assertion
-n8.out → n155.atom1
-n153.out → n155.formula1
-n13.out → n155.atom2
-n149.out → n155.formula2
-n20.out → n155.atom3
-n150.out → n155.formula3
-n132.out → n131.a
-n155.out → n131.b
-n130.out → n128.a
-n131.out → n128.b
-n2.out → n1.a
-n128.out → n1.b
 n1.out → n156.proof
 ```
 
@@ -10345,168 +9735,16 @@ n1.out → n156.proof
 
 - 目标：`⊢ ( ∀ x ( F ( y ) → G ( x ) ) → ( F ( y ) → ∀ x G ( x ) ) )`
 - 提示：同 *38。
-- 参考解：44 个模块 / 110 条接线
+- 参考解：1 个模块 / 1 条接线
 
 <details><summary>展开参考电路</summary>
 
 ```text
 模块：
 n70  [target]
-n1  mp
-n4  axiom A1
-n6  atom P
-n7  term y
-n8  pred F
-n9  term x
-n10  pred G
-n11  imp
-n12  all(v=x)
-n13  atom Q
-n18  axiom A2
-n20  atom R
-n24  subst(groups=1)
-n27  imp
-n31  mp
-n32  mp
-n33  mp
-n34  mp
-n35  mp
-n36  shift(v=x)
-n37  mp
-n38  mp
-n40  subst(groups=1)
-n41  all(v=x)
-n43  subst(groups=1)
-n44  imp
-n45  imp
-n47  subst(groups=2)
-n48  mp
-n49  mp
-n50  mp
-n51  axiom A5(v=x)
-n52  subst(groups=1)
-n54  subst(groups=2)
-n55  all(v=x)
-n57  subst(groups=1)
-n58  imp
-n59  imp
-n61  subst(groups=2)
-n63  subst(groups=2)
-n65  subst(groups=1)
-n66  imp
-n67  imp
-n69  subst(groups=2)
+n1  定理 *36
 
 接线：
-n7.out → n8.t1
-n9.out → n10.t1
-n8.out → n11.a
-n10.out → n11.b
-n11.out → n12.a
-n4.out → n24.assertion
-n6.out → n24.atom1
-n12.out → n24.formula1
-n13.out → n24.atom2
-n8.out → n24.formula2
-n8.out → n27.a
-n12.out → n27.b
-n8.out → n36.formula
-n4.out → n40.assertion
-n8.out → n41.a
-n6.out → n40.atom1
-n41.out → n40.formula1
-n13.out → n40.atom2
-n12.out → n40.formula2
-n4.out → n43.assertion
-n12.out → n44.a
-n41.out → n44.b
-n41.out → n45.a
-n44.out → n45.b
-n6.out → n43.atom1
-n45.out → n43.formula1
-n13.out → n43.atom2
-n8.out → n43.formula2
-n40.out → n38.a
-n43.out → n38.b
-n18.out → n47.assertion
-n6.out → n47.atom1
-n8.out → n47.formula1
-n13.out → n47.atom2
-n41.out → n47.formula2
-n20.out → n47.atom3
-n44.out → n47.formula3
-n38.out → n37.a
-n47.out → n37.b
-n36.out → n35.a
-n37.out → n35.b
-n51.out → n52.assertion
-n6.out → n52.atom1
-n8.out → n52.formula1
-n13.out → n52.atom2
-n10.out → n52.formula2
-n18.out → n54.assertion
-n6.out → n54.atom1
-n12.out → n54.formula1
-n13.out → n54.atom2
-n41.out → n54.formula2
-n10.out → n55.a
-n20.out → n54.atom3
-n55.out → n54.formula3
-n52.out → n50.a
-n54.out → n50.b
-n4.out → n57.assertion
-n12.out → n58.a
-n55.out → n58.b
-n44.out → n59.a
-n58.out → n59.b
-n6.out → n57.atom1
-n59.out → n57.formula1
-n13.out → n57.atom2
-n8.out → n57.formula2
-n50.out → n49.a
-n57.out → n49.b
-n18.out → n61.assertion
-n6.out → n61.atom1
-n8.out → n61.formula1
-n13.out → n61.atom2
-n44.out → n61.formula2
-n20.out → n61.atom3
-n58.out → n61.formula3
-n49.out → n48.a
-n61.out → n48.b
-n35.out → n34.a
-n48.out → n34.b
-n18.out → n63.assertion
-n6.out → n63.atom1
-n8.out → n63.formula1
-n13.out → n63.atom2
-n12.out → n63.formula2
-n20.out → n63.atom3
-n55.out → n63.formula3
-n34.out → n33.a
-n63.out → n33.b
-n4.out → n65.assertion
-n8.out → n66.a
-n55.out → n66.b
-n27.out → n67.a
-n66.out → n67.b
-n6.out → n65.atom1
-n67.out → n65.formula1
-n13.out → n65.atom2
-n12.out → n65.formula2
-n33.out → n32.a
-n65.out → n32.b
-n18.out → n69.assertion
-n6.out → n69.atom1
-n12.out → n69.formula1
-n13.out → n69.atom2
-n27.out → n69.formula2
-n20.out → n69.atom3
-n66.out → n69.formula3
-n32.out → n31.a
-n69.out → n31.b
-n24.out → n1.a
-n31.out → n1.b
 n1.out → n70.proof
 ```
 
@@ -11537,7 +10775,7 @@ n6  term x
 n7  pred =
 n8  term y
 n9  pred =
-n10  eq-refl(t=x)
+n10  定理 *49
 n11  eq-refl(t=y)
 
 接线：
@@ -11570,7 +10808,7 @@ n1.out → n12.proof
 模块：
 n17  [target]
 n1  mp
-n2  eq-refl(t=x)
+n2  定理 *49
 n3  mp
 n4  leibniz(mode=abstract, v=z)
 n5  term x
@@ -11761,7 +10999,7 @@ n1.out → n19.proof
 模块：
 n3  [target]
 n1  gen(v=x)
-n2  eq-refl(t=x)
+n2  定理 *49
 
 接线：
 n2.out → n1.assertion
@@ -11784,11 +11022,11 @@ n33  [target]
 n1  gen(v=x)
 n2  gen(v=y)
 n3  mp
+n4  定理 *51
 n7  atom P
 n8  term x
 n9  term y
 n10  pred =
-n13  定理 *51
 n16  pred =
 n18  atom Q
 n19  axiom A2
@@ -11816,7 +11054,7 @@ n21.out → n32.atom3
 n28.out → n32.formula3
 n26.out → n22.a
 n32.out → n22.b
-n13.out → n3.a
+n4.out → n3.a
 n22.out → n3.b
 n3.out → n2.assertion
 n2.out → n1.assertion
@@ -11936,7 +11174,7 @@ n2  mp
 n3  mp
 n4  mp
 n5  mp
-n6  eq-refl(t=x)
+n6  定理 *49
 n7  axiom A1
 n8  subst(groups=1)
 n9  atom P
@@ -12418,11 +11656,11 @@ n43  [target]
 n1  gen(v=x)
 n2  gen(v=y)
 n3  mp
+n4  定理 *54
 n7  atom P
 n8  term x
 n9  term y
 n10  pred =
-n13  定理 *54
 n14  axiom A1
 n16  pred F
 n17  pred F
@@ -12432,7 +11670,7 @@ n21  axiom A2
 n23  atom R
 n24  mp
 n25  mp
-n29  定理 *53
+n26  定理 *53
 n31  imp
 n34  mp
 n35  mp
@@ -12477,7 +11715,7 @@ n23.out → n41.atom3
 n39.out → n41.formula3
 n35.out → n34.a
 n41.out → n34.b
-n29.out → n25.a
+n26.out → n25.a
 n34.out → n25.b
 n21.out → n42.assertion
 n7.out → n42.atom1
@@ -12488,7 +11726,7 @@ n23.out → n42.atom3
 n38.out → n42.formula3
 n25.out → n24.a
 n42.out → n24.b
-n13.out → n3.a
+n4.out → n3.a
 n24.out → n3.b
 n3.out → n2.assertion
 n2.out → n1.assertion
@@ -12963,11 +12201,11 @@ n2  gen(v=z)
 n3  mp
 n4  mp
 n5  mp
+n6  定理 *65
 n9  atom P
 n10  term x
 n11  term y
 n12  pred =
-n15  定理 *65
 n16  axiom A1
 n18  term z
 n19  mem
@@ -13055,7 +12293,7 @@ n30.out → n36.atom3
 n24.out → n36.formula3
 n32.out → n31.a
 n36.out → n31.b
-n15.out → n5.a
+n6.out → n5.a
 n31.out → n5.b
 n23.out → n39.formula
 n18.out → n39.term
@@ -13099,7 +12337,7 @@ n30.out → n52.atom3
 n22.out → n52.formula3
 n48.out → n47.a
 n52.out → n47.b
-n15.out → n46.a
+n6.out → n46.a
 n47.out → n46.b
 n21.out → n55.formula
 n18.out → n55.term
@@ -13188,6 +12426,7 @@ n1  gen(v=x)
 n2  gen(v=y)
 n3  gen(v=z)
 n4  mp
+n5  定理 *52
 n9  atom P
 n10  term y
 n11  term z
@@ -13198,7 +12437,6 @@ n17  term x
 n18  pred =
 n30  axiom A2
 n32  atom R
-n37  定理 *52
 n39  pred =
 n40  imp
 n66  mp
@@ -13320,7 +12558,7 @@ n32.out → n91.atom3
 n87.out → n91.formula3
 n67.out → n66.a
 n91.out → n66.b
-n37.out → n4.a
+n5.out → n4.a
 n66.out → n4.b
 n4.out → n3.assertion
 n3.out → n2.assertion
@@ -13388,7 +12626,7 @@ n44  subst(groups=2)
 n45  subst(groups=2)
 n46  mp
 n47  mp
-n51  定理 *57
+n48  定理 *57
 n53  imp
 n56  mp
 n57  mp
@@ -13518,7 +12756,7 @@ n37.out → n63.atom3
 n61.out → n63.formula3
 n57.out → n56.a
 n63.out → n56.b
-n51.out → n47.a
+n48.out → n47.a
 n56.out → n47.b
 n42.out → n64.assertion
 n7.out → n64.atom1
@@ -15926,7 +15164,7 @@ n1.out → n293.proof
 
 - 目标：`⊢ ( ∀ z ( z ∈ x ↔ z ∈ y ) → ( ∀ z ( z ∈ y ↔ z ∈ u ) → ∀ z ( z ∈ x ↔ z ∈ u ) ) )`
 - 提示：先逐点传递，再全称推广；两次假设用 DT 消去。
-- 参考解：275 个模块 / 864 条接线
+- 参考解：33 个模块 / 54 条接线
 
 <details><summary>展开参考电路</summary>
 
@@ -15936,10 +15174,7 @@ n307  [target]
 n1  mp
 n2  mp
 n3  gen(v=z)
-n4  mp
-n5  mp
-n6  mp
-n7  mp
+n4  定理 *76
 n11  atom P
 n12  term z
 n13  term x
@@ -15949,254 +15184,15 @@ n16  mem
 n17  iff
 n18  all(v=z)
 n21  axiom A1
-n22  subst(groups=1)
 n23  atom Q
 n24  term u
 n25  mem
 n26  iff
 n27  all(v=z)
-n29  imp
 n31  axiom A2
 n33  atom R
-n34  mp
-n35  mp
-n36  mp
-n37  mp
-n38  all-inst(v=z)
-n39  subst(groups=1)
-n40  imp
-n41  mp
-n42  mp
-n43  subst(groups=1)
-n44  subst(groups=1)
-n45  imp
-n46  imp
-n47  subst(groups=2)
-n48  mp
-n49  mp
-n50  subst(groups=2)
-n51  subst(groups=1)
-n52  imp
-n53  imp
-n54  imp
-n55  subst(groups=2)
-n56  subst(groups=2)
-n57  mp
-n58  mp
-n59  mp
-n60  mp
-n61  iff-elim-ax(dir=rl)
-n62  subst(groups=1)
-n63  imp
-n64  imp
-n65  mp
-n66  mp
-n67  subst(groups=1)
-n68  subst(groups=1)
-n69  imp
-n70  imp
-n71  subst(groups=2)
-n72  mp
-n73  mp
-n74  subst(groups=2)
-n75  subst(groups=1)
-n76  imp
-n77  imp
-n78  imp
-n79  subst(groups=2)
-n80  subst(groups=2)
-n81  mp
-n82  mp
-n83  mp
-n84  mp
-n93  mp
-n94  all-inst(v=z)
-n95  subst(groups=1)
-n96  imp
-n112  mp
-n113  mp
-n114  mp
-n115  mp
-n116  iff-elim-ax(dir=rl)
-n117  subst(groups=1)
-n118  imp
-n119  imp
-n120  mp
-n121  mp
-n122  subst(groups=1)
-n123  subst(groups=1)
-n124  imp
-n125  imp
-n126  subst(groups=2)
-n127  mp
-n128  mp
-n129  subst(groups=2)
-n130  subst(groups=1)
-n131  imp
-n132  imp
-n133  imp
-n134  subst(groups=2)
-n135  subst(groups=2)
-n136  mp
-n137  mp
-n138  mp
-n139  mp
-n140  定理 *05
-n141  subst(groups=2)
-n142  subst(groups=1)
-n143  imp
-n144  imp
-n145  imp
-n146  mp
-n147  mp
-n148  subst(groups=1)
-n149  subst(groups=1)
-n150  imp
-n151  imp
-n152  subst(groups=2)
-n153  mp
-n154  mp
-n155  subst(groups=2)
-n156  subst(groups=1)
-n157  imp
-n158  imp
-n159  imp
-n160  subst(groups=2)
-n161  subst(groups=2)
-n162  mp
-n163  mp
-n164  subst(groups=2)
-n165  subst(groups=1)
-n166  imp
-n167  imp
-n168  imp
-n169  subst(groups=2)
-n170  subst(groups=2)
-n171  mp
-n172  mp
-n173  mp
-n174  mp
-n175  mp
-n176  mp
-n177  mp
-n178  mp
-n179  mp
-n180  iff-elim-ax(dir=lr)
-n181  subst(groups=1)
-n182  imp
-n183  imp
-n184  mp
-n185  mp
-n186  subst(groups=1)
-n187  subst(groups=1)
-n188  imp
-n189  imp
-n190  subst(groups=2)
-n191  mp
-n192  mp
-n193  subst(groups=2)
-n194  subst(groups=1)
-n195  imp
-n196  imp
-n197  imp
-n198  subst(groups=2)
-n199  subst(groups=2)
-n200  mp
-n201  mp
-n202  mp
-n203  mp
-n204  mp
-n205  mp
-n206  mp
-n207  mp
-n208  iff-elim-ax(dir=lr)
-n209  subst(groups=1)
-n210  imp
-n211  imp
-n212  mp
-n213  mp
-n214  subst(groups=1)
-n215  subst(groups=1)
-n216  imp
-n217  imp
-n218  subst(groups=2)
-n219  mp
-n220  mp
-n221  subst(groups=2)
-n222  subst(groups=1)
-n223  imp
-n224  imp
-n225  imp
-n226  subst(groups=2)
-n227  subst(groups=2)
-n228  mp
-n229  mp
-n230  mp
-n231  mp
-n232  subst(groups=2)
-n233  subst(groups=1)
-n234  imp
-n235  imp
-n236  imp
-n237  mp
-n238  mp
-n239  subst(groups=1)
-n240  subst(groups=1)
-n241  imp
-n242  imp
-n243  subst(groups=2)
-n244  mp
-n245  mp
-n246  subst(groups=2)
-n247  subst(groups=1)
-n248  imp
-n249  imp
-n250  imp
-n251  subst(groups=2)
-n252  subst(groups=2)
-n253  mp
-n254  mp
-n255  subst(groups=2)
-n256  subst(groups=1)
-n257  imp
-n258  imp
-n259  imp
-n260  subst(groups=2)
-n261  subst(groups=2)
-n262  mp
-n263  mp
-n264  mp
-n265  mp
-n266  iff-intro-ax
-n267  subst(groups=1)
 n268  iff
-n269  imp
-n270  imp
-n271  mp
-n272  mp
-n273  subst(groups=1)
-n274  subst(groups=1)
-n275  imp
-n276  imp
-n277  subst(groups=2)
-n278  mp
-n279  mp
-n280  subst(groups=2)
-n281  subst(groups=1)
-n282  imp
-n283  imp
-n284  imp
-n285  subst(groups=2)
-n286  subst(groups=2)
-n287  mp
-n288  mp
-n289  subst(groups=2)
-n290  subst(groups=1)
 n291  imp
-n292  imp
-n293  imp
-n294  subst(groups=2)
-n295  subst(groups=2)
 n296  定理 *64
 n297  subst(groups=1)
 n298  mp
@@ -16217,825 +15213,15 @@ n15.out → n16.b
 n14.out → n17.a
 n16.out → n17.b
 n17.out → n18.a
-n21.out → n22.assertion
-n11.out → n22.atom1
-n18.out → n22.formula1
 n12.out → n25.a
 n24.out → n25.b
 n16.out → n26.a
 n25.out → n26.b
 n26.out → n27.a
-n23.out → n22.atom2
-n27.out → n22.formula2
-n27.out → n29.a
-n18.out → n29.b
-n17.out → n38.formula
-n12.out → n38.term
-n21.out → n39.assertion
-n18.out → n40.a
-n17.out → n40.b
-n11.out → n39.atom1
-n40.out → n39.formula1
-n23.out → n39.atom2
-n18.out → n39.formula2
-n38.out → n37.a
-n39.out → n37.b
-n21.out → n43.assertion
-n11.out → n43.atom1
-n40.out → n43.formula1
-n23.out → n43.atom2
-n27.out → n43.formula2
-n21.out → n44.assertion
-n27.out → n45.a
-n40.out → n45.b
-n40.out → n46.a
-n45.out → n46.b
-n11.out → n44.atom1
-n46.out → n44.formula1
-n23.out → n44.atom2
-n18.out → n44.formula2
-n43.out → n42.a
-n44.out → n42.b
-n31.out → n47.assertion
-n11.out → n47.atom1
-n18.out → n47.formula1
-n23.out → n47.atom2
-n40.out → n47.formula2
-n33.out → n47.atom3
-n45.out → n47.formula3
-n42.out → n41.a
-n47.out → n41.b
-n37.out → n36.a
-n41.out → n36.b
-n31.out → n50.assertion
-n11.out → n50.atom1
-n27.out → n50.formula1
-n23.out → n50.atom2
-n18.out → n50.formula2
-n33.out → n50.atom3
-n17.out → n50.formula3
-n21.out → n51.assertion
-n27.out → n52.a
-n17.out → n52.b
-n29.out → n53.a
-n52.out → n53.b
-n45.out → n54.a
-n53.out → n54.b
-n11.out → n51.atom1
-n54.out → n51.formula1
-n23.out → n51.atom2
-n18.out → n51.formula2
-n50.out → n49.a
-n51.out → n49.b
-n31.out → n55.assertion
-n11.out → n55.atom1
-n18.out → n55.formula1
-n23.out → n55.atom2
-n45.out → n55.formula2
-n33.out → n55.atom3
-n53.out → n55.formula3
-n49.out → n48.a
-n55.out → n48.b
-n36.out → n35.a
-n48.out → n35.b
-n31.out → n56.assertion
-n11.out → n56.atom1
-n18.out → n56.formula1
-n23.out → n56.atom2
-n29.out → n56.formula2
-n33.out → n56.atom3
-n52.out → n56.formula3
-n35.out → n34.a
-n56.out → n34.b
-n22.out → n7.a
-n34.out → n7.b
-n14.out → n61.a
-n16.out → n61.b
-n21.out → n62.assertion
-n16.out → n63.a
-n14.out → n63.b
-n17.out → n64.a
-n63.out → n64.b
-n11.out → n62.atom1
-n64.out → n62.formula1
-n23.out → n62.atom2
-n18.out → n62.formula2
-n61.out → n60.a
-n62.out → n60.b
-n21.out → n67.assertion
-n11.out → n67.atom1
-n64.out → n67.formula1
-n23.out → n67.atom2
-n27.out → n67.formula2
-n21.out → n68.assertion
-n27.out → n69.a
-n64.out → n69.b
-n64.out → n70.a
-n69.out → n70.b
-n11.out → n68.atom1
-n70.out → n68.formula1
-n23.out → n68.atom2
-n18.out → n68.formula2
-n67.out → n66.a
-n68.out → n66.b
-n31.out → n71.assertion
-n11.out → n71.atom1
-n18.out → n71.formula1
-n23.out → n71.atom2
-n64.out → n71.formula2
-n33.out → n71.atom3
-n69.out → n71.formula3
-n66.out → n65.a
-n71.out → n65.b
-n60.out → n59.a
-n65.out → n59.b
-n31.out → n74.assertion
-n11.out → n74.atom1
-n27.out → n74.formula1
-n23.out → n74.atom2
-n17.out → n74.formula2
-n33.out → n74.atom3
-n63.out → n74.formula3
-n21.out → n75.assertion
-n27.out → n76.a
-n63.out → n76.b
-n52.out → n77.a
-n76.out → n77.b
-n69.out → n78.a
-n77.out → n78.b
-n11.out → n75.atom1
-n78.out → n75.formula1
-n23.out → n75.atom2
-n18.out → n75.formula2
-n74.out → n73.a
-n75.out → n73.b
-n31.out → n79.assertion
-n11.out → n79.atom1
-n18.out → n79.formula1
-n23.out → n79.atom2
-n69.out → n79.formula2
-n33.out → n79.atom3
-n77.out → n79.formula3
-n73.out → n72.a
-n79.out → n72.b
-n59.out → n58.a
-n72.out → n58.b
-n31.out → n80.assertion
-n11.out → n80.atom1
-n18.out → n80.formula1
-n23.out → n80.atom2
-n52.out → n80.formula2
-n33.out → n80.atom3
-n76.out → n80.formula3
-n58.out → n57.a
-n80.out → n57.b
-n7.out → n6.a
-n57.out → n6.b
-n26.out → n94.formula
-n12.out → n94.term
-n21.out → n95.assertion
-n27.out → n96.a
-n26.out → n96.b
-n11.out → n95.atom1
-n96.out → n95.formula1
-n23.out → n95.atom2
-n18.out → n95.formula2
-n94.out → n93.a
-n95.out → n93.b
-n16.out → n116.a
-n25.out → n116.b
-n21.out → n117.assertion
-n25.out → n118.a
-n16.out → n118.b
-n26.out → n119.a
-n118.out → n119.b
-n11.out → n117.atom1
-n119.out → n117.formula1
-n23.out → n117.atom2
-n18.out → n117.formula2
-n116.out → n115.a
-n117.out → n115.b
-n21.out → n122.assertion
-n11.out → n122.atom1
-n119.out → n122.formula1
-n23.out → n122.atom2
-n27.out → n122.formula2
-n21.out → n123.assertion
-n27.out → n124.a
-n119.out → n124.b
-n119.out → n125.a
-n124.out → n125.b
-n11.out → n123.atom1
-n125.out → n123.formula1
-n23.out → n123.atom2
-n18.out → n123.formula2
-n122.out → n121.a
-n123.out → n121.b
-n31.out → n126.assertion
-n11.out → n126.atom1
-n18.out → n126.formula1
-n23.out → n126.atom2
-n119.out → n126.formula2
-n33.out → n126.atom3
-n124.out → n126.formula3
-n121.out → n120.a
-n126.out → n120.b
-n115.out → n114.a
-n120.out → n114.b
-n31.out → n129.assertion
-n11.out → n129.atom1
-n27.out → n129.formula1
-n23.out → n129.atom2
-n26.out → n129.formula2
-n33.out → n129.atom3
-n118.out → n129.formula3
-n21.out → n130.assertion
-n27.out → n131.a
-n118.out → n131.b
-n96.out → n132.a
-n131.out → n132.b
-n124.out → n133.a
-n132.out → n133.b
-n11.out → n130.atom1
-n133.out → n130.formula1
-n23.out → n130.atom2
-n18.out → n130.formula2
-n129.out → n128.a
-n130.out → n128.b
-n31.out → n134.assertion
-n11.out → n134.atom1
-n18.out → n134.formula1
-n23.out → n134.atom2
-n124.out → n134.formula2
-n33.out → n134.atom3
-n132.out → n134.formula3
-n128.out → n127.a
-n134.out → n127.b
-n114.out → n113.a
-n127.out → n113.b
-n31.out → n135.assertion
-n11.out → n135.atom1
-n18.out → n135.formula1
-n23.out → n135.atom2
-n96.out → n135.formula2
-n33.out → n135.atom3
-n131.out → n135.formula3
-n113.out → n112.a
-n135.out → n112.b
-n93.out → n84.a
-n112.out → n84.b
-n140.out → n141.assertion
-n11.out → n141.atom1
-n25.out → n141.formula1
-n23.out → n141.atom2
-n16.out → n141.formula2
-n33.out → n141.atom3
-n14.out → n141.formula3
-n21.out → n142.assertion
-n25.out → n143.a
-n14.out → n143.b
-n63.out → n144.a
-n143.out → n144.b
-n118.out → n145.a
-n144.out → n145.b
-n11.out → n142.atom1
-n145.out → n142.formula1
-n23.out → n142.atom2
-n18.out → n142.formula2
-n141.out → n139.a
-n142.out → n139.b
-n21.out → n148.assertion
-n11.out → n148.atom1
-n145.out → n148.formula1
-n23.out → n148.atom2
-n27.out → n148.formula2
-n21.out → n149.assertion
-n27.out → n150.a
-n145.out → n150.b
-n145.out → n151.a
-n150.out → n151.b
-n11.out → n149.atom1
-n151.out → n149.formula1
-n23.out → n149.atom2
-n18.out → n149.formula2
-n148.out → n147.a
-n149.out → n147.b
-n31.out → n152.assertion
-n11.out → n152.atom1
-n18.out → n152.formula1
-n23.out → n152.atom2
-n145.out → n152.formula2
-n33.out → n152.atom3
-n150.out → n152.formula3
-n147.out → n146.a
-n152.out → n146.b
-n139.out → n138.a
-n146.out → n138.b
-n31.out → n155.assertion
-n11.out → n155.atom1
-n27.out → n155.formula1
-n23.out → n155.atom2
-n118.out → n155.formula2
-n33.out → n155.atom3
-n144.out → n155.formula3
-n21.out → n156.assertion
-n27.out → n157.a
-n144.out → n157.b
-n131.out → n158.a
-n157.out → n158.b
-n150.out → n159.a
-n158.out → n159.b
-n11.out → n156.atom1
-n159.out → n156.formula1
-n23.out → n156.atom2
-n18.out → n156.formula2
-n155.out → n154.a
-n156.out → n154.b
-n31.out → n160.assertion
-n11.out → n160.atom1
-n18.out → n160.formula1
-n23.out → n160.atom2
-n150.out → n160.formula2
-n33.out → n160.atom3
-n158.out → n160.formula3
-n154.out → n153.a
-n160.out → n153.b
-n138.out → n137.a
-n153.out → n137.b
-n31.out → n161.assertion
-n11.out → n161.atom1
-n18.out → n161.formula1
-n23.out → n161.atom2
-n131.out → n161.formula2
-n33.out → n161.atom3
-n157.out → n161.formula3
-n137.out → n136.a
-n161.out → n136.b
-n84.out → n83.a
-n136.out → n83.b
-n31.out → n164.assertion
-n11.out → n164.atom1
-n27.out → n164.formula1
-n23.out → n164.atom2
-n63.out → n164.formula2
-n33.out → n164.atom3
-n143.out → n164.formula3
-n21.out → n165.assertion
-n27.out → n166.a
-n143.out → n166.b
-n76.out → n167.a
-n166.out → n167.b
-n157.out → n168.a
-n167.out → n168.b
-n11.out → n165.atom1
-n168.out → n165.formula1
-n23.out → n165.atom2
-n18.out → n165.formula2
-n164.out → n163.a
-n165.out → n163.b
-n31.out → n169.assertion
-n11.out → n169.atom1
-n18.out → n169.formula1
-n23.out → n169.atom2
-n157.out → n169.formula2
-n33.out → n169.atom3
-n167.out → n169.formula3
-n163.out → n162.a
-n169.out → n162.b
-n83.out → n82.a
-n162.out → n82.b
-n31.out → n170.assertion
-n11.out → n170.atom1
-n18.out → n170.formula1
-n23.out → n170.atom2
-n76.out → n170.formula2
-n33.out → n170.atom3
-n166.out → n170.formula3
-n82.out → n81.a
-n170.out → n81.b
-n6.out → n5.a
-n81.out → n5.b
-n16.out → n180.a
-n25.out → n180.b
-n21.out → n181.assertion
-n16.out → n182.a
-n25.out → n182.b
-n26.out → n183.a
-n182.out → n183.b
-n11.out → n181.atom1
-n183.out → n181.formula1
-n23.out → n181.atom2
-n18.out → n181.formula2
-n180.out → n179.a
-n181.out → n179.b
-n21.out → n186.assertion
-n11.out → n186.atom1
-n183.out → n186.formula1
-n23.out → n186.atom2
-n27.out → n186.formula2
-n21.out → n187.assertion
-n27.out → n188.a
-n183.out → n188.b
-n183.out → n189.a
-n188.out → n189.b
-n11.out → n187.atom1
-n189.out → n187.formula1
-n23.out → n187.atom2
-n18.out → n187.formula2
-n186.out → n185.a
-n187.out → n185.b
-n31.out → n190.assertion
-n11.out → n190.atom1
-n18.out → n190.formula1
-n23.out → n190.atom2
-n183.out → n190.formula2
-n33.out → n190.atom3
-n188.out → n190.formula3
-n185.out → n184.a
-n190.out → n184.b
-n179.out → n178.a
-n184.out → n178.b
-n31.out → n193.assertion
-n11.out → n193.atom1
-n27.out → n193.formula1
-n23.out → n193.atom2
-n26.out → n193.formula2
-n33.out → n193.atom3
-n182.out → n193.formula3
-n21.out → n194.assertion
-n27.out → n195.a
-n182.out → n195.b
-n96.out → n196.a
-n195.out → n196.b
-n188.out → n197.a
-n196.out → n197.b
-n11.out → n194.atom1
-n197.out → n194.formula1
-n23.out → n194.atom2
-n18.out → n194.formula2
-n193.out → n192.a
-n194.out → n192.b
-n31.out → n198.assertion
-n11.out → n198.atom1
-n18.out → n198.formula1
-n23.out → n198.atom2
-n188.out → n198.formula2
-n33.out → n198.atom3
-n196.out → n198.formula3
-n192.out → n191.a
-n198.out → n191.b
-n178.out → n177.a
-n191.out → n177.b
-n31.out → n199.assertion
-n11.out → n199.atom1
-n18.out → n199.formula1
-n23.out → n199.atom2
-n96.out → n199.formula2
-n33.out → n199.atom3
-n195.out → n199.formula3
-n177.out → n176.a
-n199.out → n176.b
-n93.out → n175.a
-n176.out → n175.b
-n14.out → n208.a
-n16.out → n208.b
-n21.out → n209.assertion
-n14.out → n210.a
-n16.out → n210.b
-n17.out → n211.a
-n210.out → n211.b
-n11.out → n209.atom1
-n211.out → n209.formula1
-n23.out → n209.atom2
-n18.out → n209.formula2
-n208.out → n207.a
-n209.out → n207.b
-n21.out → n214.assertion
-n11.out → n214.atom1
-n211.out → n214.formula1
-n23.out → n214.atom2
-n27.out → n214.formula2
-n21.out → n215.assertion
-n27.out → n216.a
-n211.out → n216.b
-n211.out → n217.a
-n216.out → n217.b
-n11.out → n215.atom1
-n217.out → n215.formula1
-n23.out → n215.atom2
-n18.out → n215.formula2
-n214.out → n213.a
-n215.out → n213.b
-n31.out → n218.assertion
-n11.out → n218.atom1
-n18.out → n218.formula1
-n23.out → n218.atom2
-n211.out → n218.formula2
-n33.out → n218.atom3
-n216.out → n218.formula3
-n213.out → n212.a
-n218.out → n212.b
-n207.out → n206.a
-n212.out → n206.b
-n31.out → n221.assertion
-n11.out → n221.atom1
-n27.out → n221.formula1
-n23.out → n221.atom2
-n17.out → n221.formula2
-n33.out → n221.atom3
-n210.out → n221.formula3
-n21.out → n222.assertion
-n27.out → n223.a
-n210.out → n223.b
-n52.out → n224.a
-n223.out → n224.b
-n216.out → n225.a
-n224.out → n225.b
-n11.out → n222.atom1
-n225.out → n222.formula1
-n23.out → n222.atom2
-n18.out → n222.formula2
-n221.out → n220.a
-n222.out → n220.b
-n31.out → n226.assertion
-n11.out → n226.atom1
-n18.out → n226.formula1
-n23.out → n226.atom2
-n216.out → n226.formula2
-n33.out → n226.atom3
-n224.out → n226.formula3
-n220.out → n219.a
-n226.out → n219.b
-n206.out → n205.a
-n219.out → n205.b
-n31.out → n227.assertion
-n11.out → n227.atom1
-n18.out → n227.formula1
-n23.out → n227.atom2
-n52.out → n227.formula2
-n33.out → n227.atom3
-n223.out → n227.formula3
-n205.out → n204.a
-n227.out → n204.b
-n7.out → n203.a
-n204.out → n203.b
-n140.out → n232.assertion
-n11.out → n232.atom1
-n14.out → n232.formula1
-n23.out → n232.atom2
-n16.out → n232.formula2
-n33.out → n232.atom3
-n25.out → n232.formula3
-n21.out → n233.assertion
-n14.out → n234.a
-n25.out → n234.b
-n182.out → n235.a
-n234.out → n235.b
-n210.out → n236.a
-n235.out → n236.b
-n11.out → n233.atom1
-n236.out → n233.formula1
-n23.out → n233.atom2
-n18.out → n233.formula2
-n232.out → n231.a
-n233.out → n231.b
-n21.out → n239.assertion
-n11.out → n239.atom1
-n236.out → n239.formula1
-n23.out → n239.atom2
-n27.out → n239.formula2
-n21.out → n240.assertion
-n27.out → n241.a
-n236.out → n241.b
-n236.out → n242.a
-n241.out → n242.b
-n11.out → n240.atom1
-n242.out → n240.formula1
-n23.out → n240.atom2
-n18.out → n240.formula2
-n239.out → n238.a
-n240.out → n238.b
-n31.out → n243.assertion
-n11.out → n243.atom1
-n18.out → n243.formula1
-n23.out → n243.atom2
-n236.out → n243.formula2
-n33.out → n243.atom3
-n241.out → n243.formula3
-n238.out → n237.a
-n243.out → n237.b
-n231.out → n230.a
-n237.out → n230.b
-n31.out → n246.assertion
-n11.out → n246.atom1
-n27.out → n246.formula1
-n23.out → n246.atom2
-n210.out → n246.formula2
-n33.out → n246.atom3
-n235.out → n246.formula3
-n21.out → n247.assertion
-n27.out → n248.a
-n235.out → n248.b
-n223.out → n249.a
-n248.out → n249.b
-n241.out → n250.a
-n249.out → n250.b
-n11.out → n247.atom1
-n250.out → n247.formula1
-n23.out → n247.atom2
-n18.out → n247.formula2
-n246.out → n245.a
-n247.out → n245.b
-n31.out → n251.assertion
-n11.out → n251.atom1
-n18.out → n251.formula1
-n23.out → n251.atom2
-n241.out → n251.formula2
-n33.out → n251.atom3
-n249.out → n251.formula3
-n245.out → n244.a
-n251.out → n244.b
-n230.out → n229.a
-n244.out → n229.b
-n31.out → n252.assertion
-n11.out → n252.atom1
-n18.out → n252.formula1
-n23.out → n252.atom2
-n223.out → n252.formula2
-n33.out → n252.atom3
-n248.out → n252.formula3
-n229.out → n228.a
-n252.out → n228.b
-n203.out → n202.a
-n228.out → n202.b
-n31.out → n255.assertion
-n11.out → n255.atom1
-n27.out → n255.formula1
-n23.out → n255.atom2
-n182.out → n255.formula2
-n33.out → n255.atom3
-n234.out → n255.formula3
-n21.out → n256.assertion
-n27.out → n257.a
-n234.out → n257.b
-n195.out → n258.a
-n257.out → n258.b
-n248.out → n259.a
-n258.out → n259.b
-n11.out → n256.atom1
-n259.out → n256.formula1
-n23.out → n256.atom2
-n18.out → n256.formula2
-n255.out → n254.a
-n256.out → n254.b
-n31.out → n260.assertion
-n11.out → n260.atom1
-n18.out → n260.formula1
-n23.out → n260.atom2
-n248.out → n260.formula2
-n33.out → n260.atom3
-n258.out → n260.formula3
-n254.out → n253.a
-n260.out → n253.b
-n202.out → n201.a
-n253.out → n201.b
-n31.out → n261.assertion
-n11.out → n261.atom1
-n18.out → n261.formula1
-n23.out → n261.atom2
-n195.out → n261.formula2
-n33.out → n261.atom3
-n257.out → n261.formula3
-n201.out → n200.a
-n261.out → n200.b
-n175.out → n174.a
-n200.out → n174.b
-n14.out → n266.a
-n25.out → n266.b
-n21.out → n267.assertion
 n14.out → n268.a
 n25.out → n268.b
-n143.out → n269.a
-n268.out → n269.b
-n234.out → n270.a
-n269.out → n270.b
-n11.out → n267.atom1
-n270.out → n267.formula1
-n23.out → n267.atom2
-n18.out → n267.formula2
-n266.out → n265.a
-n267.out → n265.b
-n21.out → n273.assertion
-n11.out → n273.atom1
-n270.out → n273.formula1
-n23.out → n273.atom2
-n27.out → n273.formula2
-n21.out → n274.assertion
-n27.out → n275.a
-n270.out → n275.b
-n270.out → n276.a
-n275.out → n276.b
-n11.out → n274.atom1
-n276.out → n274.formula1
-n23.out → n274.atom2
-n18.out → n274.formula2
-n273.out → n272.a
-n274.out → n272.b
-n31.out → n277.assertion
-n11.out → n277.atom1
-n18.out → n277.formula1
-n23.out → n277.atom2
-n270.out → n277.formula2
-n33.out → n277.atom3
-n275.out → n277.formula3
-n272.out → n271.a
-n277.out → n271.b
-n265.out → n264.a
-n271.out → n264.b
-n31.out → n280.assertion
-n11.out → n280.atom1
-n27.out → n280.formula1
-n23.out → n280.atom2
-n234.out → n280.formula2
-n33.out → n280.atom3
-n269.out → n280.formula3
-n21.out → n281.assertion
-n27.out → n282.a
-n269.out → n282.b
-n257.out → n283.a
-n282.out → n283.b
-n275.out → n284.a
-n283.out → n284.b
-n11.out → n281.atom1
-n284.out → n281.formula1
-n23.out → n281.atom2
-n18.out → n281.formula2
-n280.out → n279.a
-n281.out → n279.b
-n31.out → n285.assertion
-n11.out → n285.atom1
-n18.out → n285.formula1
-n23.out → n285.atom2
-n275.out → n285.formula2
-n33.out → n285.atom3
-n283.out → n285.formula3
-n279.out → n278.a
-n285.out → n278.b
-n264.out → n263.a
-n278.out → n263.b
-n31.out → n286.assertion
-n11.out → n286.atom1
-n18.out → n286.formula1
-n23.out → n286.atom2
-n257.out → n286.formula2
-n33.out → n286.atom3
-n282.out → n286.formula3
-n263.out → n262.a
-n286.out → n262.b
-n174.out → n173.a
-n262.out → n173.b
-n31.out → n289.assertion
-n11.out → n289.atom1
-n27.out → n289.formula1
-n23.out → n289.atom2
-n143.out → n289.formula2
-n33.out → n289.atom3
-n268.out → n289.formula3
-n21.out → n290.assertion
 n27.out → n291.a
 n268.out → n291.b
-n166.out → n292.a
-n291.out → n292.b
-n282.out → n293.a
-n292.out → n293.b
-n11.out → n290.atom1
-n293.out → n290.formula1
-n23.out → n290.atom2
-n18.out → n290.formula2
-n289.out → n288.a
-n290.out → n288.b
-n31.out → n294.assertion
-n11.out → n294.atom1
-n18.out → n294.formula1
-n23.out → n294.atom2
-n282.out → n294.formula2
-n33.out → n294.atom3
-n292.out → n294.formula3
-n288.out → n287.a
-n294.out → n287.b
-n173.out → n172.a
-n287.out → n172.b
-n31.out → n295.assertion
-n11.out → n295.atom1
-n18.out → n295.formula1
-n23.out → n295.atom2
-n166.out → n295.formula2
-n33.out → n295.atom3
-n291.out → n295.formula3
-n172.out → n171.a
-n295.out → n171.b
-n5.out → n4.a
-n171.out → n4.b
 n4.out → n3.assertion
 n296.out → n297.assertion
 n11.out → n297.atom1
@@ -17305,7 +15491,7 @@ n1.out → n3.proof
 
 - 目标：`⊢ ∀ x ∀ y ( x = y → ( x = z ↔ y = z ) )`
 - 提示：正向用 Leibniz(x→y)，反向先用对称性得到 y=x 再用 Leibniz(y→x)；↔I 合成后 DT 消去假设。
-- 参考解：55 个模块 / 132 条接线
+- 参考解：29 个模块 / 53 条接线
 
 <details><summary>展开参考电路</summary>
 
@@ -17315,45 +15501,19 @@ n62  [target]
 n1  gen(v=x)
 n2  gen(v=y)
 n3  mp
-n4  mp
-n5  定理 *01
-n6  subst(groups=0)
+n4  定理 *52
 n7  atom P
 n8  term x
 n9  term y
 n10  pred =
-n11  mp
-n12  mp
-n13  mp
-n14  leibniz(mode=replace, v=z)
 n15  term z
 n16  pred =
 n17  axiom A1
-n18  subst(groups=1)
-n19  pred =
 n20  pred =
 n21  imp
-n22  imp
 n23  atom Q
-n24  mp
-n25  mp
-n26  mp
-n27  定理 *51
-n28  subst(groups=1)
-n29  imp
-n30  mp
-n31  mp
-n32  定理 *05
-n33  subst(groups=2)
 n34  atom R
-n35  subst(groups=1)
-n36  imp
-n37  imp
-n38  imp
 n39  axiom A2
-n40  subst(groups=2)
-n41  subst(groups=2)
-n42  subst(groups=2)
 n43  mp
 n44  mp
 n48  leibniz(mode=replace, v=z)
@@ -17369,93 +15529,14 @@ n60  subst(groups=2)
 n61  subst(groups=2)
 
 接线：
-n5.out → n6.assertion
 n8.out → n10.t1
 n9.out → n10.t2
-n7.out → n6.atom1
-n10.out → n6.formula1
-n9.out → n14.x
-n8.out → n14.y
 n9.out → n16.t1
 n15.out → n16.t2
-n16.out → n14.formula
-n17.out → n18.assertion
-n9.out → n19.t1
-n8.out → n19.t2
 n8.out → n20.t1
 n15.out → n20.t2
 n16.out → n21.a
 n20.out → n21.b
-n19.out → n22.a
-n21.out → n22.b
-n7.out → n18.atom1
-n22.out → n18.formula1
-n23.out → n18.atom2
-n10.out → n18.formula2
-n14.out → n13.a
-n18.out → n13.b
-n17.out → n28.assertion
-n10.out → n29.a
-n19.out → n29.b
-n7.out → n28.atom1
-n29.out → n28.formula1
-n23.out → n28.atom2
-n10.out → n28.formula2
-n27.out → n26.a
-n28.out → n26.b
-n32.out → n33.assertion
-n7.out → n33.atom1
-n10.out → n33.formula1
-n23.out → n33.atom2
-n19.out → n33.formula2
-n34.out → n33.atom3
-n21.out → n33.formula3
-n17.out → n35.assertion
-n10.out → n36.a
-n21.out → n36.b
-n22.out → n37.a
-n36.out → n37.b
-n29.out → n38.a
-n37.out → n38.b
-n7.out → n35.atom1
-n38.out → n35.formula1
-n23.out → n35.atom2
-n10.out → n35.formula2
-n33.out → n31.a
-n35.out → n31.b
-n39.out → n40.assertion
-n7.out → n40.atom1
-n10.out → n40.formula1
-n23.out → n40.atom2
-n29.out → n40.formula2
-n34.out → n40.atom3
-n37.out → n40.formula3
-n31.out → n30.a
-n40.out → n30.b
-n26.out → n25.a
-n30.out → n25.b
-n39.out → n41.assertion
-n7.out → n41.atom1
-n10.out → n41.formula1
-n23.out → n41.atom2
-n22.out → n41.formula2
-n34.out → n41.atom3
-n36.out → n41.formula3
-n25.out → n24.a
-n41.out → n24.b
-n13.out → n12.a
-n24.out → n12.b
-n39.out → n42.assertion
-n7.out → n42.atom1
-n10.out → n42.formula1
-n23.out → n42.atom2
-n10.out → n42.formula2
-n34.out → n42.atom3
-n21.out → n42.formula3
-n12.out → n11.a
-n42.out → n11.b
-n6.out → n4.a
-n11.out → n4.b
 n8.out → n48.x
 n9.out → n48.y
 n20.out → n48.formula
@@ -18092,7 +16173,7 @@ n1.out → n77.proof
 
 - 目标：`⊢ ∀ x ∀ y ∃ u x ∈ u`
 - 提示：从配对公理取 u，全称例化到 x，用 x=x∨x=y 与 ↔E 得到 x∈u，再 ∃I/∃E 与全称推广。
-- 参考解：54 个模块 / 117 条接线
+- 参考解：54 个模块 / 115 条接线
 
 <details><summary>展开参考电路</summary>
 
@@ -18102,14 +16183,14 @@ n63  [target]
 n1  gen(v=x)
 n2  gen(v=y)
 n3  exists-elim
-n4  set-pair
+n4  定理 *83
 n5  term x
 n6  term y
 n7  mp
 n8  mp
 n9  mp
 n10  mp
-n11  eq-refl(t=x)
+n11  定理 *49
 n12  axiom A1
 n13  subst(groups=1)
 n14  atom P
@@ -18155,8 +16236,6 @@ n61  imp
 n62  subst(groups=2)
 
 接线：
-n5.out → n4.u
-n6.out → n4.v
 n4.out → n3.exists
 n12.out → n13.assertion
 n5.out → n15.t1
@@ -18280,7 +16359,7 @@ n1.out → n63.proof
 
 - 目标：`⊢ ∀ x ∀ y ∃ u y ∈ u`
 - 提示：同左元，但用 y=y 从析取的右支进入。
-- 参考解：54 个模块 / 117 条接线
+- 参考解：54 个模块 / 115 条接线
 
 <details><summary>展开参考电路</summary>
 
@@ -18290,7 +16369,7 @@ n63  [target]
 n1  gen(v=x)
 n2  gen(v=y)
 n3  exists-elim
-n4  set-pair
+n4  定理 *83
 n5  term x
 n6  term y
 n7  mp
@@ -18343,8 +16422,6 @@ n61  imp
 n62  subst(groups=2)
 
 接线：
-n5.out → n4.u
-n6.out → n4.v
 n4.out → n3.exists
 n12.out → n13.assertion
 n6.out → n15.t1
@@ -18468,7 +16545,7 @@ n1.out → n63.proof
 
 - 目标：`⊢ ∀ x ∀ y ∃ u ( x ∈ u ∧ y ∈ u )`
 - 提示：在同一个配对集 u 上分别取 x∈u、y∈u，用 ∧I 合并，再用 ∃I 收束；两次存在消去。
-- 参考解：93 个模块 / 230 条接线
+- 参考解：93 个模块 / 228 条接线
 
 <details><summary>展开参考电路</summary>
 
@@ -18478,7 +16555,7 @@ n108  [target]
 n1  gen(v=x)
 n2  gen(v=y)
 n3  exists-elim
-n4  set-pair
+n4  定理 *83
 n5  term x
 n6  term y
 n7  mp
@@ -18528,7 +16605,7 @@ n58  mp
 n59  mp
 n60  mp
 n61  mp
-n62  eq-refl(t=x)
+n62  定理 *49
 n63  subst(groups=1)
 n64  pred =
 n65  mp
@@ -18570,8 +16647,6 @@ n106  imp
 n107  subst(groups=2)
 
 接线：
-n5.out → n4.u
-n6.out → n4.v
 n4.out → n3.exists
 n13.out → n14.assertion
 n6.out → n16.t1
