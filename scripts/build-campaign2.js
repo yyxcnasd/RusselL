@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 'use strict';
 /*!
- * 单章 96 关编译器
+ * 单章 108 关编译器
  *
  *   1. 读 campaign/campaign2.js（set.mm 命题定理 + 手写命题关 + 教学关）；
  *   2. 编译成棋盘电路，自带定理占位符求值，合并同断言节点；
  *   3. 从大证明里提取 5–21 / 22–200 模块的中间结论；>200 的证明拆成引理；
- *   4. 按目标公式去重（定义展开后比较），选 8 教学 + 32 普通 + 56 困难；
+ *   4. 按目标公式去重（定义展开后比较），选 8 教学 + 20 普通 + 70 困难 + 10 魔王；
  *   5. 拓扑排序、编号、重映射定理代号、逐关真实 Engine 复验、门禁，写 JSON。
  *
  * 不出现章节字段：只有一条课程线，编号 i…viii / 01…88。
@@ -699,6 +699,18 @@ function main() {
         const code = remap.get(target);
         if (!code) { problems.push(entry.c.finalCode + ' 引用了未入选的定理 ' + n.config.code + ' → ' + target); if (process.env.LADDER_DEBUG) console.error('MISS', entry.c.finalCode, c.def.placeholder, n.id, n.config.code, 'target', target); }
         n.config = { code: code || target };
+        /* 非教学关不能引用教学关：若教学定理的目标正好是 A1–A3，直接换成公理节点。 */
+        if (entry.band !== 'tutorial' && TUT_CODES.indexOf(code) >= 0) {
+          const theoremTokens = THEOREM_TOKENS.get(target);
+          const axiom = ['A1', 'A2', 'A3'].map((schema) => ({
+            schema,
+            tokens: Modules.apply('axiom', {}, { schema }, {}).tokens
+          })).find((item) => theoremTokens && T.eq(item.tokens, theoremTokens));
+          if (axiom) {
+            n.kind = 'axiom';
+            n.config = { schema: axiom.schema };
+          }
+        }
       }
     });
     const targetNode = c.nodes.find((n) => n.id === c.targetId);

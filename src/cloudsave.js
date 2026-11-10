@@ -43,7 +43,10 @@
     if (currentId && state.circuits && state.circuits[currentId]) {
       circuits[currentId] = state.circuits[currentId];
     }
+    var works = {};
+    if (currentId && state.works && state.works[currentId]) works[currentId] = state.works[currentId];
     data.circuits = circuits;
+    data.works = works;
     data.lastId = currentId || data.lastId || null;
     data.savedAt = Date.now();
     return data;
@@ -70,7 +73,14 @@
       usedKinds: p.usedKinds || [],
       cleanWins: p.cleanWins || [],
       circuits: p.circuits || {},
+      works: p.works || {},
+      maxLen: p.maxLen || 0,
+      levelKinds: p.levelKinds || {},
+      usedOps: p.usedOps || [],
+      nightOwl: !!p.nightOwl,
       achievements: p.achievements || [],
+      godMode: !!p.godMode,
+      story: p.story || {},
       lastId: p.lastId || null
     }));
   }
@@ -86,6 +96,11 @@
       if (local.circuits && local.circuits[id]) picked[id] = local.circuits[id];
     });
     local.circuits = picked;
+    var pickedWorks = {};
+    Object.keys(p.works || {}).forEach(function (id) {
+      if (local.works && local.works[id]) pickedWorks[id] = local.works[id];
+    });
+    local.works = pickedWorks;
     return progressKey(local) === progressKey(p);
   }
 
@@ -205,8 +220,13 @@
     state.achievements = setOf(p.achievements);
     state.godMode = !!p.godMode;
     state.storySeen = p.story || {};
+    state.maxLen = typeof p.maxLen === 'number' ? p.maxLen : 0;
+    state.levelKinds = p.levelKinds || {};
+    state.usedOps = Array.isArray(p.usedOps) ? p.usedOps.slice() : [];
+    state.nightOwl = !!p.nightOwl;
     /* 云端只保存精简电路；合并而不是整体覆盖，避免丢掉本机其它关卡的电路。 */
     state.circuits = Object.assign({}, state.circuits || {}, p.circuits || {});
+    state.works = Object.assign({}, state.works || {}, p.works || {});
     state.lastId = p.lastId || null;
     return true;
   }

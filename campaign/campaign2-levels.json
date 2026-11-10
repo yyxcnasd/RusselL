@@ -15064,9 +15064,9 @@
     }
    },
    {
-    "kind": "theorem",
+    "kind": "axiom",
     "config": {
-     "code": "v"
+     "schema": "A3"
     }
    }
   ],
@@ -15256,9 +15256,9 @@
     },
     {
      "id": "n36",
-     "kind": "theorem",
+     "kind": "axiom",
      "config": {
-      "code": "v"
+      "schema": "A3"
      },
      "x": 40,
      "y": 1026
@@ -43015,9 +43015,9 @@
     }
    },
    {
-    "kind": "theorem",
+    "kind": "axiom",
     "config": {
-     "code": "v"
+     "schema": "A3"
     }
    }
   ],
@@ -43249,9 +43249,9 @@
     },
     {
      "id": "n88",
-     "kind": "theorem",
+     "kind": "axiom",
      "config": {
-      "code": "v"
+      "schema": "A3"
      },
      "x": 40,
      "y": 886
@@ -63484,9 +63484,9 @@
     }
    },
    {
-    "kind": "theorem",
+    "kind": "axiom",
     "config": {
-     "code": "v"
+     "schema": "A3"
     }
    },
    {
@@ -63604,9 +63604,9 @@
     },
     {
      "id": "n136",
-     "kind": "theorem",
+     "kind": "axiom",
      "config": {
-      "code": "v"
+      "schema": "A3"
      },
      "x": 40,
      "y": 886
@@ -71640,9 +71640,9 @@
     }
    },
    {
-    "kind": "theorem",
+    "kind": "axiom",
     "config": {
-     "code": "v"
+     "schema": "A3"
     }
    }
   ],
@@ -71944,9 +71944,9 @@
     },
     {
      "id": "n94",
-     "kind": "theorem",
+     "kind": "axiom",
      "config": {
-      "code": "v"
+      "schema": "A3"
      },
      "x": 40,
      "y": 1026
@@ -74200,9 +74200,9 @@
     }
    },
    {
-    "kind": "theorem",
+    "kind": "axiom",
     "config": {
-     "code": "v"
+     "schema": "A3"
     }
    }
   ],
@@ -74395,9 +74395,9 @@
     },
     {
      "id": "n41",
-     "kind": "theorem",
+     "kind": "axiom",
      "config": {
-      "code": "v"
+      "schema": "A3"
      },
      "x": 40,
      "y": 886
@@ -88990,9 +88990,9 @@
     }
    },
    {
-    "kind": "theorem",
+    "kind": "axiom",
     "config": {
-     "code": "v"
+     "schema": "A3"
     }
    }
   ],
@@ -89114,9 +89114,9 @@
     },
     {
      "id": "n136",
-     "kind": "theorem",
+     "kind": "axiom",
      "config": {
-      "code": "v"
+      "schema": "A3"
      },
      "x": 40,
      "y": 886
@@ -90859,9 +90859,9 @@
     }
    },
    {
-    "kind": "theorem",
+    "kind": "axiom",
     "config": {
-     "code": "v"
+     "schema": "A3"
     }
    }
   ],
@@ -91187,9 +91187,9 @@
     },
     {
      "id": "n105",
-     "kind": "theorem",
+     "kind": "axiom",
      "config": {
-      "code": "v"
+      "schema": "A3"
      },
      "x": 40,
      "y": 1026
@@ -96269,9 +96269,9 @@
     }
    },
    {
-    "kind": "theorem",
+    "kind": "axiom",
     "config": {
-     "code": "v"
+     "schema": "A3"
     }
    }
   ],
@@ -96547,9 +96547,9 @@
     },
     {
      "id": "n53",
-     "kind": "theorem",
+     "kind": "axiom",
      "config": {
-      "code": "v"
+      "schema": "A3"
      },
      "x": 40,
      "y": 1166
@@ -97623,9 +97623,9 @@
     }
    },
    {
-    "kind": "theorem",
+    "kind": "axiom",
     "config": {
-     "code": "v"
+     "schema": "A3"
     }
    }
   ],
@@ -97933,9 +97933,9 @@
     },
     {
      "id": "n57",
-     "kind": "theorem",
+     "kind": "axiom",
      "config": {
-      "code": "v"
+      "schema": "A3"
      },
      "x": 40,
      "y": 1026
@@ -100948,9 +100948,9 @@
     }
    },
    {
-    "kind": "theorem",
+    "kind": "axiom",
     "config": {
-     "code": "v"
+     "schema": "A3"
     }
    }
   ],
@@ -101299,9 +101299,9 @@
     },
     {
      "id": "n114",
-     "kind": "theorem",
+     "kind": "axiom",
      "config": {
-      "code": "v"
+      "schema": "A3"
      },
      "x": 40,
      "y": 1026
@@ -102639,9 +102639,9 @@
     }
    },
    {
-    "kind": "theorem",
+    "kind": "axiom",
     "config": {
-     "code": "v"
+     "schema": "A3"
     }
    }
   ],
@@ -103013,9 +103013,9 @@
     },
     {
      "id": "n89",
-     "kind": "theorem",
+     "kind": "axiom",
      "config": {
-      "code": "v"
+      "schema": "A3"
      },
      "x": 40,
      "y": 1026
@@ -109634,9 +109634,9 @@
     }
    },
    {
-    "kind": "theorem",
+    "kind": "axiom",
     "config": {
-     "code": "v"
+     "schema": "A3"
     }
    }
   ],
@@ -110125,9 +110125,9 @@
     },
     {
      "id": "n118",
-     "kind": "theorem",
+     "kind": "axiom",
      "config": {
-      "code": "v"
+      "schema": "A3"
      },
      "x": 40,
      "y": 1166
@@ -113156,9 +113156,9 @@
     }
    },
    {
-    "kind": "theorem",
+    "kind": "axiom",
     "config": {
-     "code": "v"
+     "schema": "A3"
     }
    },
    {
@@ -113477,9 +113477,9 @@
     },
     {
      "id": "n54",
-     "kind": "theorem",
+     "kind": "axiom",
      "config": {
-      "code": "v"
+      "schema": "A3"
      },
      "x": 40,
      "y": 1026
@@ -116385,9 +116385,9 @@
     }
    },
    {
-    "kind": "theorem",
+    "kind": "axiom",
     "config": {
-     "code": "v"
+     "schema": "A3"
     }
    },
    {
@@ -116713,9 +116713,9 @@
     },
     {
      "id": "n53",
-     "kind": "theorem",
+     "kind": "axiom",
      "config": {
-      "code": "v"
+      "schema": "A3"
      },
      "x": 40,
      "y": 1166
@@ -126326,9 +126326,9 @@
     }
    },
    {
-    "kind": "theorem",
+    "kind": "axiom",
     "config": {
-     "code": "v"
+     "schema": "A3"
     }
    }
   ],
@@ -126844,9 +126844,9 @@
     },
     {
      "id": "n152",
-     "kind": "theorem",
+     "kind": "axiom",
      "config": {
-      "code": "v"
+      "schema": "A3"
      },
      "x": 40,
      "y": 1026
@@ -142840,9 +142840,9 @@
     }
    },
    {
-    "kind": "theorem",
+    "kind": "axiom",
     "config": {
-     "code": "v"
+     "schema": "A3"
     }
    },
    {
@@ -143311,9 +143311,9 @@
     },
     {
      "id": "n120",
-     "kind": "theorem",
+     "kind": "axiom",
      "config": {
-      "code": "v"
+      "schema": "A3"
      },
      "x": 40,
      "y": 1026
@@ -147513,9 +147513,9 @@
     }
    },
    {
-    "kind": "theorem",
+    "kind": "axiom",
     "config": {
-     "code": "v"
+     "schema": "A3"
     }
    },
    {
@@ -147920,9 +147920,9 @@
     },
     {
      "id": "n123",
-     "kind": "theorem",
+     "kind": "axiom",
      "config": {
-      "code": "v"
+      "schema": "A3"
      },
      "x": 40,
      "y": 1026

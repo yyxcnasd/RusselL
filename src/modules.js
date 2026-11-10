@@ -258,6 +258,33 @@
         return { tokens: wffOf(['('].concat(asBody(a), ['->'], asBody(b), [')'])), note: '蕴涵' };
       }
     },
+
+    /* 托盘里所有连接词合并成一个元件；放下后由 config.op 决定是一元还是二元。
+       旧 not/imp/and/or/iff 仍保留，用于兼容旧电路与参考解。 */
+    connective: {
+      label: '连接词', kindLabel: 'CONN', group: 'build', symbol: '¬', construct: true,
+      ports: {
+        inputs: [{ id: 'a', label: '公式 A', type: FORMULA }, { id: 'b', label: '公式 B', type: FORMULA }],
+        outputs: [{ id: 'out', label: '复合公式', type: FORMULA }]
+      },
+      config: { op: 'not' },
+      help: '放下后选择 ¬ / → / ∧ / ∨ / ↔；¬ 只有一个输入，其余两个。',
+      apply: function (inputs, cfg) {
+        var op = String((cfg && cfg.op) || 'not');
+        if (op === 'not') {
+          var na = need(inputs, 'a', '公式 A');
+          return { tokens: wffOf(['-.'].concat(asBody(na))), note: '否定' };
+        }
+        var a = need(inputs, 'a', '公式 A');
+        var b = need(inputs, 'b', '公式 B');
+        var sym = { imp: '->', and: '/\\', or: '\\/', iff: '<->' }[op];
+        if (!sym) fail('未知连接词：' + op);
+        return {
+          tokens: wffOf(['('].concat(asBody(a), [sym], asBody(b), [')'])),
+          note: { imp: '蕴涵', and: '合取', or: '析取', iff: '等值' }[op]
+        };
+      }
+    },
     all: {
       label: '全称', kindLabel: 'ALL', group: 'build', symbol: '∀', construct: true,
       ports: { inputs: [{ id: 'a', label: '公式 A', type: FORMULA }], outputs: [{ id: 'out', label: '∀x A', type: FORMULA }] },
@@ -412,9 +439,13 @@
       apply: function (inputs, cfg) {
         var v = need(inputs, 'assertion', '断言');
         if (T.typeOf(v) !== '|-') fail('输入必须是 ⊢ 断言');
+        var steps = cfg && Array.isArray(cfg.steps) ? cfg.steps.filter(Array.isArray) : [];
         var at = cfg && Array.isArray(cfg.at) ? cfg.at : null;
-        var tokens = at ? T.expandAt(v, at) : T.expandDefinitions(v);
-        return { tokens: tokens, note: 'D · 定义展开' + (at ? ' · ' + (at.length ? '第 ' + at.join('.') + ' 处' : '根位置') : '') };
+        var tokens;
+        if (steps.length) tokens = T.rewriteDefinitions(v, 'expand', steps);
+        else if (cfg && cfg.full === false) tokens = v.slice();
+        else tokens = at ? T.expandAt(v, at) : T.expandDefinitions(v);
+        return { tokens: tokens, note: 'D · 定义展开' + (steps.length ? ' · ' + steps.length + ' 处' : (at ? ' · ' + (at.length ? '第 ' + at.join('.') + ' 处' : '根位置') : '')) };
       }
     },
     'def-contract': {
@@ -428,9 +459,13 @@
       apply: function (inputs, cfg) {
         var v = need(inputs, 'assertion', '断言');
         if (T.typeOf(v) !== '|-') fail('输入必须是 ⊢ 断言');
+        var steps = cfg && Array.isArray(cfg.steps) ? cfg.steps.filter(Array.isArray) : [];
         var at = cfg && Array.isArray(cfg.at) ? cfg.at : null;
-        var tokens = at ? T.contractAt(v, at) : T.contractDefinitions(v);
-        return { tokens: tokens, note: 'D⁻ · 定义收缩' + (at ? ' · ' + (at.length ? '第 ' + at.join('.') + ' 处' : '根位置') : '') };
+        var tokens;
+        if (steps.length) tokens = T.rewriteDefinitions(v, 'contract', steps);
+        else if (cfg && cfg.full === false) tokens = v.slice();
+        else tokens = at ? T.contractAt(v, at) : T.contractDefinitions(v);
+        return { tokens: tokens, note: 'D⁻ · 定义收缩' + (steps.length ? ' · ' + steps.length + ' 处' : (at ? ' · ' + (at.length ? '第 ' + at.join('.') + ' 处' : '根位置') : '')) };
       }
     },
 
@@ -578,7 +613,7 @@
       label: '已证定理', kindLabel: 'THEOREM', group: 'theorem', symbol: '⊢', construct: false,
       ports: { inputs: [], outputs: [{ id: 'out', label: '断言', type: ASSERTION }] },
       config: { code: '' },
-      help: '引用更早关卡已经证过的定理，例如 Ⅰ-01；只能引用排在前面的关卡。',
+      help: '引用任何已经通关的非教学关当作引理，不要求关卡编号更小；教学关不能当引理。',
       apply: function (inputs, cfg, ctx) {
         var code = String((cfg && cfg.code) || '');
         if (!code) fail('定理模块缺少关卡编号');
@@ -586,8 +621,14 @@
         var current = ctx && typeof ctx.levelIndex === 'number' ? ctx.levelIndex : levels.length;
         var idx = levels.findIndex(function (x) { return x.code === code; });
         if (idx < 0) fail('找不到定理 ' + code);
-        if (idx >= current) fail('只能引用前面的关卡（不能引用 ' + code + ' 或更晚）');
         var lv = levels[idx];
+        if (lv.tutorial && levels[current] && !levels[current].tutorial) fail('不能引用教学关 ' + code);
+        var solved = ctx && ctx.solved;
+        if (solved) {
+          if (!solved[lv.id]) fail('还没有通关 ' + code + '，不能引用');
+        } else if (idx >= current) {
+          fail('只能引用前面的关卡（不能引用 ' + code + ' 或更晚）');
+        }
         if (!Array.isArray(lv.targetTokens) || !lv.targetTokens.length) fail('关卡 ' + code + ' 缺少目标断言');
         return { tokens: lv.targetTokens.slice(), note: code };
       }

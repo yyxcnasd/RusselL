@@ -7,7 +7,7 @@
  * 设计约定（见 docs/DESIGN.md）：
  *   - 少字：面板不写标题/说明，只保留数字、公式、代号与必要图例；
  *   - 面板内部是可点的 flat row（soft 底、无描边）；白贴纸材质只留给棋盘上的模块；
- *   - 对象语言用 → / ↔，规则层面用 ⇒ / ⇛；变量与公式一律 STIX 斜体。
+ *   - 对象语言用 → / ↔，规则层面统一用 ⇒；变量与公式一律 STIX 斜体。
  */
 (function (host) {
   'use strict';
@@ -180,8 +180,8 @@
           /* 单章命题演算：只列代入、分离与两条定义重写。 */
           helpCard('S', 'A[P↦B] ⇒ A′', '代入：把断言里的原子命题换成任意公式。') +
           helpCard('M', 'A · A→B ⇒ B', '分离：由 A 与 A→B 得到 B。') +
-          helpCard('D', 'A∧B ⇛ ¬(A→¬B)', '定义展开：把公式里的 ∧/∨/↔ 按定义改写成只用 ¬/→ 的原始公式；只重写公式，不能凭空产生结论。') +
-          helpCard('D⁻', '¬(A→¬B) ⇛ A∧B', '定义收缩：把原始公式折叠回 ∧/∨/↔ 的表面写法；只重写公式，不能凭空产生结论。') +
+          helpCard('D', 'A∧B ⇒ ¬(A→¬B)', '定义展开：把公式里的 ∧/∨/↔ 按定义改写成只用 ¬/→ 的原始公式；只重写公式，不能凭空产生结论。') +
+          helpCard('D⁻', '¬(A→¬B) ⇒ A∧B', '定义收缩：把原始公式折叠回 ∧/∨/↔ 的表面写法；只重写公式，不能凭空产生结论。') +
         '</div>' +
         (toy ? '<p class="cloud-note">存档自动同步到当前 B 站账号</p>' : '') +
         saveRow +
@@ -190,6 +190,7 @@
   }
 
   var hintState = null;
+  var definitionNodeId = null;
 
   function hintAccessOk(kind, access) {
     if (!access) return false;
@@ -247,6 +248,63 @@
     host.RSL.Audio.sfx('click');
     hintState = { level: level, page: 0, access: null, loading: false };
     renderHint();
+  }
+
+  /* =========================================================================
+   * 2b. 定义重写 / 引理选择（大面板）
+   * ========================================================================= */
+
+  function definitionSheetHTML(view) {
+    var rows = (view.sites || []).map(function (site) {
+      return '<button class="def-row" data-def-site="' + esc(site.key) + '" title="' + esc(site.beforeHTML.replace(/<[^>]*>/g, '') + ' ⇒ ' + site.afterHTML.replace(/<[^>]*>/g, '')) + '">' +
+        '<span class="def-sym">' + esc(site.symbol) + '</span>' +
+        '<span class="def-flow">' +
+          '<span class="formula def-formula">' + site.beforeHTML + '</span>' +
+          '<span class="def-arrow">⇒</span>' +
+          '<span class="formula def-formula">' + site.afterHTML + '</span>' +
+        '</span>' +
+      '</button>';
+    }).join('');
+    var empty = view.error
+      ? '<p class="def-empty">' + esc(view.error) + '</p>'
+      : '<p class="def-empty">没有可重写的位置</p>';
+    return closeButton() +
+      '<div class="definition-sheet">' +
+        '<div class="def-kicker">' + esc(view.code) + '</div>' +
+        '<div class="def-input"><span class="formula def-input-formula">' + view.inputHTML + '</span></div>' +
+        '<div class="def-tools">' +
+          '<span class="def-count">' + view.steps + ' 处已重写</span>' +
+          '<button class="def-tool" data-def-undo' + (view.steps ? '' : ' disabled') + '>撤销</button>' +
+          '<button class="def-tool" data-def-full>全部</button>' +
+        '</div>' +
+        '<div class="def-list">' + (rows || empty) + '</div>' +
+      '</div>';
+  }
+
+  function openDefinition(view) {
+    if (!view) return;
+    definitionNodeId = view.nodeId;
+    host.RSL.Audio.sfx('click');
+    UI.openSheet(definitionSheetHTML(view), 'sheet-defs');
+  }
+
+  function lemmaSheetHTML(list) {
+    var rows = list.map(function (item) {
+      return '<button class="lemma-row" data-lemma="' + esc(item.code) + '">' +
+        '<span class="lemma-code">*' + esc(item.code) + '</span>' +
+        '<span class="lemma-formula formula">' + item.html + '</span>' +
+      '</button>';
+    }).join('');
+    return closeButton() +
+      '<div class="lemma-sheet">' +
+        '<div class="lemma-title">LEMMAS</div>' +
+        '<div class="lemma-list">' + (rows || '<p class="def-empty">没有已证引理</p>') + '</div>' +
+      '</div>';
+  }
+
+  function openLemmas(list) {
+    host.RSL.Audio.sfx('click');
+    UI.openSheet(lemmaSheetHTML(list || []), 'sheet-lemmas');
   }
 
   /* =========================================================================
@@ -331,6 +389,20 @@
     var achv = target.closest && target.closest('[data-achv]');
     if (achv) { openAchievement(achv.dataset.achv); return; }
     if (target.closest && target.closest('[data-back]')) { openAchievements(); return; }
+    if (target.closest && target.closest('[data-def-site]')) {
+      ctx.definitionSite(definitionNodeId, target.closest('[data-def-site]').dataset.defSite);
+      return;
+    }
+    if (target.closest && target.closest('[data-def-undo]')) {
+      ctx.definitionUndo(definitionNodeId);
+      return;
+    }
+    if (target.closest && target.closest('[data-def-full]')) {
+      ctx.definitionFull(definitionNodeId);
+      return;
+    }
+    var lemma = target.closest && target.closest('[data-lemma]');
+    if (lemma) { ctx.addLemma(lemma.dataset.lemma); return; }
     if (target.closest && target.closest('[data-save-export]')) { ctx.exportSave(); return; }
     if (target.closest && target.closest('[data-save-import]')) { ctx.requestImport(); return; }
     if (target.closest && target.closest('[data-hint-prev]')) {
@@ -371,6 +443,8 @@
     init: init,
     openLevels: openLevels,
     openHelp: openHelp,
+    openDefinition: openDefinition,
+    openLemmas: openLemmas,
     openHint: openHint,
     openLeaderboard: openLeaderboard,
     openAchievements: openAchievements,

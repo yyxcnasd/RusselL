@@ -1747,7 +1747,7 @@ n23  axiom A1
 n26  imp
 n34  mp M
 n35  mp M
-n36  theorem *v
+n36  axiom A3
 n37  subst S
 n40  subst S
 n42  imp
@@ -4516,7 +4516,7 @@ n80  imp
 n83  subst S
 n86  mp M
 n87  mp M
-n88  theorem *v
+n88  axiom A3
 n89  subst S
 n92  subst S
 n94  imp
@@ -6529,7 +6529,7 @@ n20  imp
 n23  axiom A2
 n27  atom R
 n57  theorem *19
-n136  theorem *v
+n136  axiom A3
 n165  mp M
 n166  mp M
 n171  subst S
@@ -7357,7 +7357,7 @@ n86  imp
 n89  subst S
 n92  mp M
 n93  mp M
-n94  theorem *v
+n94  axiom A3
 n95  subst S
 n99  subst S
 n101  imp
@@ -7598,7 +7598,7 @@ n27  atom R
 n31  imp
 n39  mp M
 n40  mp M
-n41  theorem *v
+n41  axiom A3
 n42  subst S
 n45  subst S
 n47  imp
@@ -9057,7 +9057,7 @@ n20  imp
 n23  axiom A2
 n27  atom R
 n57  theorem *19
-n136  theorem *v
+n136  axiom A3
 n164  mp M
 n165  mp M
 n166  mp M
@@ -9272,7 +9272,7 @@ n96  imp
 n99  subst S
 n103  mp M
 n104  mp M
-n105  theorem *v
+n105  axiom A3
 n106  subst S
 n110  subst S
 n112  imp
@@ -9810,7 +9810,7 @@ n44  imp
 n47  subst S
 n51  mp M
 n52  mp M
-n53  theorem *v
+n53  axiom A3
 n54  subst S
 n58  subst S
 n60  imp
@@ -9952,7 +9952,7 @@ n48  imp
 n51  subst S
 n55  mp M
 n56  mp M
-n57  theorem *v
+n57  axiom A3
 n58  subst S
 n62  subst S
 n64  imp
@@ -10286,7 +10286,7 @@ n106  imp
 n109  subst S
 n112  mp M
 n113  mp M
-n114  theorem *v
+n114  axiom A3
 n115  subst S
 n119  subst S
 n121  imp
@@ -10460,7 +10460,7 @@ n80  imp
 n83  subst S
 n87  mp M
 n88  mp M
-n89  theorem *v
+n89  axiom A3
 n90  subst S
 n93  subst S
 n95  imp
@@ -11170,7 +11170,7 @@ n109  imp
 n112  subst S
 n116  mp M
 n117  mp M
-n118  theorem *v
+n118  axiom A3
 n119  subst S
 n123  subst S
 n125  imp
@@ -11502,7 +11502,7 @@ n45  imp
 n48  subst S
 n52  mp M
 n53  mp M
-n54  theorem *v
+n54  axiom A3
 n55  subst S
 n58  subst S
 n60  imp
@@ -11822,7 +11822,7 @@ n44  imp
 n47  subst S
 n51  mp M
 n52  mp M
-n53  theorem *v
+n53  axiom A3
 n54  subst S
 n58  subst S
 n60  imp
@@ -12832,7 +12832,7 @@ n144  imp
 n146  subst S
 n150  mp M
 n151  mp M
-n152  theorem *v
+n152  axiom A3
 n153  subst S
 n157  subst S
 n159  imp
@@ -14460,7 +14460,7 @@ n111  imp
 n114  subst S
 n118  mp M
 n119  mp M
-n120  theorem *v
+n120  axiom A3
 n121  subst S
 n124  subst S
 n126  imp
@@ -14911,7 +14911,7 @@ n114  imp
 n117  subst S
 n121  mp M
 n122  mp M
-n123  theorem *v
+n123  axiom A3
 n124  subst S
 n127  subst S
 n129  imp

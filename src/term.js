@@ -692,6 +692,16 @@
     fail('路径 ' + defPathText(p) + ' 不是定义收缩位置：' + fmtNode(node) + ' 不是 ∧/∨/↔/∃ 的原始定义形');
   }
 
+  /** 依次执行多步定义重写；每步的 path 相对于上一步之后的结果。 */
+  function rewriteDefinitions(tokens, mode, steps) {
+    if (mode !== 'expand' && mode !== 'contract') fail('定义重写的 mode 只能是 "expand" 或 "contract"');
+    var out = tokensOf(tokens).slice();
+    (steps || []).forEach(function (path) {
+      out = mode === 'expand' ? expandAt(out, normalizeDefPath(path)) : contractAt(out, normalizeDefPath(path));
+    });
+    return out;
+  }
+
   /* =========================================================================
    * 6. 变元/原子分析
    * ========================================================================= */
@@ -1143,6 +1153,7 @@
     definitionSites: definitionSites,
     expandAt: expandAt,
     contractAt: contractAt,
+    rewriteDefinitions: rewriteDefinitions,
     atomsOf: atomsOf,
     freeVars: freeVars,
     isAtom: isAtom,

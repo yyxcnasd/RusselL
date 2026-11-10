@@ -23,6 +23,11 @@
     usedKinds: {},
     cleanWins: {},
     circuits: {},
+    works: {},
+    maxLen: 0,
+    levelKinds: {},
+    usedOps: [],
+    nightOwl: false,
     deletedThisLevel: false,
     achievements: {},
     godMode: false,
@@ -41,6 +46,26 @@
   };
   var els = null;
   var paletteHold = null;
+
+  var CONNECTIVE_OPS = [
+    { op: 'not', symbol: '¬', name: '否定（一元）' },
+    { op: 'imp', symbol: '→', name: '蕴涵（二元）' },
+    { op: 'and', symbol: '∧', name: '合取（二元）' },
+    { op: 'or', symbol: '∨', name: '析取（二元）' },
+    { op: 'iff', symbol: '↔', name: '等值（二元）' }
+  ];
+  function connectiveUnary(config) { return !config || (config.op || 'not') === 'not'; }
+  function visibleInputPorts(kind, config, ports) {
+    var list = ports || [];
+    if (kind === 'subst') {
+      var extras = substExtras(config);
+      return list.filter(function (p) { return substPortVisible(p.id, extras); });
+    }
+    if (kind === 'connective' && connectiveUnary(config)) {
+      return list.filter(function (p) { return p.id !== 'b'; });
+    }
+    return list;
+  }
 
   /* =========================================================================
    * 1. 存档
@@ -63,6 +88,11 @@
     state.usedKinds = {};
     state.cleanWins = {};
     state.circuits = {};
+    state.works = {};
+    state.maxLen = 0;
+    state.levelKinds = {};
+    state.usedOps = [];
+    state.nightOwl = false;
     state.achievements = {};
     state.godMode = false;
     state.storySeen = {};
@@ -75,6 +105,11 @@
     state.usedKinds = setOf(p.usedKinds);
     state.cleanWins = setOf(p.cleanWins);
     state.circuits = p.circuits || {};
+    state.works = p.works || {};
+    state.maxLen = typeof p.maxLen === 'number' && p.maxLen > 0 ? p.maxLen : 0;
+    state.levelKinds = p.levelKinds || {};
+    state.usedOps = Array.isArray(p.usedOps) ? p.usedOps.slice() : [];
+    state.nightOwl = !!p.nightOwl;
     state.achievements = setOf(p.achievements);
     state.godMode = !!p.godMode;
     state.storySeen = p.story || {};
@@ -123,7 +158,12 @@
     }
     applyProgress(result.save);
     var stored = true;
-    if (!state.godMode && state.levels.length && state.levels.every(function (x) { return state.solved[x.id]; })) {
+    var allDone = state.levels.length && state.levels.every(function (x) { return state.solved[x.id]; });
+    if (state.godMode && !allDone) {
+      /* 旧存档里可能残留通过地址栏解锁的状态；只认全通。 */
+      state.godMode = false;
+      stored = SAVE.store(SAVE.payload(state));
+    } else if (!state.godMode && allDone) {
       state.godMode = true;
       stored = SAVE.store(SAVE.payload(state));
     }
@@ -267,10 +307,14 @@
     if (!lv) return false;
     var levels = state.levels;
     function solved(x) { return !!(x && state.solved[x.id]); }
-    if (lv.hard) {
-      /* 困难段统一在全部教学 + 普通关完成后开放。 */
-      return levels.every(function (x) { return x.hard || solved(x); });
+    function allBand(band) {
+      var list = levels.filter(function (x) { return x.band === band; });
+      return list.length > 0 && list.every(solved);
     }
+    /* 困难关在普通关全通后整段开放；魔王关在困难关全通后整段开放。 */
+    if (lv.band === 'demon') return allBand('challenge');
+    if (lv.band === 'challenge' || lv.hard) return allBand('base');
+    /* 教学关与普通关仍然逐关解锁。 */
     var prev = levels[index - 1];
     return solved(prev);
   }
@@ -356,9 +400,11 @@
     state.parts = Catalog.partsForLevel(level);
     if (els.tray) els.tray.classList.remove('is-wide');
 
-    var saved = state.circuits[level.id];
+    var saved = state.works[level.id] || state.circuits[level.id];
     var savedNodes = [];
     var savedEdges = [];
+    var hasSavedWork = !!(state.works[level.id] && Array.isArray(state.works[level.id].nodes) &&
+      Array.isArray(state.works[level.id].edges));
     if (saved && Array.isArray(saved.nodes) && Array.isArray(saved.edges)) {
       saved.nodes.forEach(function (n) {
         if (n && n.kind && n.kind !== 'target') savedNodes.push(JSON.parse(JSON.stringify(n)));
@@ -378,7 +424,10 @@
 
     var tokens = targetTokensOf(level);
     var nodes, edges;
-    if (savedNodes.length) {
+    if (hasSavedWork && !savedNodes.length) {
+      nodes = [{ id: 'target', kind: 'target', x: 860, y: 220, targetTokens: tokens, config: {} }];
+      edges = [];
+    } else if (savedNodes.length) {
       var maxX = -Infinity, minY = Infinity, maxY = -Infinity;
       savedNodes.forEach(function (n) {
         maxX = Math.max(maxX, n.x + 232);
@@ -447,15 +496,40 @@
     }).join('');
   }
 
+  /** 当前画布快照；每次画布变化都写入 works，未通关的半成品也能恢复。 */
+  function boardSnapshot() {
+    var data = state.board.getData();
+    var targetNode = data.nodes.filter(function (n) { return n.kind === 'target'; })[0];
+    var targetId = targetNode ? targetNode.id : null;
+    return {
+      nodes: data.nodes.filter(function (n) { return n.kind !== 'target'; }).map(function (n) {
+        var copy = JSON.parse(JSON.stringify(n));
+        delete copy._new;
+        return copy;
+      }),
+      edges: JSON.parse(JSON.stringify(data.edges)).map(function (e) {
+        delete e._new;
+        if (targetId && e.to && e.to.node === targetId) e.to.node = 'target';
+        return e;
+      })
+    };
+  }
+
+  function captureWork() {
+    if (!state.level || !state.board) return;
+    state.works[state.level.id] = boardSnapshot();
+  }
+
   function refresh() {
     if (!state.level) return;
     var data = state.board.getData();
-    var ctx = { levels: state.levels, levelIndex: state.index };
+    var ctx = { levels: state.levels, levelIndex: state.index, solved: state.solved };
     var result = window.RSL.Engine.evaluate(state.level, data.nodes, data.edges, ctx);
     state.results = result;
     state.board.paint(result);
     els.checkBtn.classList.toggle('is-ready', result.complete);
     renderPopover();
+    captureWork();
     saveProgress();
   }
 
@@ -470,6 +544,7 @@
   function addPart(key) {
     var part = palettePart(key);
     if (!part) return;
+    if (part.picker === 'lemma') { if (!UI.isSheetOpen()) openLemmaPicker(); return; }
     var pos = freeSpot();
     Audio.sfx('place');
     var node = state.board.addNode(part.kind, Object.assign({}, part.config || {}), pos);
@@ -588,6 +663,11 @@
 
   function allowedForLevel(node) {
     var merged = { atom: 1, term: 1, pred: 1, all: 1, exists: 1, subst: 1 };
+    if (node.kind === 'connective') {
+      return state.parts.some(function (part) {
+        return part.kind === 'connective' && (!part.ops || part.ops.indexOf((node.config || {}).op || 'not') >= 0);
+      });
+    }
     return state.parts.some(function (part) {
       if (part.kind !== node.kind) return false;
       if (merged[node.kind]) return true;
@@ -693,11 +773,7 @@
 
   function makeModuleGhost(part) {
     var info = window.RSL.Engine.info(part.kind) || { ports: { inputs: [], outputs: [] } };
-    var ins = (info.ports.inputs || []);
-    if (part.kind === 'subst') {
-      var ghostExtras = substExtras(part.config);
-      ins = ins.filter(function (p) { return substPortVisible(p.id, ghostExtras); });
-    }
+    var ins = visibleInputPorts(part.kind, part.config, info.ports.inputs);
     var outs = (info.ports.outputs || []);
     var config = part.config || {};
     var code = state.board._code({ kind: part.kind, config: config }) || part.symbol || '·';
@@ -731,9 +807,14 @@
 
   function startPaletteHold(e, tile) {
     if (e.button !== 0) return;
+    var part = palettePart(tile.dataset.key);
+    if (part && part.picker === 'lemma') {
+      e.preventDefault();
+      if (!UI.isSheetOpen()) openLemmaPicker();
+      return;
+    }
     e.preventDefault();
     clearPaletteHold();
-    var part = palettePart(tile.dataset.key);
     if (!part) return;
     var ghost = makeModuleGhost(part);
     document.body.appendChild(ghost);
@@ -772,10 +853,15 @@
 
   function defPathKey(path) { return path && path.length ? path.join('.') : '@'; }
 
-  function defPathSame(a, b) {
-    if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return false;
-    for (var i = 0; i < a.length; i += 1) if (a[i] !== b[i]) return false;
-    return true;
+  function defPathFromKey(key) {
+    if (!key || key === '@') return [];
+    return String(key).split('.').map(function (x) { return parseInt(x, 10); });
+  }
+
+  function defTokensHTML(tokens) {
+    var T = window.RSL.Term;
+    if (!T || !Array.isArray(tokens) || !tokens.length) return '<span class="blank">·</span>';
+    try { return T.toHTML(T.body(tokens), { full: true }); } catch (e) { return UI.esc(tokens.join(' ')); }
   }
 
   function defFormulaHTML(text) {
@@ -783,41 +869,133 @@
     try { return T.toHTML(T.parse(text), { full: true }); } catch (e) { return UI.esc(text); }
   }
 
-  function defSiteChipHTML(site, on) {
-    return '<button class="opt opt-def' + (on ? ' is-on' : '') + '" data-config="at" data-at="' +
-      defPathKey(site.path) + '" title="' + UI.esc(site.before + ' ⇛ ' + site.after) + '">' +
-      '<span class="opt-def-sym">' + UI.esc(site.symbol) + '</span>' +
-      '<span class="opt-def-flow">' +
-        '<span class="formula opt-def-formula">' + defFormulaHTML(site.before) + '</span>' +
-        '<span class="opt-def-arrow">⇛</span>' +
-        '<span class="formula opt-def-formula">' + defFormulaHTML(site.after) + '</span>' +
-      '</span></button>';
+  function defStepsOf(node) {
+    var cfg = (node && node.config) || {};
+    if (Array.isArray(cfg.steps)) {
+      return cfg.steps.filter(function (p) { return Array.isArray(p); }).map(function (p) { return p.slice(); });
+    }
+    if (Array.isArray(cfg.at)) return [cfg.at.slice()];
+    return [];
   }
 
-  function definitionPickerHTML(node) {
+  function definitionView(node) {
+    if (!node) return null;
     var T = window.RSL.Term;
-    if (!T) return '';
     var input = definitionInputTokens(node.id);
-    if (!input) return '';
+    if (!input) return null;
     var mode = node.kind === 'def-expand' ? 'expand' : 'contract';
-    var sites;
-    try { sites = T.definitionSites(input, mode); } catch (e) { return ''; }
-    var current = node.config && Array.isArray(node.config.at) ? node.config.at : null;
-    var html = sites.map(function (site) {
-      return defSiteChipHTML(site, !!current && defPathSame(current, site.path));
-    }).join('');
-    /* 即使当前断言没有可重写位置也保留 all 芯片，便于清掉上游变化后失效的 at。 */
-    html += '<button class="opt opt-def opt-def-all' + (current ? '' : ' is-on') +
-      '" data-config="at" data-at="all" title="all">all</button>';
-    return '<div class="def-title">rewrite</div><div class="def-grid">' + html + '</div>';
+    var steps = defStepsOf(node);
+    var cfg = node.config || {};
+    var current = input;
+    var error = '';
+    try {
+      if (steps.length) current = T.rewriteDefinitions(input, mode, steps);
+      else if (cfg.full === true) {
+        current = mode === 'expand' ? T.expandDefinitions(input) : T.contractDefinitions(input);
+      }
+    } catch (e) {
+      error = e && e.message ? e.message : String(e);
+    }
+    var sites = [];
+    /* 全量重写后没有“下一处”可选；先撤销/逐处选择才能继续。 */
+    if (!error && !(steps.length === 0 && cfg.full === true)) {
+      try {
+        sites = T.definitionSites(current, mode).map(function (site) {
+          return {
+            key: defPathKey(site.path),
+            symbol: site.symbol,
+            beforeHTML: defFormulaHTML(site.before),
+            afterHTML: defFormulaHTML(site.after)
+          };
+        });
+      } catch (e) { error = e && e.message ? e.message : String(e); }
+    }
+    return {
+      nodeId: node.id,
+      mode: mode,
+      code: node.kind === 'def-expand' ? 'D' : 'D⁻',
+      inputHTML: defTokensHTML(current),
+      sites: sites,
+      steps: steps.length,
+      error: error
+    };
+  }
+
+  /* 打开 D/D⁻ 的大面板；没有接输入时退回节点参数条，不弹空面板。 */
+  function openDefinitionSheet(nodeId) {
+    var node = state.board && state.board.node(nodeId);
+    if (!node || (node.kind !== 'def-expand' && node.kind !== 'def-contract')) return;
+    if (!definitionInputTokens(nodeId)) return;
+    if (node.config && node.config.full === undefined && !defStepsOf(node).length) {
+      node.config.full = false;
+      refresh();
+    }
+    var view = definitionView(node);
+    if (view) Screens.openDefinition(view);
+  }
+
+  function applyDefinitionSite(nodeId, pathKey) {
+    var node = state.board.node(nodeId);
+    if (!node) return;
+    var steps = defStepsOf(node);
+    steps.push(defPathFromKey(pathKey));
+    state.board.updateConfig(nodeId, { steps: steps, at: null, full: true });
+    state.selectedNode = nodeId;
+    openDefinitionSheet(nodeId);
+  }
+
+  function undoDefinitionStep(nodeId) {
+    var node = state.board.node(nodeId);
+    if (!node) return;
+    var steps = defStepsOf(node);
+    steps.pop();
+    state.board.updateConfig(nodeId, { steps: steps, at: null, full: steps.length ? true : false });
+    state.selectedNode = nodeId;
+    openDefinitionSheet(nodeId);
+  }
+
+  function fullDefinition(nodeId) {
+    var node = state.board.node(nodeId);
+    if (!node) return;
+    state.board.updateConfig(nodeId, { steps: [], at: null, full: true });
+    state.selectedNode = nodeId;
+    openDefinitionSheet(nodeId);
+  }
+
+  function provenLemmas() {
+    var T = window.RSL.Term;
+    return state.levels.filter(function (lv) {
+      return !lv.tutorial && state.solved[lv.id] && Array.isArray(lv.targetTokens) && lv.targetTokens.length;
+    }).map(function (lv) {
+      var html = '';
+      try { html = T.toHTML(T.body(lv.targetTokens), { full: true }); } catch (e) { html = UI.esc(lv.targetTokens.join(' ')); }
+      return { code: lv.code, id: lv.id, html: html };
+    });
+  }
+
+  function openLemmaPicker() {
+    var list = provenLemmas();
+    if (!list.length) { UI.toast('还没有可引用的已证引理'); return; }
+    Screens.openLemmas(list);
+  }
+
+  function addLemma(code) {
+    var level = state.levels.filter(function (lv) { return lv.code === code && !lv.tutorial && state.solved[lv.id]; })[0];
+    if (!level) return;
+    var pos = freeSpot();
+    Audio.sfx('place');
+    var node = state.board.addNode('theorem', { code: code }, pos);
+    state.board.select(node.id);
+    state.selectedNode = node.id;
+    state.selectedEdge = null;
+    UI.closeSheet();
+    refresh();
   }
 
   function renderPopover() {
     var node = state.selectedNode ? state.board.node(state.selectedNode) : null;
     var isGrid = !!node && node.kind === 'atom';
-    var isDefs = !!node && (node.kind === 'def-expand' || node.kind === 'def-contract');
     els.popover.classList.toggle('is-grid', isGrid);
-    els.popover.classList.toggle('is-defs', isDefs);
     if (!node || node.kind === 'target') { els.popover.hidden = true; return; }
     var config = node.config || {};
     var html = '';
@@ -832,6 +1010,14 @@
     } else if (node.kind === 'pred') {
       html = PRED_CHOICES.map(function (x) {
         return '<button class="opt opt-code' + (config.symbol === x ? ' is-on' : '') + '" data-config="symbol" data-value="' + x + '">' + x + '</button>';
+      }).join('');
+    } else if (node.kind === 'connective') {
+      var connPart = state.parts.filter(function (p) { return p.kind === 'connective'; })[0];
+      var allowedOps = connPart && Array.isArray(connPart.ops) && connPart.ops.length ? connPart.ops : ['not', 'imp', 'and', 'or', 'iff'];
+      html = CONNECTIVE_OPS.filter(function (x) { return allowedOps.indexOf(x.op) >= 0; }).map(function (x) {
+        return '<button class="opt opt-conn' + ((config.op || 'not') === x.op ? ' is-on' : '') +
+          '" data-config="op" data-value="' + x.op + '" title="' + UI.esc(x.name) + '" aria-label="' + UI.esc(x.name) + '">' +
+          UI.esc(x.symbol) + '</button>';
       }).join('');
     } else if (node.kind === 'all' || node.kind === 'exists') {
       html = '<span class="opt opt-sym is-on">' + (node.kind === 'all' ? '∀' : '∃') + '</span>' +
@@ -850,10 +1036,8 @@
       html = VAR_CHOICES.map(function (v) {
         return '<button class="opt opt-var' + (config.v === v ? ' is-on' : '') + '" data-config="v" data-value="' + v + '">' + v + '</button>';
       }).join('');
-    } else if (node.kind === 'def-expand' || node.kind === 'def-contract') {
-      html = definitionPickerHTML(node);
     }
-    if (!html) { els.popover.hidden = true; els.popover.classList.remove('is-grid'); els.popover.classList.remove('is-defs'); return; }
+    if (!html) { els.popover.hidden = true; els.popover.classList.remove('is-grid'); return; }
     els.popover.innerHTML = html;
     els.popover.hidden = false;
   }
@@ -891,30 +1075,30 @@
     state.solved[level.id] = true;
     var items = (state.board.items || []).filter(function (n) { return n.kind !== 'target'; });
     var len = items.length;
-    items.forEach(function (n) { state.usedKinds[n.kind] = true; });
+    var levelKinds = {};
+    var usedOps = (state.usedOps || []).slice();
+    var OLD_CONN = { not: 'not', imp: 'imp', and: 'and', or: 'or', iff: 'iff' };
+    items.forEach(function (n) {
+      state.usedKinds[n.kind] = true;
+      levelKinds[n.kind] = true;
+      var op = n.kind === 'connective' ? ((n.config || {}).op || 'not') : OLD_CONN[n.kind];
+      if (op && usedOps.indexOf(op) < 0) usedOps.push(op);
+    });
+    state.usedOps = usedOps;
+    state.levelKinds[level.id] = Object.keys(levelKinds);
+    state.maxLen = Math.max(state.maxLen || 0, len);
+    var hour = new Date().getHours();
+    if (hour >= 0 && hour < 5) state.nightOwl = true;
     if (!state.deletedThisLevel) state.cleanWins[level.id] = true;
     if (!state.circuits[level.id] || !previousBest || len < previousBest) {
-      var data = state.board.getData();
-      var targetNode = data.nodes.filter(function (n) { return n.kind === 'target'; })[0];
-      var targetId = targetNode ? targetNode.id : null;
-      state.circuits[level.id] = {
-        nodes: data.nodes.filter(function (n) { return n.kind !== 'target'; }).map(function (n) {
-          var copy = JSON.parse(JSON.stringify(n));
-          delete copy._new;
-          return copy;
-        }),
-        edges: JSON.parse(JSON.stringify(data.edges)).map(function (e) {
-          delete e._new;
-          if (targetId && e.to && e.to.node === targetId) e.to.node = 'target';
-          return e;
-        })
-      };
+      state.circuits[level.id] = boardSnapshot();
     }
+    state.works[level.id] = boardSnapshot();
     if (!state.bestLen[level.id] || len < state.bestLen[level.id]) state.bestLen[level.id] = len;
     if (!state.godMode && state.levels.length && state.levels.every(function (x) { return state.solved[x.id]; })) {
       state.godMode = true;
       if (els.godBtn) els.godBtn.hidden = false;
-      UI.toast('全部通关：永久 God Mode 已解锁');
+      UI.toast('全部通关：永久解题辅助已解锁');
     }
     saveProgress();
     if (window.RSL.Leaderboard) window.RSL.Leaderboard.submit(state);
@@ -1045,18 +1229,9 @@
     els.popover.addEventListener('click', function (e) {
       var opt = e.target.closest('[data-config]');
       if (opt && state.selectedNode) {
-        if (opt.dataset.config === 'at') {
-          var defNode = state.board.node(state.selectedNode);
-          if (defNode && (defNode.kind === 'def-expand' || defNode.kind === 'def-contract')) {
-            var at = opt.dataset.at;
-            if (at === 'all') {
-              if (defNode.config) delete defNode.config.at;
-              state.board.render();
-            } else {
-              var path = at === '@' ? [] : at.split('.').map(function (x) { return parseInt(x, 10); });
-              state.board.updateConfig(state.selectedNode, { at: path });
-            }
-          }
+        if (opt.dataset.config === 'op') {
+          var conn = state.board.node(state.selectedNode);
+          if (conn && conn.kind === 'connective') state.board.setConnectiveOp(state.selectedNode, opt.dataset.value);
           state.selectedNode = state.board.selectedNode;
           refresh();
           return;
@@ -1200,13 +1375,12 @@
     els = UI.init();
     if (!window.RSL.Term || !window.RSL.Engine) { document.body.innerHTML = '<div class="fatal">公式引擎未加载</div>'; return; }
     var toyMode = !!(window.RSL.Hints && window.RSL.Hints.isToyHost());
-    var queryGod = /(?:^|[?&])godMode=1(?:&|$)/.test(location.search);
     if (els.hintBtn) els.hintBtn.hidden = !toyMode;
     if (els.rankBtn) els.rankBtn.hidden = !toyMode;
     /* 先建关卡表：loadProgress 的 v4 迁移需要当前 levels + targetTokens。 */
     buildLevels();
     loadProgress();
-    if (els.godBtn) els.godBtn.hidden = !(queryGod || state.godMode);
+    if (els.godBtn) els.godBtn.hidden = !state.godMode;
     loadSettings();
     applyTheme();
     updateSoundBtn();
@@ -1223,6 +1397,12 @@
         state.selectedNode = node;
         state.selectedEdge = edge;
         refresh();
+        if (node) {
+          var picked = state.board.node(node);
+          if (picked && (picked.kind === 'def-expand' || picked.kind === 'def-contract') && !UI.isSheetOpen()) {
+            setTimeout(function () { openDefinitionSheet(picked.id); }, 0);
+          }
+        }
       },
       onToast: function (msg) { UI.toast(msg); },
       onConnect: function () { Audio.sfx('connect'); },
@@ -1238,7 +1418,11 @@
       requestImport: function () { els.saveFile.click(); },
       followAuthor: followAuthor,
       likeVideo: likeVideo,
-      openLeaderboard: openLeaderboard
+      openLeaderboard: openLeaderboard,
+      definitionSite: applyDefinitionSite,
+      definitionUndo: undoDefinitionStep,
+      definitionFull: fullDefinition,
+      addLemma: addLemma
     });
 
     bind();
@@ -1280,7 +1464,9 @@
         }
         if (!window.RSL.CloudSave.apply(state, result.save)) return;
         if (window.RSL.Story) window.RSL.Story.setSeen(state.storySeen);
-        if (els.godBtn && state.godMode) els.godBtn.hidden = false;
+        var cloudAllDone = state.levels.length > 0 && state.levels.every(function (x) { return state.solved[x.id]; });
+        state.godMode = !!cloudAllDone;
+        if (els.godBtn) els.godBtn.hidden = !state.godMode;
         var cloudStart = pickStartIndex();
         if (cloudStart >= 0) loadLevel(cloudStart);
         else if (!SAVE.store(SAVE.payload(state))) reportStoreFailure();

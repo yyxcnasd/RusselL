@@ -10,12 +10,13 @@
     "test:leaderboard": "node --test tests/leaderboard.test.js",
     "test:ui": "node tests/game-ui.js",
     "test:acceptance": "npm run build:toy && node tests/acceptance.js",
-    "test:all": "npm test && npm run test:save && npm run test:dedupe && npm run test:definitions && npm run test:text && npm run test:story && npm run test:wire && npm run test:leaderboard && npm run test:ui && npm run test:acceptance",
+    "test:all": "npm test && npm run test:save && npm run test:dedupe && npm run test:definitions && npm run test:text && npm run test:story && npm run test:features && npm run test:wire && npm run test:leaderboard && npm run test:ui && npm run test:acceptance",
     "build:toy": "node scripts/build-toy.js",
     "build": "node scripts/build-campaign2.js && node scripts/write-levels.js",
     "test:dedupe": "node --test tests/circuit-dedupe.test.js",
     "test:definitions": "node --test tests/definition-ui.test.js",
     "test:text": "node --test tests/reference-text.test.js",
-    "test:story": "node tests/story.test.js"
+    "test:story": "node tests/story.test.js",
+    "test:features": "node tests/features.test.js"
   }
 }

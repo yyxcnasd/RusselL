@@ -1,8 +1,8 @@
 /* Local save schema, validation, migration, and storage.
  *
  * Schema v4：字段与 v3 相同，另加 campaign 指纹（关卡 code + targetTokens 的
- * FNV-1a 哈希）。旧关卡代号会被新 campaign 复用，所以 v4 之前的存档不能按
- * code/id 直接套用；migrate() 用旧代号 → targetTokens 的查表（由
+ * FNV-1a 哈希）与未通关画布 works。旧关卡代号会被新 campaign 复用，所以 v4 之前
+ * 的存档不能按 code/id 直接套用；migrate() 用旧代号 → targetTokens 的查表（由
  * src/legacy-targets.js 提供）按 canonical token 重新映射到当前关卡。
  *
  * localStorage key 保持 'axiom-simple:v2'，避免已发布版本的存档丢失。
@@ -39,6 +39,16 @@
     Object.keys(src).forEach(function (id) {
       var n = src[id];
       if (typeof n === 'number' && isFinite(n) && n >= 0) out[id] = Math.floor(n);
+    });
+    return out;
+  }
+
+  /** 每关实际用过的模块 kind（用于“徒手”等成就），只保留字符串数组。 */
+  function kindsMap(v) {
+    var src = object(v), out = {};
+    Object.keys(src).forEach(function (id) {
+      var list = unique(strings(src[id]));
+      if (list.length) out[id] = list;
     });
     return out;
   }
@@ -93,6 +103,11 @@
       usedKinds: Object.keys(state.usedKinds || {}),
       cleanWins: Object.keys(state.cleanWins || {}),
       circuits: circuits(state.circuits),
+      works: circuits(state.works),
+      maxLen: Math.max(0, state.maxLen | 0),
+      levelKinds: kindsMap(state.levelKinds),
+      usedOps: unique(strings(state.usedOps)),
+      nightOwl: !!state.nightOwl,
       achievements: Object.keys(state.achievements || {}),
       godMode: !!state.godMode,
       story: object(state.storySeen),
@@ -141,6 +156,11 @@
       usedKinds: unique(strings(raw.usedKinds)),
       cleanWins: unique(strings(raw.cleanWins)),
       circuits: circuits(raw.circuits),
+      works: circuits(raw.works),
+      maxLen: typeof raw.maxLen === 'number' && isFinite(raw.maxLen) && raw.maxLen > 0 ? Math.floor(raw.maxLen) : 0,
+      levelKinds: kindsMap(raw.levelKinds),
+      usedOps: unique(strings(raw.usedOps)),
+      nightOwl: raw.nightOwl === true,
       achievements: unique(strings(raw.achievements)),
       godMode: raw.godMode === true,
       story: object(raw.story),
@@ -157,6 +177,11 @@
       usedKinds: [],
       cleanWins: [],
       circuits: {},
+      works: {},
+      maxLen: 0,
+      levelKinds: {},
+      usedOps: [],
+      nightOwl: false,
       achievements: [],
       godMode: false,
       story: {},
@@ -257,8 +282,6 @@
     var src = clean(raw);
     /* 152 关旧档与 96 关旧档各有一张 code→target 表；按 code 合并且不覆盖。 */
     if (root.RSL.LEGACY_TARGETS_96) legacy = Object.assign({}, legacy || {}, root.RSL.LEGACY_TARGETS_96);
-    /* 152 关旧档与 96 关旧档各有一张 code→target 表；按 code 合并且不覆盖。 */
-    if (root.RSL.LEGACY_TARGETS_96) legacy = Object.assign({}, legacy || {}, root.RSL.LEGACY_TARGETS_96);
     var current = Array.isArray(levels) ? levels.filter(function (lv) { return lv && typeof lv === 'object'; }) : [];
     var toCampaign = campaignOf(current);
     var report = reportBase(src, toCampaign);
@@ -278,6 +301,10 @@
       save.achievements = src.achievements.slice();
       save.godMode = src.godMode;
       save.story = src.story;
+      save.maxLen = src.maxLen;
+      save.levelKinds = src.levelKinds;
+      save.usedOps = src.usedOps.slice();
+      save.nightOwl = src.nightOwl;
       save.solved = src.solved.filter(function (id) {
         if (byId[id]) return true;
         report.droppedSolvedIds.push(id);
@@ -298,6 +325,9 @@
         if (byId[id]) { save.circuits[id] = src.circuits[id]; report.keptCircuits += 1; }
         else { report.droppedCircuits += 1; report.droppedCircuitIds.push(id); }
       });
+      Object.keys(src.works).forEach(function (id) {
+        if (byId[id]) save.works[id] = src.works[id];
+      });
       if (src.lastId && byId[src.lastId]) { save.lastId = src.lastId; report.lastIdMapped = true; }
       report.migrated = report.droppedSolved > 0 || report.droppedBestLen > 0 ||
         report.droppedCleanWins > 0 || report.droppedCircuits > 0 || src.sourceVersion !== SCHEMA_VERSION;
@@ -311,6 +341,10 @@
     save.achievements = src.achievements.slice();
     save.godMode = src.godMode;
     save.story = src.story;
+    save.maxLen = src.maxLen;
+    save.levelKinds = src.levelKinds;
+    save.usedOps = src.usedOps.slice();
+    save.nightOwl = src.nightOwl;
     var matcher = tokenMatcher(current);
     var mapping = report.mapping;
     var legacyCount = legacySize(legacy);

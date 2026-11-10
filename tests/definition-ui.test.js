@@ -129,7 +129,7 @@ test('非法路径 / 非定义位置 / 未知 mode 都抛出清晰错误', () =>
 
 /* 可选浏览器冒烟：真实加载 index.html，选中 D 节点，点芯片改配置并刷新公式。
  * 若本机没有 Edge（tests/lib/browser.js 的默认路径），跳过而不伪造通过。 */
-test('浏览器冒烟：D 节点弹出多枚重写芯片，点击后只改该处公式', { skip: !fs.existsSync(EDGE) ? '找不到 Edge，跳过浏览器冒烟' : false }, async () => {
+test('浏览器冒烟：D 节点打开大面板，点选定义位置后立即重写并更新列表', { skip: !fs.existsSync(EDGE) ? '找不到 Edge，跳过浏览器冒烟' : false }, async () => {
   const page = await openPage({
     width: 1440,
     height: 900,
@@ -145,6 +145,7 @@ test('浏览器冒烟：D 节点弹出多枚重写芯片，点击后只改该处
       var levels = app.state.levels;
       /* 借一个更早的关卡当定理来源，并把它临时换成两处定义的目标公式。 */
       levels[0].targetTokens = T.parseAssertion('(P∧Q)∨(R∧S)');
+      app.state.solved[levels[0].id] = true;
       app.loadLevel(1);
       var lv = app.state.level;
       var target = { id: 'target', kind: 'target', x: 940, y: 240, config: {}, targetTokens: lv.targetTokens };
@@ -158,70 +159,71 @@ test('浏览器冒烟：D 节点弹出多枚重写芯片，点击后只改该处
       app.state.selectedNode = 'de';
       app.refresh();
     })()`);
-    await page.waitFor('document.querySelectorAll("#popover .opt-def[data-at]").length >= 4');
+    await page.waitFor('document.querySelectorAll(".definition-sheet .def-row").length >= 3');
 
     const picker = await page.js(`(function () {
-      var chips = Array.prototype.slice.call(document.querySelectorAll('#popover .opt-def[data-at]'));
-      var result = window.RSL.APP.state.results.results.de;
+      var rows = Array.prototype.slice.call(document.querySelectorAll('.definition-sheet .def-row'));
       return {
-        hidden: document.getElementById('popover').hidden,
-        chips: chips.length,
-        sites: chips.filter(function (c) { return c.getAttribute('data-at') !== 'all'; }).length,
-        title: (document.querySelector('.def-title') || {}).textContent,
-        beforeTokens: result && result.tokens,
-        beforeFormula: (document.querySelector('.node[data-id="de"] .node-formula') || {}).textContent,
-        allOn: !!document.querySelector('#popover .opt-def[data-at="all"].is-on')
+        hidden: document.getElementById('overlay').hidden,
+        rows: rows.length,
+        input: document.querySelector('.def-input').textContent,
+        count: document.querySelector('.def-count').textContent,
+        hasPopover: !document.getElementById('popover').hidden,
+        beforeTokens: window.RSL.APP.state.results.results.de.tokens,
+        width: document.getElementById('sheet').getBoundingClientRect().width
       };
     })()`);
-    assert.strictEqual(picker.hidden, false, 'D 节点显示配置弹层');
-    assert.ok(picker.sites > 1, '至少列出两处可重写位置（实际 ' + picker.sites + '）');
-    assert.strictEqual(picker.chips, picker.sites + 1, '除位置芯片外还有一枚 all 芯片');
-    assert.ok(!/[\u4e00-\u9fa5]/.test(picker.title), '面板标题不出现中文');
-    assert.strictEqual(picker.allOn, true, '未设 at 时 all 芯片高亮');
-    assert.strictEqual(countToken(picker.beforeTokens, '/\\'), 0, '默认全量展开后没有表面 ∧');
+    assert.strictEqual(picker.hidden, false, 'D 节点打开大面板');
+    assert.ok(picker.rows >= 3, '列出多处可重写位置（实际 ' + picker.rows + '）');
+    assert.ok(picker.width > 600, 'D 面板比旧浮条宽');
+    assert.ok(!/[\u4e00-\u9fa5]/.test(picker.input), '顶部输入公式不含汉字');
+    assert.strictEqual(picker.hasPopover, false, '不再弹小浮条');
+    assert.strictEqual(picker.count.trim(), '0 处已重写');
+    assert.strictEqual(countToken(picker.beforeTokens, '/\\'), 2, '未选择时 D 节点保持原始 ∧ 公式');
     await page.shot('definition-picker');
 
-    await page.js('document.querySelector(\'#popover .opt-def[data-at="0"]\').click()');
-    await page.sleep(180);
+    await page.js('document.querySelector(".definition-sheet .def-row").click()');
+    await page.waitFor('document.querySelector(".def-count").textContent.indexOf("1") >= 0');
     const afterClick = await page.js(`(function () {
       var app = window.RSL.APP;
       var node = app.state.board.node('de');
       var result = app.state.results.results.de;
       return {
-        hidden: document.getElementById('popover').hidden,
+        hidden: document.getElementById('overlay').hidden,
         selected: app.state.selectedNode,
-        at: node && node.config && node.config.at,
-        siteOn: !!document.querySelector('#popover .opt-def[data-at="0"].is-on'),
+        steps: node && node.config && node.config.steps,
+        count: document.querySelector('.def-count').textContent,
+        rows: document.querySelectorAll('.definition-sheet .def-row').length,
         tokens: result && result.tokens,
         formula: (document.querySelector('.node[data-id="de"] .node-formula') || {}).textContent
       };
     })()`);
-    assert.strictEqual(afterClick.hidden, false, '点击芯片后弹层不消失');
-    assert.strictEqual(afterClick.selected, 'de', '点击芯片后节点仍选中');
-    assert.deepStrictEqual(afterClick.at, [0], 'config.at 写入子节点路径');
-    assert.strictEqual(afterClick.siteOn, true, '被选中的位置芯片高亮');
+    assert.strictEqual(afterClick.hidden, false, '点击后大面板不消失');
+    assert.strictEqual(afterClick.selected, 'de', '点击后节点仍选中');
+    assert.strictEqual(afterClick.steps.length, 1, '记录一步定义重写');
+    assert.ok(/1 处已重写/.test(afterClick.count), '已重写计数更新');
     assert.notDeepStrictEqual(afterClick.tokens, picker.beforeTokens, '公式确实发生变化');
-    assert.strictEqual(countToken(afterClick.tokens, '/\\'), 1, '只展开一处 ∧，另一处仍是表面 ∧');
-    assert.strictEqual(countToken(afterClick.tokens, '\\/'), 1, '根 ∨ 未被展开');
-    assert.notStrictEqual(afterClick.formula, picker.beforeFormula, '节点卡片公式文本同步刷新');
+    assert.strictEqual(countToken(afterClick.tokens, '\\/'), 0, '根上的 ∨ 已展开');
+    assert.strictEqual(countToken(afterClick.tokens, '/\\'), 2, '子式 ∧ 仍保持表面语法');
+    assert.strictEqual(afterClick.rows, 2, '列表立刻更新为剩余两处 ∧');
 
-    await page.js('document.querySelector(\'#popover .opt-def[data-at="all"]\').click()');
-    await page.sleep(180);
+    await page.js('document.querySelector("[data-def-full]").click()');
+    await page.waitFor('document.querySelector(".def-count").textContent.indexOf("0") >= 0');
     const afterAll = await page.js(`(function () {
       var app = window.RSL.APP;
       var node = app.state.board.node('de');
       var result = app.state.results.results.de;
       return {
-        hasAt: !!(node.config && Object.prototype.hasOwnProperty.call(node.config, 'at')),
-        tokens: result && result.tokens,
-        allOn: !!document.querySelector('#popover .opt-def[data-at="all"].is-on')
+        steps: node.config && node.config.steps,
+        full: node.config && node.config.full,
+        tokens: result && result.tokens
       };
     })()`);
-    assert.strictEqual(afterAll.hasAt, false, 'all 芯片删除 config.at');
-    assert.deepStrictEqual(afterAll.tokens, picker.beforeTokens, 'all 恢复全量展开结果');
-    assert.strictEqual(afterAll.allOn, true, 'all 芯片重新高亮');
+    assert.deepStrictEqual(afterAll.steps, [], '全部按钮清空分步');
+    assert.strictEqual(afterAll.full, true, '全部按钮启用全量展开');
+    assert.strictEqual(countToken(afterAll.tokens, '/\\'), 0, '全量展开后没有表面 ∧');
 
-    /* 帮助卡片：只剩 S/M/D/D⁻，两条定义重写都用单向 ⇛。 */
+    /* 帮助卡片：只剩 S/M/D/D⁻，两条定义重写都用单向 ⇒。 */
     await page.js('window.RSL.UI.closeSheet(); document.querySelector("#helpBtn").click()');
     await page.waitFor('document.querySelectorAll(".help-card").length === 4');
     const help = await page.js(`(function () {
@@ -229,14 +231,19 @@ test('浏览器冒烟：D 节点弹出多枚重写芯片，点击后只改该处
         labels: Array.prototype.map.call(document.querySelectorAll('.help-card b'), function (b) { return b.textContent; }),
         text: document.querySelector('.help-cards').textContent,
         arrows: Array.prototype.filter.call(document.querySelectorAll('.help-card'), function (c) {
-          return c.textContent.indexOf('⇛') >= 0;
+          return c.textContent.indexOf('⇒') >= 0;
         }).length
       };
     })()`);
     assert.deepStrictEqual(help.labels, ['S', 'M', 'D', 'D⁻'], '帮助只保留 S/M/D/D⁻');
     assert.ok(!/[\u4e00-\u9fa5]/.test(help.text), '帮助卡片不含汉字');
-    assert.strictEqual(help.arrows, 2, 'D 与 D⁻ 都使用单向 ⇛');
-    assert.ok(help.text.indexOf('⇄') < 0, '不再使用双向 ⇄');
+    assert.strictEqual(help.arrows, 4, '四张帮助卡都使用单向 ⇒');
+    const dCards = await page.js(`Array.prototype.filter.call(document.querySelectorAll('.help-card'), function (c) {
+      var b = c.querySelector('b').textContent;
+      return (b === 'D' || b === 'D⁻') && c.textContent.indexOf('⇒') >= 0;
+    }).length`);
+    assert.strictEqual(dCards, 2, 'D 与 D⁻ 都使用单向 ⇒');
+    assert.ok(help.text.indexOf('\u21db') < 0, '不再使用旧箭头');
     await page.shot('definition-help');
     await page.js('window.RSL.UI.closeSheet()');
 

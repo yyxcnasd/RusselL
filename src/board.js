@@ -45,15 +45,26 @@
     if (!m) return true;
     return Number(m[2]) <= 1 + extras;
   }
+  /* 连接词合并后，¬ 只显示一个输入；其余连接词显示 a/b 两个输入。 */
+  function connectiveUnary(config) {
+    return !config || (config.op || 'not') === 'not';
+  }
+  function visibleInputPorts(kind, config, ports) {
+    var list = ports || [];
+    if (kind === 'subst') {
+      var extras = substExtras(config);
+      return list.filter(function (p) { return substPortVisible(p.id, extras); });
+    }
+    if (kind === 'connective' && connectiveUnary(config)) {
+      return list.filter(function (p) { return p.id !== 'b'; });
+    }
+    return list;
+  }
   /* 没有 DOM 元素时也能估算节点高度：S 元件端口多，不能按 112px 敷衍。 */
   function estimateNodeHeight(n) {
     if (n.kind === 'target') return DEFAULT_TARGET_H;
     var info = window.RSL.Engine.info(n.kind);
-    var count = (info.ports.inputs || []).length;
-    if (n.kind === 'subst') {
-      var extras = substExtras(n.config);
-      count = (info.ports.inputs || []).filter(function (p) { return substPortVisible(p.id, extras); }).length;
-    }
+    var count = visibleInputPorts(n.kind, n.config, info.ports.inputs).length;
     return Math.max(NODE_MIN_H, PORT_TOP + Math.max(0, count - 1) * PORT_STEP + PORT_TAIL);
   }
   function portTop(n, i) { return (n.kind === 'target' ? TARGET_PORT_TOP : PORT_TOP) + i * PORT_STEP; }
@@ -946,6 +957,9 @@
     if (n.kind === 'imp') return '→';
     if (n.kind === 'and') return '∧';
     if (n.kind === 'iff') return '↔';
+    if (n.kind === 'connective') {
+      return { not: '¬', imp: '→', and: '∧', or: '∨', iff: '↔' }[cfg.op || 'not'] || '¬';
+    }
     if (n.kind === 'mem') return '∈';
     if (n.kind === 'all') return '∀' + (cfg.v || 'x');
     if (n.kind === 'exists') return '∃' + (cfg.v || 'x');
@@ -982,11 +996,7 @@
    * uses it to build, paint() uses it to update; the two cannot drift. */
   Board.prototype._nodeView = function (n, result) {
     var info = window.RSL.Engine.info(n.kind);
-    var inputPorts = (info.ports.inputs || []);
-    if (n.kind === 'subst') {
-      var extras = substExtras(n.config);
-      inputPorts = inputPorts.filter(function (p) { return substPortVisible(p.id, extras); });
-    }
+    var inputPorts = visibleInputPorts(n.kind, n.config, info.ports.inputs);
     var outputs = info.ports.outputs || [];
     var isAssertion = outputs.some(function (p) { return p.type === 'assertion'; });
     var r = result && result.results[n.id];
@@ -1116,7 +1126,7 @@
     var outInfo = window.RSL.Engine.info(from.kind);
     var inInfo = window.RSL.Engine.info(to.kind);
     var op = (outInfo.ports.outputs || []).filter(function (p) { return p.id === fromPort; })[0];
-    var ip = (inInfo.ports.inputs || []).filter(function (p) { return p.id === toPort; })[0];
+    var ip = visibleInputPorts(to.kind, to.config, inInfo.ports.inputs).filter(function (p) { return p.id === toPort; })[0];
     if (!op || !ip) return false;
     if (op.type !== ip.type) { this.onToast('接口不匹配'); return false; }
     var existing = this.edges.filter(function (e) { return e.to.node === toNode && e.to.port === toPort; })[0];
@@ -1298,6 +1308,24 @@
     var n = this.node(id);
     if (!n) return;
     n.config = Object.assign({}, n.config, patch);
+    this.render();
+    if (this._overlaps(n, n.x, n.y)) {
+      this._resolvePosition(n);
+      this.render();
+    }
+    this.onChange();
+  };
+
+  /* 连接词从二元切到 ¬ 时，b 输入口会消失，必须同时拆掉接在它上面的线。 */
+  Board.prototype.setConnectiveOp = function (id, op) {
+    var n = this.node(id);
+    if (!n || n.kind !== 'connective') return;
+    n.config = Object.assign({}, n.config, { op: op });
+    if (connectiveUnary(n.config)) {
+      this.edges = this.edges.filter(function (e) {
+        return !(e && e.to && e.to.node === id && e.to.port === 'b');
+      });
+    }
     this.render();
     if (this._overlaps(n, n.x, n.y)) {
       this._resolvePosition(n);

@@ -1,4 +1,5 @@
-/* 成就定义与纯条件判定（100 编号关 + 教学 / 魔王版）。 */
+/* 成就定义与纯条件判定（108 关单章版）。
+ * 只保留少量有辨识度的目标：通关带、引理、连接词组合、超长证明、夜猫子等。 */
 (function () {
   'use strict';
   window.RSL = window.RSL || {};
@@ -6,24 +7,17 @@
   var LIST = [
     { id: 'first', symbol: 'i-play', name: '第一步', desc: '完成任意一关。' },
     { id: 'ten', symbol: 'i-book-open', name: '十关', desc: '累计完成 10 个编号关。' },
-    { id: 'all', symbol: 'i-check-badge', name: '全通', desc: '完成全部 100 个编号关。' },
-    { id: 'tutorial-all', symbol: 'i-book-open', name: '教程通关', desc: '完成全部 8 个教学关。' },
-    { id: 'normal-all', symbol: 'i-book-open', name: '普通通关', desc: '完成全部 20 个普通关。' },
-    { id: 'hard-first', symbol: 'i-bolt', name: '首个困难关', desc: '完成任意一个困难关。' },
-    { id: 'hard-25', symbol: 'i-star', name: '困难四分之一', desc: '完成 25 个困难关。' },
-    { id: 'hard-50', symbol: 'i-star', name: '困难过半', desc: '完成 50 个困难关。' },
-    { id: 'hard-all', symbol: 'i-check-badge', name: '困难全通', desc: '完成全部 70 个困难关。' },
-    { id: 'demon-first', symbol: 'i-bolt', name: '踏入魔王', desc: '完成任意一个魔王关。' },
-    { id: 'demon-five', symbol: 'i-star', name: '魔王五关', desc: '完成 5 个魔王关。' },
-    { id: 'demon-all', symbol: 'i-check-badge', name: '魔王全通', desc: '完成全部 10 个魔王关。' },
-    { id: 'rule-subst', symbol: 'i-arrow-path', name: '代入', desc: '第一次使用 S 模块。' },
-    { id: 'rule-mp', symbol: 'i-link', name: '分离', desc: '第一次使用 M 模块。' },
-    { id: 'rule-d', symbol: 'i-squares-2x2', name: '定义重写', desc: '第一次使用 D 或 D⁻。' },
-    { id: 'lemma', symbol: 'i-arrow-path', name: '引用定理', desc: '第一次引用 *NN 已证定理。' },
-    { id: 'clean-hard', symbol: 'i-check-badge', name: '干净困难', desc: '不删模块完成 10 个困难关。' },
+    { id: 'normal-all', symbol: 'i-book-open', name: '普通全通', desc: '完成全部普通关。' },
+    { id: 'hard-all', symbol: 'i-star', name: '困难全通', desc: '完成全部困难关。' },
+    { id: 'demon-all', symbol: 'i-bolt', name: '魔王全通', desc: '完成全部魔王关。' },
+    { id: 'all', symbol: 'i-check-badge', name: '全通', desc: '完成全部 108 关。' },
+    { id: 'lemma', symbol: 'i-arrow-path', name: '站在巨人的肩上', desc: '第一次把已通关的关卡当作引理引用。' },
+    { id: 'five-conn', symbol: 'i-squares-2x2', name: '五连', desc: '在一局证明里同时用 ¬、→、∧、∨、↔。' },
+    { id: 'long-proof', symbol: 'i-trophy', name: '大而无当', desc: '构造一个包含至少 40 个模块的超长证明。' },
     { id: 'efficient-demon', symbol: 'i-bolt', name: '魔王效率', desc: '用不超过参考电路的模块数完成任一魔王关。' },
-    { id: 'perfect', symbol: 'i-check-badge', name: '全干净', desc: '全部编号关通关且都未删除模块。' },
-    { id: 'no-hints', symbol: 'i-bolt', name: '独立完成', desc: '完成任意一关（提示功能在正式版）。' }
+    { id: 'clean-hard', symbol: 'i-check-badge', name: '干净困难', desc: '不删模块完成 10 个困难关。' },
+    { id: 'no-theorem-hard', symbol: 'i-link', name: '徒手', desc: '不引用任何引理完成一个困难关。' },
+    { id: 'night-owl', symbol: 'i-moon', name: '夜猫子', desc: '在 0:00–5:00 之间完成一关。' }
   ];
 
   var BY_ID = Object.create(null);
@@ -32,7 +26,6 @@
   function evaluate(state) {
     var levels = state.levels || [];
     var numbered = levels.filter(function (lv) { return !lv.tutorial; });
-    var tutorials = levels.filter(function (lv) { return lv.tutorial; });
     var normals = levels.filter(function (lv) { return lv.band === 'base'; });
     var hards = levels.filter(function (lv) { return lv.band === 'challenge'; });
     var demons = levels.filter(function (lv) { return lv.band === 'demon'; });
@@ -44,29 +37,20 @@
 
     if (solvedAll.length >= 1) add('first');
     if (solved.length >= 10) add('ten');
-    if (numbered.length && solved.length === numbered.length) add('all');
-    if (tutorials.length && solvedCount(tutorials) === tutorials.length) add('tutorial-all');
     if (normals.length && solvedCount(normals) === normals.length) add('normal-all');
+    if (hards.length && solvedCount(hards) === hards.length) add('hard-all');
+    if (demons.length && solvedCount(demons) === demons.length) add('demon-all');
+    if (levels.length && solvedAll.length === levels.length) add('all');
 
-    var hardSolved = solvedCount(hards);
-    if (hardSolved >= 1) add('hard-first');
-    if (hardSolved >= 25) add('hard-25');
-    if (hardSolved >= 50) add('hard-50');
-    if (hards.length && hardSolved === hards.length) add('hard-all');
+    if ((state.usedKinds && state.usedKinds.theorem) ||
+      (state.levelKinds && Object.keys(state.levelKinds).some(function (id) {
+        return (state.levelKinds[id] || []).indexOf('theorem') >= 0;
+      }))) add('lemma');
 
-    var demonSolved = solvedCount(demons);
-    if (demonSolved >= 1) add('demon-first');
-    if (demonSolved >= 5) add('demon-five');
-    if (demons.length && demonSolved === demons.length) add('demon-all');
+    var ops = state.usedOps || [];
+    if (['not', 'imp', 'and', 'or', 'iff'].every(function (op) { return ops.indexOf(op) >= 0; })) add('five-conn');
 
-    var kinds = state.usedKinds || {};
-    if (kinds.subst) add('rule-subst');
-    if (kinds.mp) add('rule-mp');
-    if (kinds['def-expand'] || kinds['def-contract']) add('rule-d');
-    if (kinds.theorem) add('lemma');
-
-    var cleanHard = hards.filter(function (lv) { return state.cleanWins && state.cleanWins[lv.id]; }).length;
-    if (cleanHard >= 10) add('clean-hard');
+    if ((state.maxLen || 0) >= 40) add('long-proof');
 
     var efficientDemon = demons.some(function (lv) {
       var ref = lv.solution && lv.solution.nodes ? lv.solution.nodes.length : 0;
@@ -74,9 +58,17 @@
     });
     if (efficientDemon) add('efficient-demon');
 
-    var clean = numbered.filter(function (lv) { return state.cleanWins && state.cleanWins[lv.id]; }).length;
-    if (numbered.length && clean >= numbered.length) add('perfect');
-    if (solved.length >= 1) add('no-hints');
+    var cleanHard = hards.filter(function (lv) { return state.cleanWins && state.cleanWins[lv.id]; }).length;
+    if (cleanHard >= 10) add('clean-hard');
+
+    var bareHard = hards.some(function (lv) {
+      if (!state.solved[lv.id]) return false;
+      var kinds = state.levelKinds && state.levelKinds[lv.id];
+      return Array.isArray(kinds) && kinds.indexOf('theorem') < 0;
+    });
+    if (bareHard) add('no-theorem-hard');
+
+    if (state.nightOwl) add('night-owl');
 
     return out.filter(function (id, i) { return out.indexOf(id) === i; });
   }

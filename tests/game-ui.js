@@ -1,5 +1,5 @@
 'use strict';
-/* 单章命题演算的浏览器验收：96 关（8 教学 + 32 普通 + 56 困难）。 */
+/* 单章命题演算的浏览器验收：108 关（8 教学 + 20 普通 + 70 困难 + 10 魔王）。 */
 const { runTest, fileUrl } = require('./lib/browser');
 const { ok, equal, includes } = require('./lib/expect');
 
@@ -255,8 +255,8 @@ runTest('game-ui', async ({ openPage }) => {
   await page.js('window.RSL.UI.closeSheet()');
 
   await page.js('document.querySelector("#achvBtn").click()');
-  await page.waitFor('document.querySelectorAll(".achv").length === 20');
-  equal(await page.js('document.querySelectorAll(".achv").length'), 20, '成就面板 20 格');
+  await page.waitFor('document.querySelectorAll(".achv").length === 13');
+  equal(await page.js('document.querySelectorAll(".achv").length'), 13, '成就面板 13 格');
   await page.js('window.RSL.UI.closeSheet()');
 
   /* 元件栏合并：原子 P/Q/R 共享一个 tile，具体字母在配置弹层里选 */

@@ -44,8 +44,9 @@ campaign/campaign2.js（set.mm 定理 + 手写关 + 教学关）
 
 - 一条命令重建：`npm run build`（= build-campaign2 && write-levels）。
 - 单章：8 教学 + 20 普通（10–30 模块）+ 70 困难（25–100 模块）+ 10 魔王（70–500 模块、hint=null）；共 108 关。
-- 普通关不能引用更晚的关卡；困难关可以引用更早关卡。
-- ∧/∨/↔ 规则关用真实证明内联；定义展开/收缩用 D/D⁻。
+- 教学/普通逐关解锁；普通全通后困难整段开放，困难全通后魔王整段开放。
+- 困难/魔王段开放全部连接词、A1–A3、S/M/D/D⁻；引理可以是任意已通关的非教学关，不要求编号更小。
+- ∧/∨/↔ 规则关用真实证明内联；连接词在托盘里合并成一个元件，放下后选择符号。
 - 49 条 set.mm 命题定理导入；大证明的中间结论按模块数拆成普通/困难关。
 - 存档在 localStorage（v4，带 campaign 指纹；旧档按目标公式迁移）。
 
@@ -63,13 +64,13 @@ campaign/campaign2.js（set.mm 定理 + 手写关 + 教学关）
 
 | 命令 | 内容 |
 | --- | --- |
-| `npm test` | 108 关 schema（8 教学 + 20 普通 + 70 困难 + 10 魔王）、目标不重复、参考证明逐关真实 Engine 求值、定理只引更早 |
+| `npm test` | 108 关 schema（8 教学 + 20 普通 + 70 困难 + 10 魔王）、目标不重复、参考证明逐关真实 Engine 求值、非教学关不引用教学关 |
 | `npm run test:wire` | 端口布线纯函数 |
 | `npm run test:leaderboard` | 排行榜分数 |
-| `node tests/game-ui.js` | Edge headless：加载 108 关、四条分带/帮助/提示/排行榜面板、D 选择器、无 JS 错误 |
+| `node tests/game-ui.js` | Edge headless：加载 108 关、四条分带/帮助/提示/排行榜面板、大面板、无 JS 错误 |
 | `npm run test:acceptance` | dist 清单与源码一致；dist 直接加载完整 108 关 |
 | `node tests/screenshots.js` | 浅色/深色截图 |
-| `npm run test:save` | v1–v3 存档迁移、campaign 指纹、云存档合并 |
+| `npm run test:save` | v1–v3 存档迁移、campaign 指纹、云存档合并、半成品画布 |
 | `npm run test:dedupe` | mergeAll 合并全部同 token 节点、环安全、真实关卡回归 |
-| `npm run test:definitions` | D/D⁻ 逐处选择、全量兼容、浏览器弹层 |
+| `npm run test:definitions` | D/D⁻ 分步重写、全量兼容、大面板浏览器验收 |
 | `npm run test:text` | 参考解文字无中文、代码块 English-only |
