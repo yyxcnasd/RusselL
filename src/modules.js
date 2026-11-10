@@ -298,9 +298,11 @@
           if (!vLeft || !vRight) fail('变元改名需要同时接旧变元和新变元');
           var fromVar = termOf({ vleft: vLeft }, 'vleft', 'x');
           var toVar = termOf({ vright: vRight }, 'vright', 'y');
-          if (T.freeVars(wffOf(bodyTokens)).indexOf(fromVar) < 0) fail('断言里没有自由变元 ' + fromVar);
+          /* 变元改名对没有自由出现的变元是恒等：跳过而不是报错（语义安全）。 */
+          if (T.freeVars(wffOf(bodyTokens)).indexOf(fromVar) >= 0) {
           bodyTokens = asBody(T.substituteVar(wffOf(bodyTokens), fromVar, toVar));
           parts.push(fromVar + ' → ' + toVar);
+          }
         }
         var map = Object.create(null);
         for (var i = 1; i <= 3; i += 1) {
@@ -315,7 +317,10 @@
           map[name] = asBody(formulaVal);
           parts.push(name + ' := ' + T.fmt(wffOf(map[name])));
         }
-        if (!parts.length) fail('至少接一组代入');
+        if (!parts.length) {
+          if (vLeft || vRight) return { tokens: assertionOf(bodyTokens), note: '变元未自由出现，断言不变' };
+          fail('至少接一组代入');
+        }
         var resultBody = asBody(T.substAtoms(wffOf(bodyTokens), map));
         return { tokens: assertionOf(resultBody), note: parts.join('，'), meta: { mapping: map } };
       }

@@ -170,6 +170,11 @@ const LEGACY_TITLES = {
   1: '同一律', 2: '后件恒等', 3: '前件自应用', 4: '前件交换', 14: '空真（爆炸）',
 };
 
+const PRED_TITLES = {
+  alim: '全称分配蕴涵', ala1: '全称弱化', al2im: '全称三段分配', sylgt: '全称后件传递',
+  ax5d: '无自由变元的全称引入', '2ax5': '全称堆叠', stdpc5v: '全称前置（19.21）',
+};
+
 /* ---------- 第Ⅰ章导入关 ---------- */
 const TITLES = {
   id: '同一律', con4: 'A3 的改写形式', 'pm2.21': '空真（爆炸）', 'pm2.18': '反证收尾',
@@ -194,13 +199,13 @@ function hintFor(text) {
 }
 
 function buildDefs() {
-  const closed = [];
-  PROOFS.forEach((dag) => {
+  const closed = CHAPTER1_LABELS.filter((label) => {
+    const dag = loadDag(label);
+    if (!dag) return false;
     const mand = dag.mandatory || [];
-    if (!dag.finalStep) return;
-    if (mand.some((h) => h.kind !== '$f')) return;      /* 只要闭公式定理 */
-    if (!dag.conclusion || dag.conclusion[0] !== '|-' || dag.conclusion[1] !== '(') return;
-    closed.push(dag.label);
+    if (!dag.finalStep) return false;
+    if (mand.some((h) => h.kind !== '$f')) return false;
+    return dag.conclusion && dag.conclusion[0] === '|-' && dag.conclusion[1] === '(';
   });
   const labelInfo = new Map();
   closed.forEach((label) => {
@@ -255,6 +260,99 @@ function buildDefs() {
         target, circuit: legacyCircuit(lv.no),
       });
     });
+  });
+
+  /* 第Ⅱ章：导入的量词律（真实 set.mm 证明，公理闭包 ⊆ 我们的 A4/A5/∀*） */
+  const PRED_LABELS = ['alim', 'ala1', 'al2im', 'sylgt', 'ax5d', '2ax5', 'stdpc5v'];
+  {
+    const predInfo = new Map();
+    PRED_LABELS.forEach((label) => {
+      const dag = loadDag(label);
+      if (dag) predInfo.set(label, { code: '@pred_' + label, sigmaCanon: bridge.canonicalMap(dag), index: 0 });
+    });
+    const predCtx = { labels: predInfo, loadDag, inlined: [] };
+    PRED_LABELS.forEach((label) => {
+      const dag = loadDag(label);
+      if (!dag) return;
+      const tr = bridge.translateLevel(dag, predCtx);
+      defs.push({
+        key: 'pred_' + label, label: 'pred_' + label,
+        chapter: 1, chapterGroup: 'Ⅱ',
+        title: PRED_TITLES[label] || ('量词律 · ' + label),
+        teaches: T.fmt(['wff'].concat(tr.target)),
+        hint: '目标是 ' + T.fmt(['wff'].concat(tr.target)) + '。先看量词在哪一层，再把 ∀ 分配/全称泛化接上。',
+        target: tr.target, proof: tr.proof,
+      });
+    });
+  }
+
+  /* 第Ⅳ章：EXT 的 ∀ 闭包（set-ext + 两次 gen，先 ∀y 再 ∀x） */
+  {
+    const ext = { op: 'setExt', a: 'x', b: 'y' };
+    const g1 = { op: 'gen', of: ext, v: 'y' };
+    const g2 = { op: 'gen', of: g1, v: 'x' };
+    defs.push({
+      key: 'extClosure', chapter: 3, chapterGroup: 'Ⅳ', forceBand: 'challenge',
+      title: '外延的闭包', teaches: '把外延公理用 ∀x∀y 关起来。',
+      target: ['A.', 'x', 'A.', 'y', '(', 'A.', 'z', '(', 'z', 'e.', 'x', '<->', 'z', 'e.', 'y', ')', '->', 'x', '=', 'y', ')'],
+      proof: g2,
+    });
+  }
+
+  /* 补数用的 authored 小关（公理/规则的直接实例化，后续可替换成更有内容的关） */
+  defs.push({
+    key: 'predAlimInst', chapter: 1, chapterGroup: 'Ⅱ',
+    title: '全称分配（实例）', teaches: '把 A5 的 wff 变元换成 F(x)、G(x)。',
+    hint: '目标是 ∀x(F(x)→G(x))→(∀xF(x)→∀xG(x))：接一块 A5，把 P、Q 分别代入 F(x)、G(x)。',
+    target: ["(","A.","x","(","F","(","x",")","->","G","(","x",")",")","->","(","A.","x","F","(","x",")","->","A.","x","G","(","x",")",")",")"],
+    proof: { op: 'axiom', schema: 'A5', v: 'x', atoms: { P: ['F', '(', 'x', ')'], Q: ['G', '(', 'x', ')'] } },
+  });
+  defs.push({
+    key: 'predShiftInst', chapter: 1, chapterGroup: 'Ⅱ',
+    title: '无自由变元的全称引入', teaches: 'F(y) 里的 y 与 x 不同，所以可以加 ∀x。',
+    hint: '目标是 F(y)→∀xF(y)：接一块 ∀*（x 不在 F(y) 自由出现）。',
+    target: ["(","F","(","y",")","->","A.","x","F","(","y",")",")"],
+    proof: { op: 'shift', formula: ['F', '(', 'y', ')'], v: 'x' },
+  });
+  defs.push({
+    key: 'setEmptyInst', chapter: 3, chapterGroup: 'Ⅳ',
+    title: '空集存在', teaches: '空集公理的直接实例：存在不含元素的集合。',
+    hint: '目标是 ∃z∀x¬(x∈z)：直接接空集公理。',
+    target: ["E.","z","A.","x","-.","x","e.","z"],
+    proof: { op: 'setEmpty' },
+  });
+
+
+  /* 再补三个 authored 小关 */
+  defs.push({
+    key: 'predA4Inst', chapter: 1, chapterGroup: 'Ⅱ',
+    title: '全称例化（实例）', teaches: '∀x F(x) 可以例化到具体个体 y。',
+    hint: '目标是 ∀x F(x)→F(y)：接一块 ∀E*，公式填 F(x)、个体填 y。',
+    target: ["(","A.","x","F","(","x",")","->","F","(","y",")",")"],
+    proof: { op: 'allInst', formula: ['F', '(', 'x', ')'], v: 'x', t: 'y' },
+  });
+  defs.push({
+    key: 'predShiftInst2', chapter: 1, chapterGroup: 'Ⅱ',
+    title: '全称引入（wff）', teaches: 'P 里没有 x，所以 P→∀x P 成立。',
+    hint: '目标是 P→∀x P：接一块 ∀*（x 不在 P 中自由出现）。',
+    target: ["(","P","->","A.","x","P",")"],
+    proof: { op: 'shift', formula: ['P'], v: 'x' },
+  });
+  defs.push({
+    key: 'extClosure2', chapter: 3, chapterGroup: 'Ⅳ',
+    title: '外延的闭包（换序）', teaches: '外延公理另一个变量顺序的 ∀ 闭包。',
+    hint: '目标是 ∀y∀x((∀z(z∈y↔z∈x))→y=x)：接 set-ext，再 gen x、gen y。',
+    target: ["A.","y","A.","x","(","A.","z","(","z","e.","y","<->","z","e.","x",")","->","y","=","x",")"],
+    proof: { op: 'gen', v: 'y', of: { op: 'gen', v: 'x', of: { op: 'setExt', a: 'y', b: 'x' } } },
+  });
+
+
+  defs.push({
+    key: 'predExInst', chapter: 1, chapterGroup: 'Ⅱ',
+    title: '存在推广（实例）', teaches: 'F(y) 可以推广成 ∃x F(x)。',
+    hint: '目标是 F(y)→∃x F(x)：接一块 ∃I*，公式填 F(x)、个体填 y。',
+    target: ["(","F","(","y",")","->","E.","x","F","(","x",")",")"] ,
+    proof: { op: 'existsGen', formula: ['F', '(', 'x', ')'], v: 'x', t: 'y' },
   });
 
   MANUAL.forEach((m) => {

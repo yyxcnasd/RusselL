@@ -843,6 +843,11 @@ function main() {
         });
         console.log('MP inputs @' + c.finalCode, ins.join('  |  '));
       }
+      if (process.env.LADDER_DUMP) {
+        console.error('DUMP ' + c.finalCode + ' key=' + c.def.key + ' group=' + c.def.chapterGroup + ' chapter=' + c.def.chapter + ' target=' + T.fmt(c.targetTokens));
+        c.nodes.forEach((n) => console.error('  ', n.id, n.kind, JSON.stringify(n.config || {})));
+        c.edges.forEach((e) => console.error('  e', e.from.node + ':' + e.from.port, '->', e.to.node + ':' + e.to.port));
+      }
       problems.push(c.finalCode + ' 参考解未通关：' + (first ? first.message : '未知') +
         (badNode ? ' @' + badNode.kind + JSON.stringify(badNode.config).slice(0, 60) : ''));
     }
