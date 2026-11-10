@@ -111,7 +111,7 @@ B 站 Toy 版有排行榜入口，和帮助、提示按钮并排在顶栏。GitH
 
 ## 成就、存档与进度
 
-- 13 个成就，保留通关带与魔王/困难全通，另有「五连」「大而无当」「徒手」「夜猫子」等趣味目标，不再堆叠 25/50 关这类重复计数。
+- 20 个成就，保留通关带与魔王/困难全通，另有「闪电战」「失败是成功之母」「断舍离」「拿来主义」「公理集齐」「反复横跳」「后来居上」「五连」「大而无当」「徒手」「夜猫子」等趣味目标，不再堆叠 25/50 关这类重复计数。
 - **GitHub Pages / 本地**：存档写在浏览器 `localStorage`，可以从帮助页导出/导入 JSON。
 - **Bilibili Toy**：自动同步到当前 B 站账号的云存储，保存通关进度和当前关卡电路；帮助页不显示上传/下载存档的按钮。
 - 重进已通关的关卡会恢复你自己的电路，包括接到 `⊢` 的那根终点线。
@@ -148,6 +148,7 @@ npm test                         # 108 关 schema、参考证明、目标不重�
 npm run test:wire                # 走线/几何纯函数
 npm run test:leaderboard         # 排行榜分数算法
 npm run test:definitions         # D/D⁻ 分步重写、大面板
+npm run test:achievements        # 20 个成就的条件与唯一性
 npm run test:features            # 解锁顺序、引理选择、合并连接词、半成品存档
 npm run test:ui                  # Edge headless 浏览器回归（108 关、四条分带、D 选择器）
 npm run test:acceptance          # dist 构建产物与完整 108 关验收

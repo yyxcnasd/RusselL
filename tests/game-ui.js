@@ -255,8 +255,8 @@ runTest('game-ui', async ({ openPage }) => {
   await page.js('window.RSL.UI.closeSheet()');
 
   await page.js('document.querySelector("#achvBtn").click()');
-  await page.waitFor('document.querySelectorAll(".achv").length === 13');
-  equal(await page.js('document.querySelectorAll(".achv").length'), 13, '成就面板 13 格');
+  await page.waitFor('document.querySelectorAll(".achv").length === 20');
+  equal(await page.js('document.querySelectorAll(".achv").length'), 20, '成就面板 20 格');
   await page.js('window.RSL.UI.closeSheet()');
 
   /* 元件栏合并：原子 P/Q/R 共享一个 tile，具体字母在配置弹层里选 */

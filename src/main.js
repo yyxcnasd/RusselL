@@ -27,7 +27,14 @@
     maxLen: 0,
     levelKinds: {},
     usedOps: [],
+    usedAxioms: [],
     nightOwl: false,
+    fastWin: false,
+    failedChecks: 0,
+    deletions: 0,
+    pastes: 0,
+    laterLemma: false,
+    levelStartedAt: 0,
     deletedThisLevel: false,
     achievements: {},
     godMode: false,
@@ -92,7 +99,14 @@
     state.maxLen = 0;
     state.levelKinds = {};
     state.usedOps = [];
+    state.usedAxioms = [];
     state.nightOwl = false;
+    state.fastWin = false;
+    state.failedChecks = 0;
+    state.deletions = 0;
+    state.pastes = 0;
+    state.laterLemma = false;
+    state.levelStartedAt = 0;
     state.achievements = {};
     state.godMode = false;
     state.storySeen = {};
@@ -109,7 +123,13 @@
     state.maxLen = typeof p.maxLen === 'number' && p.maxLen > 0 ? p.maxLen : 0;
     state.levelKinds = p.levelKinds || {};
     state.usedOps = Array.isArray(p.usedOps) ? p.usedOps.slice() : [];
+    state.usedAxioms = Array.isArray(p.usedAxioms) ? p.usedAxioms.slice() : [];
     state.nightOwl = !!p.nightOwl;
+    state.fastWin = !!p.fastWin;
+    state.failedChecks = typeof p.failedChecks === 'number' && p.failedChecks > 0 ? p.failedChecks : 0;
+    state.deletions = typeof p.deletions === 'number' && p.deletions > 0 ? p.deletions : 0;
+    state.pastes = typeof p.pastes === 'number' && p.pastes > 0 ? p.pastes : 0;
+    state.laterLemma = !!p.laterLemma;
     state.achievements = setOf(p.achievements);
     state.godMode = !!p.godMode;
     state.storySeen = p.story || {};
@@ -393,6 +413,7 @@
     state.deletedThisLevel = false;
     state.index = index;
     state.level = state.levels[index];
+    state.levelStartedAt = Date.now();
     state.selectedNode = null;
     state.selectedEdge = null;
 
@@ -713,10 +734,12 @@
     }
     Audio.sfx('place');
     clearPaste();
+    state.pastes = (state.pastes || 0) + 1;
     state.selectedNodes = ids;
     state.selectedNode = ids.length === 1 ? ids[0] : null;
     state.selectedEdge = null;
     refresh();
+    checkAchievements();
   }
 
   function startPaste() {
@@ -1058,6 +1081,9 @@
     var result = state.results;
     if (!result) return;
     if (result.complete) { win(); return; }
+    state.failedChecks = (state.failedChecks || 0) + 1;
+    saveProgress();
+    checkAchievements();
     Audio.sfx('fail');
     if (result.errors && result.errors.length) {
       var msg = result.errors[0].message || '还没接完';
@@ -1077,14 +1103,26 @@
     var len = items.length;
     var levelKinds = {};
     var usedOps = (state.usedOps || []).slice();
+    var usedAxioms = (state.usedAxioms || []).slice();
     var OLD_CONN = { not: 'not', imp: 'imp', and: 'and', or: 'or', iff: 'iff' };
     items.forEach(function (n) {
       state.usedKinds[n.kind] = true;
       levelKinds[n.kind] = true;
       var op = n.kind === 'connective' ? ((n.config || {}).op || 'not') : OLD_CONN[n.kind];
       if (op && usedOps.indexOf(op) < 0) usedOps.push(op);
+      if (n.kind === 'axiom') {
+        var schema = String((n.config || {}).schema || '');
+        if (schema && usedAxioms.indexOf(schema) < 0) usedAxioms.push(schema);
+      }
+      if (n.kind === 'theorem') {
+        var code = String((n.config || {}).code || '');
+        var refIndex = state.levels.findIndex(function (lv) { return lv.code === code; });
+        if (refIndex > state.index) state.laterLemma = true;
+      }
     });
     state.usedOps = usedOps;
+    state.usedAxioms = usedAxioms;
+    if (state.levelStartedAt && Date.now() - state.levelStartedAt <= 60000) state.fastWin = true;
     state.levelKinds[level.id] = Object.keys(levelKinds);
     state.maxLen = Math.max(state.maxLen || 0, len);
     var hour = new Date().getHours();
@@ -1406,7 +1444,15 @@
       },
       onToast: function (msg) { UI.toast(msg); },
       onConnect: function () { Audio.sfx('connect'); },
-      onRemove: function (kind) { if (kind === 'node') state.deletedThisLevel = true; Audio.sfx('click'); }
+      onRemove: function (kind) {
+        if (kind === 'node') {
+          state.deletedThisLevel = true;
+          state.deletions = (state.deletions || 0) + 1;
+          saveProgress();
+          checkAchievements();
+        }
+        Audio.sfx('click');
+      }
     });
 
     Screens.init({

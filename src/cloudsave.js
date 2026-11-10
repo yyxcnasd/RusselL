@@ -77,7 +77,13 @@
       maxLen: p.maxLen || 0,
       levelKinds: p.levelKinds || {},
       usedOps: p.usedOps || [],
+      usedAxioms: p.usedAxioms || [],
       nightOwl: !!p.nightOwl,
+      fastWin: !!p.fastWin,
+      failedChecks: p.failedChecks || 0,
+      deletions: p.deletions || 0,
+      pastes: p.pastes || 0,
+      laterLemma: !!p.laterLemma,
       achievements: p.achievements || [],
       godMode: !!p.godMode,
       story: p.story || {},
@@ -223,7 +229,13 @@
     state.maxLen = typeof p.maxLen === 'number' ? p.maxLen : 0;
     state.levelKinds = p.levelKinds || {};
     state.usedOps = Array.isArray(p.usedOps) ? p.usedOps.slice() : [];
+    state.usedAxioms = Array.isArray(p.usedAxioms) ? p.usedAxioms.slice() : [];
     state.nightOwl = !!p.nightOwl;
+    state.fastWin = !!p.fastWin;
+    state.failedChecks = typeof p.failedChecks === 'number' ? p.failedChecks : 0;
+    state.deletions = typeof p.deletions === 'number' ? p.deletions : 0;
+    state.pastes = typeof p.pastes === 'number' ? p.pastes : 0;
+    state.laterLemma = !!p.laterLemma;
     /* 云端只保存精简电路；合并而不是整体覆盖，避免丢掉本机其它关卡的电路。 */
     state.circuits = Object.assign({}, state.circuits || {}, p.circuits || {});
     state.works = Object.assign({}, state.works || {}, p.works || {});

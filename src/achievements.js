@@ -11,6 +11,13 @@
     { id: 'hard-all', symbol: 'i-star', name: '困难全通', desc: '完成全部困难关。' },
     { id: 'demon-all', symbol: 'i-bolt', name: '魔王全通', desc: '完成全部魔王关。' },
     { id: 'all', symbol: 'i-check-badge', name: '全通', desc: '完成全部 108 关。' },
+    { id: 'flash-win', symbol: 'i-bolt', name: '闪电战', desc: '在 60 秒内完成任意一关。' },
+    { id: 'persistent', symbol: 'i-arrow-path', name: '失败是成功之母', desc: '累计 10 次校验未通过。' },
+    { id: 'declutter', symbol: 'i-x-mark', name: '断舍离', desc: '累计删除 30 个模块。' },
+    { id: 'copycat', symbol: 'i-arrow-down-tray', name: '拿来主义', desc: '第一次粘贴一整段电路。' },
+    { id: 'axiom-set', symbol: 'i-book-open', name: '公理集齐', desc: '在通关证明里用过 A1、A2、A3。' },
+    { id: 'd-both', symbol: 'i-squares-2x2', name: '反复横跳', desc: '在同一关同时使用 D 和 D⁻。' },
+    { id: 'later-lemma', symbol: 'i-arrow-right', name: '后来居上', desc: '引用一个编号更晚但已通关的关卡。' },
     { id: 'lemma', symbol: 'i-arrow-path', name: '站在巨人的肩上', desc: '第一次把已通关的关卡当作引理引用。' },
     { id: 'five-conn', symbol: 'i-squares-2x2', name: '五连', desc: '在一局证明里同时用 ¬、→、∧、∨、↔。' },
     { id: 'long-proof', symbol: 'i-trophy', name: '大而无当', desc: '构造一个包含至少 40 个模块的超长证明。' },
@@ -41,6 +48,18 @@
     if (hards.length && solvedCount(hards) === hards.length) add('hard-all');
     if (demons.length && solvedCount(demons) === demons.length) add('demon-all');
     if (levels.length && solvedAll.length === levels.length) add('all');
+
+    if (state.fastWin) add('flash-win');
+    if ((state.failedChecks || 0) >= 10) add('persistent');
+    if ((state.deletions || 0) >= 30) add('declutter');
+    if ((state.pastes || 0) >= 1) add('copycat');
+    var axioms = state.usedAxioms || [];
+    if (['A1', 'A2', 'A3'].every(function (id) { return axioms.indexOf(id) >= 0; })) add('axiom-set');
+    if (Object.keys(state.levelKinds || {}).some(function (id) {
+      var kinds = state.levelKinds[id] || [];
+      return kinds.indexOf('def-expand') >= 0 && kinds.indexOf('def-contract') >= 0;
+    })) add('d-both');
+    if (state.laterLemma) add('later-lemma');
 
     if ((state.usedKinds && state.usedKinds.theorem) ||
       (state.levelKinds && Object.keys(state.levelKinds).some(function (id) {

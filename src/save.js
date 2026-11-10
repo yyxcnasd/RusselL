@@ -107,7 +107,13 @@
       maxLen: Math.max(0, state.maxLen | 0),
       levelKinds: kindsMap(state.levelKinds),
       usedOps: unique(strings(state.usedOps)),
+      usedAxioms: unique(strings(state.usedAxioms)),
       nightOwl: !!state.nightOwl,
+      fastWin: !!state.fastWin,
+      failedChecks: Math.max(0, state.failedChecks | 0),
+      deletions: Math.max(0, state.deletions | 0),
+      pastes: Math.max(0, state.pastes | 0),
+      laterLemma: !!state.laterLemma,
       achievements: Object.keys(state.achievements || {}),
       godMode: !!state.godMode,
       story: object(state.storySeen),
@@ -160,7 +166,13 @@
       maxLen: typeof raw.maxLen === 'number' && isFinite(raw.maxLen) && raw.maxLen > 0 ? Math.floor(raw.maxLen) : 0,
       levelKinds: kindsMap(raw.levelKinds),
       usedOps: unique(strings(raw.usedOps)),
+      usedAxioms: unique(strings(raw.usedAxioms)),
       nightOwl: raw.nightOwl === true,
+      fastWin: raw.fastWin === true,
+      failedChecks: typeof raw.failedChecks === 'number' && isFinite(raw.failedChecks) && raw.failedChecks > 0 ? Math.floor(raw.failedChecks) : 0,
+      deletions: typeof raw.deletions === 'number' && isFinite(raw.deletions) && raw.deletions > 0 ? Math.floor(raw.deletions) : 0,
+      pastes: typeof raw.pastes === 'number' && isFinite(raw.pastes) && raw.pastes > 0 ? Math.floor(raw.pastes) : 0,
+      laterLemma: raw.laterLemma === true,
       achievements: unique(strings(raw.achievements)),
       godMode: raw.godMode === true,
       story: object(raw.story),
@@ -181,7 +193,13 @@
       maxLen: 0,
       levelKinds: {},
       usedOps: [],
+      usedAxioms: [],
       nightOwl: false,
+      fastWin: false,
+      failedChecks: 0,
+      deletions: 0,
+      pastes: 0,
+      laterLemma: false,
       achievements: [],
       godMode: false,
       story: {},
@@ -304,7 +322,13 @@
       save.maxLen = src.maxLen;
       save.levelKinds = src.levelKinds;
       save.usedOps = src.usedOps.slice();
+      save.usedAxioms = src.usedAxioms.slice();
       save.nightOwl = src.nightOwl;
+      save.fastWin = src.fastWin;
+      save.failedChecks = src.failedChecks;
+      save.deletions = src.deletions;
+      save.pastes = src.pastes;
+      save.laterLemma = src.laterLemma;
       save.solved = src.solved.filter(function (id) {
         if (byId[id]) return true;
         report.droppedSolvedIds.push(id);
@@ -344,7 +368,13 @@
     save.maxLen = src.maxLen;
     save.levelKinds = src.levelKinds;
     save.usedOps = src.usedOps.slice();
+    save.usedAxioms = src.usedAxioms.slice();
     save.nightOwl = src.nightOwl;
+    save.fastWin = src.fastWin;
+    save.failedChecks = src.failedChecks;
+    save.deletions = src.deletions;
+    save.pastes = src.pastes;
+    save.laterLemma = src.laterLemma;
     var matcher = tokenMatcher(current);
     var mapping = report.mapping;
     var legacyCount = legacySize(legacy);
