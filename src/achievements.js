@@ -7,12 +7,12 @@
     { id: 'first', symbol: 'i-play', name: '第一步', desc: '完成任意一关。' },
     { id: 'three', symbol: 'i-book-open', name: '三关', desc: '累计完成 3 关。' },
     { id: 'ten', symbol: 'i-book-open', name: '十关', desc: '累计完成 10 关。' },
-    { id: 'half', symbol: 'i-star', name: '半程', desc: '完成全部 96 关中的 48 关。' },
-    { id: 'all', symbol: 'i-check-badge', name: '全通', desc: '完成全部 96 关。' },
-    { id: 'chap-1', symbol: 'i-book-open', name: '命题章', desc: '完成第Ⅰ章全部 24 关。' },
-    { id: 'chap-2', symbol: 'i-book-open', name: '谓词章', desc: '完成第Ⅱ章全部 24 关。' },
-    { id: 'chap-3', symbol: 'i-book-open', name: '等词章', desc: '完成第Ⅲ章全部 24 关。' },
-    { id: 'chap-4', symbol: 'i-star', name: '综合章', desc: '完成第Ⅳ章全部 24 关。' },
+    { id: 'half', symbol: 'i-star', name: '半程', desc: '完成全部 136 关中的 68 关。' },
+    { id: 'all', symbol: 'i-check-badge', name: '全通', desc: '完成全部 136 关。' },
+    { id: 'chap-1', symbol: 'i-book-open', name: '命题章', desc: '完成第Ⅰ章全部 34 关。' },
+    { id: 'chap-2', symbol: 'i-book-open', name: '谓词章', desc: '完成第Ⅱ章全部 34 关。' },
+    { id: 'chap-3', symbol: 'i-book-open', name: '等词章', desc: '完成第Ⅲ章全部 34 关。' },
+    { id: 'chap-4', symbol: 'i-star', name: '综合章', desc: '完成第Ⅳ章全部 34 关。' },
     { id: 'rule-subst', symbol: 'i-arrow-path', name: '代入', desc: '第一次使用代入模块。' },
     { id: 'rule-mp', symbol: 'i-link', name: '分离', desc: '第一次使用分离模块。' },
     { id: 'rule-gen', symbol: 'i-globe-alt', name: '全称', desc: '第一次使用全称推广 / 引入 / 例化。' },
@@ -21,8 +21,8 @@
     { id: 'clean-three', symbol: 'i-check-badge', name: '干净三关', desc: '不删模块完成 3 关。' },
     { id: 'efficient', symbol: 'i-bolt', name: '短证明', desc: '用不超过参考电路的模块数完成任一挑战段关卡。' },
     { id: 'perfect', symbol: 'i-check-badge', name: '全干净', desc: '全部通关且都未删除模块。' },
-    { id: 'hard-48', symbol: 'i-star', name: '挑战半程', desc: '完成第 49–96 关中的 24 关。' },
-    { id: 'hard-all', symbol: 'i-star', name: '挑战全通', desc: '完成第 49–96 关全部。' },
+    { id: 'hard-48', symbol: 'i-star', name: '挑战半程', desc: '完成任意 24 个困难关。' },
+    { id: 'hard-all', symbol: 'i-star', name: '挑战全通', desc: '完成全部 96 个困难关。' },
     { id: 'no-hints', symbol: 'i-bolt', name: '独立完成', desc: '完成任意一关（提示功能在正式版）。' }
   ];
 
@@ -39,7 +39,7 @@
     if (solvedAll.length >= 1) add('first');
     if (solvedAll.length >= 3) add('three');
     if (solvedAll.length >= 10) add('ten');
-    if (solved.length >= 48) add('half');
+    if (solved.length >= Math.ceil(numbered.length / 2)) add('half');
     if (numbered.length && solved.length === numbered.length) add('all');
 
     for (var c = 0; c < 4; c += 1) {
@@ -59,13 +59,13 @@
     if (numbered.length && clean >= numbered.length) add('perfect');
 
     var efficient = levels.some(function (lv) {
-      if (Number(lv.no) <= 48) return false;
+      if (!lv.hard) return false;
       var ref = lv.solution && lv.solution.nodes ? lv.solution.nodes.length : 0;
       return ref && state.bestLen[lv.id] && state.bestLen[lv.id] <= ref;
     });
     if (efficient) add('efficient');
 
-    var hard = levels.filter(function (lv) { return Number(lv.no) > 48; });
+    var hard = levels.filter(function (lv) { return lv.hard; });
     var hardSolved = hard.filter(function (lv) { return state.solved[lv.id]; }).length;
     if (hardSolved >= 24) add('hard-48');
     if (hard.length && hardSolved === hard.length) add('hard-all');

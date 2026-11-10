@@ -9,8 +9,8 @@
     <a href="https://github.com/yyxcnasd/RusselL"><img alt="源码" src="https://img.shields.io/badge/SOURCE-GitHub-24292f?style=for-the-badge"></a>
     <a href="https://yyxcnasd.github.io/RusselL/"><img alt="网页版" src="https://img.shields.io/badge/PLAY-GitHub%20Pages-3f8e65?style=for-the-badge"></a>
     <img alt="B站 Toy" src="https://img.shields.io/badge/BILIBILI-Toy-e66f3f?style=for-the-badge">
-    <img alt="版本" src="https://img.shields.io/badge/VERSION-v3.0.0-3f8e65?style=for-the-badge">
-    <img alt="主线关卡" src="https://img.shields.io/badge/MAIN-96-4f7fb5?style=for-the-badge">
+    <img alt="版本" src="https://img.shields.io/badge/VERSION-v4.0.0-3f8e65?style=for-the-badge">
+    <img alt="主线关卡" src="https://img.shields.io/badge/MAIN-136-4f7fb5?style=for-the-badge">
     <img alt="教学关" src="https://img.shields.io/badge/TUTORIAL-18-d3ad68?style=for-the-badge">
   </p>
 
@@ -48,7 +48,7 @@
 2. **接线**：从模块右侧圆点拖到另一个模块左侧圆点；先点输出、再点输入也可以。
 3. **校验**：把最终断言接到右侧的 `⊢`，点顶栏最右边的播放键。
 
-右键删除模块或导线；把模块拖回下边栏也能删。已接线的输入端可以按住拖走拆线，拖到别的输入端重接。触屏支持双指缩放，双击空板回到适应视图。卡住时也可以看 [docs/SOLUTIONS.md](docs/SOLUTIONS.md)：114 关逐关列出参考电路的模块与接线。
+右键删除模块或导线；把模块拖回下边栏也能删。已接线的输入端可以按住拖走拆线，拖到别的输入端重接。触屏支持双指缩放，双击空板回到适应视图。卡住时也可以看 [docs/SOLUTIONS.md](docs/SOLUTIONS.md)：154 关逐关列出参考电路的模块与接线。
 
 框选多个模块后，直接拖其中任意一个就能整体移动，不用再按 Shift。`Ctrl/Cmd+C` 复制选中模块和它们之间的线，`Ctrl/Cmd+V` 粘贴成跟随鼠标的磁吸贴；左键放下。目标位置放不下时会留在鼠标上，不会把模块挪到别处。跨关粘贴只保留当前关允许使用的元件。
 
@@ -74,14 +74,16 @@ B 站 Toy 版有排行榜入口，和帮助、提示按钮并排在顶栏。GitH
 
 ## 关卡结构
 
-主线 96 关，四章各 24 关；每章另有一组用**小写罗马数字**标号的教学关，共 18 关。教学关不占 `*NN` 编号，也不参与定理引用。
+共 154 关：四章各 **10 个普通关 + 24 个困难关**，外加 18 个教学关。每章从 `01` 重新编号，关卡号写作 `Ⅰ-01`、`Ⅱ-07`；定理模块也直接用这个编号引用更早关卡。
 
-| 章 | 主题 | 教学 | 普通 | 进阶 |
+| 章 | 主题 | 教学 | 普通 | 困难 |
 |:---:| --- |:---:|:---:|:---:|
-| Ⅰ | 命题演算：A1–A3、代入、分离 | i–v | \*01–\*12 | \*13–\*24 |
-| Ⅱ | 谓词与量词：全称/存在规则、A5 | i–v | \*25–\*36 | \*37–\*48 |
-| Ⅲ | 等词：等词自反、Leibniz 替换 | i–iv | \*49–\*60 | \*61–\*72 |
-| Ⅳ | 集合论：∈、外延/空集/配对/并集 | i–iv | \*73–\*84 | \*85–\*96 |
+| Ⅰ | 命题演算：A1–A3、代入、分离 | i–v | Ⅰ-01–Ⅰ-10 | Ⅰ-11–Ⅰ-34 |
+| Ⅱ | 谓词与量词：全称/存在规则、A5 | i–v | Ⅱ-01–Ⅱ-10 | Ⅱ-11–Ⅱ-34 |
+| Ⅲ | 等词：等词自反、Leibniz 替换 | i–iv | Ⅲ-01–Ⅲ-10 | Ⅲ-11–Ⅲ-34 |
+| Ⅳ | 集合论：∈、外延/空集/配对/并集 | i–iv | Ⅳ-01–Ⅳ-10 | Ⅳ-11–Ⅳ-34 |
+
+普通关的参考解控制在 **5–20 个元件**；困难关可以很大，并允许引用前面的普通关引理。教学关和普通关有一对一定制提示，困难关不提供提示。教学关进入时会播放一段假鼠标拖放动画，演示「拿模块 → 放到画布」。
 
 教学关每关只演示一个元件，参考证明大多一步直连，最长 12 步。进入教学关时，棋盘正中会出现一张浮窗，左边是本关元件的代号，右边是规则式（例如 `A1` 与 `P→(Q→P)`）；点一下棋盘就收起。
 
@@ -98,7 +100,7 @@ B 站 Toy 版有排行榜入口，和帮助、提示按钮并排在顶栏。GitH
 | 构造 | 命题原子 `P…V`，个体变元 `x…w`，谓词/等词 `F(x)`/`x=y`，属于 `x∈y`，`¬`、`→`、`∀x`、`∃x`、`∧∨↔` |
 | 公理 | A1–A5（命题公理、全称消去、全称分配）；集合论：外延、空集、配对、并集 |
 | 基本推理 | 代入、分离、全称推广/引入/例化、存在推广/消去、等词自反、Leibniz 等词替换，以及 ∧/∨/↔ 的引入/消去公理形式 |
-| 定理 | 只有 `*NN`：只能引用编号更小的关卡，引擎会校验 |
+| 定理 | 章节编号（如 `Ⅰ-01`）：只能引用排在前面的关卡，引擎会校验 |
 
 帮助页只列推理规则（S、M、∀I、∀*、∀E*、∃I*、∃E、=I、=L），不列变元、连接词和公理。
 
@@ -128,19 +130,19 @@ python -m http.server 8000
 ## 开发
 
 ```bash
-node scripts/build-campaign.js   # 编译 114 关（96 主线 + 18 教学），逐关用真实 Engine 验证
+npm run build                   # 重构关卡数据（10 普通 + 24 困难/章），逐关用真实 Engine 验证
 npm test                         # 关卡 schema、模块表、参考证明、定理引用越界
 npm run test:wire                # 走线/几何纯函数
 npm run test:leaderboard         # 排行榜分数算法
 npm run test:ui                  # Edge headless 浏览器回归
-npm run test:acceptance          # dist 构建产物与完整 114 关验收
+npm run test:acceptance          # dist 构建产物与完整 154 关验收
 npm run build:toy                # 生成可发布的 dist/ 游戏本体
-node scripts/export-solutions.js # 重新生成 docs/SOLUTIONS.md（114 关参考解清单）
+node scripts/export-solutions.js # 重新生成 docs/SOLUTIONS.md（154 关参考解清单）
 ```
 
 关卡内容手写在 `campaign/` 下，`src/levels.js` 是编译器产物，不要手改。作者脚本在 `scripts/authoring/`：
 `dt.js` 是演绎定理引擎，`harden-*.js` 负责把个别关卡升级成组合证明，`make-tutorials.js` 生成教学关。
-改完关卡后重新跑 `build-campaign` 和测试。
+改完关卡后重新跑 `npm run build` 和测试；原始 114 关素材保存在 `campaign/legacy-levels.json`。
 
 ### 主要文件
 
@@ -160,7 +162,7 @@ node scripts/export-solutions.js # 重新生成 docs/SOLUTIONS.md（114 关参�
 | `src/catalog.js` | 章节分组、解锁链、元件栏条目（纯函数） |
 | `src/achievements.js` / `src/save.js` | 成就判定；存档结构与本地读写 |
 | `campaign/` | 手写关卡、参考证明与教学关 |
-| `scripts/build-campaign.js` | 关卡编译器与逐关验证 |
+| `scripts/restructure-levels.js` | 关卡重组：普通引理 + 困难关，逐关验证 |
 | `docs/` | 架构、设计、公理审计 |
 
 界面和下栏用 IBM Plex Sans，公式用 STIX Two Text；图标来自 Heroicons。

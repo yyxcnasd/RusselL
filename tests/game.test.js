@@ -1,5 +1,5 @@
 'use strict';
-/* 新关卡体系的核心校验：96 关、统一 schema、参考证明全部通过真实引擎、*NN 只引用更早关卡。 */
+/* 新关卡体系的核心校验：154 关、统一 schema、参考证明全部通过真实引擎、定理只引用更早关卡。 */
 const test = require('node:test');
 const assert = require('node:assert');
 const fs = require('node:fs');
@@ -42,23 +42,26 @@ test('模块注册表：构造 + 公理 + 基本推理 + 定理，没有旧模�
   });
 });
 
-test('114 关 = 96 主线（4 章 × 24）+ 18 教学关，每关有 canonical targetTokens / palette / 参考电路', () => {
+test('154 关 = 40 普通引理 + 96 困难关 + 18 教学关，每关有 canonical targetTokens / palette / 参考电路', () => {
   const levels = RSL.LEVELS;
-  assert.strictEqual(levels.length, 114);
+  assert.strictEqual(levels.length, 154);
   const numbered = levels.filter((lv) => !lv.tutorial);
   const tutorials = levels.filter((lv) => lv.tutorial);
-  assert.strictEqual(numbered.length, 96);
+  assert.strictEqual(numbered.length, 136);
   assert.strictEqual(tutorials.length, 18);
   for (let c = 0; c < 4; c += 1) {
-    assert.strictEqual(numbered.filter((lv) => lv.chapter === c).length, 24, '章 ' + (c + 1));
+    assert.strictEqual(numbered.filter((lv) => lv.chapter === c).length, 34, '章 ' + (c + 1));
     const tut = tutorials.filter((lv) => lv.chapter === c);
     assert.ok(tut.length >= 4 && tut.length <= 6, '每章 4–6 个教学关');
     const labels = tut.map((lv) => lv.code);
     assert.strictEqual(new Set(labels).size, labels.length, '教学关标签唯一');
   }
-  numbered.forEach((lv, i) => {
-    assert.strictEqual(lv.no, i + 1, lv.id + ' 主线关卡号连续');
-    assert.strictEqual(lv.code, '*' + String(lv.no).padStart(2, '0'), lv.id + ' 代号 *NN');
+  numbered.forEach((lv) => {
+    assert.ok(/^[ⅠⅡⅢⅣ]-\d{2}$/.test(lv.code), lv.id + ' 章节-序号代号');
+    if (!lv.hard) {
+      assert.ok(lv.solution.nodes.length >= 5, lv.code + ' 普通关至少 5 个元件');
+      assert.ok(lv.solution.nodes.length <= 20, lv.code + ' 普通关不超过 20 个元件');
+    }
   });
   tutorials.forEach((lv) => {
     assert.strictEqual(lv.no, null, lv.id + ' 教学关不占编号');
@@ -74,19 +77,20 @@ test('114 关 = 96 主线（4 章 × 24）+ 18 教学关，每关有 canonical t
     (lv.palette || []).forEach((e) => {
       if (e.kind === 'theorem') {
         assert.ok(!lv.tutorial, lv.code + ' 教学关不能引用定理');
-        assert.ok(e.config.n < lv.no, lv.code + ' 定理引用必须更早');
+        assert.ok(e.config.code, lv.code + ' 定理引用带章节编号');
+        assert.ok(levels.findIndex((x) => x.code === e.config.code) < levels.indexOf(lv), lv.code + ' 定理引用必须更早');
       }
     });
   });
 });
 
-test('114 关参考证明全部通过真实引擎（逐节点求值）', () => {
+test('154 关参考证明全部通过真实引擎（逐节点求值）', () => {
   const levels = RSL.LEVELS;
   const failures = [];
   levels.forEach((lv) => {
     const nodes = JSON.parse(JSON.stringify(lv.initialNodes)).concat(JSON.parse(JSON.stringify(lv.solution.nodes)));
     const edges = JSON.parse(JSON.stringify(lv.solution.edges));
-    const res = RSL.Engine.evaluate(lv, nodes, edges, { levels, levelNo: lv.no });
+    const res = RSL.Engine.evaluate(lv, nodes, edges, { levels, levelIndex: levels.indexOf(lv) });
     if (!res.complete) {
       const first = (res.errors || [])[0];
       failures.push(lv.code + '：' + (first ? first.message : '未通关'));
@@ -95,10 +99,10 @@ test('114 关参考证明全部通过真实引擎（逐节点求值）', () => {
   assert.deepStrictEqual(failures, []);
 });
 
-test('定理引用越界会被引擎拒绝（*NN 只能引用更早关卡）', () => {
+test('定理引用越界会被引擎拒绝（只能引用更早关卡）', () => {
   const lv = RSL.LEVELS.filter((x) => !x.tutorial)[0];
   const nodes = [{ id: 't', kind: 'target', x: 0, y: 0, targetTokens: lv.targetTokens, config: {} },
-    { id: 'x', kind: 'theorem', x: 0, y: 0, config: { n: 96 }, targetTokens: [] }];
-  const res = RSL.Engine.evaluate(lv, nodes, [], { levels: RSL.LEVELS, levelNo: 1 });
-  assert.ok(res.errors.some((e) => /更早/.test(e.message)), JSON.stringify(res.errors));
+    { id: 'x', kind: 'theorem', x: 0, y: 0, config: { code: lv.code }, targetTokens: [] }];
+  const res = RSL.Engine.evaluate(lv, nodes, [], { levels: RSL.LEVELS, levelIndex: RSL.LEVELS.indexOf(lv) });
+  assert.ok(res.errors.some((e) => /更早|前面/.test(e.message)), JSON.stringify(res.errors));
 });

@@ -603,20 +603,21 @@
 
     /* ---- 定理：*NN，只引用更早关卡 ---- */
     theorem: {
-      label: '已证定理', kindLabel: 'THEOREM', group: 'theorem', symbol: '*', construct: false,
+      label: '已证定理', kindLabel: 'THEOREM', group: 'theorem', symbol: '⊢', construct: false,
       ports: { inputs: [], outputs: [{ id: 'out', label: '断言', type: ASSERTION }] },
-      config: { n: 0 },
-      help: '引用更早关卡已经证过的定理 *NN；只能引用编号更小的关卡。',
+      config: { code: '' },
+      help: '引用更早关卡已经证过的定理，例如 Ⅰ-01；只能引用排在前面的关卡。',
       apply: function (inputs, cfg, ctx) {
-        var n = Number(cfg.n || 0);
-        if (!n || n < 1) fail('定理模块缺少关卡号');
+        var code = String((cfg && cfg.code) || '');
+        if (!code) fail('定理模块缺少关卡编号');
         var levels = (ctx && ctx.levels) || [];
-        var current = ctx && ctx.levelNo ? Number(ctx.levelNo) : Infinity;
-        if (n >= current) fail('只能引用更早的关卡（不能引用 *' + String(n).padStart(2, '0') + ' 或更晚）');
-        var lv = levels.filter(function (x) { return Number(x.no) === n; })[0];
-        if (!lv) fail('找不到关卡 *' + String(n).padStart(2, '0'));
-        if (!Array.isArray(lv.targetTokens) || !lv.targetTokens.length) fail('关卡 *' + String(n).padStart(2, '0') + ' 缺少目标断言');
-        return { tokens: lv.targetTokens.slice(), note: '*' + String(n).padStart(2, '0') };
+        var current = ctx && typeof ctx.levelIndex === 'number' ? ctx.levelIndex : levels.length;
+        var idx = levels.findIndex(function (x) { return x.code === code; });
+        if (idx < 0) fail('找不到定理 ' + code);
+        if (idx >= current) fail('只能引用前面的关卡（不能引用 ' + code + ' 或更晚）');
+        var lv = levels[idx];
+        if (!Array.isArray(lv.targetTokens) || !lv.targetTokens.length) fail('关卡 ' + code + ' 缺少目标断言');
+        return { tokens: lv.targetTokens.slice(), note: code };
       }
     }
   };

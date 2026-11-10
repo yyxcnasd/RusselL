@@ -22,7 +22,7 @@
       copy.chapterOrder = copy.tutorial ? 0 : (counts[lv.chapter] = (counts[lv.chapter] || 0) + 1);
       copy.index = i;
       copy.order = i + 1;
-      copy.band = copy.tutorial ? 'tutorial' : (copy.chapterOrder <= 12 ? 'base' : 'challenge');
+      copy.band = lv.band || (copy.tutorial ? 'tutorial' : (copy.chapterOrder <= 12 ? 'base' : 'challenge'));
       copy.requires = i ? [levels[i - 1].code] : [];
       copy.difficulty = lv.difficulty || 0;
       return copy;
@@ -46,7 +46,7 @@
     if (kind === 'gen') return '∀I' + (cfg.v || '');
     if (kind === 'shift') return '∀*' + (cfg.v || '');
     if (kind === 'axiom') return (cfg.schema || 'Ax') + (cfg.v ? '·' + cfg.v : '');
-    if (kind === 'theorem') return '*' + String(cfg.n || 0).padStart(2, '0');
+    if (kind === 'theorem') return String(cfg.code || '⊢');
     if (kind === 'not') return '¬';
     if (kind === 'imp') return '→';
     var info = host.RSL.Engine.info ? host.RSL.Engine.info(kind) : null;
@@ -61,7 +61,7 @@
     if (kind === 'pred') return cfg.symbol === '=' ? '等词 x = y' : '谓词 ' + cfg.symbol + '(x)';
     if (kind === 'all') return '全称 ∀' + cfg.v;
     if (kind === 'axiom') return '公理 ' + cfg.schema;
-    if (kind === 'theorem') return '已证定理 *' + String(cfg.n || 0).padStart(2, '0');
+    if (kind === 'theorem') return '已证定理 ' + String(cfg.code || '');
     var info = host.RSL.Engine.info ? host.RSL.Engine.info(kind) : null;
     return info && info.label ? info.label : kind;
   }

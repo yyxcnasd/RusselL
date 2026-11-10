@@ -78,6 +78,7 @@
   }
 
   function baseHint(level) {
+    if (level.hard) return '';
     return OVERRIDES[level.id] || OVERRIDES[level.code] || level.hint || level.teaches || '';
   }
 
@@ -142,7 +143,7 @@
     if (!n) return '?';
     var c = n.config || {};
     if (n.kind === 'axiom') return (c.schema || 'axiom') + (c.v ? '(' + c.v + ')' : '');
-    if (n.kind === 'theorem') return '*' + String(c.n || 0).padStart(2, '0');
+    if (n.kind === 'theorem') return String(c.code || '⊢');
     if (n.kind === 'atom') return c.name || 'atom';
     if (n.kind === 'term') return c.name || 'term';
     if (n.kind === 'pred') return c.symbol || 'pred';
@@ -218,7 +219,7 @@
 
   function nodeLabel(n) {
     var c = n.config || {};
-    if (n.kind === 'theorem') return '定理 *' + String(c.n || 0).padStart(2, '0');
+    if (n.kind === 'theorem') return '定理 ' + String(c.code || '');
     if (n.kind === 'axiom') return 'axiom ' + (c.schema || '') + (c.v ? '(' + c.v + ')' : '');
     if (n.kind === 'atom') return 'atom ' + (c.name || '');
     if (n.kind === 'term') return 'term ' + (c.name || '');

@@ -292,7 +292,28 @@
     refresh();
     state.board.fit({ minScale: 0.45 });
     showTutorialTip(level);
+    showTutorialDemo(level);
     saveProgress();
+  }
+
+  function showTutorialDemo(level) {
+    if (!level || !level.tutorial) return;
+    state.demoSeen = state.demoSeen || {};
+    if (state.demoSeen[level.id]) return;
+    state.demoSeen[level.id] = true;
+    var part = state.parts && state.parts[0];
+    var symbol = part ? (part.symbol || '·') : '·';
+    var el = document.createElement('div');
+    el.className = 'tutorial-demo';
+    el.setAttribute('aria-hidden', 'true');
+    el.innerHTML =
+      '<div class="demo-ghost"><span>' + UI.esc(symbol) + '</span></div>' +
+      '<div class="demo-cursor"><svg viewBox="0 0 24 24"><path d="M5 3l14 8-6 1.4L10 19 5 3Z"/></svg></div>' +
+      '<div class="demo-label">拖到画布</div>';
+    document.body.appendChild(el);
+    setTimeout(function () {
+      if (el.parentNode) el.parentNode.removeChild(el);
+    }, 3600);
   }
 
   /* 把当前视图夹到“目标焊盘完整可见”的范围内，同时尽量保留 fit() 的取景。 */
@@ -326,7 +347,7 @@
   function refresh() {
     if (!state.level) return;
     var data = state.board.getData();
-    var ctx = { levels: state.levels, levelNo: state.level ? state.level.no : 0 };
+    var ctx = { levels: state.levels, levelIndex: state.index };
     var result = window.RSL.Engine.evaluate(state.level, data.nodes, data.edges, ctx);
     state.results = result;
     state.board.paint(result);
@@ -579,7 +600,7 @@
     var code = state.board._code({ kind: part.kind, config: config }) || part.symbol || '·';
     var formula = '<span class="blank">·</span>';
     try {
-      var preview = window.RSL.Engine.evaluate(state.level, [{ id: '__ghost', kind: part.kind, x: 0, y: 0, config: config }], [], { levels: state.levels, levelNo: state.level ? state.level.no : 0 });
+      var preview = window.RSL.Engine.evaluate(state.level, [{ id: '__ghost', kind: part.kind, x: 0, y: 0, config: config }], [], { levels: state.levels, levelIndex: state.index });
       var result = preview.results && preview.results.__ghost;
       if (result && result.tokens && window.RSL.Term) {
         formula = window.RSL.Term.toNodeHTML(result.tokens);
@@ -921,6 +942,10 @@
   function showHint() {
     var level = state.level;
     if (!level || !window.RSL.Hints || !window.RSL.Hints.isToyHost()) return;
+    if (level.hard || !level.hint) {
+      UI.toast('困难关不提供提示');
+      return;
+    }
     Screens.openHint(level);
   }
 

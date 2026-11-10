@@ -1,6 +1,6 @@
 {
   "name": "axiom-board",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "private": true,
   "description": "公理板 — a one-screen modular proof game built on Metamath set.mm",
   "scripts": {
@@ -11,6 +11,6 @@
     "test:acceptance": "npm run build:toy && node tests/acceptance.js",
     "test:all": "npm test && npm run test:wire && npm run test:leaderboard && npm run test:ui && npm run test:acceptance",
     "build:toy": "node scripts/build-toy.js",
-    "build": "node scripts/build-campaign.js"
+    "build": "node scripts/restructure-levels.js"
   }
 }

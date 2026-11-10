@@ -958,7 +958,7 @@
     if (n.kind === 'set-empty') return '∅';
     if (n.kind === 'set-pair') return '{,}';
     if (n.kind === 'set-union') return '∪';
-    if (n.kind === 'theorem') return '*' + String(cfg.n || 0).padStart(2, '0');
+    if (n.kind === 'theorem') return String(cfg.code || '⊢');
     return '·';
   };
 

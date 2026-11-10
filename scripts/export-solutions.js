@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 'use strict';
-/* 从 src/levels.js 生成 docs/SOLUTIONS.md：114 关参考电路的可读清单。 */
+/* 从 src/levels.js 生成 docs/SOLUTIONS.md：154 关参考电路的可读清单。 */
 const fs = require('fs');
 const path = require('path');
 const levels = require('../src/levels.js');
@@ -52,7 +52,7 @@ levels.forEach(function (lv) {
 });
 
 var md = [];
-md.push('# 公理板 · 114 关参考解法清单');
+md.push('# 公理板 · 154 关参考解法清单');
 md.push('');
 md.push('> 由 `scripts/export-solutions.js` 从 `src/levels.js` 自动生成。每个参考电路都先经过真实 Engine 求值验证；');
 md.push('> 清单里的模块按参考电路中的节点顺序排列，接线单独列出，按 `模块.端口 → 模块.端口` 连即可。');
