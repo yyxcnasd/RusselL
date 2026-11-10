@@ -364,6 +364,178 @@
     return pts;
   }
 
+  /* Coarse fallback router used only when the handful of fast candidates is
+   * blocked. A 24px grid is cheap enough for dense boards and only runs for
+   * the occasional edge. */
+  function routeGrid(a, b, rects, opts) {
+    var fromId = opts && opts.fromId, toId = opts && opts.toId;
+    var obstacles = rects.filter(function (r) { return r.id !== fromId && r.id !== toId; });
+    var dx = b.x - a.x;
+    var stub = STUB;
+    if (dx >= 0) {
+      stub = Math.min(stub, Math.max(0, dx / 2 - 8));
+      if (dx < 16) stub = 0;
+    }
+    var sa = { x: a.x + stub, y: a.y };
+    var sb = { x: b.x - stub, y: b.y };
+    var cell = 24, pad = PAD;
+    /* 只在端口附近的小范围里建网格；整张电路可能有几千像素高，整图 A*
+     * 在密集布局里会让每条 fallback 都变成几十毫秒。 */
+    var margin = 320;
+    var minX = Math.min(a.x, b.x) - margin, maxX = Math.max(a.x, b.x) + margin;
+    var minY = Math.min(a.y, b.y) - margin, maxY = Math.max(a.y, b.y) + margin;
+    obstacles = obstacles.filter(function (r) {
+      return r.x + r.w > minX && r.x < maxX && r.y + r.h > minY && r.y < maxY;
+    });
+    minX = Math.floor(minX / cell) * cell;
+    minY = Math.floor(minY / cell) * cell;
+    var nx = Math.ceil((maxX - minX) / cell) + 2;
+    var ny = Math.ceil((maxY - minY) / cell) + 2;
+    var total = nx * ny;
+    var free = new Uint8Array(total);
+    for (var ix = 0; ix < nx; ix++) {
+      for (var iy = 0; iy < ny; iy++) {
+        var x = minX + ix * cell, y = minY + iy * cell, blocked = false;
+        for (var r = 0; r < obstacles.length; r++) {
+          var rr = obstacles[r];
+          if (x > rr.x - pad && x < rr.x + rr.w + pad &&
+              y > rr.y - pad && y < rr.y + rr.h + pad) { blocked = true; break; }
+        }
+        free[ix * ny + iy] = blocked ? 0 : 1;
+      }
+    }
+    function cellOf(p) {
+      var cx = Math.round((p.x - minX) / cell), cy = Math.round((p.y - minY) / cell);
+      cx = Math.max(0, Math.min(nx - 1, cx));
+      cy = Math.max(0, Math.min(ny - 1, cy));
+      return cx * ny + cy;
+    }
+    var start = cellOf(sa), end = cellOf(sb);
+    free[start] = 1; free[end] = 1;
+    var DX = [1, 0, -1, 0], DY = [0, 1, 0, -1];
+    var states = total * 4;
+    var dist = new Float64Array(states); dist.fill(Infinity);
+    var prev = new Int32Array(states); prev.fill(-1);
+    var heapS = [], heapF = [];
+    function push(state, score) {
+      heapS.push(state); heapF.push(score);
+      var n = heapS.length - 1;
+      while (n > 0) {
+        var p = (n - 1) >> 1;
+        if (heapF[p] <= heapF[n]) break;
+        var s = heapS[p]; heapS[p] = heapS[n]; heapS[n] = s;
+        var f = heapF[p]; heapF[p] = heapF[n]; heapF[n] = f;
+        n = p;
+      }
+    }
+    function pop() {
+      var top = heapS[0], lastS = heapS.pop(), lastF = heapF.pop();
+      if (heapS.length) {
+        heapS[0] = lastS; heapF[0] = lastF;
+        var n = 0;
+        while (true) {
+          var l = n * 2 + 1, r = l + 1, m = n;
+          if (l < heapS.length && heapF[l] < heapF[m]) m = l;
+          if (r < heapS.length && heapF[r] < heapF[m]) m = r;
+          if (m === n) break;
+          var ss = heapS[m]; heapS[m] = heapS[n]; heapS[n] = ss;
+          var ff = heapF[m]; heapF[m] = heapF[n]; heapF[n] = ff;
+          n = m;
+        }
+      }
+      return top;
+    }
+    function heur(cellIdx) {
+      var cx = (cellIdx / ny) | 0, cy = cellIdx % ny;
+      return (Math.abs(cx - ((end / ny) | 0)) + Math.abs(cy - (end % ny))) * cell;
+    }
+    for (var d0 = 0; d0 < 4; d0++) {
+      var st = start * 4 + d0;
+      dist[st] = 0; push(st, heur(start));
+    }
+    var found = -1, guard = 0;
+    while (heapS.length && guard++ < 160000) {
+      var state = pop();
+      var dir = state & 3, cidx = state >> 2;
+      if (cidx === end) { found = state; break; }
+      var cx = (cidx / ny) | 0, cy = cidx % ny;
+      var p = { x: minX + cx * cell, y: minY + cy * cell };
+      var g = dist[state];
+      for (var nd = 0; nd < 4; nd++) {
+        var nxI = cx + DX[nd], nyI = cy + DY[nd];
+        if (nxI < 0 || nyI < 0 || nxI >= nx || nyI >= ny) continue;
+        var nidx = nxI * ny + nyI;
+        if (!free[nidx]) continue;
+        var q = { x: minX + nxI * cell, y: minY + nyI * cell };
+        if (!segmentClear(p, q, obstacles)) continue;
+        var nstate = nidx * 4 + nd;
+        var ng = g + cell + (nd !== dir ? 40 : 0);
+        if (ng < dist[nstate]) {
+          dist[nstate] = ng;
+          prev[nstate] = state;
+          push(nstate, ng + heur(nidx));
+        }
+      }
+    }
+    if (found < 0) return simpleRoute(a, b);
+    var pts = [];
+    var cur = found;
+    while (cur >= 0) {
+      var cc = cur >> 2;
+      pts.push({ x: minX + ((cc / ny) | 0) * cell, y: minY + (cc % ny) * cell });
+      cur = prev[cur];
+    }
+    pts.reverse();
+    pts = [a, sa].concat(pts, [sb, b]);
+    return clean(pts);
+  }
+
+  /* Fast candidate router for dense boards: a handful of local Z lanes and an
+   * outer U, checked against node rects. No graph construction or Dijkstra. */
+  function routeFast(a, b, rects, opts) {
+    rects = rects || [];
+    opts = opts || {};
+    var fromId = opts.fromId, toId = opts.toId;
+    var obstacles = rects.filter(function (r) { return r.id !== fromId && r.id !== toId; });
+    var dx = b.x - a.x;
+    var stub = STUB;
+    if (dx >= 0) {
+      stub = Math.min(stub, Math.max(0, dx / 2 - 8));
+      if (dx < 16) stub = 0;
+    }
+    var sa = { x: a.x + stub, y: a.y };
+    var sb = { x: b.x - stub, y: b.y };
+    var candidates = [];
+    if (b.x > a.x && sb.x > sa.x + 6) {
+      var center = (sa.x + sb.x) / 2;
+      [0, 12, -12, 24, -24, 36, -36, 48, -48].forEach(function (off) {
+        var x = center + off;
+        candidates.push(clean([a, sa, { x: x, y: a.y }, { x: x, y: b.y }, sb, b]));
+      });
+      var midY = (a.y + b.y) / 2;
+      candidates.push(clean([a, sa, { x: sa.x, y: midY }, { x: sb.x, y: midY }, sb, b]));
+    }
+    var box = { x0: a.x, y0: a.y, x1: a.x, y1: a.y };
+    rects.forEach(function (r) {
+      box.x0 = Math.min(box.x0, r.x); box.y0 = Math.min(box.y0, r.y);
+      box.x1 = Math.max(box.x1, r.x + r.w); box.y1 = Math.max(box.y1, r.y + r.h);
+    });
+    var xLeft = box.x0 - STUB, xRight = box.x1 + STUB;
+    var yTop = box.y0 - STUB, yBottom = box.y1 + STUB;
+    candidates.push(clean([a, sa, { x: sa.x, y: yTop }, { x: sb.x, y: yTop }, sb, b]));
+    candidates.push(clean([a, sa, { x: sa.x, y: yBottom }, { x: sb.x, y: yBottom }, sb, b]));
+    candidates.push(clean([a, sa, { x: xRight, y: a.y }, { x: xRight, y: yTop },
+      { x: xLeft, y: yTop }, { x: xLeft, y: b.y }, sb, b]));
+    candidates.push(clean([a, sa, { x: xRight, y: a.y }, { x: xRight, y: yBottom },
+      { x: xLeft, y: yBottom }, { x: xLeft, y: b.y }, sb, b]));
+    candidates.push(clean([a, sa, { x: xRight, y: a.y }, { x: xRight, y: b.y }, sb, b]));
+    candidates.push(simpleRoute(a, b));
+    for (var i = 0; i < candidates.length; i++) {
+      if (pathClear(candidates[i], obstacles)) return candidates[i];
+    }
+    return routeGrid(a, b, rects, opts);
+  }
+
   /* PCB-style 45° chamfers; short runs get half-length cuts. */
   function pathPoints(pts) {
     if (!pts || !pts.length) return '';
@@ -392,6 +564,7 @@
     STUB: STUB,
     TRACK: TRACK,
     route: route,
+    routeFast: routeFast,
     simpleRoute: simpleRoute,
     pathPoints: pathPoints,
     clean: clean,

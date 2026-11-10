@@ -56,7 +56,7 @@ function shortSegments(pts) {
 }
 
 test('exposes the pure Wire API', () => {
-  for (const name of ['STUB', 'TRACK', 'route', 'simpleRoute', 'pathPoints', 'clean', 'segmentClear', 'pathClear']) {
+  for (const name of ['STUB', 'TRACK', 'route', 'routeFast', 'simpleRoute', 'pathPoints', 'clean', 'segmentClear', 'pathClear']) {
     assert.ok(Wire[name], `missing Wire.${name}`);
   }
   assert.equal(Wire.STUB, 24);
@@ -144,6 +144,25 @@ test('start upper-right of target still avoids both endpoint cards', () => {
   assert.equal(crossesRect(pts, source), false, 'wire must not cut through its own source card');
   assert.equal(crossesRect(pts, target), false, 'wire must not cut through the target card');
   assert.ok(pts[1].x >= a.x, 'wire must leave the output port to the right');
+});
+
+test('fast route avoids nodes in a crowded layout', () => {
+  const rects = [];
+  let seed = 11;
+  const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+  for (let i = 0; i < 18; i++) {
+    rects.push({ id: 'f' + i, x: 100 + Math.floor(rnd() * 520), y: 70 + Math.floor(rnd() * 480), w: 80, h: 80 });
+  }
+  for (let i = 0; i < 10; i++) {
+    const a = { x: 20, y: 80 + i * 45 };
+    const b = { x: 900, y: 100 + (i * 53) % 460 };
+    const obstacles = rects.filter((r) =>
+      !(a.x > r.x && a.x < r.x + r.w && a.y > r.y && a.y < r.y + r.h) &&
+      !(b.x > r.x && b.x < r.x + r.w && b.y > r.y && b.y < r.y + r.h));
+    const pts = Wire.routeFast(a, b, obstacles, { fromId: 'a' + i, toId: 'b' + i });
+    orthogonal(pts, 'fast route ' + i);
+    for (const r of obstacles) assert.equal(crossesRect(pts, r), false, `fast wire ${i} crossed ${r.id}`);
+  }
 });
 
 test('parallel wires get separate vertical tracks', () => {

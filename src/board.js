@@ -88,6 +88,7 @@
     this._dropTarget = false;              // 模块是否悬停在下边栏删除区
     this._elById = Object.create(null);   // id -> node element, rebuilt by render()
     this._wireEls = Object.create(null);  // edge id -> { path, hit }, rebuilt by full _updateWires
+    this._wireDirty = true;               // geometry changed -> next full pass must reroute
     this._cheapDirty = false;             // cheap drag preview needs a full pass before settling
     this._bind();
     this._applyView();
@@ -120,7 +121,7 @@
       self.selectedNode = null;
       self.selectedNodes = [];
       self.selectedEdge = wire.dataset.edge;
-      self.render();
+      self.paint(self.result);
       self.onSelect(null, self.selectedEdge);
     });
   };
@@ -146,7 +147,7 @@
     this._viewAnim = null;
     this.view = { x: x, y: y, scale: clamp(scale, VIEW_MIN, VIEW_MAX) };
     this._applyView();
-    this._updateWires();
+    if (this._wireDirty) this._updateWires();
   };
 
   Board.prototype._applyView = function () {
@@ -179,7 +180,7 @@
     this.view.scale = a.from.scale + (a.to.scale - a.from.scale) * e;
     this._applyView();
     if (a.t < 1) requestAnimationFrame(this._stepView.bind(this));
-    else { this._viewAnim = null; this._updateWires(); }
+    else { this._viewAnim = null; if (this._wireDirty) this._updateWires(); }
   };
 
   Board.prototype.fit = function (opts) {
@@ -331,7 +332,7 @@
       this.selectedNode = null;
       this.selectedNodes = [];
       this.selectedEdge = wireHit.dataset.edge;
-      this.render();
+      this.paint(this.result);
       this.onSelect(null, this.selectedEdge);
       return;
     }
@@ -551,7 +552,12 @@
             n.x = g.origin[id].x; n.y = g.origin[id].y;
           });
         }
-        this.render();
+        g.ids.forEach(function (id) {
+          var n = self.node(id);
+          var el = n && self._elById[id];
+          if (el) { el.style.left = n.x + 'px'; el.style.top = n.y + 'px'; }
+        });
+        this._updateWires();
         this.onChange();
       }
       this._suppressClick = true;
@@ -577,7 +583,12 @@
             dragged.x = drag.ox; dragged.y = drag.oy;
           }
         }
-        this.render();
+        var draggedEl = this._elById[dragId];
+        if (draggedEl) {
+          draggedEl.style.left = dragged.x + 'px';
+          draggedEl.style.top = dragged.y + 'px';
+        }
+        this._updateWires();
         this.onChange();
       } else if (staleDrag) this._updateWires();
       return;
@@ -657,7 +668,7 @@
     this.selectedNode = null;
     this.selectedNodes = [];
     this.selectedEdge = null;
-    this.render();
+    this.paint(this.result);
     this.onSelect(null, null);
   };
 
@@ -751,7 +762,17 @@
    * not sit on top of each other. Rebuilds the SVG layer. */
   function drawWire(ns, self, e, pts) {
     var d = Wire.pathPoints(pts);
-    var path = makePath(ns, d, 'wire' + (self.selectedEdge === e.id ? ' is-selected' : '') + (e._new ? ' is-new' : ''));
+    var cls = 'wire' + (self.selectedEdge === e.id ? ' is-selected' : '') + (e._new ? ' is-new' : '');
+    var old = self._wireEls[e.id];
+    if (old && old.path && old.hit && old.path.parentNode === self.wires) {
+      old.path.setAttribute('d', d);
+      old.path.setAttribute('class', cls);
+      old.path.setAttribute('data-state', self._wireState(e));
+      old.path.setAttribute('data-role', self._wireRole(e));
+      old.hit.setAttribute('d', d);
+      return;
+    }
+    var path = makePath(ns, d, cls);
     path.setAttribute('data-state', self._wireState(e));
     path.setAttribute('data-role', self._wireRole(e));
     path.dataset.edge = e.id;
@@ -762,17 +783,28 @@
     self._wireEls[e.id] = { path: path, hit: hit };
   }
 
+  Board.prototype._refreshWireState = function () {
+    var self = this;
+    this.edges.forEach(function (e) {
+      var old = self._wireEls[e.id];
+      if (!old || !old.path) return;
+      old.path.setAttribute('class', 'wire' + (self.selectedEdge === e.id ? ' is-selected' : '') + (e._new ? ' is-new' : ''));
+      old.path.setAttribute('data-state', self._wireState(e));
+      old.path.setAttribute('data-role', self._wireRole(e));
+    });
+  };
+
   Board.prototype._updateWires = function (mode, movedIds) {
     if (mode === 'cheap') return this._updateWiresCheap(movedIds);
     var self = this;
     var ns = 'http://www.w3.org/2000/svg';
     this._cheapDirty = false;
-    while (this.wires.firstChild) this.wires.removeChild(this.wires.firstChild);
-    this._wireEls = Object.create(null);
+    this._wireDirty = false;
     var worldRect = this.world.getBoundingClientRect();
 
     var rects = this._rects();
-    var tracks = { v: [] };
+    var dense = this.items.length > 24 || this.edges.length > 32;
+    var tracks = dense ? null : { v: [] };
     var entries = [];
     this.edges.forEach(function (e) {
       var a = self._portPoint(e.from.node, e.from.port, worldRect);
@@ -782,7 +814,7 @@
     });
     entries.sort(function (e1, e2) { return e1.dist - e2.dist; });
     entries.forEach(function (x) {
-      x.e._wirePts = Wire.route(x.a, x.b, rects, {
+      x.e._wirePts = (dense ? Wire.routeFast : Wire.route)(x.a, x.b, rects, {
         fromId: x.e.from.node,
         toId: x.e.to.node,
         tracks: tracks,
@@ -790,10 +822,19 @@
       });
     });
     this._wireTracks = tracks;
+    var alive = Object.create(null);
     this.edges.forEach(function (e) {
+      alive[e.id] = true;
       if (!e._wirePts) return;
       drawWire(ns, self, e, e._wirePts);
       delete e._wirePts;
+    });
+    Object.keys(this._wireEls).forEach(function (id) {
+      if (alive[id]) return;
+      var old = self._wireEls[id];
+      if (old.path && old.path.parentNode) old.path.parentNode.removeChild(old.path);
+      if (old.hit && old.hit.parentNode) old.hit.parentNode.removeChild(old.hit);
+      delete self._wireEls[id];
     });
     if (this.draft) {
       var from = this._portPoint(this.draft.from.node, this.draft.from.port);
@@ -812,13 +853,13 @@
     if (!this._wireEls) return this._updateWires();
     var self = this;
     this._cheapDirty = true;
+    this._wireDirty = true;
     var moved = null;
     if (movedIds && movedIds.length) {
       moved = Object.create(null);
       movedIds.forEach(function (id) { moved[id] = true; });
     }
     var rects = this._rects();
-    var tracks = this._wireTracks ? { v: this._wireTracks.v.slice() } : null;
     this.edges.forEach(function (e) {
       if (moved && !(moved[e.from.node] || moved[e.to.node])) return;
       var els = self._wireEls[e.id];
@@ -826,11 +867,9 @@
       var a = self._portPoint(e.from.node, e.from.port);
       var b = self._portPoint(e.to.node, e.to.port);
       if (!a || !b) return;
-      var pts = Wire.route(a, b, rects, {
+      var pts = Wire.routeFast(a, b, rects, {
         fromId: e.from.node,
-        toId: e.to.node,
-        tracks: tracks,
-        group: e.from.node + '|' + e.from.port
+        toId: e.to.node
       });
       var d = Wire.pathPoints(pts);
       els.path.setAttribute('d', d);
@@ -1015,14 +1054,15 @@
       self._elById[n.id] = el;
       self._applyNode(el, n, result, selectedMap);
     });
-    this._updateWires();
+    if (this._wireDirty) this._updateWires();
+    else this._refreshWireState();
   };
 
   Board.prototype.select = function (id) {
     this.selectedNode = id;
     this.selectedNodes = id ? [id] : [];
     this.selectedEdge = null;
-    this.render();
+    this.paint(this.result);
     this.onSelect(id, null);
   };
 
@@ -1094,6 +1134,7 @@
     this.items.push(n);
     this._resolvePosition(n);
     setTimeout(function () { delete n._new; }, 320);
+    this.render();
     this.select(n.id);
     /* 渲染后拿到真实高度，再确认一次不压到邻居（高 S 元件尤其重要）。 */
     if (this._overlaps(n, n.x, n.y)) {
