@@ -12,6 +12,7 @@ const DEMON = 10;
 runTest('game-ui', async ({ openPage }) => {
   const page = await openPage({ width: 1440, height: 900, url: fileUrl('index.html'), shotDir: '.research/shots' });
   await page.ready();
+  await page.js('if (window.RSL.Story) { window.RSL.Story.setSeen({intro:true,tutorials:true,normal:true,hard:true,demon:true}); } var sl=document.getElementById("storyLayer"); if(sl) sl.hidden=true;');
   await page.js('window.RSL.APP.state.forceUnlock = true');
 
   const home = await page.js(`(function(){
@@ -241,6 +242,16 @@ runTest('game-ui', async ({ openPage }) => {
   equal(rank.rows, 2, '排行榜显示名次行');
   ok(/第 3 名/.test(rank.me), '排行榜显示我的名次');
   ok(/2 关/.test(rank.first), '排行榜分数按通关数显示');
+  await page.js('window.RSL.UI.closeSheet()');
+
+  /* 全通玩家在排行榜上有皇冠/描边标记 */
+  const totalLevels = await page.js('window.RSL.APP.state.levels.length');
+  await page.js(`window.RSL.Screens.openLeaderboard({ list: [{ rank: 1, nickname: '全通', avatar: '', score: ${totalLevels} * 100000 + 5000 }], mine: { ranked: true, rank: 1, score: ${totalLevels} * 100000 + 5000 } }, window.RSL.APP.state)`);
+  await page.waitFor('document.querySelectorAll(".rank-row").length === 1');
+  const legend = await page.js(`(function(){var r=document.querySelector('.rank-row');return {row:r.classList.contains('is-legend'),crown:!!r.querySelector('.rank-crown'),me:!!document.querySelector('.rank-me .rank-crown')};})()`);
+  equal(legend.row, true, '全通玩家行有特殊标记');
+  equal(legend.crown, true, '全通玩家行有皇冠');
+  equal(legend.me, true, '我的名次也有皇冠');
   await page.js('window.RSL.UI.closeSheet()');
 
   await page.js('document.querySelector("#achvBtn").click()');

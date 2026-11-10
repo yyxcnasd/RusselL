@@ -203,6 +203,8 @@
     state.usedKinds = setOf(p.usedKinds);
     state.cleanWins = setOf(p.cleanWins);
     state.achievements = setOf(p.achievements);
+    state.godMode = !!p.godMode;
+    state.storySeen = p.story || {};
     /* 云端只保存精简电路；合并而不是整体覆盖，避免丢掉本机其它关卡的电路。 */
     state.circuits = Object.assign({}, state.circuits || {}, p.circuits || {});
     state.lastId = p.lastId || null;

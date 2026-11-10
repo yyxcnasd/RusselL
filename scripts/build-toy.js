@@ -11,7 +11,7 @@ const out = path.join(root, 'dist');
 const RUNTIME_JS = [
   'term.js', 'levels.js', 'campaign-meta.js', 'modules.js', 'engine.js',
   'wire.js', 'achievements.js', 'legacy-targets.js', 'legacy-targets-96.js', 'save.js', 'hints.js', 'cloudsave.js', 'leaderboard.js', 'ui.js', 'audio.js',
-  'catalog.js', 'screens.js', 'board.js', 'main.js'
+  'catalog.js', 'screens.js', 'board.js', 'story.js', 'main.js'
 ];
 
 const ALLOWED = new Set(['.html','.htm','.css','.js','.json','.wasm','.data','.md','.csv','.tsv','.png','.jpg','.jpeg','.gif','.svg','.webp','.ico','.woff2','.woff','.ttf','.eot','.mp3','.wav','.ogg','.m4a','.mp4','.webm']);

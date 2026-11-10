@@ -25,6 +25,8 @@
     circuits: {},
     deletedThisLevel: false,
     achievements: {},
+    godMode: false,
+    storySeen: {},
     board: null,
     results: null,
     selectedNode: null,
@@ -62,6 +64,8 @@
     state.cleanWins = {};
     state.circuits = {};
     state.achievements = {};
+    state.godMode = false;
+    state.storySeen = {};
     state.lastId = null;
   }
 
@@ -72,6 +76,8 @@
     state.cleanWins = setOf(p.cleanWins);
     state.circuits = p.circuits || {};
     state.achievements = setOf(p.achievements);
+    state.godMode = !!p.godMode;
+    state.storySeen = p.story || {};
     state.lastId = p.lastId || null;
   }
 
@@ -117,6 +123,10 @@
     }
     applyProgress(result.save);
     var stored = true;
+    if (!state.godMode && state.levels.length && state.levels.every(function (x) { return state.solved[x.id]; })) {
+      state.godMode = true;
+      stored = SAVE.store(SAVE.payload(state));
+    }
     if (result.report.migrated) {
       /* 覆盖前留一份旧档；缺失 legacy 映射时不在加载阶段持久化，避免静默洗掉旧字段。 */
       var legacySource = result.report.fromVersion !== SAVE.version ||
@@ -314,6 +324,20 @@
     els.levelBtn.textContent = '*' + String(level.no == null ? '' : level.no).padStart(2, '0');
   }
 
+  function allSolved(list) {
+    return !!list.length && list.every(function (lv) { return !!state.solved[lv.id]; });
+  }
+
+  function maybeStory() {
+    var Story = window.RSL.Story;
+    if (!Story) return;
+    if (!state.storySeen.intro && !Object.keys(state.solved).length) Story.trigger('intro');
+    if (allSolved(state.levels.filter(function (lv) { return lv.tutorial; }))) Story.trigger('tutorials');
+    if (allSolved(state.levels.filter(function (lv) { return lv.band === 'base'; }))) Story.trigger('normal');
+    if (allSolved(state.levels.filter(function (lv) { return lv.band === 'challenge'; }))) Story.trigger('hard');
+    if (allSolved(state.levels.filter(function (lv) { return lv.band === 'demon'; }))) Story.trigger('demon');
+  }
+
   /* 载入关卡：初始图/元件来自关卡数据（targetTokens / palette / initialNodes / solution），
      proof 只用于参考提示，不是另一套流程。 */
   function loadLevel(index) {
@@ -388,6 +412,7 @@
     state.board.fit({ minScale: 0.15 });
     showTutorialTip(level);
     saveProgress();
+    maybeStory();
   }
 
   /* 把当前视图夹到“目标焊盘完整可见”的范围内，同时尽量保留 fit() 的取景。 */
@@ -886,6 +911,11 @@
       };
     }
     if (!state.bestLen[level.id] || len < state.bestLen[level.id]) state.bestLen[level.id] = len;
+    if (!state.godMode && state.levels.length && state.levels.every(function (x) { return state.solved[x.id]; })) {
+      state.godMode = true;
+      if (els.godBtn) els.godBtn.hidden = false;
+      UI.toast('全部通关：永久 God Mode 已解锁');
+    }
     saveProgress();
     if (window.RSL.Leaderboard) window.RSL.Leaderboard.submit(state);
     checkAchievements();
@@ -898,6 +928,7 @@
 
     var isLast = state.index >= state.levels.length - 1;
     var reference = (level.solution && level.solution.nodes.length) || len;
+    if (allSolved(state.levels)) setTimeout(maybeStory, 700);
     Screens.openWin({
       tokens: targetTokensOf(level),
       len: len,
@@ -1169,13 +1200,13 @@
     els = UI.init();
     if (!window.RSL.Term || !window.RSL.Engine) { document.body.innerHTML = '<div class="fatal">公式引擎未加载</div>'; return; }
     var toyMode = !!(window.RSL.Hints && window.RSL.Hints.isToyHost());
-    var godMode = /(?:^|[?&])godMode=1(?:&|$)/.test(location.search);
+    var queryGod = /(?:^|[?&])godMode=1(?:&|$)/.test(location.search);
     if (els.hintBtn) els.hintBtn.hidden = !toyMode;
     if (els.rankBtn) els.rankBtn.hidden = !toyMode;
-    if (els.godBtn) els.godBtn.hidden = !godMode;
     /* 先建关卡表：loadProgress 的 v4 迁移需要当前 levels + targetTokens。 */
     buildLevels();
     loadProgress();
+    if (els.godBtn) els.godBtn.hidden = !(queryGod || state.godMode);
     loadSettings();
     applyTheme();
     updateSoundBtn();
@@ -1212,6 +1243,16 @@
 
     bind();
 
+    if (window.RSL.Story) {
+      window.RSL.Story.init({
+        onSeen: function (id) {
+          state.storySeen[id] = true;
+          saveProgress();
+        }
+      });
+      window.RSL.Story.setSeen(state.storySeen);
+    }
+
     var start = pickStartIndex();
     loadLevel(start);
     updateProgress();
@@ -1238,6 +1279,8 @@
           return;
         }
         if (!window.RSL.CloudSave.apply(state, result.save)) return;
+        if (window.RSL.Story) window.RSL.Story.setSeen(state.storySeen);
+        if (els.godBtn && state.godMode) els.godBtn.hidden = false;
         var cloudStart = pickStartIndex();
         if (cloudStart >= 0) loadLevel(cloudStart);
         else if (!SAVE.store(SAVE.payload(state))) reportStoreFailure();

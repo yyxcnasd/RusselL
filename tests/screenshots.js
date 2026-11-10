@@ -32,6 +32,7 @@ runTest('screenshots', async ({ openPage }) => {
   fs.mkdirSync(OUT, { recursive: true });
   const page = await openPage({ width: 1440, height: 900, url: fileUrl('index.html'), shotDir: '.research/shots' });
   await page.ready();
+  await page.js('if (window.RSL.Story) { window.RSL.Story.setSeen({intro:true,tutorials:true,normal:true,hard:true,demon:true}); } var sl=document.getElementById("storyLayer"); if(sl) sl.hidden=true;');
   await page.js('window.RSL.APP.state.forceUnlock = true');
 
   /* ---- 浅色：README 引用的两张 ---- */

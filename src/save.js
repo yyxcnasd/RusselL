@@ -94,6 +94,8 @@
       cleanWins: Object.keys(state.cleanWins || {}),
       circuits: circuits(state.circuits),
       achievements: Object.keys(state.achievements || {}),
+      godMode: !!state.godMode,
+      story: object(state.storySeen),
       lastId: state.level && state.level.id ? state.level.id : (typeof state.lastId === 'string' ? state.lastId : null)
     };
   }
@@ -140,6 +142,8 @@
       cleanWins: unique(strings(raw.cleanWins)),
       circuits: circuits(raw.circuits),
       achievements: unique(strings(raw.achievements)),
+      godMode: raw.godMode === true,
+      story: object(raw.story),
       lastId: typeof raw.lastId === 'string' && raw.lastId ? raw.lastId : null
     };
   }
@@ -154,6 +158,8 @@
       cleanWins: [],
       circuits: {},
       achievements: [],
+      godMode: false,
+      story: {},
       lastId: null
     };
   }
@@ -270,6 +276,8 @@
       var save = blankSave(toCampaign);
       save.usedKinds = src.usedKinds.slice();
       save.achievements = src.achievements.slice();
+      save.godMode = src.godMode;
+      save.story = src.story;
       save.solved = src.solved.filter(function (id) {
         if (byId[id]) return true;
         report.droppedSolvedIds.push(id);
@@ -301,6 +309,8 @@
     var save = blankSave(toCampaign);
     save.usedKinds = src.usedKinds.slice();
     save.achievements = src.achievements.slice();
+    save.godMode = src.godMode;
+    save.story = src.story;
     var matcher = tokenMatcher(current);
     var mapping = report.mapping;
     var legacyCount = legacySize(legacy);

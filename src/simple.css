@@ -709,7 +709,7 @@ body.is-holding *{cursor:grabbing!important}
  * 16 选关面板 levels
  * ========================================================================= */
 
-.sheet.sheet-levels{width:min(720px,100%)}
+.sheet.sheet-levels{width:min(600px,100%)}
 
 .chapters{display:flex;flex-direction:column;gap:18px;padding-top:2px}
 
@@ -741,7 +741,7 @@ body.is-holding *{cursor:grabbing!important}
 .band.is-locked .band-glyph{opacity:.4}
 .band-count{font-size:10px;color:var(--muted);opacity:.8;font-variant-numeric:tabular-nums;margin-left:auto}
 
-.levels{display:grid;grid-template-columns:repeat(12,42px);gap:7px;justify-content:space-between}
+.levels{display:grid;grid-template-columns:repeat(10,40px);gap:6px;justify-content:space-between}
 .band .levels{padding-top:2px}
 .band.tutorial .levels{
   display:flex;flex-wrap:nowrap;overflow-x:auto;gap:8px;align-items:center;justify-content:flex-start;
@@ -752,7 +752,7 @@ body.is-holding *{cursor:grabbing!important}
 
 /* 关卡格只保留四种语义：默认 / 已通关 / 当前 / 锁定。 */
 .level-cell{
-  position:relative;width:42px;height:42px;border-radius:11px;
+  position:relative;width:40px;height:40px;border-radius:11px;
   background:var(--soft);color:var(--muted);
   font-size:13px;font-weight:600;
   transition:background .12s var(--ease),color .12s var(--ease),transform .12s var(--ease),box-shadow .12s var(--ease);
@@ -932,7 +932,9 @@ body.is-holding *{cursor:grabbing!important}
 .rank-no{font-size:12px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
 .rank-avatar{width:26px;height:26px;border-radius:50%;object-fit:cover;background:var(--line)}
 .rank-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:var(--ink)}
-.rank-score{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.rank-score{display:inline-flex;align-items:center;gap:3px;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.rank-row.is-legend{background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
+.rank-crown{width:14px;height:14px;display:inline-block;color:var(--accent);flex:none}
 .rank-empty{margin:16px 0 0;padding:16px;border-radius:10px;background:var(--soft);font-size:13px;color:var(--muted);line-height:1.6}
 
 .credit{margin:18px 0 0;text-align:center;color:var(--muted);font-size:12px}
@@ -979,7 +981,8 @@ body.is-holding *{cursor:grabbing!important}
 .primary:hover{transform:translateY(-1px);box-shadow:var(--sticker-hover)}
 .primary:active{transform:translateY(1px);box-shadow:var(--sticker-press)}
 .primary:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
-.next-btn{min-width:160px}
+.next-btn{min-width:0;width:52px;height:52px;padding:0;border-radius:50%;display:grid;place-items:center}
+.next-btn .icon{width:21px;height:21px}
 
 /* =========================================================================
  * 20 图标与杂项
@@ -1145,7 +1148,7 @@ body.is-holding *{cursor:grabbing!important}
   .sheet{padding:50px 16px 18px}
   .help-cards{grid-template-columns:1fr}
   .win-formula{font-size:19px}
-  .next-btn{min-width:0;width:100%}
+  .next-btn{min-width:0;width:52px;height:52px}
 }
 
 /* =========================================================================
@@ -1197,4 +1200,44 @@ body.is-holding *{cursor:grabbing!important}
   /* 脉冲 / 彩带直接停掉，而不是压到 0.01ms 后仍闪一下 */
   .check-btn.is-ready{animation:none!important;filter:none!important}
   .confetti{display:none!important}
+}
+
+/* =========================================================================
+ * 24 剧情窗口 story
+ * ========================================================================= */
+
+.story-layer{
+  position:fixed;inset:0;z-index:120;display:grid;place-items:center;
+  padding:24px;background:color-mix(in srgb,var(--ink) 36%,transparent);
+  -webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);
+}
+.story-layer[hidden]{display:none}
+.story-card{
+  width:min(620px,100%);min-height:280px;
+  display:flex;flex-direction:column;justify-content:space-between;gap:22px;
+  padding:34px 34px 24px;border-radius:24px;
+  background:var(--glass);border:var(--glass-border);
+  box-shadow:var(--glass-shadow-sheet);-webkit-backdrop-filter:var(--glass-filter);backdrop-filter:var(--glass-filter);
+}
+.story-text{
+  margin:0;min-height:5.2em;white-space:pre-line;
+  font-family:var(--font);font-size:20px;line-height:1.8;color:var(--ink);
+}
+.story-text.is-typing::after{
+  content:'';display:inline-block;width:2px;height:1em;margin-left:3px;
+  vertical-align:-.12em;background:var(--accent);animation:story-caret 1s steps(1) infinite;
+}
+.story-next{
+  align-self:flex-end;display:grid;place-items:center;
+  width:46px;height:46px;border-radius:50%;padding:0;
+  background:var(--stamp-bg);color:var(--stamp-fg);border:0;cursor:pointer;
+  transition:transform .12s var(--ease),opacity .12s var(--ease);
+}
+.story-next:hover{transform:translateX(2px)}
+.story-next:active{transform:translateX(4px)}
+.story-next .icon{width:20px;height:20px}
+@keyframes story-caret{50%{opacity:0}}
+@media (max-width:640px){
+  .story-card{padding:26px 22px 20px;min-height:250px}
+  .story-text{font-size:17px}
 }

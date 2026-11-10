@@ -117,22 +117,25 @@
 
   function openLeaderboard(data, state) {
     host.RSL.Audio.sfx('click');
+    var total = state && state.levels ? state.levels.length : 0;
+    function isLegend(row) { return !!total && Math.floor((row.score || 0) / 100000) >= total; }
     var body;
     if (!data) {
       body = '<p class="rank-empty">稍后再试</p>';
     } else {
       var rows = (data.list || []).map(function (row) {
-        return '<li class="rank-row">' +
+        var legend = isLegend(row);
+        return '<li class="rank-row' + (legend ? ' is-legend' : '') + '">' +
           '<span class="rank-no">' + row.rank + '</span>' +
           '<img class="rank-avatar" src="' + UI.esc(row.avatar) + '" alt="" loading="lazy">' +
           '<span class="rank-name">' + UI.esc(row.nickname) + '</span>' +
-          '<span class="rank-score">' + rankScore(row.score) + '</span>' +
+          '<span class="rank-score">' + (legend ? '<svg class="icon rank-crown"><use href="#i-crown"></use></svg>' : '') + rankScore(row.score) + '</span>' +
         '</li>';
       }).join('');
       if (!rows) rows = '<li class="rank-empty">还没有人上榜</li>';
       var mine = data.mine;
       var meLine = mine && mine.ranked
-        ? '第 ' + mine.rank + ' 名 · ' + rankScore(mine.score)
+        ? '第 ' + mine.rank + ' 名 · ' + rankScore(mine.score) + (isLegend(mine) ? ' · <svg class="icon rank-crown"><use href="#i-crown"></use></svg>' : '')
         : '未上榜';
       body = '<p class="rank-me">' + meLine + '</p>' +
         '<ol class="rank-list">' + rows + '</ol>';
@@ -314,7 +317,7 @@
           '<b>' + data.len + '</b><span class="metric-ref">/ ' + data.ref + '</span>' +
           '<span class="metric-bar"><i style="width:' + efficiency + '%"></i></span>' +
         '</div>' +
-        '<button class="primary next-btn" data-next="1">' + (data.isLast ? '选关' : '下一关') + '</button>' +
+        '<button class="primary next-btn" data-next="1" aria-label="' + (data.isLast ? '选关' : '下一关') + '"><svg class="icon"><use href="#i-arrow-right"></use></svg></button>' +
       '</div>');
     UI.confetti();
   }

@@ -53,10 +53,18 @@
   </div>
 </div>
 
+<div class="story-layer" id="storyLayer" hidden>
+  <div class="story-card" role="dialog" aria-modal="true" aria-live="polite">
+    <p class="story-text" id="storyText"></p>
+    <button class="story-next" id="storyNext" aria-label="next"><svg class="icon"><use href="#i-arrow-right"></use></svg></button>
+  </div>
+</div>
+
 <audio id="bgm" src="assets/audio/grassland.mp3" loop preload="metadata"></audio>
 
 <svg class="icon-sprite" aria-hidden="true"><defs>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 4.5v15m7.5-7.5h-15"/></symbol>
+  <symbol id="i-crown" viewBox="0 0 24 24"><path d="M3 8.5 7.5 11 12 5l4.5 6L21 8.5 19 18H5L3 8.5Zm2.4 7.5h13.2M6 21h12"/></symbol>
   <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></symbol>
   <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></symbol>
   <symbol id="i-book-open" viewBox="0 0 24 24"><path d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></symbol>
@@ -102,6 +110,7 @@
 <script src="src/catalog.js"></script>
 <script src="src/screens.js"></script>
 <script src="src/board.js"></script>
+<script src="src/story.js"></script>
 <script src="src/main.js"></script>
 </body>
 </html>
