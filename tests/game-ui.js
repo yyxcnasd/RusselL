@@ -212,6 +212,18 @@ runTest('game-ui', async ({ openPage }) => {
   await page.sleep(150);
   const popover = await page.js('document.querySelectorAll(".letter-grid .opt").length');
   equal(popover, 7, '原子切换器显示完整 P–V，而不是只显示本关用到的字母');
+  await page.js('document.querySelector(".letter-grid .opt[data-value=\\"Q\\"]").click()');
+  await page.sleep(120);
+  const popoverAfter = await page.js(`(function(){
+    var app=window.RSL.APP;
+    var n=app.state.board.node(app.state.selectedNode);
+    return {hidden:document.getElementById('popover').hidden,
+            selected:!!app.state.selectedNode,
+            name:n && n.config && n.config.name};
+  })()`);
+  equal(popoverAfter.hidden, false, '点原子选项后参数栏不消失');
+  equal(popoverAfter.selected, true, '点原子选项后元件仍保持选中');
+  equal(popoverAfter.name, 'Q', '原子选项已切换');
 
   /* 终点连线持久化：旧存档里的 target id 也要在重进时接回 ⊢ */
   const persist = await page.js(`(function(){

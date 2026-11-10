@@ -876,6 +876,12 @@
       if (!placePaletteAt(e.clientX, e.clientY)) UI.toast('放不下');
     }, true);
 
+    /* 参数弹层自己的指针事件不要再冒泡到棋盘/文档，否则点字母时会被当成
+     * 点空白而取消选择并把弹层收起。 */
+    ['pointerdown', 'mousedown', 'pointerup'].forEach(function (name) {
+      els.popover.addEventListener(name, function (e) { e.stopPropagation(); }, true);
+    });
+
     els.popover.addEventListener('click', function (e) {
       var opt = e.target.closest('[data-config]');
       if (opt && state.selectedNode) {
