@@ -23,13 +23,7 @@ jobs:
         with:
           node-version: '20'
       - name: Build static game
-        run: |
-          if [ -f .maintenance ]; then
-            mkdir -p dist
-            cp maintenance.html dist/index.html
-          else
-            node scripts/build-toy.js
-          fi
+        run: node scripts/build-toy.js
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
