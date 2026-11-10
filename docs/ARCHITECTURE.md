@@ -28,7 +28,7 @@ term → levels → campaign-meta → modules → engine → wire → achievemen
 | `src/cloudsave.js` | Toy 云存档：按账号分片写入、自动同步；网页版仍用 localStorage |
 | `src/leaderboard.js` | Toy 排行榜：通关数优先 + 模块效率加权的单整数分数、提交与榜单读取 |
 | `src/board.js` / `src/main.js` | 棋盘交互与关卡流程（一条 `loadLevel/refresh/check/win`） |
-| `src/levels.js` | 重组产物：每章 10 普通 + 24 困难，另 18 教学关；关卡号 `Ⅰ-01` 形式 |
+| `src/levels.js` | 重组产物：每章 10 普通 + 24 困难，另 23 教学关；关卡号 `Ⅰ-01` 形式 |
 | `campaign/` | 手写内容源：目标、顺序、提示、允许模块、参考证明项；`tutorials.json` 是教学关 |
 
 ## 3. 数据流
@@ -61,8 +61,8 @@ campaign/*.json + scripts/build-campaign.js
 
 | 命令 | 内容 |
 | --- | --- |
-| `npm test` | 154 关 schema（40 普通 + 96 困难 + 18 教学）、模块表、参考证明逐关真实 Engine 求值、编号越界拒绝 |
+| `npm test` | 159 关 schema（40 普通 + 96 困难 + 23 教学）、模块表、参考证明逐关真实 Engine 求值、编号越界拒绝 |
 | `npm run test:wire` | 端口布线纯函数：直线、障碍绕行、近端口、并行车道 |
 | `npm run test:leaderboard` | 排行榜分数：通关数优先、效率次之，落在 Toy 分数范围 |
-| `npm run test:ui` | Edge headless：加载 154 关、选关/教学分带/合并元件、帮助/提示/排行榜面板、无 JS 错误 |
-| `npm run test:acceptance` | dist 清单与源码一致；dist 直接加载完整 154 关 |
+| `npm run test:ui` | Edge headless：加载 159 关、选关/教学分带/合并元件、帮助/提示/排行榜面板、无 JS 错误 |
+| `npm run test:acceptance` | dist 清单与源码一致；dist 直接加载完整 159 关 |

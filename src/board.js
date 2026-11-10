@@ -958,7 +958,14 @@
     if (n.kind === 'set-empty') return '∅';
     if (n.kind === 'set-pair') return '{,}';
     if (n.kind === 'set-union') return '∪';
-    if (n.kind === 'theorem') return String(cfg.code || '⊢');
+    if (n.kind === 'theorem') {
+      var m = /([ⅠⅡⅢⅣ])-(\d+)/.exec(String(cfg.code || ''));
+      if (m) {
+        var en = { 'Ⅰ': 'I', 'Ⅱ': 'II', 'Ⅲ': 'III', 'Ⅳ': 'IV' }[m[1]] || 'I';
+        return en + '-' + m[2];
+      }
+      return String(cfg.code || '⊢');
+    }
     return '·';
   };
 

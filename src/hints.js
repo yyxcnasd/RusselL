@@ -143,7 +143,12 @@
     if (!n) return '?';
     var c = n.config || {};
     if (n.kind === 'axiom') return (c.schema || 'axiom') + (c.v ? '(' + c.v + ')' : '');
-    if (n.kind === 'theorem') return String(c.code || '⊢');
+    if (n.kind === 'theorem') {
+      var m = /([ⅠⅡⅢⅣ])-(\d+)/.exec(String(c.code || ''));
+      if (!m) return String(c.code || '⊢');
+      var en = { 'Ⅰ': 'I', 'Ⅱ': 'II', 'Ⅲ': 'III', 'Ⅳ': 'IV' }[m[1]] || 'I';
+      return en + '-' + m[2];
+    }
     if (n.kind === 'atom') return c.name || 'atom';
     if (n.kind === 'term') return c.name || 'term';
     if (n.kind === 'pred') return c.symbol || 'pred';

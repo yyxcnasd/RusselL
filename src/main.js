@@ -133,6 +133,10 @@
       els.themeBtn.setAttribute('aria-label', state.theme === 'dark' ? '切换浅色模式' : '切换深色模式');
       els.themeBtn.setAttribute('aria-pressed', state.theme === 'dark' ? 'true' : 'false');
     }
+    if (state.level) {
+      updateLevelButton();
+      buildTray();
+    }
   }
 
   function updateSoundBtn() {
@@ -177,6 +181,19 @@
   function isUnlocked(index) {
     if (state.forceUnlock) return true;
     if (index <= 0) return true;
+    var lv = state.levels[index];
+    if (!lv) return false;
+    var chapterLevels = state.levels.filter(function (x) { return x.chapter === lv.chapter; });
+    var firstOfChapter = chapterLevels[0] === lv;
+    if (firstOfChapter) {
+      if (lv.chapter === 0) return true;
+      var prevChapter = state.levels.filter(function (x) { return x.chapter === lv.chapter - 1 && !x.tutorial && !x.hard; });
+      return prevChapter.every(function (x) { return !!state.solved[x.id]; });
+    }
+    if (lv.hard) {
+      var normals = chapterLevels.filter(function (x) { return !x.tutorial && !x.hard; });
+      if (normals.every(function (x) { return !!state.solved[x.id]; })) return true;
+    }
     var prev = state.levels[index - 1];
     return !!(prev && state.solved[prev.id]);
   }
@@ -217,6 +234,26 @@
       '<span class="tip-code">' + UI.esc(tip.code || '') + '</span>' +
       '<span class="tip-flow">' + UI.esc(tip.flow || '') + '</span>';
     els.tutorialTip.hidden = false;
+  }
+
+  function updateLevelButton() {
+    var level = state.level;
+    if (!level || !els.levelBtn) return;
+    if (level.tutorial) {
+      els.levelBtn.style.backgroundImage = '';
+      els.levelBtn.textContent = level.code || '';
+      return;
+    }
+    var roman = ['I', 'II', 'III', 'IV'][Number(level.chapter) || 0] || 'I';
+    var fill = state.theme === 'dark' ? '#f3efe4' : '#24251f';
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44">' +
+      '<text x="22" y="31" text-anchor="middle" font-family="Times New Roman,serif" ' +
+      'font-size="30" font-weight="700" fill="' + fill + '" opacity=".55">' + roman + '</text></svg>';
+    els.levelBtn.style.backgroundImage = 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '")';
+    els.levelBtn.style.backgroundRepeat = 'no-repeat';
+    els.levelBtn.style.backgroundPosition = 'center';
+    els.levelBtn.style.backgroundSize = '40px 40px';
+    els.levelBtn.textContent = '*' + String(level.no || '').padStart(2, '0');
   }
 
   /* 载入关卡：初始图/元件来自关卡数据（targetTokens / palette / initialNodes / solution），
@@ -284,7 +321,7 @@
 
     els.goalFormula.innerHTML = tokens ? UI.goalTokens(tokens) : UI.esc(level.code || '');
     els.goal.classList.toggle('is-long', (els.goalFormula.textContent || '').length > 52);
-    els.levelBtn.textContent = level.code || String(index + 1).padStart(2, '0');
+    updateLevelButton();
     els.levelBtn.setAttribute('aria-label', '第 ' + (index + 1) + ' 关，选择关卡');
     els.popover.hidden = true;
     buildTray();
@@ -325,7 +362,7 @@
           var roman = { 'Ⅰ': 'I', 'Ⅱ': 'II', 'Ⅲ': 'III', 'Ⅳ': 'IV' }[m[1]] || 'I';
           var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="58" height="58">' +
             '<text x="29" y="40" text-anchor="middle" font-family="Times New Roman,serif" ' +
-            'font-size="32" font-weight="700" fill="#24251f" opacity=".3">' + roman + '</text></svg>';
+            'font-size="32" font-weight="700" fill="' + (state.theme === 'dark' ? '#f3efe4' : '#24251f') + '" opacity=".3">' + roman + '</text></svg>';
           symbol = '*' + m[2];
           style = ' style="background-image:url(\'data:image/svg+xml,' + encodeURIComponent(svg) +
             '\');background-repeat:no-repeat;background-position:center;background-size:58px 58px"';

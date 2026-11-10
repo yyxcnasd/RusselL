@@ -91,6 +91,68 @@ function normalCandidates(level, hardTargets) {
   return picked;
 }
 
+function makeComponentTutorial(label, id, title, kind, config, targetTokens, hint) {
+  const p = { id: 'n1', kind: 'atom', config: { name: 'P' }, x: 40, y: 40 };
+  const q = { id: 'n2', kind: 'atom', config: { name: 'Q' }, x: 40, y: 180 };
+  const mod = { id: 'n3', kind: kind, config: config || {}, x: 308, y: 40 };
+  const target = { id: 'nt', kind: 'target', config: {}, x: 576, y: 40, targetTokens: targetTokens };
+  const edges = [
+    { id: 'e1', from: { node: 'n1', port: 'out' }, to: { node: 'n3', port: 'a' } },
+    { id: 'e2', from: { node: 'n2', port: 'out' }, to: { node: 'n3', port: 'b' } },
+    { id: 'e3', from: { node: 'n3', port: 'out' }, to: { node: 'nt', port: 'proof' } }
+  ];
+  return {
+    id: id, code: label, no: null, tutorial: true, hard: false, band: 'tutorial',
+    chapter: 0, chapterGroup: 'Ⅰ', title: title,
+    teaches: hint, hint: hint, tip: { code: kind === 'and-intro-ax' ? '∧I*' : kind === 'and-elim-ax' ? '∧E*' : kind === 'or-intro-ax' ? '∨I*' : kind === 'iff-intro-ax' ? '↔I*' : '↔E*', flow: hint },
+    targetTokens: targetTokens, palette: paletteOf([p, q, mod]),
+    initialNodes: [target], solution: { nodes: [p, q, mod], edges: edges },
+    difficulty: 4, stats: { steps: 3 }
+  };
+}
+
+function componentTutorials() {
+  return [
+    makeComponentTutorial('vi', 'T0vi', '合取引入', 'and-intro-ax', {},
+      ['|-', '(', 'P', '->', '(', 'Q', '->', '(', 'P', '/\\', 'Q', ')', ')', ')'],
+      '取 P、Q 两枚原子，接进合取引入；输出 P→(Q→(P∧Q))。'),
+    makeComponentTutorial('vii', 'T0vii', '合取消去', 'and-elim-ax', { side: 'l' },
+      ['|-', '(', '(', 'P', '/\\', 'Q', ')', '->', 'P', ')'],
+      '合取消去左右两边各取一个方向；本关取左边 (P∧Q)→P。'),
+    makeComponentTutorial('viii', 'T0viii', '析取引入', 'or-intro-ax', { side: 'l' },
+      ['|-', '(', 'P', '->', '(', 'P', '\\/', 'Q', ')', ')'],
+      '析取引入有左右两个方向；本关从 P 引入 P∨Q。'),
+    makeComponentTutorial('ix', 'T0ix', '等值引入', 'iff-intro-ax', {},
+      ['|-', '(', '(', 'P', '->', 'Q', ')', '->', '(', '(', 'Q', '->', 'P', ')', '->', '(', 'P', '<->', 'Q', ')', ')', ')'],
+      '等值引入要同时有 A→B 和 B→A 两个方向，输出 A↔B。'),
+    makeComponentTutorial('x', 'T0x', '等值消去', 'iff-elim-ax', { dir: 'lr' },
+      ['|-', '(', '(', 'P', '<->', 'Q', ')', '->', '(', 'P', '->', 'Q', ')', ')'],
+      '等值消去可从 A↔B 取出 A→B 或 B→A；本关取左到右。')
+  ];
+}
+function makeSimpleNormal(chapterGroup, code, no) {
+  const p = { id: 'n1', kind: 'atom', config: { name: 'P' }, x: 40, y: 40 };
+  const q = { id: 'n2', kind: 'atom', config: { name: 'Q' }, x: 40, y: 180 };
+  const mod = { id: 'n3', kind: 'and-elim-ax', config: { side: 'l' }, x: 308, y: 40 };
+  const extra = { id: 'n4', kind: 'and', config: {}, x: 308, y: 230 };
+  const extra2 = { id: 'n5', kind: 'atom', config: { name: 'R' }, x: 40, y: 320 };
+  const targetTokens = ['|-', '(', '(', 'P', '/\\', 'Q', ')', '->', 'P', ')'];
+  const target = { id: 'nt', kind: 'target', config: {}, x: 576, y: 40, targetTokens: targetTokens };
+  const edges = [
+    { id: 'e1', from: { node: 'n1', port: 'out' }, to: { node: 'n3', port: 'a' } },
+    { id: 'e2', from: { node: 'n2', port: 'out' }, to: { node: 'n3', port: 'b' } },
+    { id: 'e3', from: { node: 'n3', port: 'out' }, to: { node: 'nt', port: 'proof' } }
+  ];
+  return {
+    id: code, code: code, no: no, tutorial: false, hard: false, band: 'base',
+    chapter: 0, chapterGroup: chapterGroup, title: '合取消去',
+    teaches: '(P∧Q)→P', hint: '取 P、Q 接进合取消去，左边输出 P∧Q→P。',
+    tip: null, targetTokens: targetTokens, palette: paletteOf([p, q, mod, extra, extra2]),
+    initialNodes: [target], solution: { nodes: [p, q, mod, extra, extra2], edges: edges },
+    difficulty: 5, mustUse: ['and-elim-ax'], stats: { steps: 5 }
+  };
+}
+
 function makeNormal(level, cand, code, no, chapterGroup) {
   const oldById = new Map(level.solution.nodes.map((n) => [n.id, n]));
   const subset = cand.nodes.map((id) => oldById.get(id)).filter(Boolean);
@@ -262,6 +324,7 @@ function main() {
       });
     });
     picked.sort((a, b) => a.cand.size - b.cand.size || a.level.no - b.level.no);
+    if (g === 'Ⅰ') picked.push({ synthetic: true });
     chapterNormals[g] = picked;
     normalCounts[g] = picked.length;
   });
@@ -277,11 +340,14 @@ function main() {
   const out = [];
   chapters.forEach((g) => {
     tutorials.filter((l) => l.chapterGroup === g).forEach((l) => out.push(l));
+    if (g === 'Ⅰ') componentTutorials().forEach((l) => out.push(l));
     const normals = chapterNormals[g];
     const normalByTarget = new Map();
     normals.forEach((x, i) => {
       const code = g + '-' + PAD(i + 1);
-      const lv = makeNormal(x.level, x.cand, code, i + 1, g);
+      const lv = x.synthetic
+        ? makeSimpleNormal(g, code, i + 1)
+        : makeNormal(x.level, x.cand, code, i + 1, g);
       normalByTarget.set(key(lv.targetTokens), code);
       out.push(lv);
     });

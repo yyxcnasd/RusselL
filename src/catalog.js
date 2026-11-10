@@ -64,7 +64,12 @@
     if (kind === 'pred') return cfg.symbol === '=' ? '等词 x = y' : '谓词 ' + cfg.symbol + '(x)';
     if (kind === 'all') return '全称 ∀' + cfg.v;
     if (kind === 'axiom') return '公理 ' + cfg.schema;
-    if (kind === 'theorem') return '已证定理 ' + String(cfg.code || '');
+    if (kind === 'theorem') {
+      var m = /([ⅠⅡⅢⅣ])-(\d+)/.exec(String(cfg.code || ''));
+      if (!m) return String(cfg.code || '');
+      var en = { 'Ⅰ': 'I', 'Ⅱ': 'II', 'Ⅲ': 'III', 'Ⅳ': 'IV' }[m[1]] || 'I';
+      return '已证定理 ' + en + '-' + m[2];
+    }
     var info = host.RSL.Engine.info ? host.RSL.Engine.info(kind) : null;
     return info && info.label ? info.label : kind;
   }
