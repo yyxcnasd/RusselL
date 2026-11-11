@@ -11,7 +11,7 @@
     mid: '3461564009024072',
     name: '夜与星尘_NaSd'
   };
-  var VIDEO = 'BV1pk4J68Egx'; // RusselL - 公理板 | 如果公理系统变成游戏
+  var VIDEO = 'BV1v1WL6cELX'; // RusselL - 公理板 | 如果公理系统变成游戏
 
   var OVERRIDES = {};
 

@@ -60,7 +60,7 @@
 顶栏灯泡打开三页提示，可左右翻页：
 
 1. **方向**：自动解锁，一句话说明往哪想。
-2. **思路**：点赞视频 [BV1pk4J68Egx](https://www.bilibili.com/video/BV1pk4J68Egx) 后解锁，说明大致构造。
+2. **思路**：点赞视频 [BV1v1WL6cELX](https://www.bilibili.com/video/BV1v1WL6cELX) 后解锁，说明大致构造。
 3. **接线**：关注 UP 主「夜与星尘_NaSd」后解锁，列出参考解的模块与接线。
 
 Toy 预览页和作者本人直接看三页。GitHub Pages / 本地不显示提示按钮。
