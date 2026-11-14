@@ -742,7 +742,6 @@ function main() {
       solution: { nodes: c.nodes.filter((n) => n.id !== c.targetId), edges: c.edges },
       difficulty: c.size,
       stats: { steps: c.size },
-      mustUse: Array.from(new Set(palette.map((e) => e.kind))).filter((k) => !Modules.isConstruct(k) && k !== 'theorem'),
     };
     const res = Engine.evaluate(level, c.nodes.concat([]), c.edges, { levels: levels.concat([level]), levelIndex: idx });
     if (!res.complete) {
@@ -786,7 +785,6 @@ function main() {
         if (n < 8 || n > 35) problems.push(lv.code + ' 普通关元件数 ' + n + ' 远超 10–30');
       }
       if (tokens > MAX_NORMAL_TOKENS) problems.push(lv.code + ' 普通关目标 ' + tokens + ' token');
-      if (!lv.mustUse.length) problems.push(lv.code + ' 普通关缺少 mustUse');
     } else if (lv.band === 'challenge') {
       if (n < MIN_HARD || n > MAX_HARD) {
         outside.challenge += 1;

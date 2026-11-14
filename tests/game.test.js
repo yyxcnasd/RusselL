@@ -71,13 +71,14 @@ test('108 关 = 8 教学 + 20 普通 + 70 困难 + 10 魔王，且只有一条�
   assert.strictEqual(new Set(ids).size, ids.length, 'id 唯一');
 });
 
-test('每关 schema：普通 10–30 + mustUse，困难 25–100 / 魔王 70–500 + hint=null，教学 tip', () => {
+test('每关 schema：普通 10–30，困难 25–100 / 魔王 70–500 + hint=null，教学 tip', () => {
   const levels = RSL.LEVELS;
   levels.forEach((lv) => {
     assert.ok(Array.isArray(lv.targetTokens) && lv.targetTokens[0] === '|-', lv.code + ' targetTokens');
     assert.ok(Array.isArray(lv.palette) && lv.palette.length > 0, lv.code + ' palette');
     assert.ok(lv.solution && lv.solution.nodes.length > 0, lv.code + ' 参考解');
     assert.ok(lv.initialNodes.some((n) => n.kind === 'target'), lv.code + ' 目标焊盘');
+    assert.ok(!('mustUse' in lv), lv.code + ' 不再携带 mustUse');
     if (lv.tutorial) {
       assert.strictEqual(lv.no, null, lv.code + ' 教学关不占编号');
       assert.ok(lv.tip && lv.tip.code && lv.tip.flow, lv.code + ' 教学浮窗');
@@ -85,7 +86,6 @@ test('每关 schema：普通 10–30 + mustUse，困难 25–100 / 魔王 70–5
     } else if (lv.band === 'base') {
       const n = lv.solution.nodes.length;
       assert.ok(n >= 10 && n <= 30, lv.code + ' 普通关 10–30 模块（实际 ' + n + '）');
-      assert.ok(Array.isArray(lv.mustUse) && lv.mustUse.length > 0, lv.code + ' 普通关 mustUse');
     } else if (lv.band === 'challenge') {
       const n = lv.solution.nodes.length;
       assert.ok(n >= 25 && n <= 100, lv.code + ' 困难关 25–100 模块（实际 ' + n + '）');
@@ -159,4 +159,42 @@ test('定理引用越界会被引擎拒绝', () => {
   ];
   const res = RSL.Engine.evaluate(lv, nodes, [], { levels: RSL.LEVELS, levelIndex: RSL.LEVELS.indexOf(lv) });
   assert.ok(res.errors.some((e) => /更早|前面/.test(e.message)), JSON.stringify(res.errors));
+});
+
+test('引理替代解不会被 mustUse 误报（复现并锁定 *20 的报错）', () => {
+  /* 线上 *20 问题：困难关曾携带 mustUse=[axiom,mp,subst]，玩家用引理给出的
+     正确证明会被拒绝并提示“这一关需要用到 axiom 模块”。现在引擎不再执行
+     mustUse，任何只由推理节点推出的合法证明都应通过。 */
+  const source = { id: 'src', code: 'zz', targetTokens: ['|-', 'P'], tutorial: false };
+  const nodes = [
+    { id: 't', kind: 'target', x: 0, y: 0, targetTokens: ['|-', 'P'], config: {} },
+    { id: 'th', kind: 'theorem', x: 0, y: 0, config: { code: source.code } },
+  ];
+  const edges = [{ from: { node: 'th', port: 'out' }, to: { node: 't', port: 'proof' } }];
+  ['challenge', 'demon', 'base'].forEach((band) => {
+    /* 故意把旧数据的 mustUse 放回去：即使玩家浏览器/Service Worker
+       缓存了旧 levels.js，引擎也不能再因此误杀合法证明。 */
+    const level = { id: band, code: band, band, hard: band !== 'base', targetTokens: ['|-', 'P'], mustUse: ['axiom', 'mp', 'subst'] };
+    const res = RSL.Engine.evaluate(level, nodes, edges, { levels: [source, level], levelIndex: 1 });
+    assert.strictEqual(res.complete, true, band + ' 合法证明应通过：' + JSON.stringify(res.errors));
+  });
+
+  /* 反作弊仍在：只用构造门拼出目标仍然被拒。 */
+  const cheat = [
+    { id: 't', kind: 'target', x: 0, y: 0, targetTokens: ['|-', 'P'], config: {} },
+    { id: 'a', kind: 'atom', x: 0, y: 0, config: { name: 'P' } },
+  ];
+  const cheatRes = RSL.Engine.evaluate(
+    { id: 'x', code: 'x', band: 'base', targetTokens: ['|-', 'P'] },
+    cheat, [{ from: { node: 'a', port: 'out' }, to: { node: 't', port: 'proof' } }],
+    { levels: [source], levelIndex: 0 }
+  );
+  assert.strictEqual(cheatRes.complete, false, '只有构造模块不能通关');
+  assert.ok(/公理\/规则\/已证结论/.test(cheatRes.errors[0].message));
+});
+
+test('真实关卡数据：全部 108 关都不再携带 mustUse', () => {
+  RSL.LEVELS.forEach((lv) => {
+    assert.ok(!('mustUse' in lv), lv.code + '（' + lv.band + '）不应携带 mustUse');
+  });
 });

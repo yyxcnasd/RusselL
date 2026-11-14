@@ -105,7 +105,6 @@ runTest('features', async ({ openPage }) => {
     var tut = levels.filter(function(x){return x.band==='tutorial'})[0];
     var current = hard[1];
     var later = hard[6];
-    current.mustUse = [];
     app.state.solved[later.id] = true;
     app.state.solved[tut.id] = true;
     var ctx = {levels:levels, levelIndex:levels.indexOf(current), solved:app.state.solved};

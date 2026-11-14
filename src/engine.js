@@ -144,7 +144,6 @@
       var seen = {};
       var queue = [targetNode.id];
       var hasSource = false;
-      var usedKinds = {};
       var incomingList = {};
       edges.forEach(function (e) {
         if (!e.to || !e.from) return;
@@ -155,10 +154,7 @@
         if (seen[id]) continue;
         seen[id] = true;
         var nd = byId[id];
-        if (nd) {
-          usedKinds[nd.kind] = true;
-          if (nd.kind !== 'target' && !M.isConstruct(nd.kind)) hasSource = true;
-        }
+        if (nd && nd.kind !== 'target' && !M.isConstruct(nd.kind)) hasSource = true;
         (incomingList[id] || []).forEach(function (e) {
           if (!seen[e.from.node]) queue.push(e.from.node);
         });
@@ -168,15 +164,10 @@
         target.error = '目标公式必须由公理/规则/已证结论推出，不能只用构造门拼出来';
         target.note = target.error;
         errors.push({ nodeId: targetNode.id, message: target.error });
-      } else if (level && Array.isArray(level.mustUse)) {
-        var missing = level.mustUse.filter(function (kind) { return !usedKinds[kind]; })[0];
-        if (missing) {
-          target.state = 'error';
-          target.error = '这一关需要用到 ' + missing + ' 模块';
-          target.note = target.error;
-          errors.push({ nodeId: targetNode.id, message: target.error });
-        }
       }
+      /* 不再执行旧的 mustUse 门禁：它要求证明里出现参考解用过的模块种类，
+         在困难/魔王段（可用引理）会误杀合法的替代证明，普通关也没有必要。
+         只需保证目标真的由推理节点推出（上面的 hasSource）。 */
     }
 
     return {

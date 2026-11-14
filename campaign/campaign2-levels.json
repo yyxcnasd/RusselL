@@ -84,10 +84,7 @@
   "difficulty": 1,
   "stats": {
    "steps": 1
-  },
-  "mustUse": [
-   "axiom"
-  ]
+  }
  },
  {
   "id": "ii",
@@ -314,11 +311,7 @@
   "difficulty": 6,
   "stats": {
    "steps": 6
-  },
-  "mustUse": [
-   "axiom",
-   "subst"
-  ]
+  }
  },
  {
   "id": "iii",
@@ -621,12 +614,7 @@
   "difficulty": 8,
   "stats": {
    "steps": 8
-  },
-  "mustUse": [
-   "mp",
-   "axiom",
-   "subst"
-  ]
+  }
  },
  {
   "id": "iv",
@@ -745,10 +733,7 @@
   "difficulty": 1,
   "stats": {
    "steps": 1
-  },
-  "mustUse": [
-   "axiom"
-  ]
+  }
  },
  {
   "id": "v",
@@ -847,10 +832,7 @@
   "difficulty": 1,
   "stats": {
    "steps": 1
-  },
-  "mustUse": [
-   "axiom"
-  ]
+  }
  },
  {
   "id": "vi",
@@ -1092,12 +1074,7 @@
   "difficulty": 6,
   "stats": {
    "steps": 6
-  },
-  "mustUse": [
-   "def-expand",
-   "axiom",
-   "subst"
-  ]
+  }
  },
  {
   "id": "vii",
@@ -1371,12 +1348,7 @@
   "difficulty": 8,
   "stats": {
    "steps": 8
-  },
-  "mustUse": [
-   "def-contract",
-   "axiom",
-   "subst"
-  ]
+  }
  },
  {
   "id": "viii",
@@ -1625,10 +1597,7 @@
   "difficulty": 6,
   "stats": {
    "steps": 6
-  },
-  "mustUse": [
-   "subst"
-  ]
+  }
  },
  {
   "id": "00",
@@ -2011,12 +1980,7 @@
   "difficulty": 11,
   "stats": {
    "steps": 11
-  },
-  "mustUse": [
-   "mp",
-   "axiom",
-   "subst"
-  ]
+  }
  },
  {
   "id": "01",
@@ -2566,12 +2530,7 @@
   "difficulty": 15,
   "stats": {
    "steps": 15
-  },
-  "mustUse": [
-   "mp",
-   "axiom",
-   "subst"
-  ]
+  }
  },
  {
   "id": "02",
@@ -3218,12 +3177,7 @@
   "difficulty": 17,
   "stats": {
    "steps": 17
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "03",
@@ -3899,12 +3853,7 @@
   "difficulty": 17,
   "stats": {
    "steps": 17
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "04",
@@ -4569,12 +4518,7 @@
   "difficulty": 18,
   "stats": {
    "steps": 18
-  },
-  "mustUse": [
-   "mp",
-   "axiom",
-   "subst"
-  ]
+  }
  },
  {
   "id": "05",
@@ -5315,12 +5259,7 @@
   "difficulty": 18,
   "stats": {
    "steps": 18
-  },
-  "mustUse": [
-   "mp",
-   "axiom",
-   "subst"
-  ]
+  }
  },
  {
   "id": "06",
@@ -5974,12 +5913,7 @@
   "difficulty": 18,
   "stats": {
    "steps": 18
-  },
-  "mustUse": [
-   "mp",
-   "axiom",
-   "subst"
-  ]
+  }
  },
  {
   "id": "07",
@@ -6688,12 +6622,7 @@
   "difficulty": 19,
   "stats": {
    "steps": 19
-  },
-  "mustUse": [
-   "mp",
-   "axiom",
-   "subst"
-  ]
+  }
  },
  {
   "id": "08",
@@ -7439,12 +7368,7 @@
   "difficulty": 20,
   "stats": {
    "steps": 20
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "09",
@@ -8190,12 +8114,7 @@
   "difficulty": 20,
   "stats": {
    "steps": 20
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "10",
@@ -9007,12 +8926,7 @@
   "difficulty": 20,
   "stats": {
    "steps": 20
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "11",
@@ -9805,12 +9719,7 @@
   "difficulty": 20,
   "stats": {
    "steps": 20
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "12",
@@ -10580,12 +10489,7 @@
   "difficulty": 21,
   "stats": {
    "steps": 21
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "13",
@@ -11396,12 +11300,7 @@
   "difficulty": 22,
   "stats": {
    "steps": 22
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "14",
@@ -12212,12 +12111,7 @@
   "difficulty": 22,
   "stats": {
    "steps": 22
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "15",
@@ -13143,12 +13037,7 @@
   "difficulty": 22,
   "stats": {
    "steps": 22
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "16",
@@ -13985,12 +13874,7 @@
   "difficulty": 23,
   "stats": {
    "steps": 23
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "17",
@@ -14972,12 +14856,7 @@
   "difficulty": 25,
   "stats": {
    "steps": 25
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "18",
@@ -15958,12 +15837,7 @@
   "difficulty": 27,
   "stats": {
    "steps": 27
-  },
-  "mustUse": [
-   "mp",
-   "subst",
-   "axiom"
-  ]
+  }
  },
  {
   "id": "19",
@@ -16544,12 +16418,7 @@
   "difficulty": 17,
   "stats": {
    "steps": 17
-  },
-  "mustUse": [
-   "mp",
-   "subst",
-   "axiom"
-  ]
+  }
  },
  {
   "id": "20",
@@ -17523,12 +17392,7 @@
   "difficulty": 25,
   "stats": {
    "steps": 25
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "21",
@@ -18571,12 +18435,7 @@
   "difficulty": 25,
   "stats": {
    "steps": 25
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "22",
@@ -19531,12 +19390,7 @@
   "difficulty": 25,
   "stats": {
    "steps": 25
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "23",
@@ -20624,12 +20478,7 @@
   "difficulty": 26,
   "stats": {
    "steps": 26
-  },
-  "mustUse": [
-   "axiom",
-   "subst",
-   "mp"
-  ]
+  }
  },
  {
   "id": "24",
@@ -21719,12 +21568,7 @@
   "difficulty": 26,
   "stats": {
    "steps": 26
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "25",
@@ -22900,12 +22744,7 @@
   "difficulty": 26,
   "stats": {
    "steps": 26
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "26",
@@ -23847,12 +23686,7 @@
   "difficulty": 26,
   "stats": {
    "steps": 26
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "27",
@@ -24882,12 +24716,7 @@
   "difficulty": 27,
   "stats": {
    "steps": 27
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "28",
@@ -25923,12 +25752,7 @@
   "difficulty": 27,
   "stats": {
    "steps": 27
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "29",
@@ -26984,12 +26808,7 @@
   "difficulty": 27,
   "stats": {
    "steps": 27
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "30",
@@ -28059,12 +27878,7 @@
   "difficulty": 27,
   "stats": {
    "steps": 27
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "31",
@@ -29120,12 +28934,7 @@
   "difficulty": 28,
   "stats": {
    "steps": 28
-  },
-  "mustUse": [
-   "subst",
-   "axiom",
-   "mp"
-  ]
+  }
  },
  {
   "id": "32",
@@ -30190,12 +29999,7 @@
   "difficulty": 28,
   "stats": {
    "steps": 28
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "33",
@@ -31316,12 +31120,7 @@
   "difficulty": 28,
   "stats": {
    "steps": 28
-  },
-  "mustUse": [
-   "subst",
-   "axiom",
-   "mp"
-  ]
+  }
  },
  {
   "id": "34",
@@ -32399,12 +32198,7 @@
   "difficulty": 29,
   "stats": {
    "steps": 29
-  },
-  "mustUse": [
-   "subst",
-   "axiom",
-   "mp"
-  ]
+  }
  },
  {
   "id": "35",
@@ -33559,12 +33353,7 @@
   "difficulty": 29,
   "stats": {
    "steps": 29
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "36",
@@ -34725,12 +34514,7 @@
   "difficulty": 29,
   "stats": {
    "steps": 29
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "37",
@@ -35931,12 +35715,7 @@
   "difficulty": 29,
   "stats": {
    "steps": 29
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "38",
@@ -37097,12 +36876,7 @@
   "difficulty": 29,
   "stats": {
    "steps": 29
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "39",
@@ -38199,12 +37973,7 @@
   "difficulty": 29,
   "stats": {
    "steps": 29
-  },
-  "mustUse": [
-   "mp",
-   "axiom",
-   "subst"
-  ]
+  }
  },
  {
   "id": "40",
@@ -39387,12 +39156,7 @@
   "difficulty": 30,
   "stats": {
    "steps": 30
-  },
-  "mustUse": [
-   "subst",
-   "axiom",
-   "mp"
-  ]
+  }
  },
  {
   "id": "41",
@@ -40636,12 +40400,7 @@
   "difficulty": 30,
   "stats": {
    "steps": 30
-  },
-  "mustUse": [
-   "subst",
-   "axiom",
-   "mp"
-  ]
+  }
  },
  {
   "id": "42",
@@ -41799,12 +41558,7 @@
   "difficulty": 30,
   "stats": {
    "steps": 30
-  },
-  "mustUse": [
-   "subst",
-   "axiom",
-   "mp"
-  ]
+  }
  },
  {
   "id": "43",
@@ -42924,12 +42678,7 @@
   "difficulty": 30,
   "stats": {
    "steps": 30
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "44",
@@ -44030,12 +43779,7 @@
   "difficulty": 31,
   "stats": {
    "steps": 31
-  },
-  "mustUse": [
-   "mp",
-   "axiom",
-   "subst"
-  ]
+  }
  },
  {
   "id": "45",
@@ -45241,12 +44985,7 @@
   "difficulty": 31,
   "stats": {
    "steps": 31
-  },
-  "mustUse": [
-   "mp",
-   "axiom",
-   "subst"
-  ]
+  }
  },
  {
   "id": "46",
@@ -46456,12 +46195,7 @@
   "difficulty": 31,
   "stats": {
    "steps": 31
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "47",
@@ -47666,12 +47400,7 @@
   "difficulty": 31,
   "stats": {
    "steps": 31
-  },
-  "mustUse": [
-   "subst",
-   "axiom",
-   "mp"
-  ]
+  }
  },
  {
   "id": "48",
@@ -48876,12 +48605,7 @@
   "difficulty": 31,
   "stats": {
    "steps": 31
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "49",
@@ -50148,12 +49872,7 @@
   "difficulty": 31,
   "stats": {
    "steps": 31
-  },
-  "mustUse": [
-   "subst",
-   "axiom",
-   "mp"
-  ]
+  }
  },
  {
   "id": "50",
@@ -51457,12 +51176,7 @@
   "difficulty": 32,
   "stats": {
    "steps": 32
-  },
-  "mustUse": [
-   "subst",
-   "axiom",
-   "mp"
-  ]
+  }
  },
  {
   "id": "51",
@@ -52792,12 +52506,7 @@
   "difficulty": 33,
   "stats": {
    "steps": 33
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "52",
@@ -54155,12 +53864,7 @@
   "difficulty": 34,
   "stats": {
    "steps": 34
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "53",
@@ -55586,12 +55290,7 @@
   "difficulty": 35,
   "stats": {
    "steps": 35
-  },
-  "mustUse": [
-   "subst",
-   "axiom",
-   "mp"
-  ]
+  }
  },
  {
   "id": "54",
@@ -57074,12 +56773,7 @@
   "difficulty": 35,
   "stats": {
    "steps": 35
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "55",
@@ -58682,12 +58376,7 @@
   "difficulty": 37,
   "stats": {
    "steps": 37
-  },
-  "mustUse": [
-   "subst",
-   "axiom",
-   "mp"
-  ]
+  }
  },
  {
   "id": "56",
@@ -60223,12 +59912,7 @@
   "difficulty": 38,
   "stats": {
    "steps": 38
-  },
-  "mustUse": [
-   "subst",
-   "axiom",
-   "mp"
-  ]
+  }
  },
  {
   "id": "57",
@@ -61830,12 +61514,7 @@
   "difficulty": 39,
   "stats": {
    "steps": 39
-  },
-  "mustUse": [
-   "mp",
-   "subst",
-   "axiom"
-  ]
+  }
  },
  {
   "id": "58",
@@ -63394,12 +63073,7 @@
   "difficulty": 39,
   "stats": {
    "steps": 39
-  },
-  "mustUse": [
-   "mp",
-   "subst",
-   "axiom"
-  ]
+  }
  },
  {
   "id": "59",
@@ -64979,12 +64653,7 @@
   "difficulty": 40,
   "stats": {
    "steps": 40
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "60",
@@ -66565,12 +66234,7 @@
   "difficulty": 40,
   "stats": {
    "steps": 40
-  },
-  "mustUse": [
-   "mp",
-   "subst",
-   "axiom"
-  ]
+  }
  },
  {
   "id": "61",
@@ -68173,12 +67837,7 @@
   "difficulty": 40,
   "stats": {
    "steps": 40
-  },
-  "mustUse": [
-   "subst",
-   "axiom",
-   "mp"
-  ]
+  }
  },
  {
   "id": "62",
@@ -69808,12 +69467,7 @@
   "difficulty": 41,
   "stats": {
    "steps": 41
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "63",
@@ -71551,12 +71205,7 @@
   "difficulty": 41,
   "stats": {
    "steps": 41
-  },
-  "mustUse": [
-   "subst",
-   "axiom",
-   "mp"
-  ]
+  }
  },
  {
   "id": "64",
@@ -73130,12 +72779,7 @@
   "difficulty": 42,
   "stats": {
    "steps": 42
-  },
-  "mustUse": [
-   "mp",
-   "axiom",
-   "subst"
-  ]
+  }
  },
  {
   "id": "65",
@@ -74109,12 +73753,7 @@
   "difficulty": 25,
   "stats": {
    "steps": 25
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "66",
@@ -75022,12 +74661,7 @@
   "difficulty": 26,
   "stats": {
    "steps": 26
-  },
-  "mustUse": [
-   "mp",
-   "subst",
-   "axiom"
-  ]
+  }
  },
  {
   "id": "67",
@@ -76023,12 +75657,7 @@
   "difficulty": 26,
   "stats": {
    "steps": 26
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "68",
@@ -77028,12 +76657,7 @@
   "difficulty": 27,
   "stats": {
    "steps": 27
-  },
-  "mustUse": [
-   "mp",
-   "subst",
-   "axiom"
-  ]
+  }
  },
  {
   "id": "69",
@@ -78161,12 +77785,7 @@
   "difficulty": 30,
   "stats": {
    "steps": 30
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "70",
@@ -79903,12 +79522,7 @@
   "difficulty": 42,
   "stats": {
    "steps": 42
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "71",
@@ -81677,12 +81291,7 @@
   "difficulty": 42,
   "stats": {
    "steps": 42
-  },
-  "mustUse": [
-   "subst",
-   "axiom",
-   "mp"
-  ]
+  }
  },
  {
   "id": "72",
@@ -83445,12 +83054,7 @@
   "difficulty": 43,
   "stats": {
    "steps": 43
-  },
-  "mustUse": [
-   "mp",
-   "subst",
-   "axiom"
-  ]
+  }
  },
  {
   "id": "73",
@@ -85212,12 +84816,7 @@
   "difficulty": 43,
   "stats": {
    "steps": 43
-  },
-  "mustUse": [
-   "mp",
-   "axiom",
-   "subst"
-  ]
+  }
  },
  {
   "id": "74",
@@ -87094,12 +86693,7 @@
   "difficulty": 43,
   "stats": {
    "steps": 43
-  },
-  "mustUse": [
-   "subst",
-   "axiom",
-   "mp"
-  ]
+  }
  },
  {
   "id": "75",
@@ -88903,12 +88497,7 @@
   "difficulty": 44,
   "stats": {
    "steps": 44
-  },
-  "mustUse": [
-   "mp",
-   "subst",
-   "axiom"
-  ]
+  }
  },
  {
   "id": "76",
@@ -90767,12 +90356,7 @@
   "difficulty": 46,
   "stats": {
    "steps": 46
-  },
-  "mustUse": [
-   "mp",
-   "axiom",
-   "subst"
-  ]
+  }
  },
  {
   "id": "77",
@@ -92558,12 +92142,7 @@
   "difficulty": 46,
   "stats": {
    "steps": 46
-  },
-  "mustUse": [
-   "mp",
-   "axiom",
-   "subst"
-  ]
+  }
  },
  {
   "id": "78",
@@ -93549,12 +93128,7 @@
   "difficulty": 27,
   "stats": {
    "steps": 27
-  },
-  "mustUse": [
-   "mp",
-   "axiom",
-   "subst"
-  ]
+  }
  },
  {
   "id": "79",
@@ -94730,12 +94304,7 @@
   "difficulty": 32,
   "stats": {
    "steps": 32
-  },
-  "mustUse": [
-   "mp",
-   "axiom",
-   "subst"
-  ]
+  }
  },
  {
   "id": "80",
@@ -96165,12 +95734,7 @@
   "difficulty": 36,
   "stats": {
    "steps": 36
-  },
-  "mustUse": [
-   "axiom",
-   "subst",
-   "mp"
-  ]
+  }
  },
  {
   "id": "81",
@@ -97526,12 +97090,7 @@
   "difficulty": 36,
   "stats": {
    "steps": 36
-  },
-  "mustUse": [
-   "mp",
-   "axiom",
-   "subst"
-  ]
+  }
  },
  {
   "id": "82",
@@ -99077,12 +98636,7 @@
   "difficulty": 41,
   "stats": {
    "steps": 41
-  },
-  "mustUse": [
-   "mp",
-   "axiom",
-   "subst"
-  ]
+  }
  },
  {
   "id": "83",
@@ -100851,12 +100405,7 @@
   "difficulty": 43,
   "stats": {
    "steps": 43
-  },
-  "mustUse": [
-   "axiom",
-   "subst",
-   "mp"
-  ]
+  }
  },
  {
   "id": "84",
@@ -102542,12 +102091,7 @@
   "difficulty": 46,
   "stats": {
    "steps": 46
-  },
-  "mustUse": [
-   "mp",
-   "axiom",
-   "subst"
-  ]
+  }
  },
  {
   "id": "85",
@@ -104476,12 +104020,7 @@
   "difficulty": 49,
   "stats": {
    "steps": 49
-  },
-  "mustUse": [
-   "mp",
-   "subst",
-   "axiom"
-  ]
+  }
  },
  {
   "id": "86",
@@ -106954,12 +106493,7 @@
   "difficulty": 62,
   "stats": {
    "steps": 62
-  },
-  "mustUse": [
-   "mp",
-   "subst",
-   "axiom"
-  ]
+  }
  },
  {
   "id": "87",
@@ -109531,12 +109065,7 @@
   "difficulty": 63,
   "stats": {
    "steps": 63
-  },
-  "mustUse": [
-   "mp",
-   "axiom",
-   "subst"
-  ]
+  }
  },
  {
   "id": "88",
@@ -112072,12 +111601,7 @@
   "difficulty": 64,
   "stats": {
    "steps": 64
-  },
-  "mustUse": [
-   "mp",
-   "subst",
-   "axiom"
-  ]
+  }
  },
  {
   "id": "89",
@@ -113063,12 +112587,7 @@
   "difficulty": 25,
   "stats": {
    "steps": 25
-  },
-  "mustUse": [
-   "axiom",
-   "mp",
-   "subst"
-  ]
+  }
  },
  {
   "id": "90",
@@ -116284,12 +115803,7 @@
   "difficulty": 77,
   "stats": {
    "steps": 77
-  },
-  "mustUse": [
-   "mp",
-   "subst",
-   "axiom"
-  ]
+  }
  },
  {
   "id": "91",
@@ -119527,12 +119041,7 @@
   "difficulty": 79,
   "stats": {
    "steps": 79
-  },
-  "mustUse": [
-   "mp",
-   "subst",
-   "axiom"
-  ]
+  }
  },
  {
   "id": "92",
@@ -122857,13 +122366,7 @@
   "difficulty": 80,
   "stats": {
    "steps": 80
-  },
-  "mustUse": [
-   "def-contract",
-   "mp",
-   "axiom",
-   "subst"
-  ]
+  }
  },
  {
   "id": "93",
@@ -126233,12 +125736,7 @@
   "difficulty": 81,
   "stats": {
    "steps": 81
-  },
-  "mustUse": [
-   "mp",
-   "subst",
-   "axiom"
-  ]
+  }
  },
  {
   "id": "94",
@@ -129886,12 +129384,7 @@
   "difficulty": 90,
   "stats": {
    "steps": 90
-  },
-  "mustUse": [
-   "mp",
-   "subst",
-   "axiom"
-  ]
+  }
  },
  {
   "id": "95",
@@ -133966,13 +133459,7 @@
   "difficulty": 95,
   "stats": {
    "steps": 95
-  },
-  "mustUse": [
-   "def-contract",
-   "mp",
-   "axiom",
-   "subst"
-  ]
+  }
  },
  {
   "id": "96",
@@ -138314,13 +137801,7 @@
   "difficulty": 102,
   "stats": {
    "steps": 102
-  },
-  "mustUse": [
-   "def-contract",
-   "mp",
-   "axiom",
-   "subst"
-  ]
+  }
  },
  {
   "id": "97",
@@ -142739,13 +142220,7 @@
   "difficulty": 104,
   "stats": {
    "steps": 104
-  },
-  "mustUse": [
-   "def-contract",
-   "mp",
-   "axiom",
-   "subst"
-  ]
+  }
  },
  {
   "id": "98",
@@ -147412,12 +146887,7 @@
   "difficulty": 111,
   "stats": {
    "steps": 111
-  },
-  "mustUse": [
-   "mp",
-   "subst",
-   "axiom"
-  ]
+  }
  },
  {
   "id": "99",
@@ -152099,11 +151569,6 @@
   "difficulty": 112,
   "stats": {
    "steps": 112
-  },
-  "mustUse": [
-   "mp",
-   "axiom",
-   "subst"
-  ]
+  }
  }
 ]
